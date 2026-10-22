@@ -1,0 +1,21 @@
+Nettoyage PC 4.3
+
+Plus fluide
+- La fenêtre s'ouvre plus vite : les vérifications lentes se font après l'ouverture.
+- Les pages s'affichent d'un coup, sans clignoter ni se dessiner morceau par morceau.
+- Défilement doux à la molette ; survols, sélection du menu et onglets animés.
+- Les listes longues à lire (programmes au démarrage, historique, disques de sauvegarde) se
+  chargent en arrière-plan : la fenêtre ne se fige plus.
+- Les animations suivent le réglage de Windows « Effets d'animation » (Accessibilité).
+
+Plus simple
+- 6 rubriques principales : Accueil, Nettoyer, Accélérer, Protéger, Outils, Premium.
+  Mises à jour, Historique et Réglages sont regroupés en bas du menu.
+- « Jeux » est maintenant un onglet d'Accélérer, « Windows et pilotes » un onglet de Mises à jour.
+- Chaque page montre l'essentiel ; le reste est rangé derrière « Plus d'options » (ton choix est
+  mémorisé). Rien n'a été retiré : tout se retrouve aussi avec la recherche (Ctrl+K).
+- Les cartes remplissent toute la largeur de la fenêtre.
+- Moins de doublons ; un seul bouton pour le mode d'alimentation et pour l'entretien
+  automatique : il propose l'inverse de ce qui est en place.
+
+SHA256 de NettoyagePC-Setup-4.3.exe : voir le fichier NettoyagePC-Setup-4.3.sha256

@@ -1,0 +1,14 @@
+Nettoyage PC 4.3.1
+
+Mises à jour plus visibles
+- À chaque ouverture, Nettoyage PC vérifie s'il existe une nouvelle version (puis toutes les
+  6 heures si l'application reste ouverte).
+- Si une nouvelle version existe, un bandeau s'affiche en haut de la fenêtre, sur toutes les
+  pages et aussi en mode simple : « Installer maintenant » l'installe en moins d'une minute
+  (avec confirmation), « Voir les nouveautés » montre ce qui change, « Plus tard » cache le
+  bandeau jusqu'à la prochaine ouverture.
+- Plus besoin d'aller dans Mises à jour pour vérifier.
+
+Comprend toutes les nouveautés de la 4.3 (interface plus fluide et plus simple).
+
+SHA256 de NettoyagePC-Setup-4.3.1.exe : voir le fichier NettoyagePC-Setup-4.3.1.sha256

@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mentions légales · Nettoyage PC</title>
+<meta name="description" content="Mentions légales de Nettoyage PC.">
+<link rel="icon" type="image/png" href="img/icone-64.png">
+<style>
+:root { --fond: #060A12; --carte: #0A1220; --bordure: #18323F; --texte: #DDEBF5; --discret: #8AA0B4; --accent: #3DF5FF; --orange: #FFB547; --sur-accent: #04121A;
+  --affichage: "Bahnschrift", "DIN Alternate", "Segoe UI", system-ui, sans-serif; --corps: "Segoe UI", system-ui, -apple-system, Roboto, sans-serif; --console: "Cascadia Mono", Consolas, ui-monospace, monospace; color-scheme: dark; }
+@media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) { --fond: #EEF3F7; --carte: #FFFFFF; --bordure: #CBD9E3; --texte: #0E1C26; --discret: #4C6170; --accent: #007A9E; --orange: #A85F00; --sur-accent: #FFFFFF; color-scheme: light; } }
+:root[data-theme="light"] { --fond: #EEF3F7; --carte: #FFFFFF; --bordure: #CBD9E3; --texte: #0E1C26; --discret: #4C6170; --accent: #007A9E; --orange: #A85F00; --sur-accent: #FFFFFF; color-scheme: light; }
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+:root { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+body { background: var(--fond); color: var(--texte); font-family: var(--corps); line-height: 1.65; font-size: 1rem; }
+a { color: var(--accent); overflow-wrap: anywhere; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.enveloppe { max-width: 780px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.entete { border-bottom: 1px solid var(--bordure); background: var(--carte); }
+.entete .enveloppe { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 60px; flex-wrap: wrap; padding-block: 8px; max-width: 1120px; }
+.marque { display: flex; align-items: center; gap: 10px; color: var(--texte); text-decoration: none; font-family: var(--affichage); font-weight: 600; font-size: 1.1rem; }
+.marque img { width: 28px; height: 28px; }
+nav.autres { display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: .9rem; }
+nav.autres a { color: var(--discret); }
+nav.autres a[aria-current] { color: var(--texte); text-decoration: none; }
+main { padding-block: 40px 64px; }
+.etiquette { font-family: var(--console); font-size: .78rem; letter-spacing: .14em; text-transform: uppercase; color: var(--accent); }
+h1 { font-family: var(--affichage); font-weight: 600; font-size: clamp(1.6rem, 4vw, 2.3rem); line-height: 1.15; margin: 10px 0 6px; text-wrap: balance; }
+.date { color: var(--discret); font-family: var(--console); font-size: .85rem; margin: 0 0 28px; }
+h2 { font-family: var(--affichage); font-weight: 600; font-size: 1.2rem; letter-spacing: .04em; margin: 40px 0 12px; padding-top: 16px; border-top: 1px solid var(--bordure); text-wrap: balance; }
+h3 { font-size: 1.02rem; margin: 24px 0 8px; }
+p { margin: 0 0 12px; }
+ul { margin: 0 0 14px; padding-left: 22px; }
+li { margin-bottom: 6px; }
+.avis { border-left: 3px solid var(--orange); background: var(--carte); padding: 12px 16px; margin: 0 0 24px; font-size: .95rem; }
+.formulaire { border: 1px dashed var(--bordure); background: var(--carte); padding: 16px 18px; margin: 12px 0 18px; font-size: .95rem; }
+mark.a-completer { background: var(--orange); color: var(--sur-accent); padding: 0 4px; font-family: var(--console); font-size: .85em; }
+.pied { border-top: 1px solid var(--bordure); padding-block: 24px; color: var(--discret); font-size: .85rem; }
+</style>
+</head>
+<body>
+<header class="entete"><div class="enveloppe">
+  <a class="marque" href="index.html"><img src="img/icone-64.png" alt="" width="28" height="28">Nettoyage PC</a>
+  <nav class="autres" aria-label="Informations légales"><a href="conditions-de-vente.html">Conditions de vente</a> <a href="licence.html">Contrat de licence</a> <a href="confidentialite.html">Confidentialité</a> <a href="mentions-legales.html" aria-current="page">Mentions légales</a></nav>
+</div></header>
+<main class="enveloppe">
+  <span class="etiquette">// Informations légales</span>
+  <h1>Mentions légales</h1>
+  <p class="date">Version du 22 octobre 2026</p>
+  <p class="avis">Les passages surlignés seront complétés avec les coordonnées de l'éditeur avant l'ouverture de la boutique Premium. D'ici là, rien n'est vendu : seule la version gratuite est proposée.</p>
+  <h2>ÉDITEUR DE NETTOYAGE PC ET DE SON SITE</h2>
+<p><mark class="a-completer">[PRÉNOM NOM]</mark> EI (entrepreneur individuel)</p>
+<p>Adresse : <mark class="a-completer">[ADRESSE POSTALE]</mark></p>
+<p>E-mail : <mark class="a-completer">[E-MAIL DE CONTACT]</mark></p>
+<p>SIRET : <mark class="a-completer">[NUMÉRO SIRET]</mark></p>
+<p>TVA : <mark class="a-completer">[NUMÉRO DE TVA INTRACOMMUNAUTAIRE, ou « TVA non applicable, art. 293 B du CGI »]</mark></p>
+<p>Directeur de la publication : <mark class="a-completer">[PRÉNOM NOM]</mark></p>
+<h2>HÉBERGEMENT</h2>
+<p>Le site officiel et les fichiers de téléchargement de Nettoyage PC sont hébergés par :</p>
+<p>GitHub, Inc.</p>
+<p>88 Colin P. Kelly Jr. Street, San Francisco, CA 94107, États-Unis</p>
+<p><a href="https://github.com">https://github.com</a></p>
+<p>Site officiel : <a href="https://damiencoussot-ai.github.io/nettoyage-pc/">https://damiencoussot-ai.github.io/nettoyage-pc/</a> (service GitHub Pages)</p>
+<p>Versions et téléchargements : <a href="https://github.com/damiencoussot-ai/nettoyage-pc/releases">https://github.com/damiencoussot-ai/nettoyage-pc/releases</a></p>
+<h2>VENTE DE NETTOYAGE PC PREMIUM</h2>
+<p>Le paiement de Nettoyage PC Premium est assuré par Lemon Squeezy, revendeur officiel de l'Éditeur (« Merchant of Record »), qui encaisse le paiement, gère la TVA et émet les factures : <a href="https://www.lemonsqueezy.com">https://www.lemonsqueezy.com</a></p>
+<p>Conditions de vente : sur le site officiel (<a href="https://damiencoussot-ai.github.io/nettoyage-pc/conditions-de-vente.html">https://damiencoussot-ai.github.io/nettoyage-pc/conditions-de-vente.html</a>) et dans le logiciel, Réglages &gt; Informations légales.</p>
+<h2>PROPRIÉTÉ INTELLECTUELLE</h2>
+<p>Le logiciel Nettoyage PC, son nom, son icône, ses textes et sa documentation sont la propriété de l'Éditeur et sont protégés par le droit d'auteur. Toute reproduction ou diffusion non autorisée par le contrat de licence est interdite.</p>
+<p>Windows, Microsoft Defender, OneDrive et Microsoft Store sont des marques de Microsoft Corporation. AMD, NVIDIA, Intel et les autres marques citées appartiennent à leurs propriétaires respectifs. Nettoyage PC est un logiciel indépendant, qui n'est ni affilié à ces sociétés, ni approuvé par elles.</p>
+<h2>DONNÉES PERSONNELLES</h2>
+<p>Voir la politique de confidentialité, sur le site officiel (<a href="https://damiencoussot-ai.github.io/nettoyage-pc/confidentialite.html">https://damiencoussot-ai.github.io/nettoyage-pc/confidentialite.html</a>) et dans le logiciel (Réglages &gt; Informations légales). Le site n'utilise ni cookie ni traceur.</p>
+<h2>CONTACT</h2>
+<p>Pour toute question : <mark class="a-completer">[E-MAIL DE CONTACT]</mark></p>
+</main>
+<footer class="pied"><div class="enveloppe">Ce texte est aussi dans le logiciel : Réglages &gt; Informations légales. <a href="index.html">Retour au site</a></div></footer>
+</body>
+</html>

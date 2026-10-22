@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Confidentialité · Nettoyage PC</title>
+<meta name="description" content="Confidentialité de Nettoyage PC.">
+<link rel="icon" type="image/png" href="img/icone-64.png">
+<style>
+:root { --fond: #060A12; --carte: #0A1220; --bordure: #18323F; --texte: #DDEBF5; --discret: #8AA0B4; --accent: #3DF5FF; --orange: #FFB547; --sur-accent: #04121A;
+  --affichage: "Bahnschrift", "DIN Alternate", "Segoe UI", system-ui, sans-serif; --corps: "Segoe UI", system-ui, -apple-system, Roboto, sans-serif; --console: "Cascadia Mono", Consolas, ui-monospace, monospace; color-scheme: dark; }
+@media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) { --fond: #EEF3F7; --carte: #FFFFFF; --bordure: #CBD9E3; --texte: #0E1C26; --discret: #4C6170; --accent: #007A9E; --orange: #A85F00; --sur-accent: #FFFFFF; color-scheme: light; } }
+:root[data-theme="light"] { --fond: #EEF3F7; --carte: #FFFFFF; --bordure: #CBD9E3; --texte: #0E1C26; --discret: #4C6170; --accent: #007A9E; --orange: #A85F00; --sur-accent: #FFFFFF; color-scheme: light; }
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+:root { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+body { background: var(--fond); color: var(--texte); font-family: var(--corps); line-height: 1.65; font-size: 1rem; }
+a { color: var(--accent); overflow-wrap: anywhere; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.enveloppe { max-width: 780px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.entete { border-bottom: 1px solid var(--bordure); background: var(--carte); }
+.entete .enveloppe { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 60px; flex-wrap: wrap; padding-block: 8px; max-width: 1120px; }
+.marque { display: flex; align-items: center; gap: 10px; color: var(--texte); text-decoration: none; font-family: var(--affichage); font-weight: 600; font-size: 1.1rem; }
+.marque img { width: 28px; height: 28px; }
+nav.autres { display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: .9rem; }
+nav.autres a { color: var(--discret); }
+nav.autres a[aria-current] { color: var(--texte); text-decoration: none; }
+main { padding-block: 40px 64px; }
+.etiquette { font-family: var(--console); font-size: .78rem; letter-spacing: .14em; text-transform: uppercase; color: var(--accent); }
+h1 { font-family: var(--affichage); font-weight: 600; font-size: clamp(1.6rem, 4vw, 2.3rem); line-height: 1.15; margin: 10px 0 6px; text-wrap: balance; }
+.date { color: var(--discret); font-family: var(--console); font-size: .85rem; margin: 0 0 28px; }
+h2 { font-family: var(--affichage); font-weight: 600; font-size: 1.2rem; letter-spacing: .04em; margin: 40px 0 12px; padding-top: 16px; border-top: 1px solid var(--bordure); text-wrap: balance; }
+h3 { font-size: 1.02rem; margin: 24px 0 8px; }
+p { margin: 0 0 12px; }
+ul { margin: 0 0 14px; padding-left: 22px; }
+li { margin-bottom: 6px; }
+.avis { border-left: 3px solid var(--orange); background: var(--carte); padding: 12px 16px; margin: 0 0 24px; font-size: .95rem; }
+.formulaire { border: 1px dashed var(--bordure); background: var(--carte); padding: 16px 18px; margin: 12px 0 18px; font-size: .95rem; }
+mark.a-completer { background: var(--orange); color: var(--sur-accent); padding: 0 4px; font-family: var(--console); font-size: .85em; }
+.pied { border-top: 1px solid var(--bordure); padding-block: 24px; color: var(--discret); font-size: .85rem; }
+</style>
+</head>
+<body>
+<header class="entete"><div class="enveloppe">
+  <a class="marque" href="index.html"><img src="img/icone-64.png" alt="" width="28" height="28">Nettoyage PC</a>
+  <nav class="autres" aria-label="Informations légales"><a href="conditions-de-vente.html">Conditions de vente</a> <a href="licence.html">Contrat de licence</a> <a href="confidentialite.html" aria-current="page">Confidentialité</a> <a href="mentions-legales.html">Mentions légales</a></nav>
+</div></header>
+<main class="enveloppe">
+  <span class="etiquette">// Informations légales</span>
+  <h1>Politique de confidentialité de Nettoyage PC</h1>
+  <p class="date">Version du 22 octobre 2026</p>
+  <p class="avis">Les passages surlignés seront complétés avec les coordonnées de l'éditeur avant l'ouverture de la boutique Premium. D'ici là, rien n'est vendu : seule la version gratuite est proposée.</p>
+  <h2>EN BREF</h2>
+<ul>
+<li>Nettoyage PC fonctionne sur votre ordinateur. Il n'y a ni compte à créer, ni publicité, ni pistage, ni télémétrie, ni cookies.</li>
+<li>Le site officiel n'utilise ni cookie, ni traceur, ni mesure d'audience.</li>
+<li>Vos fichiers, journaux et réglages restent sur votre ordinateur. Ils ne sont jamais envoyés à l'Éditeur.</li>
+<li>Le logiciel n'utilise Internet que pour : vérifier les mises à jour, vérifier une licence Premium achetée, télécharger l'outil de mesure PresentMon si vous utilisez la « Preuve en FPS », et les tests de connexion que vous lancez vous-même.</li>
+<li>L'assistant local et ses réponses fonctionnent sur votre ordinateur (logiciel Ollama) : vos questions ne sont envoyées ni à l'Éditeur, ni sur Internet.</li>
+</ul>
+<h2 id="article-1">1. RESPONSABLE DU TRAITEMENT</h2>
+<p><mark class="a-completer">[PRÉNOM NOM]</mark> EI (entrepreneur individuel)</p>
+<p>Adresse : <mark class="a-completer">[ADRESSE POSTALE]</mark></p>
+<p>E-mail : <mark class="a-completer">[E-MAIL DE CONTACT]</mark></p>
+<p>ci-après « l'Éditeur ».</p>
+<h2 id="article-2">2. CE QUI RESTE SUR VOTRE ORDINATEUR</h2>
+<p>Ces informations sont créées et gardées uniquement sur votre ordinateur. L'Éditeur n'y a pas accès :</p>
+<ul>
+<li>les journaux des actions et les rapports (dossier Documents\NettoyagePC, gardés 60 jours) ;</li>
+<li>votre profil : le pseudo, la couleur et la voix choisis pour le briefing vocal (fichier parametres.json du même dossier). La voix est la synthèse vocale de Windows, qui fonctionne sans Internet ;</li>
+<li>l'historique des modifications, qui permet de les annuler ;</li>
+<li>vos réglages, les mesures de performances, l'état du gardien et des sauvegardes automatiques (dossier %LOCALAPPDATA%\NettoyagePC) ;</li>
+<li>pour les outils Premium que vous utilisez : une « photo » quotidienne de la configuration du PC pour l'enquêteur (programmes au démarrage, services, réglages, gardée 150 jours), les mesures de santé (usure des SSD, température maximale de la carte graphique), les mesures de FPS, et l'estimation de consommation électrique par application (relevée par le gardien si l'option est cochée, gardée 400 jours), dans ce même dossier ;</li>
+<li>les conversations avec l'assistant local ne sont pas enregistrées : elles s'effacent à la fermeture de sa fenêtre ;</li>
+<li>l'état de votre licence Premium, chiffré par Windows pour votre seul compte (protection DPAPI).</li>
+</ul>
+<p>Les analyses (démarrage, plantages, disques, batterie, sécurité, enquêteur, santé prédictive, bouclier anti-arnaque) lisent les informations de Windows sur place : leurs résultats ne quittent pas votre ordinateur, sauf si vous choisissez de les envoyer à quelqu'un (bouton « Aider quelqu'un », par exemple).</p>
+<p>Vous pouvez supprimer ces données à tout moment : désinstallez Nettoyage PC, puis supprimez les dossiers indiqués ci-dessus.</p>
+<h2 id="article-3">3. CE QUI PASSE PAR INTERNET</h2>
+<h3 id="article-3-1">3.1 Vérification des mises à jour</h3>
+<p>Le logiciel interroge le service GitHub (GitHub, Inc.), qui héberge Nettoyage PC, pour savoir s'il existe une nouvelle version, et télécharge celle-ci si vous l'acceptez. GitHub reçoit, comme pour tout site web, votre adresse IP et le nom du logiciel. Base légale : l'intérêt légitime de vous proposer des mises à jour de sécurité et de correction (vous pouvez ne pas les installer). Politique de GitHub : <a href="https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement">https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement</a></p>
+<p>Si vous utilisez la « Preuve en FPS », le logiciel télécharge aussi, au premier usage, l'outil libre PresentMon d'Intel depuis sa page officielle sur GitHub (github.com/GameTechDev/PresentMon), selon les mêmes règles.</p>
+<h3 id="article-3-2">3.2 Licence Premium achetée</h3>
+<p>À l'activation d'une clé, puis environ une fois par semaine, le logiciel envoie au service de licences de Lemon Squeezy :</p>
+<ul>
+<li>votre clé de licence ;</li>
+<li>un identifiant d'ordinateur pseudonyme (du type « PC-1A2B3C4D », calculé à partir de Windows, sans votre nom ni le nom de l'ordinateur) ;</li>
+<li>et, comme pour toute connexion, votre adresse IP.</li>
+</ul>
+<p>En retour, il reçoit l'état de la licence, ainsi que le nom et l'adresse e-mail de l'acheteur, affichés dans l'onglet Premium. Base légale : l'exécution du contrat de licence (vérifier que la clé est valide et respecter la limite de 3 ordinateurs). Les clés offertes et l'essai gratuit sont vérifiés sur votre ordinateur, sans Internet.</p>
+<h3 id="article-3-3">3.3 Achat</h3>
+<p>L'achat se fait sur la page de paiement de Lemon Squeezy, revendeur de l'Éditeur. Lemon Squeezy collecte les données nécessaires au paiement et à la facture (nom, adresse e-mail, pays, moyen de paiement) et en est responsable pour le paiement, selon sa propre politique : <a href="https://www.lemonsqueezy.com/privacy">https://www.lemonsqueezy.com/privacy</a></p>
+<p>L'Éditeur reçoit de Lemon Squeezy le nom, l'adresse e-mail, le pays et les informations de la commande. Il les utilise uniquement pour gérer votre licence, vous assister, traiter un remboursement et tenir sa comptabilité. Elles ne sont jamais vendues ni utilisées pour de la publicité. Base légale : l'exécution du contrat et les obligations comptables de l'Éditeur.</p>
+<h3 id="article-3-4">3.4 Tests que vous lancez vous-même (onglet Réseau)</h3>
+<ul>
+<li>Test de débit : téléchargement et envoi de données de test vers les serveurs de Cloudflare (speed.cloudflare.com), qui reçoivent votre adresse IP.</li>
+<li>Comparaison des serveurs DNS : quelques demandes de résolution envoyées aux serveurs testés (votre fournisseur d'accès, Cloudflare, Google, Quad9).</li>
+<li>Mesure du ping vers votre box et vers Internet.</li>
+</ul>
+<p>Ces tests ne transmettent aucune information personnelle en dehors de votre adresse IP.</p>
+<h3 id="article-3-5">3.5 Outils de Windows lancés à votre demande</h3>
+<p>La mise à jour des applications (winget), Windows Update, l'Assistance rapide (aide à distance) et Microsoft Defender sont des outils de Microsoft : lorsqu'ils sont lancés depuis Nettoyage PC, ils échangent avec Microsoft et les éditeurs concernés selon leurs propres règles. Nettoyage PC ne reçoit rien de ces échanges.</p>
+<p>L'assistant local s'adresse uniquement au logiciel Ollama installé sur votre ordinateur (adresse locale 127.0.0.1) : aucune question ni réponse ne passe par Internet. Ollama est un logiciel tiers, avec ses propres conditions.</p>
+<h3 id="article-3-6">3.6 Liens</h3>
+<p>Certains boutons ouvrent un site dans votre navigateur (pilotes AMD, NVIDIA ou Intel, boutiques d'extensions, page de paiement). Ces sites appliquent leur propre politique de confidentialité.</p>
+<h3 id="article-3-7">3.7 Si vous écrivez à l'Éditeur</h3>
+<p>Les messages que vous envoyez à l'Éditeur (assistance, remboursement) et les fichiers que vous y joignez sont utilisés uniquement pour vous répondre.</p>
+<h3 id="article-3-8">3.8 Le site officiel</h3>
+<p>Le site officiel de Nettoyage PC (<a href="https://damiencoussot-ai.github.io/nettoyage-pc/">https://damiencoussot-ai.github.io/nettoyage-pc/</a>) n'utilise ni cookie, ni traceur, ni outil de mesure d'audience, et ne charge aucun contenu depuis un autre site. Il est hébergé par GitHub (service GitHub Pages) qui, comme pour tout site web, reçoit l'adresse IP des visiteurs pour faire fonctionner et sécuriser le service. Le bouton « Télécharger » récupère l'installateur sur GitHub ; le bouton « Acheter » ouvre la page de paiement de Lemon Squeezy (voir 3.3).</p>
+<h2 id="article-4">4. DURÉE DE CONSERVATION</h2>
+<ul>
+<li>Données de licence et d'achat : pendant la durée de la licence, puis 5 ans (délai de prescription) ; les pièces comptables : 10 ans, comme l'exige la loi.</li>
+<li>Échanges d'assistance : 3 ans après le dernier message.</li>
+<li>Données sur votre ordinateur : jusqu'à ce que vous les supprimiez (journaux : 60 jours).</li>
+</ul>
+<h2 id="article-5">5. DESTINATAIRES ET TRANSFERTS HORS DE L'UNION EUROPÉENNE</h2>
+<p>Les seuls prestataires concernés sont GitHub (site officiel et mises à jour), Lemon Squeezy et ses prestataires de paiement (achat et licence) et Cloudflare (test de débit, à votre demande). Certains sont situés aux États-Unis ; ils encadrent les transferts de données selon leurs propres engagements (par exemple le cadre de protection des données UE - États-Unis ou les clauses contractuelles types de la Commission européenne), décrits dans leurs politiques de confidentialité.</p>
+<h2 id="article-6">6. VOS DROITS</h2>
+<p>Vous disposez d'un droit d'accès, de rectification, d'effacement, de limitation, d'opposition et de portabilité de vos données, dans les conditions prévues par le règlement général sur la protection des données (RGPD). Pour les exercer, écrivez à <mark class="a-completer">[E-MAIL DE CONTACT]</mark>. Une réponse vous sera apportée dans un délai d'un mois.</p>
+<p>Vous pouvez aussi introduire une réclamation auprès de la CNIL (Commission nationale de l'informatique et des libertés) : <a href="https://www.cnil.fr">https://www.cnil.fr</a></p>
+<h2 id="article-7">7. SÉCURITÉ</h2>
+<p>Le logiciel ne s'exécute jamais en administrateur en permanence : Windows demande votre autorisation pour chaque action qui touche tout le PC. Les mises à jour sont vérifiées (empreinte SHA256) avant installation. L'état de la licence est chiffré pour votre compte Windows.</p>
+<h2 id="article-8">8. MODIFICATIONS</h2>
+<p>Cette politique peut évoluer avec le logiciel. La version en vigueur est toujours consultable sur le site officiel et dans Nettoyage PC (Réglages &gt; Informations légales), avec sa date.</p>
+</main>
+<footer class="pied"><div class="enveloppe">Ce texte est aussi dans le logiciel : Réglages &gt; Informations légales. <a href="index.html">Retour au site</a></div></footer>
+</body>
+</html>

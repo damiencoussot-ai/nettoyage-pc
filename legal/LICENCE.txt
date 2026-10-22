@@ -1,0 +1,109 @@
+﻿CONTRAT DE LICENCE D'UTILISATION DE NETTOYAGE PC
+Version du 19 octobre 2026 (s'applique à Nettoyage PC 4.2 et aux versions suivantes)
+
+Merci de lire ce contrat avant d'installer ou d'utiliser Nettoyage PC. En installant ou en utilisant le logiciel, vous acceptez ce contrat. Si vous ne l'acceptez pas, n'installez pas le logiciel (ou désinstallez-le).
+
+
+1. QUI ÉDITE NETTOYAGE PC
+
+Nettoyage PC est édité par :
+[PRÉNOM NOM] EI (entrepreneur individuel)
+Adresse : [ADRESSE POSTALE]
+E-mail : [E-MAIL DE CONTACT]
+SIRET : [NUMÉRO SIRET]
+ci-après « l'Éditeur ».
+
+
+2. CE QUE FAIT LE LOGICIEL
+
+Nettoyage PC nettoie, optimise et surveille un ordinateur sous Windows 10 ou Windows 11 : suppression de fichiers temporaires et de caches, optimisation des disques, bilans de sécurité, mises à jour, sauvegarde, outils de diagnostic.
+
+Les engagements de l'Éditeur sur le fonctionnement du logiciel :
+- vos documents, photos et vidéos ne sont jamais supprimés par les nettoyages ;
+- un point de restauration de Windows est créé avant les opérations importantes, et les modifications de réglages peuvent être annulées depuis l'onglet Historique ;
+- le logiciel ne désactive jamais l'antivirus, le pare-feu ni Windows Update ;
+- chaque action qui touche tout le PC demande votre confirmation et l'autorisation de Windows ;
+- un « mode simulation » permet de voir ce qu'une action ferait, sans rien modifier.
+
+Comme tout logiciel qui agit sur le système, Nettoyage PC doit être utilisé avec attention : lisez les messages de confirmation, et gardez une sauvegarde de vos fichiers importants (l'onglet Protéger > Sauvegarde vous y aide).
+
+
+3. LA VERSION GRATUITE
+
+L'Éditeur vous accorde gratuitement le droit personnel, non exclusif et mondial d'installer et d'utiliser la version gratuite de Nettoyage PC, sur autant d'ordinateurs que vous le souhaitez, pour un usage privé ou professionnel, pendant toute la durée de protection du logiciel par le droit d'auteur.
+
+Vous pouvez partager le programme d'installation officiel (tel que publié par l'Éditeur, sans modification et gratuitement) avec d'autres personnes. Chacune d'elles devient alors titulaire de sa propre licence, aux conditions de ce contrat.
+
+
+4. NETTOYAGE PC PREMIUM
+
+4.1 Ce que comprend Premium. Premium débloque des outils supplémentaires, décrits dans l'onglet Premium du logiciel et dans les conditions de vente. Toutes les fonctions de la version gratuite restent gratuites.
+
+4.2 Comment l'obtenir. Premium s'obtient :
+- par l'achat d'une clé de licence sur la boutique officielle (voir les conditions de vente) ;
+- ou par une clé offerte par l'Éditeur.
+
+4.3 Étendue de la licence Premium. La clé vous donne le droit personnel et non exclusif d'utiliser Premium :
+- sur 3 ordinateurs au plus en même temps (le bouton « Retirer la licence de ce PC » libère une place pour un autre ordinateur) ;
+- pour toutes les versions 4 de Nettoyage PC (4.0, 4.1, 4.2... jusqu'à la dernière version 4), sans limite de durée.
+Une future version majeure (5.0 par exemple) pourra être proposée séparément ; vos versions 4 restent utilisables avec Premium, sans limite de durée.
+Une clé offerte peut comporter une date de fin, indiquée lors de sa remise.
+
+4.4 Essai gratuit. Un essai gratuit de Premium de 7 jours peut être lancé une fois par ordinateur, sans paiement ni coordonnées. À la fin de l'essai, les outils Premium se verrouillent simplement ; rien n'est facturé et vos données ne sont pas effacées.
+
+4.5 Vérification de la licence. Une clé achetée est vérifiée en ligne à l'activation, puis environ une fois par semaine. Sans Internet, Premium reste actif pendant 45 jours. Une clé désactivée par la boutique (par exemple après un remboursement) cesse de fonctionner.
+
+
+5. CE QUI N'EST PAS AUTORISÉ
+
+Sauf dans les cas où la loi l'autorise expressément, il n'est pas permis :
+- de vendre, louer ou publier une clé de licence, ou de la partager au-delà des 3 ordinateurs prévus ;
+- de contourner, désactiver ou modifier la vérification de la licence ;
+- de modifier le logiciel pour le redistribuer, ou de distribuer une version modifiée sous le nom de Nettoyage PC ;
+- de décompiler ou désassembler le logiciel, sauf dans les limites prévues par l'article L. 122-6-1 du code de la propriété intellectuelle (notamment pour l'interopérabilité) ;
+- d'utiliser le logiciel sur un ordinateur qui ne vous appartient pas sans l'accord de son propriétaire, ou à des fins illégales.
+
+En cas de fraude avérée (clé volée, revendue ou publiée), l'Éditeur peut désactiver la clé concernée.
+
+
+6. PROPRIÉTÉ
+
+Le logiciel, son code, son nom, son icône et sa documentation appartiennent à l'Éditeur et sont protégés par le droit d'auteur. Ce contrat vous accorde un droit d'utilisation : il ne vous transfère aucun droit de propriété.
+
+Windows, Microsoft Defender, OneDrive et Microsoft Store sont des marques de Microsoft Corporation. AMD, NVIDIA, Intel et les autres marques citées appartiennent à leurs propriétaires. Nettoyage PC est un logiciel indépendant : il n'est ni affilié à ces sociétés, ni approuvé par elles.
+
+
+7. MISES À JOUR
+
+Le logiciel peut vérifier s'il existe une nouvelle version et vous proposer de l'installer. Chaque mise à jour est vérifiée (empreinte SHA256) avant installation. Une nouvelle version peut être accompagnée d'une version mise à jour de ce contrat, affichée lors de l'installation.
+
+
+8. VOS DONNÉES
+
+Nettoyage PC ne contient ni publicité, ni pistage, ni télémétrie. Les rares échanges avec Internet (vérification des mises à jour, licence Premium, tests de connexion que vous lancez) sont décrits dans la politique de confidentialité, disponible dans le logiciel (Réglages > Informations légales).
+
+
+9. GARANTIES
+
+9.1 Si vous êtes un consommateur, vous bénéficiez des garanties prévues par la loi, et notamment de la garantie légale de conformité des contenus numériques (articles L. 224-25-1 à L. 224-25-31 du code de la consommation) et de la garantie des vices cachés (articles 1641 à 1649 du code civil). Le détail figure dans les conditions de vente. Rien dans ce contrat ne limite ces garanties.
+
+9.2 L'Éditeur s'efforce de corriger rapidement les défauts qui lui sont signalés, et fournit les mises à jour nécessaires au maintien de la conformité du logiciel.
+
+9.3 Le logiciel est conçu pour Windows 10 et Windows 11 (64 bits). Les résultats (place libérée, gain de performances) dépendent de chaque ordinateur et ne peuvent pas être garantis à l'avance ; les mesures et analyses du logiciel sont des indications.
+
+
+10. RESPONSABILITÉ
+
+10.1 Si vous êtes un consommateur, aucune clause de ce contrat ne supprime ni ne réduit votre droit à réparation prévu par la loi.
+
+10.2 Si vous utilisez le logiciel à titre professionnel, la responsabilité de l'Éditeur est limitée aux dommages directs et prévisibles, et, pour Premium, au prix payé pour la licence, sauf faute lourde ou intentionnelle. L'Éditeur n'est pas responsable de la perte de données qui aurait pu être évitée par une sauvegarde, ni de l'usage du logiciel contraire aux messages de confirmation.
+
+
+11. DURÉE ET FIN DU CONTRAT
+
+Ce contrat s'applique tant que vous utilisez le logiciel. Vous pouvez y mettre fin à tout moment en désinstallant Nettoyage PC. Les réglages modifiés restent annulables depuis l'Historique avant la désinstallation.
+
+
+12. DROIT APPLICABLE ET LITIGES
+
+Ce contrat est soumis au droit français. En cas de difficulté, contactez d'abord l'Éditeur à l'adresse e-mail indiquée à l'article 1 : une solution amiable sera recherchée. Si vous êtes un consommateur, vous pouvez aussi recourir gratuitement au médiateur de la consommation indiqué dans les conditions de vente, et saisir le tribunal de votre domicile ou celui prévu par la loi.

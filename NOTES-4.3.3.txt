@@ -1,0 +1,10 @@
+Nettoyage PC 4.3.3
+
+Nouveau logo
+- Un hexagone néon (cyan, violet, rose) autour d'une étincelle, sur fond bleu nuit : dans la
+  fenêtre, la barre des tâches, le menu Démarrer, le Bureau et l'installateur. Une version
+  simplifiée reste nette en petit (barre de titre, icône près de l'horloge).
+
+Comprend toutes les corrections de la 4.3.2 et les nouveautés des versions 4.3 et 4.3.1.
+
+SHA256 de NettoyagePC-Setup-4.3.3.exe : voir le fichier NettoyagePC-Setup-4.3.3.sha256

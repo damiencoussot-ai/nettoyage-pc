@@ -1,0 +1,12 @@
+# Ne jamais publier : clé privée des clés offertes et guide personnel de l'éditeur
+secret/
+cle-privee*
+*.xml.key
+GUIDE-EDITEUR.txt
+# Fichiers fabriqués
+livraison*/
+sortie/
+bin/
+obj/
+*.exe
+*.zip

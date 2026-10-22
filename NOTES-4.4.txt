@@ -1,0 +1,35 @@
+Nettoyage PC 4.4
+
+Sept nouveaux outils :
+
+- Pourquoi mon PC ralentit ? (Premium) : l'enquêteur retrace tout ce qui a changé sur le PC
+  (applications installées, pilotes, mises à jour Windows, programmes ajoutés au démarrage,
+  services, mode d'alimentation, vitesse de la mémoire, fréquence de l'écran) et le compare aux
+  performances (durée des démarrages, plantages, mesures). Il désigne les suspects et ouvre la
+  page qui permet de corriger.
+- Santé prédictive (Premium) : les signes qui annoncent une panne, repérés avant qu'elle arrive :
+  erreurs matérielles corrigées par Windows, erreurs du disque, arrêts brutaux et écrans bleus,
+  usure des SSD, batterie et température de la carte graphique, avec leur tendance. Le gardien
+  prévient si un signe sérieux apparaît.
+- Assistant local (Premium) : pose tes questions sur ton PC avec tes mots. L'intelligence
+  artificielle tourne sur ton PC avec Ollama (gratuit) : rien n'est envoyé sur Internet. Elle
+  connaît l'état du PC, propose des boutons, et chaque action reste confirmée par toi.
+  Commandes pour un assistant vocal comme ORION : --etat, --assistant-texte, --page, --ouvrir,
+  --action (toujours confirmée devant le PC).
+- Preuve en FPS (Premium) : les images par seconde réelles d'un jeu (moyenne, 1 % et 0,1 % les
+  plus lentes, saccades) avant puis après un réglage, mesurées par PresentMon, l'outil libre
+  d'Intel téléchargé depuis sa page officielle et vérifié.
+- Coût en électricité (Premium) : combien ton PC te coûte par jour, par mois et par an, et
+  quelles applications consomment le plus (estimation relevée chaque minute par le gardien,
+  écrans non comptés). Prix du kWh modifiable.
+- Bouclier anti-arnaque (gratuit) : repère les logiciels de prise en main à distance ouverts
+  (AnyDesk, TeamViewer, RustDesk...), signale s'ils sont connectés, et explique quoi faire face à
+  un faux technicien. Il ne ferme jamais rien tout seul : seulement si tu cliques et confirmes.
+  Le gardien prévient quand l'un d'eux s'ouvre.
+- Plein potentiel (gratuit, Outils) : les réglages qui brident le matériel sans qu'on le sache
+  (écran en dessous de sa fréquence, câble ou prise limitants, écran branché sur la carte mère au
+  lieu de la carte graphique, Resizable BAR, liaison PCIe, mémoire en simple canal ou sans EXPO).
+
+Comprend toutes les nouveautés des versions 4.3 à 4.3.4.
+
+SHA256 de NettoyagePC-Setup-4.4.exe : voir le fichier NettoyagePC-Setup-4.4.sha256

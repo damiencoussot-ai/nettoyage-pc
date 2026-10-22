@@ -1,0 +1,9 @@
+Nettoyage PC 4.3.4
+
+- Le nouveau logo s'affiche tout de suite sur le Bureau, dans le menu Démarrer et la barre des
+  tâches après une mise à jour : l'installateur et l'application demandent à Windows de rafraîchir
+  ses icônes (avant, Windows gardait parfois l'ancienne image en mémoire).
+
+Comprend le nouveau logo de la 4.3.3 et toutes les nouveautés des versions 4.3 à 4.3.2.
+
+SHA256 de NettoyagePC-Setup-4.3.4.exe : voir le fichier NettoyagePC-Setup-4.3.4.sha256

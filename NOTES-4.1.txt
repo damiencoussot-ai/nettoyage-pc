@@ -1,0 +1,20 @@
+Nettoyage PC 4.1
+
+Nouveau : Premium (9,99 €, une seule fois, toutes les versions 4, 3 PC)
+- Analyse du démarrage : combien de temps ton PC met à démarrer sur 90 jours, et ce qui le ralentit,
+  avec le nom précis de l'application, du pilote, du service ou de l'appareil.
+- Mesure des performances : processeur, mémoire vive et disque en chiffres, à comparer avant / après
+  un réglage (activation de l'EXPO, nouveau pilote, nettoyage).
+- Kit de réinstallation : tes applications (réinstallées d'un coup), tes pilotes et tes réseaux Wi-Fi
+  sur une clé USB, avec un script qui remet tout en place après une réinstallation de Windows.
+- Tout ce qui était gratuit le reste : nettoyage, sécurité, mises à jour, sauvegarde, jeux, aide à distance.
+
+Nouveau : mode simple
+- Réglages > Mode simple : trois gros boutons « Nettoyer mon PC », « Vérifier mon PC » et
+  « Appeler à l'aide », avec les points à régler. Idéal pour un débutant.
+
+Plus sûr
+- Chaque nouvelle version se contrôle elle-même pendant l'installation. En cas de problème, la version
+  précédente est remise en place automatiquement.
+
+SHA256 de NettoyagePC-Setup-4.1.exe : voir le fichier NettoyagePC-Setup-4.1.sha256

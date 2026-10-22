@@ -1,0 +1,122 @@
+# Nettoyage PC : fabrication et essais automatiques sur un vrai Windows.
+# - À chaque envoi de code : compilation, auto-contrôle, essai de toutes les pages, moteur en simulation.
+# - Quand un tag « vX.Y » est créé : en plus, l'installateur, son empreinte SHA256 et la publication sur GitHub.
+#   Une version qui échoue à un essai n'est jamais publiée.
+name: Fabrication
+
+on:
+  push:
+    branches: [ main, master ]
+    tags: [ 'v*' ]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Version
+        id: version
+        shell: pwsh
+        run: |
+          $v = (Select-String src\Noyau\Base.cs -Pattern 'Version = "([\d.]+)"').Matches[0].Groups[1].Value
+          $p = $v.Split('.'); while ($p.Count -lt 4) { $p += '0' }
+          "version=$v" >> $env:GITHUB_OUTPUT
+          "version4=$($p -join '.')" >> $env:GITHUB_OUTPUT
+          Write-Host "Version $v"
+          if ($env:GITHUB_REF_TYPE -eq 'tag' -and $env:GITHUB_REF_NAME -ne "v$v") { throw "Le tag $env:GITHUB_REF_NAME ne correspond pas à la version $v du programme (Base.cs)." }
+
+      - name: Textes légaux
+        shell: pwsh
+        run: |
+          foreach ($f in 'LICENCE', 'CONDITIONS-DE-VENTE', 'CONFIDENTIALITE', 'MENTIONS-LEGALES') { if (-not (Test-Path "legal\$f.txt")) { throw "legal\$f.txt manquant" } }
+          $reste = Select-String -Path legal\*.txt -Pattern '\[(PRÉNOM|ADRESSE|E-MAIL|NUMÉRO|NOM DU MÉDIATEUR)' -Encoding utf8
+          if ($reste) { Write-Warning ("Textes légaux : " + $reste.Count + " passage(s) entre crochets à compléter (voir GUIDE-EDITEUR.txt)") ; $reste | Select-Object -First 10 | ForEach-Object { Write-Warning ("  " + $_.Filename + " ligne " + $_.LineNumber + " : " + $_.Line.Trim()) } }
+
+      - name: Compilation
+        run: dotnet build NettoyagePC.csproj -c Release -o sortie
+
+      - name: Auto-contrôle (fenêtre et pages, deux thèmes, deux langues)
+        shell: pwsh
+        run: |
+          $p = Start-Process sortie\NettoyagePC.exe -ArgumentList '--autocontrole' -Wait -PassThru
+          Get-Content "$env:LOCALAPPDATA\NettoyagePC\demarrage.log" -ErrorAction SilentlyContinue | Select-Object -Last 20
+          if ($p.ExitCode -ne 0) { throw "Auto-contrôle en échec (code $($p.ExitCode))" }
+
+      - name: Essai de toutes les pages et fenêtres
+        shell: pwsh
+        run: |
+          $d = Join-Path $env:RUNNER_TEMP 'autotest'
+          $p = Start-Process sortie\NettoyagePC.exe -ArgumentList '--autotest', "`"$d`"" -Wait -PassThru
+          Get-Content (Join-Path $d 'autotest.txt')
+          if (-not (Select-String -Path (Join-Path $d 'autotest.txt') -Pattern ' 0 erreur' -Quiet)) { throw "Erreurs pendant l'essai des pages" }
+          $err = Select-String -Path "$env:LOCALAPPDATA\NettoyagePC\demarrage.log" -Pattern 'ERREUR' -ErrorAction SilentlyContinue
+          if ($err) { $err | ForEach-Object { Write-Warning $_.Line } }   # à regarder, sans bloquer (certaines fonctions n'existent pas sur un serveur)
+
+      - name: Moteur en simulation
+        shell: pwsh
+        run: |
+          $p = Start-Process sortie\NettoyagePC.exe -ArgumentList '--moteur', '--simulation', '--sans-rapport' -Wait -PassThru -RedirectStandardOutput moteur.txt
+          Get-Content moteur.txt -Tail 25
+          if ($p.ExitCode -ne 0) { throw "Moteur en échec (code $($p.ExitCode))" }
+
+      - name: Captures d'écran de l'essai
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: captures
+          path: ${{ runner.temp }}/autotest
+          if-no-files-found: ignore
+
+      - name: Installateur
+        shell: pwsh
+        run: |
+          $mk = 'C:\Program Files (x86)\NSIS\makensis.exe'
+          if (-not (Test-Path $mk)) { choco install nsis -y --no-progress | Out-Null }
+          Copy-Item sortie\NettoyagePC.exe .
+          & $mk /V2 "/DVERSION=${{ steps.version.outputs.version }}" "/DVERSION4=${{ steps.version.outputs.version4 }}" installateur.nsi
+          if ($LASTEXITCODE -ne 0) { throw "makensis a échoué" }
+          $f = "NettoyagePC-Setup-${{ steps.version.outputs.version }}.exe"
+          $h = (Get-FileHash $f -Algorithm SHA256).Hash.ToUpper()
+          Set-Content "NettoyagePC-Setup-${{ steps.version.outputs.version }}.sha256" "$h  $f" -Encoding ascii
+          Write-Host "SHA256 : $h"
+          # copie au nom fixe : le bouton « Télécharger » du site pointe toujours vers la dernière version
+          Copy-Item $f NettoyagePC-Setup.exe
+
+      - name: Contrôle de l'installateur (installation silencieuse puis auto-contrôle)
+        shell: pwsh
+        run: |
+          $f = "NettoyagePC-Setup-${{ steps.version.outputs.version }}.exe"
+          $p = Start-Process $f -ArgumentList '/S' -Wait -PassThru
+          if ($p.ExitCode -ne 0) { throw "Installation silencieuse en échec (code $($p.ExitCode))" }
+          Get-Process NettoyagePC -ErrorAction SilentlyContinue | Stop-Process -Force
+          $exe = Join-Path $env:ProgramFiles 'Nettoyage PC\NettoyagePC.exe'
+          if (-not (Test-Path $exe)) { throw "Programme absent après l'installation" }
+          if (-not (Test-Path (Join-Path $env:ProgramFiles 'Nettoyage PC\legal\LICENCE.txt'))) { throw "Textes légaux absents après l'installation" }
+          # le gardien (Premium) doit se fermer tout seul quand Premium n'est pas actif
+          $g = Start-Process $exe -ArgumentList '--gardien' -PassThru
+          if (-not $g.WaitForExit(20000)) { $g | Stop-Process -Force; throw "Le gardien ne s'est pas arrêté sans Premium" }
+
+      - name: Fichiers de la version
+        uses: actions/upload-artifact@v4
+        with:
+          name: NettoyagePC-${{ steps.version.outputs.version }}
+          path: |
+            NettoyagePC-Setup-*.exe
+            NettoyagePC-Setup-*.sha256
+
+      - name: Publication (tag vX.Y)
+        if: github.ref_type == 'tag'
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Nettoyage PC ${{ steps.version.outputs.version }}
+          body_path: NOTES-${{ steps.version.outputs.version }}.txt
+          files: |
+            NettoyagePC-Setup-${{ steps.version.outputs.version }}.exe
+            NettoyagePC-Setup-${{ steps.version.outputs.version }}.sha256
+            NettoyagePC-Setup.exe

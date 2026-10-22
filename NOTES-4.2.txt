@@ -1,0 +1,29 @@
+Nettoyage PC 4.2
+
+Premium s'enrichit (9,99 € TTC, une seule fois, toutes les versions 4, 3 PC)
+- Gardien en temps réel : une icône près de l'horloge te prévient si un programme s'ajoute au
+  démarrage, si le disque est presque plein (avec un nettoyage léger automatique), si l'antivirus
+  est coupé, si la mémoire sature ou si la carte graphique surchauffe.
+- Sauvegarde automatique : dès que ta clé USB est branchée, les nouvelles photos et les documents
+  modifiés sont copiés. Rien n'est jamais effacé de la sauvegarde.
+- Analyse des plantages : écrans bleus, arrêts brutaux, erreurs matérielles, applications qui
+  plantent, avec la cause expliquée simplement et quoi faire.
+- Santé de la batterie (portables) et thèmes de couleur exclusifs.
+- Toujours inclus : analyse du démarrage, mesure des performances, kit de réinstallation.
+
+Essai gratuit 7 jours
+- Tout Premium débloqué pendant 7 jours, sans paiement ni adresse e-mail. Après l'achat :
+  satisfait ou remboursé pendant 14 jours.
+
+Interface
+- Nouvelle page Premium, badge dans le menu, icônes sur les cartes, couleur de l'interface au
+  choix (Réglages).
+
+Informations légales
+- Contrat de licence, conditions de vente, politique de confidentialité et mentions légales,
+  consultables dans Réglages > Informations légales et dans le dossier legal\ de l'installation.
+- Ni publicité, ni pistage, ni télémétrie.
+
+Tout ce qui était gratuit le reste.
+
+SHA256 de NettoyagePC-Setup-4.2.exe : voir le fichier NettoyagePC-Setup-4.2.sha256

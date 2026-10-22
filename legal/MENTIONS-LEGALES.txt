@@ -1,0 +1,45 @@
+﻿MENTIONS LÉGALES
+Version du 22 octobre 2026
+
+
+ÉDITEUR DE NETTOYAGE PC ET DE SON SITE
+
+[PRÉNOM NOM] EI (entrepreneur individuel)
+Adresse : [ADRESSE POSTALE]
+E-mail : [E-MAIL DE CONTACT]
+SIRET : [NUMÉRO SIRET]
+TVA : [NUMÉRO DE TVA INTRACOMMUNAUTAIRE, ou « TVA non applicable, art. 293 B du CGI »]
+Directeur de la publication : [PRÉNOM NOM]
+
+
+HÉBERGEMENT
+
+Le site officiel et les fichiers de téléchargement de Nettoyage PC sont hébergés par :
+GitHub, Inc.
+88 Colin P. Kelly Jr. Street, San Francisco, CA 94107, États-Unis
+https://github.com
+Site officiel : https://damiencoussot-ai.github.io/nettoyage-pc/ (service GitHub Pages)
+Versions et téléchargements : https://github.com/damiencoussot-ai/nettoyage-pc/releases
+
+
+VENTE DE NETTOYAGE PC PREMIUM
+
+Le paiement de Nettoyage PC Premium est assuré par Lemon Squeezy, revendeur officiel de l'Éditeur (« Merchant of Record »), qui encaisse le paiement, gère la TVA et émet les factures : https://www.lemonsqueezy.com
+Conditions de vente : sur le site officiel (https://damiencoussot-ai.github.io/nettoyage-pc/conditions-de-vente.html) et dans le logiciel, Réglages > Informations légales.
+
+
+PROPRIÉTÉ INTELLECTUELLE
+
+Le logiciel Nettoyage PC, son nom, son icône, ses textes et sa documentation sont la propriété de l'Éditeur et sont protégés par le droit d'auteur. Toute reproduction ou diffusion non autorisée par le contrat de licence est interdite.
+
+Windows, Microsoft Defender, OneDrive et Microsoft Store sont des marques de Microsoft Corporation. AMD, NVIDIA, Intel et les autres marques citées appartiennent à leurs propriétaires respectifs. Nettoyage PC est un logiciel indépendant, qui n'est ni affilié à ces sociétés, ni approuvé par elles.
+
+
+DONNÉES PERSONNELLES
+
+Voir la politique de confidentialité, sur le site officiel (https://damiencoussot-ai.github.io/nettoyage-pc/confidentialite.html) et dans le logiciel (Réglages > Informations légales). Le site n'utilise ni cookie ni traceur.
+
+
+CONTACT
+
+Pour toute question : [E-MAIL DE CONTACT]

@@ -1,0 +1,16 @@
+Nettoyage PC 4.0.1
+
+- La fenêtre des nouveautés ne revient plus à chaque démarrage : après une mise à jour, une petite
+  notification s'affiche une seule fois dans le coin de la fenêtre (un clic montre les nouveautés).
+- Enregistrement des réglages plus fiable, et les nouveautés restent marquées comme vues même si une
+  ancienne version de Nettoyage PC est relancée.
+
+Rappel des nouveautés de la version 4.0
+- Entièrement réécrit : Nettoyage PC s'ouvre en une seconde et tient en un seul programme.
+- Matériel : mémoire vive bridée (EXPO / XMP) avec le guide du BIOS, santé détaillée des disques.
+- Réseau : ping, débit, serveurs DNS plus rapides en un clic (réversible).
+- Aide à distance avec l'Assistance rapide de Windows.
+- Anciens pilotes et applications préinstallées inutiles.
+- Interface en français, anglais et espagnol.
+
+SHA256 de NettoyagePC-Setup-4.0.1.exe : voir le fichier NettoyagePC-Setup-4.0.1.sha256

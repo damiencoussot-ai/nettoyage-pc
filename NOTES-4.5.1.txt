@@ -1,0 +1,22 @@
+Nettoyage PC 4.5.1 (corrections)
+
+- Accueil : les boutons, les mesures et la liste des améliorations se placent toujours sous le
+  texte d'état, même quand il tient sur plusieurs lignes ou que la page est descendue au moment
+  où le bilan se rafraîchit (avant, ils pouvaient se chevaucher).
+- Briefing vocal : le premier briefing, juste après la création du profil, n'est plus coupé à la
+  fermeture de la fenêtre. Les boutons « Écouter » / « Arrêter » suivent mieux la voix de Windows
+  quand elle met un instant à démarrer.
+- Petits écrans (portables 1366 × 768) : les fenêtres plus hautes que l'écran (Gardien, Coût en
+  électricité, Santé prédictive...) restent entières, avec une barre de défilement si besoin.
+- Nouveautés après une mise à jour : en passant de la 4.4 à la 4.5.1, la fenêtre de bienvenue
+  montre aussi les nouveautés de la 4.5.
+- Anglais et espagnol : historique des versions traduit, espace libre des disques traduit
+  (sauvegarde), tailles en « MB » dans les filtres, espaces manquantes corrigées en espagnol
+  (« Versión 4.5.1 », « Última acción: »).
+- Assistant vocal (ORION) : « NettoyagePC.exe --etat » indique maintenant si Premium est actif.
+
+Comprend toutes les nouveautés de la 4.5 (interface « Noyau », profil, briefing vocal) et de la
+4.4 (enquêteur, santé prédictive, assistant local, preuve en FPS, coût en électricité, bouclier
+anti-arnaque, plein potentiel).
+
+SHA256 de NettoyagePC-Setup-4.5.1.exe : voir le fichier NettoyagePC-Setup-4.5.1.sha256

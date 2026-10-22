@@ -1,0 +1,102 @@
+﻿POLITIQUE DE CONFIDENTIALITÉ DE NETTOYAGE PC
+Version du 22 octobre 2026
+
+
+EN BREF
+
+- Nettoyage PC fonctionne sur votre ordinateur. Il n'y a ni compte à créer, ni publicité, ni pistage, ni télémétrie, ni cookies.
+- Le site officiel n'utilise ni cookie, ni traceur, ni mesure d'audience.
+- Vos fichiers, journaux et réglages restent sur votre ordinateur. Ils ne sont jamais envoyés à l'Éditeur.
+- Le logiciel n'utilise Internet que pour : vérifier les mises à jour, vérifier une licence Premium achetée, télécharger l'outil de mesure PresentMon si vous utilisez la « Preuve en FPS », et les tests de connexion que vous lancez vous-même.
+- L'assistant local et ses réponses fonctionnent sur votre ordinateur (logiciel Ollama) : vos questions ne sont envoyées ni à l'Éditeur, ni sur Internet.
+
+
+1. RESPONSABLE DU TRAITEMENT
+
+[PRÉNOM NOM] EI (entrepreneur individuel)
+Adresse : [ADRESSE POSTALE]
+E-mail : [E-MAIL DE CONTACT]
+ci-après « l'Éditeur ».
+
+
+2. CE QUI RESTE SUR VOTRE ORDINATEUR
+
+Ces informations sont créées et gardées uniquement sur votre ordinateur. L'Éditeur n'y a pas accès :
+- les journaux des actions et les rapports (dossier Documents\NettoyagePC, gardés 60 jours) ;
+- votre profil : le pseudo, la couleur et la voix choisis pour le briefing vocal (fichier parametres.json du même dossier). La voix est la synthèse vocale de Windows, qui fonctionne sans Internet ;
+- l'historique des modifications, qui permet de les annuler ;
+- vos réglages, les mesures de performances, l'état du gardien et des sauvegardes automatiques (dossier %LOCALAPPDATA%\NettoyagePC) ;
+- pour les outils Premium que vous utilisez : une « photo » quotidienne de la configuration du PC pour l'enquêteur (programmes au démarrage, services, réglages, gardée 150 jours), les mesures de santé (usure des SSD, température maximale de la carte graphique), les mesures de FPS, et l'estimation de consommation électrique par application (relevée par le gardien si l'option est cochée, gardée 400 jours), dans ce même dossier ;
+- les conversations avec l'assistant local ne sont pas enregistrées : elles s'effacent à la fermeture de sa fenêtre ;
+- l'état de votre licence Premium, chiffré par Windows pour votre seul compte (protection DPAPI).
+Les analyses (démarrage, plantages, disques, batterie, sécurité, enquêteur, santé prédictive, bouclier anti-arnaque) lisent les informations de Windows sur place : leurs résultats ne quittent pas votre ordinateur, sauf si vous choisissez de les envoyer à quelqu'un (bouton « Aider quelqu'un », par exemple).
+
+Vous pouvez supprimer ces données à tout moment : désinstallez Nettoyage PC, puis supprimez les dossiers indiqués ci-dessus.
+
+
+3. CE QUI PASSE PAR INTERNET
+
+3.1 Vérification des mises à jour
+Le logiciel interroge le service GitHub (GitHub, Inc.), qui héberge Nettoyage PC, pour savoir s'il existe une nouvelle version, et télécharge celle-ci si vous l'acceptez. GitHub reçoit, comme pour tout site web, votre adresse IP et le nom du logiciel. Base légale : l'intérêt légitime de vous proposer des mises à jour de sécurité et de correction (vous pouvez ne pas les installer). Politique de GitHub : https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement
+
+Si vous utilisez la « Preuve en FPS », le logiciel télécharge aussi, au premier usage, l'outil libre PresentMon d'Intel depuis sa page officielle sur GitHub (github.com/GameTechDev/PresentMon), selon les mêmes règles.
+
+3.2 Licence Premium achetée
+À l'activation d'une clé, puis environ une fois par semaine, le logiciel envoie au service de licences de Lemon Squeezy :
+- votre clé de licence ;
+- un identifiant d'ordinateur pseudonyme (du type « PC-1A2B3C4D », calculé à partir de Windows, sans votre nom ni le nom de l'ordinateur) ;
+- et, comme pour toute connexion, votre adresse IP.
+En retour, il reçoit l'état de la licence, ainsi que le nom et l'adresse e-mail de l'acheteur, affichés dans l'onglet Premium. Base légale : l'exécution du contrat de licence (vérifier que la clé est valide et respecter la limite de 3 ordinateurs). Les clés offertes et l'essai gratuit sont vérifiés sur votre ordinateur, sans Internet.
+
+3.3 Achat
+L'achat se fait sur la page de paiement de Lemon Squeezy, revendeur de l'Éditeur. Lemon Squeezy collecte les données nécessaires au paiement et à la facture (nom, adresse e-mail, pays, moyen de paiement) et en est responsable pour le paiement, selon sa propre politique : https://www.lemonsqueezy.com/privacy
+L'Éditeur reçoit de Lemon Squeezy le nom, l'adresse e-mail, le pays et les informations de la commande. Il les utilise uniquement pour gérer votre licence, vous assister, traiter un remboursement et tenir sa comptabilité. Elles ne sont jamais vendues ni utilisées pour de la publicité. Base légale : l'exécution du contrat et les obligations comptables de l'Éditeur.
+
+3.4 Tests que vous lancez vous-même (onglet Réseau)
+- Test de débit : téléchargement et envoi de données de test vers les serveurs de Cloudflare (speed.cloudflare.com), qui reçoivent votre adresse IP.
+- Comparaison des serveurs DNS : quelques demandes de résolution envoyées aux serveurs testés (votre fournisseur d'accès, Cloudflare, Google, Quad9).
+- Mesure du ping vers votre box et vers Internet.
+Ces tests ne transmettent aucune information personnelle en dehors de votre adresse IP.
+
+3.5 Outils de Windows lancés à votre demande
+La mise à jour des applications (winget), Windows Update, l'Assistance rapide (aide à distance) et Microsoft Defender sont des outils de Microsoft : lorsqu'ils sont lancés depuis Nettoyage PC, ils échangent avec Microsoft et les éditeurs concernés selon leurs propres règles. Nettoyage PC ne reçoit rien de ces échanges.
+
+L'assistant local s'adresse uniquement au logiciel Ollama installé sur votre ordinateur (adresse locale 127.0.0.1) : aucune question ni réponse ne passe par Internet. Ollama est un logiciel tiers, avec ses propres conditions.
+
+3.6 Liens
+Certains boutons ouvrent un site dans votre navigateur (pilotes AMD, NVIDIA ou Intel, boutiques d'extensions, page de paiement). Ces sites appliquent leur propre politique de confidentialité.
+
+3.7 Si vous écrivez à l'Éditeur
+Les messages que vous envoyez à l'Éditeur (assistance, remboursement) et les fichiers que vous y joignez sont utilisés uniquement pour vous répondre.
+
+3.8 Le site officiel
+Le site officiel de Nettoyage PC (https://damiencoussot-ai.github.io/nettoyage-pc/) n'utilise ni cookie, ni traceur, ni outil de mesure d'audience, et ne charge aucun contenu depuis un autre site. Il est hébergé par GitHub (service GitHub Pages) qui, comme pour tout site web, reçoit l'adresse IP des visiteurs pour faire fonctionner et sécuriser le service. Le bouton « Télécharger » récupère l'installateur sur GitHub ; le bouton « Acheter » ouvre la page de paiement de Lemon Squeezy (voir 3.3).
+
+
+4. DURÉE DE CONSERVATION
+
+- Données de licence et d'achat : pendant la durée de la licence, puis 5 ans (délai de prescription) ; les pièces comptables : 10 ans, comme l'exige la loi.
+- Échanges d'assistance : 3 ans après le dernier message.
+- Données sur votre ordinateur : jusqu'à ce que vous les supprimiez (journaux : 60 jours).
+
+
+5. DESTINATAIRES ET TRANSFERTS HORS DE L'UNION EUROPÉENNE
+
+Les seuls prestataires concernés sont GitHub (site officiel et mises à jour), Lemon Squeezy et ses prestataires de paiement (achat et licence) et Cloudflare (test de débit, à votre demande). Certains sont situés aux États-Unis ; ils encadrent les transferts de données selon leurs propres engagements (par exemple le cadre de protection des données UE - États-Unis ou les clauses contractuelles types de la Commission européenne), décrits dans leurs politiques de confidentialité.
+
+
+6. VOS DROITS
+
+Vous disposez d'un droit d'accès, de rectification, d'effacement, de limitation, d'opposition et de portabilité de vos données, dans les conditions prévues par le règlement général sur la protection des données (RGPD). Pour les exercer, écrivez à [E-MAIL DE CONTACT]. Une réponse vous sera apportée dans un délai d'un mois.
+
+Vous pouvez aussi introduire une réclamation auprès de la CNIL (Commission nationale de l'informatique et des libertés) : https://www.cnil.fr
+
+
+7. SÉCURITÉ
+
+Le logiciel ne s'exécute jamais en administrateur en permanence : Windows demande votre autorisation pour chaque action qui touche tout le PC. Les mises à jour sont vérifiées (empreinte SHA256) avant installation. L'état de la licence est chiffré pour votre compte Windows.
+
+
+8. MODIFICATIONS
+
+Cette politique peut évoluer avec le logiciel. La version en vigueur est toujours consultable sur le site officiel et dans Nettoyage PC (Réglages > Informations légales), avec sa date.

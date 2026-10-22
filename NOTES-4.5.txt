@@ -1,0 +1,18 @@
+Nettoyage PC 4.5
+
+- Nouvelle interface « Noyau » : l'accueil est un anneau holographique en quatre secteurs
+  (stockage, mémoire, sécurité, matériel) avec le score au centre ; menu numéroté, lignes fines,
+  coins lumineux, police Bahnschrift de Windows, couleur cyan. Le thème clair et les couleurs
+  Premium suivent le même style.
+- Faisons connaissance : au premier lancement, choisis ton pseudo, ta couleur et quand tu veux
+  entendre le briefing. Ton profil reste sur ce PC (pas de compte en ligne, pas de mot de passe).
+  Il se modifie dans Réglages > Mon profil.
+- Briefing vocal : à l'ouverture (une fois par jour par défaut), Nettoyage PC te salue par ton
+  pseudo (« Bonsoir Damien ») et te dit l'état du PC et les améliorations proposées, avec la voix
+  de Windows, sans Internet. Il ne lance rien : il propose. Bouton « Écouter le briefing » sur
+  l'accueil et en mode simple.
+
+Comprend toutes les nouveautés de la 4.4 (enquêteur, santé prédictive, assistant local, preuve
+en FPS, coût en électricité, bouclier anti-arnaque, plein potentiel).
+
+SHA256 de NettoyagePC-Setup-4.5.exe : voir le fichier NettoyagePC-Setup-4.5.sha256

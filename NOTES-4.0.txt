@@ -1,0 +1,30 @@
+Nettoyage PC 4.0
+
+Entièrement réécrit
+- Nettoyage PC s'ouvre en une seconde (au lieu d'une dizaine) et tient en un seul programme :
+  l'interface, le moteur de nettoyage et l'entretien automatique.
+- Même interface, mêmes fonctions, mêmes réglages : ton historique, tes statistiques et
+  l'entretien automatique sont repris tels quels.
+
+Nouveautés
+- Matériel (rubrique Outils) : détecte la mémoire vive bridée (profil EXPO / XMP non activé dans le
+  BIOS), explique pas à pas comment l'activer pour ta carte mère (ASUS, MSI, Gigabyte, ASRock...) et
+  peut redémarrer directement dans le BIOS. Santé détaillée des disques : usure des SSD, température,
+  heures d'utilisation, erreurs.
+- Réseau : ping vers la box et vers Internet, stabilité, débit descendant et montant, comparaison des
+  serveurs DNS (Cloudflare, Google, Quad9, ton fournisseur) et changement en un clic, réversible.
+- Aide à distance : l'Assistance rapide de Windows pour qu'un proche t'aide depuis chez lui, avec un
+  résumé du PC à copier et une mise en garde contre les faux dépanneurs.
+- Anciens pilotes : retire les anciennes versions que Windows garde (souvent plusieurs Go pour la
+  carte graphique) ; la plus récente et celles utilisées sont toujours gardées.
+- Applications préinstallées inutiles : retire les applications publicitaires de Windows, une par une
+  et au choix ; chacune se réinstalle depuis le Microsoft Store.
+- Langues : l'interface existe en français, en anglais et en espagnol (Réglages > Langue).
+
+Sécurité
+- Toujours sans droits administrateur au quotidien : Windows demande l'autorisation seulement pour
+  l'action qui en a besoin.
+- Les commandes administrateur forment une liste fermée, avec des paramètres vérifiés.
+- Mises à jour : empreinte SHA256 obligatoire, téléchargement depuis GitHub uniquement.
+
+SHA256 de NettoyagePC-Setup-4.0.exe : voir le fichier NettoyagePC-Setup-4.0.sha256

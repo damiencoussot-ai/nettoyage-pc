@@ -1,0 +1,16 @@
+Nettoyage PC 4.3.2
+
+Corrections après l'essai sur un vrai PC (Windows 11)
+- La recherche automatique des mises à jour à l'ouverture se termine bien : le bandeau
+  « Installer maintenant » apparaît dès qu'une nouvelle version est publiée (avant, elle restait
+  bloquée sur « Recherche des mises à jour... » tant que la page Mises à jour n'avait pas été ouverte).
+- La ligne choisie dans les listes (jeux, applications, démarrage...) est lisible en thème sombre.
+- La carte graphique dédiée (par exemple une Radeon RX ou une GeForce) est reconnue avant la puce
+  graphique intégrée au processeur.
+- Listes déroulantes aux couleurs du thème, graphique de l'historique plus lisible, liste des
+  serveurs DNS sans barre de défilement inutile, recherche (Ctrl+K) qui classe les meilleurs
+  résultats en premier.
+
+Comprend toutes les nouveautés des versions 4.3 et 4.3.1.
+
+SHA256 de NettoyagePC-Setup-4.3.2.exe : voir le fichier NettoyagePC-Setup-4.3.2.sha256

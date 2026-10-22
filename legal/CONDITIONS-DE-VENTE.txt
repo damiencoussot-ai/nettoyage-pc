@@ -1,0 +1,145 @@
+﻿CONDITIONS DE VENTE DE NETTOYAGE PC PREMIUM
+Version du 22 octobre 2026
+
+
+1. LES PARTIES
+
+L'Éditeur du logiciel et de la licence Premium :
+[PRÉNOM NOM] EI (entrepreneur individuel)
+Adresse : [ADRESSE POSTALE]
+E-mail : [E-MAIL DE CONTACT]
+SIRET : [NUMÉRO SIRET]
+
+Le revendeur : le paiement est réalisé sur la boutique en ligne Lemon Squeezy, qui agit comme revendeur officiel de l'Éditeur (« Merchant of Record »). Lemon Squeezy encaisse le paiement, calcule et reverse la TVA, et émet la facture. Ses conditions d'achat s'appliquent au paiement : https://www.lemonsqueezy.com/buyer-terms
+
+L'Éditeur fournit la licence Premium, le logiciel, ses mises à jour et l'assistance. L'utilisation du logiciel est régie par le contrat de licence (Réglages > Informations légales dans le logiciel, et sur le site officiel : https://damiencoussot-ai.github.io/nettoyage-pc/licence.html).
+
+Ces conditions s'adressent aux particuliers comme aux professionnels. Les règles propres aux consommateurs sont signalées comme telles.
+
+
+2. LE PRODUIT
+
+Nettoyage PC Premium est une licence logicielle qui débloque, dans Nettoyage PC, les outils suivants :
+- Enquêteur « Pourquoi mon PC ralentit ? » : chronologie des changements du PC (applications, pilotes, mises à jour, démarrage, réglages) comparée à ses performances ;
+- Santé prédictive : erreurs du matériel et du disque, arrêts brutaux, usure des SSD, batterie et température, avec leur tendance ;
+- Assistant local : questions sur le PC traitées par un modèle d'intelligence artificielle qui fonctionne sur l'ordinateur grâce au logiciel tiers gratuit Ollama, à installer séparément (rien n'est envoyé à l'Éditeur) ;
+- Preuve en FPS : mesure des images par seconde des jeux avec l'outil libre PresentMon d'Intel, téléchargé depuis sa page officielle au premier usage ;
+- Coût en électricité : estimation de la consommation du PC et de chaque application, en kWh et en euros ;
+- Analyse du démarrage : durée des démarrages sur 90 jours et ce qui les ralentit ;
+- Analyse des plantages : écrans bleus, arrêts brutaux, applications qui plantent et erreurs matérielles, expliqués simplement ;
+- Gardien en temps réel : alertes (nouveau programme au démarrage, disque presque plein, antivirus désactivé, mémoire saturée, surchauffe) et nettoyage léger automatique ;
+- Sauvegarde automatique des documents et photos sur une clé USB ou un disque externe ;
+- Mesure des performances, avec comparaison avant / après ;
+- Kit de réinstallation (applications, pilotes, réseaux Wi-Fi) ;
+- Santé de la batterie des ordinateurs portables ;
+- Thèmes de couleur exclusifs.
+Les nouveaux outils Premium ajoutés dans les versions 4 sont inclus sans supplément.
+
+Durée et étendue : la licence est payée une seule fois. Elle est valable sans limite de durée pour toutes les versions 4 de Nettoyage PC, sur 3 ordinateurs au plus en même temps.
+
+Configuration nécessaire et fonctionnement :
+- Windows 10 ou Windows 11, 64 bits (.NET Framework 4.8, déjà présent dans ces versions de Windows) ;
+- une connexion Internet pour activer la clé ; la licence est ensuite revérifiée environ une fois par semaine et reste active 45 jours sans Internet ;
+- mesure technique de protection : la clé ne peut être active que sur 3 ordinateurs à la fois (le bouton « Retirer la licence de ce PC » libère une place) ;
+- certains outils dépendent du matériel : par exemple, la santé de la batterie ne concerne que les ordinateurs portables ;
+- l'assistant local nécessite le logiciel Ollama et un ordinateur assez puissant (8 Go de mémoire vive au moins) ; le coût en électricité est une estimation, pas une mesure ; les prévisions de la santé prédictive sont des tendances, sans garantie.
+
+Essai gratuit : avant d'acheter, vous pouvez essayer Premium gratuitement pendant 7 jours (une fois par ordinateur, sans paiement ni coordonnées) pour vérifier qu'il vous convient et fonctionne sur votre ordinateur.
+
+
+3. PRIX
+
+Le prix est de 9,99 € TTC (toutes taxes comprises), payé une seule fois. Le prix final, taxes comprises selon votre pays, est affiché sur la page de paiement avant validation. Il n'y a ni abonnement ni renouvellement automatique.
+
+
+4. COMMANDE ET PAIEMENT
+
+1) Dans Nettoyage PC (onglet Premium) ou sur le site officiel (https://damiencoussot-ai.github.io/nettoyage-pc/), cliquez sur « Acheter » après avoir accepté les présentes conditions et le contrat de licence.
+2) La page de paiement sécurisée de Lemon Squeezy s'ouvre dans votre navigateur. Vous y indiquez votre adresse e-mail et payez (carte bancaire ou autres moyens proposés).
+3) Vous recevez par e-mail la confirmation de commande, la facture et votre clé de licence.
+
+Les données de paiement sont traitées uniquement par Lemon Squeezy et ses prestataires : l'Éditeur n'y a jamais accès.
+
+
+5. LIVRAISON
+
+La clé de licence est envoyée par e-mail juste après le paiement. Collez-la dans Nettoyage PC (Premium > J'ai une clé) pour activer Premium. Si vous ne la recevez pas (vérifiez aussi le dossier « Courrier indésirable »), écrivez à l'Éditeur : une nouvelle clé ou un remboursement vous sera proposé.
+
+
+6. SATISFAIT OU REMBOURSÉ 14 JOURS ET DROIT DE RÉTRACTATION
+
+6.1 L'Éditeur vous rembourse intégralement si vous en faites la demande dans les 14 jours qui suivent l'achat, sans avoir à donner de raison, même si vous avez déjà activé et utilisé Premium. Cet engagement vaut pour tous les acheteurs, consommateurs ou non.
+
+6.2 Si vous êtes un consommateur, cet engagement vous permet en pratique d'exercer votre droit de rétractation de 14 jours (article L. 221-18 du code de la consommation) : vous n'avez pas à y renoncer pour recevoir votre clé tout de suite.
+
+6.3 Comment faire : envoyez votre demande à [E-MAIL DE CONTACT], en indiquant l'adresse e-mail utilisée pour l'achat (et si possible le numéro de commande). Vous pouvez utiliser le formulaire ci-dessous, mais ce n'est pas obligatoire : un simple message suffit.
+
+6.4 Le remboursement est fait sur le moyen de paiement utilisé lors de l'achat, au plus tard 14 jours après la réception de votre demande, sans frais. La clé de licence est alors désactivée : les outils Premium se verrouillent, et toutes les fonctions gratuites continuent de fonctionner.
+
+Formulaire de rétractation (à compléter et à renvoyer uniquement si vous souhaitez vous rétracter) :
+---------------------------------------------------------------------
+À l'attention de [PRÉNOM NOM] EI, [ADRESSE POSTALE], [E-MAIL DE CONTACT] :
+Je vous notifie par la présente ma rétractation du contrat portant sur la licence « Nettoyage PC Premium » ci-dessous :
+Commandée le :
+Adresse e-mail utilisée pour l'achat (et numéro de commande si connu) :
+Nom du consommateur :
+Adresse du consommateur :
+Signature du consommateur (uniquement en cas d'envoi du présent formulaire sur papier) :
+Date :
+---------------------------------------------------------------------
+
+
+7. GARANTIES LÉGALES (CONSOMMATEURS)
+
+Le consommateur dispose d'un délai de deux ans à compter de la fourniture du contenu numérique ou du service numérique pour obtenir la mise en œuvre de la garantie légale de conformité en cas d'apparition d'un défaut de conformité. Durant un délai d'un an à compter de la date de fourniture, le consommateur n'est tenu d'établir que l'existence du défaut de conformité et non la date d'apparition de celui-ci.
+
+La garantie légale de conformité emporte obligation de fournir toutes les mises à jour nécessaires au maintien de la conformité du contenu numérique ou du service numérique.
+
+La garantie légale de conformité donne au consommateur droit à la mise en conformité du contenu numérique ou du service numérique sans retard injustifié suivant sa demande, sans frais et sans inconvénient majeur pour lui.
+
+Le consommateur peut obtenir une réduction du prix en conservant le contenu numérique ou le service numérique ou il peut mettre fin au contrat en se faisant rembourser intégralement contre renoncement au contenu numérique ou au service numérique, si :
+1° Le professionnel refuse de mettre le contenu numérique ou le service numérique en conformité ;
+2° La mise en conformité du contenu numérique ou du service numérique est retardée de manière injustifiée ;
+3° La mise en conformité du contenu numérique ou du service numérique ne peut intervenir sans frais imposés au consommateur ;
+4° La mise en conformité du contenu numérique ou du service numérique occasionne un inconvénient majeur pour le consommateur ;
+5° La non-conformité du contenu numérique ou du service numérique persiste en dépit de la tentative de mise en conformité du professionnel restée infructueuse.
+
+Le consommateur a également droit à une réduction du prix ou à la résolution du contrat lorsque le défaut de conformité est si grave qu'il justifie que la réduction du prix ou la résolution du contrat soit immédiate. Le consommateur n'est alors pas tenu de demander la mise en conformité du contenu numérique ou du service numérique au préalable.
+
+Dans les cas où le défaut de conformité est mineur, le consommateur n'a droit à l'annulation du contrat que si le contrat ne prévoit pas le paiement d'un prix.
+
+Toute période d'indisponibilité du contenu numérique ou du service numérique en vue de sa remise en conformité suspend la garantie qui restait à courir jusqu'à la fourniture du contenu numérique ou du service numérique de nouveau conforme.
+
+Les droits mentionnés ci-dessus résultent de l'application des articles L. 224-25-1 à L. 224-25-31 du code de la consommation.
+
+Le professionnel qui fait obstacle de mauvaise foi à la mise en œuvre de la garantie légale de conformité encourt une amende civile d'un montant maximal de 300 000 euros, qui peut être porté jusqu'à 10 % du chiffre d'affaires moyen annuel (article L. 242-18-1 du code de la consommation).
+
+Le consommateur bénéficie, en outre, de la garantie légale des vices cachés en application des articles 1641 à 1649 du code civil, pendant une durée de deux ans à compter de la découverte du défaut. Cette garantie donne droit à une réduction de prix si le contenu numérique ou le service numérique est conservé ou à un remboursement intégral contre renonciation au contenu numérique ou au service numérique.
+
+Pour mettre en œuvre ces garanties, écrivez à [E-MAIL DE CONTACT] en décrivant le problème.
+
+
+8. ASSISTANCE
+
+Pour toute question ou difficulté, écrivez à [E-MAIL DE CONTACT]. Indiquez la version de Nettoyage PC (Réglages > À propos) et décrivez ce qui se passe ; le « Journal de démarrage » (Réglages) aide à comprendre un problème.
+
+
+9. RÉCLAMATIONS ET MÉDIATION
+
+En cas de réclamation, contactez d'abord l'Éditeur à [E-MAIL DE CONTACT] : une solution amiable sera recherchée.
+
+Si vous êtes un consommateur et que votre réclamation écrite n'a pas trouvé de solution, vous pouvez recourir gratuitement au médiateur de la consommation de l'Éditeur :
+[NOM DU MÉDIATEUR DE LA CONSOMMATION]
+Site Internet : [ADRESSE DU SITE DU MÉDIATEUR]
+Adresse : [ADRESSE POSTALE DU MÉDIATEUR]
+Pour toute question liée au paiement lui-même, vous pouvez aussi contacter Lemon Squeezy depuis l'e-mail de confirmation de votre commande.
+
+
+10. DONNÉES PERSONNELLES
+
+Les données liées à l'achat et à la licence sont traitées comme décrit dans la politique de confidentialité (Réglages > Informations légales dans le logiciel, et sur le site officiel : https://damiencoussot-ai.github.io/nettoyage-pc/confidentialite.html).
+
+
+11. DROIT APPLICABLE
+
+Ces conditions sont soumises au droit français, sans préjudice des règles protectrices du pays de résidence du consommateur. Les conditions applicables sont celles en vigueur au jour de l'achat.

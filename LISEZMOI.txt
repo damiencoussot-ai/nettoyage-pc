@@ -1,0 +1,268 @@
+NETTOYAGE PC 4.5.1
+==================
+
+Installation
+------------
+1. Double-clique sur « NettoyagePC-Setup-4.5.1.exe ».
+2. Windows peut afficher « Windows a protégé votre ordinateur » (SmartScreen) : clique sur
+   « Informations complémentaires » puis « Exécuter quand même ». C'est normal pour un programme
+   qui n'est pas signé par un éditeur connu.
+3. Accepte le contrat de licence, puis suis l'installation. Nettoyage PC s'installe dans C:\Program Files\Nettoyage PC, avec une
+   entrée dans le menu Démarrer et, si tu le choisis, un raccourci sur le Bureau.
+4. Lance « Nettoyage PC ». Il démarre avec les droits normaux : Windows ne demande l'autorisation
+   administrateur (fenêtre « Voulez-vous autoriser... », clique sur Oui) qu'au moment d'une action
+   qui touche tout le PC (nettoyage profond, disques, réparation...), et seulement pour elle.
+
+Mise à jour depuis la version 3 : installe simplement la version 4.5.1 par-dessus (ou clique sur
+« Installer » dans la rubrique Mises à jour). L'historique, les réglages, les statistiques et
+l'entretien automatique sont conservés.
+
+Désinstaller : Paramètres > Applications > Applications installées > Nettoyage PC > Désinstaller.
+La désinstallation retire aussi l'entretien automatique (tâches planifiées).
+
+Nouveautés de la version 4.5.1 (corrections)
+--------------------------------------------
+- Accueil : boutons, mesures et liste toujours bien placés sous le texte d'état.
+- Briefing vocal : le premier briefing n'est plus coupé ; boutons « Écouter » plus fiables.
+- Petits écrans : les fenêtres restent entières à l'écran (barre de défilement si besoin).
+- Anglais et espagnol : historique des versions et espace libre des disques traduits.
+- « NettoyagePC.exe --etat » (ORION) indique si Premium est actif.
+
+Nouveautés de la version 4.5
+----------------------------
+- Nouvelle interface « Noyau » : anneau holographique à l'accueil (stockage, mémoire, sécurité,
+  matériel), menu numéroté, lignes fines et coins lumineux.
+- Faisons connaissance : pseudo, couleur et briefing vocal, choisis au premier lancement. Le
+  profil reste sur ce PC (Réglages > Mon profil).
+- Briefing vocal : Nettoyage PC te salue par ton pseudo et te dit l'état du PC et les
+  améliorations proposées, avec la voix de Windows.
+
+Nouveautés de la version 4.4
+----------------------------
+- Pourquoi mon PC ralentit ? (Premium) : l'enquêteur retrace ce qui a changé sur le PC
+  (applications, pilotes, mises à jour, démarrage, réglages) et le compare aux performances.
+- Santé prédictive (Premium) : erreurs du matériel et du disque, arrêts brutaux, usure des SSD,
+  batterie et chauffe, avec la tendance.
+- Assistant local (Premium) : questions avec tes mots, IA qui tourne sur ton PC (Ollama), rien
+  n'est envoyé sur Internet ; commandes pour un assistant vocal (ORION).
+- Preuve en FPS (Premium) : les images par seconde d'un jeu avant / après un réglage (PresentMon).
+- Coût en électricité (Premium) : le coût du PC en euros, et les applications qui consomment le plus.
+- Bouclier anti-arnaque (gratuit) : repère AnyDesk, TeamViewer et les autres logiciels de prise en
+  main à distance, et explique quoi faire face à un faux technicien.
+- Plein potentiel (gratuit) : les réglages qui brident l'écran, la carte graphique et la mémoire.
+
+Nouveautés de la version 4.3.4
+------------------------------
+- Après une mise à jour, le nouveau logo apparaît tout de suite sur le Bureau et dans le menu
+  Démarrer (Nettoyage PC demande à Windows de rafraîchir ses icônes).
+
+Nouveautés de la version 4.3.3
+------------------------------
+- Nouveau logo : un hexagone néon autour d'une étincelle (fenêtre, barre des tâches, menu
+  Démarrer, installateur).
+
+Nouveautés de la version 4.3.2
+------------------------------
+- La recherche automatique des mises à jour à l'ouverture se termine bien : le bandeau
+  « Installer maintenant » apparaît dès qu'une nouvelle version existe.
+- La ligne choisie dans les listes est lisible en thème sombre ; la carte graphique dédiée est
+  reconnue avant la puce graphique du processeur ; listes déroulantes aux couleurs du thème ;
+  graphique de l'historique plus lisible ; la recherche (Ctrl+K) classe mieux les résultats.
+
+Nouveautés de la version 4.3.1
+------------------------------
+- À chaque ouverture, Nettoyage PC vérifie s'il existe une nouvelle version. Si oui, un bandeau
+  apparaît en haut de la fenêtre, sur toutes les pages (et en mode simple) : « Installer
+  maintenant » l'installe en moins d'une minute. Plus besoin d'aller dans Mises à jour.
+
+Nouveautés de la version 4.3
+----------------------------
+- Plus fluide : la fenêtre s'ouvre plus vite, les pages s'affichent d'un coup sans clignoter, le
+  défilement à la molette est doux, les survols et la sélection du menu sont animés. Les listes
+  longues à lire (démarrage, historique, disques de sauvegarde) se chargent en arrière-plan.
+- Plus simple : 6 rubriques principales (Mises à jour, Historique et Réglages sont en bas du menu),
+  « Jeux » est dans Accélérer, « Windows et pilotes » dans Mises à jour. Chaque page montre
+  l'essentiel ; le reste est rangé derrière « Plus d'options » (ton choix est mémorisé).
+- Les cartes remplissent toute la largeur de la fenêtre ; moins de cartes en double ; un seul
+  bouton pour le mode d'alimentation et pour l'entretien automatique (il propose l'inverse de
+  ce qui est en place).
+- Les animations suivent le réglage de Windows (Accessibilité > Effets visuels > Effets
+  d'animation) : désactivées, tout change instantanément.
+
+Nouveautés de la version 4.2
+----------------------------
+- Premium s'enrichit : gardien en temps réel (icône près de l'horloge), sauvegarde automatique
+  sur clé USB, analyse des plantages, santé de la batterie, thèmes de couleur exclusifs.
+- Essai gratuit de Premium pendant 7 jours (sans paiement ni adresse e-mail), puis satisfait ou
+  remboursé 14 jours après l'achat.
+- Nouvelle page Premium, badge dans le menu, icônes sur les cartes, couleur de l'interface.
+- Réglages > Informations légales : contrat de licence, conditions de vente, confidentialité,
+  mentions légales (aussi dans le dossier legal\ de l'installation).
+
+Nouveautés de la version 4.1
+----------------------------
+- Premium (9,99 €, une seule fois, valable pour toutes les versions 4, sur 3 PC) : analyse du
+  démarrage, mesure des performances avant / après, kit de réinstallation. Tout le reste reste gratuit.
+- Mode simple (Réglages > Mode simple) : un seul écran avec trois gros boutons, pour un débutant.
+- Mises à jour plus sûres : chaque nouvelle version se contrôle à l'installation ; en cas de
+  problème, la version précédente revient toute seule.
+
+Nouveautés de la version 4.0
+----------------------------
+- Entièrement réécrit : Nettoyage PC s'ouvre en une seconde et tient en un seul programme.
+- Outils > Matériel : détecte la mémoire vive bridée (profil EXPO / XMP non activé dans le BIOS),
+  explique comment l'activer pour ta carte mère et peut redémarrer directement dans le BIOS ;
+  santé détaillée des disques (usure des SSD, température, heures d'utilisation, erreurs).
+- Outils > Réseau : ping vers la box et vers Internet, débit, comparaison des serveurs DNS et
+  changement en un clic (réversible).
+- Outils > Aide à distance : l'Assistance rapide de Windows pour qu'un proche t'aide depuis chez
+  lui, et un résumé du PC à lui envoyer.
+- Nettoyer > Nettoyage > Plus d'options > « Anciens pilotes » : retire les anciennes versions
+  que Windows garde.
+- Accélérer > Applications > « Applications préinstallées inutiles » : retire les applications
+  publicitaires de Windows (réinstallables depuis le Microsoft Store).
+- Réglages > Langue : français, English, Español.
+
+Compatibilité
+-------------
+Nettoyage PC s'adapte tout seul à la configuration du PC :
+- Windows 10 et Windows 11 (64 bits), éditions Famille, Pro, Éducation, Entreprise. Il utilise
+  .NET Framework 4.8, déjà présent dans Windows 10 (depuis la version 1903) et Windows 11.
+- PC portable ou fixe, machine virtuelle ; cartes graphiques NVIDIA, AMD et Intel ;
+  SSD NVMe ou SATA, disques durs, RAID ; disque système sur une autre lettre que C:.
+- Compte administrateur ou compte standard : l'application tourne toujours avec les droits
+  normaux. Pour une action qui en a besoin, Windows demande l'autorisation (sur un compte
+  standard, le mot de passe d'un administrateur du PC).
+- Ce qui manque sur un PC (winget, Microsoft Defender quand un autre antivirus est installé,
+  points de restauration, outils de stockage...) est détecté : le bouton concerné l'indique
+  au lieu d'échouer. Réglages > Plus d'options > « Compatibilité de ce PC » affiche tout ce qui
+  a été détecté.
+
+Prise en main
+-------------
+Le menu de gauche a 6 rubriques principales, et en bas : Mises à jour, Historique, Réglages.
+Celles qui regroupent plusieurs pages ont des onglets en haut. Sur chaque page, l'essentiel est
+visible ; le bouton « Plus d'options » montre le reste (il reste ouvert si tu le laisses ouvert).
+
+- ACCUEIL     : score de santé sur 100, processeur, RAM, disque et température en direct, et les
+                points à vérifier avec un bouton pour corriger chacun. « Optimiser en 1 clic »
+                fait tout ; « Analyser sans rien modifier » montre ce qui serait fait.
+- NETTOYER    : Nettoyage (rapide, profond ; en plus : anciens pilotes, rapport complet,
+                téléchargements à vérifier) | Disques et gros fichiers (optimisation, vérification,
+                carte de l'espace disque, gros fichiers) | Doublons (tu vérifies et tu confirmes).
+- ACCÉLÉRER   : Optimisation (mode jeu, bilan, mise à jour des applications, mode d'alimentation ;
+                en plus : mémoire vive) | Démarrage | Applications (dont les applications
+                préinstallées inutiles) | Jeux (tes jeux et le booster FPS ; « Booster et lancer »
+                passe en mode performances, lance le jeu, puis remet le mode normal à la fin).
+- PROTÉGER    : Sécurité (bilan, antivirus, point de restauration ; en plus : réparation de
+                Windows, extensions des navigateurs, confidentialité, restauration du système) |
+                Sauvegarde (copie sur clé USB ou disque externe).
+- OUTILS      : Matériel (mémoire vive, santé des disques) | Réseau | Aide à distance (et, en
+                plus : journal de démarrage, journaux des actions, premiers pas).
+- PREMIUM     : les outils Premium (voir plus bas).
+- MISES À JOUR : Windows et pilotes (pilote de la carte graphique, mises à jour de Windows) |
+                Nettoyage PC (version installée, nouveautés, installation en un clic ; point
+                orange quand une nouvelle version est disponible).
+- HISTORIQUE  : graphiques, et tout ce que le logiciel a modifié avec un bouton « Annuler ».
+- RÉGLAGES    : apparence, couleur, langue, mode simple, entretien automatique, informations
+                légales (en plus : raccourci sur le Bureau, à propos, compatibilité de ce PC).
+
+- RECHERCHE (Ctrl+K) : la barre « Que veux-tu faire ? » en haut trouve n'importe quelle action,
+  page ou outil en tapant quelques lettres. Ctrl+1 à Ctrl+9 ouvrent les rubriques, F5 actualise
+  l'Accueil.
+- MODE SIMULATION (case en haut à droite) : coche-la pour tester n'importe quelle action
+  sans rien modifier.
+
+Premium
+-------
+Rubrique « Premium » du menu (9,99 € TTC une seule fois, sans abonnement, 3 PC, toutes les
+versions 4). Tout ce qui est décrit plus haut reste gratuit.
+- « Essayer gratuitement 7 jours » : tout Premium débloqué, sans paiement ni adresse e-mail, une
+  fois par PC. À la fin de l'essai, les outils se verrouillent simplement.
+- « Acheter » ouvre la page de paiement sécurisée de Lemon Squeezy, revendeur officiel (carte
+  bancaire, PayPal). La clé arrive par e-mail : colle-la dans « J'ai une clé ». Satisfait ou
+  remboursé pendant 14 jours : écris à l'éditeur (adresse dans les conditions de vente).
+- Une clé fonctionne sur 3 PC. Pour la déplacer : Premium > Gérer la licence > retirer la licence
+  de ce PC. Internet est nécessaire de temps en temps (au moins une fois tous les 45 jours).
+Les outils :
+- Gardien en temps réel : une icône près de l'horloge te prévient quand un programme s'ajoute au
+  démarrage de Windows, quand le disque est presque plein (et fait alors un nettoyage léger :
+  temporaires et caches, jamais la Corbeille ni les documents), quand l'antivirus est coupé, la
+  mémoire saturée ou la carte graphique trop chaude. Il démarre avec la session, sans droits
+  administrateur. Clic droit sur l'icône : pause d'une heure, réglages, arrêt.
+- Sauvegarde automatique : dès que la clé USB choisie est branchée (au plus une fois par jour ou
+  par semaine), les fichiers nouveaux ou modifiés de Documents, Images, Bureau... sont copiés dans
+  NettoyagePC-Sauvegarde\<nom du PC>\Automatique. Rien n'est jamais effacé de la sauvegarde.
+- Analyse des plantages : écrans bleus, arrêts brutaux, erreurs matérielles et de disque, pilote
+  graphique qui redémarre, applications qui plantent ou se figent, sur 90 jours, avec la cause
+  expliquée et quoi faire. Lecture seule.
+- Analyse du démarrage : durée de chaque démarrage sur 90 jours et ce qui le ralentit (application,
+  pilote, service, appareil), avec des conseils.
+- Mesure des performances : processeur, mémoire vive, disque (lecture, écriture, accès 4 Ko), à
+  comparer avant / après un réglage. Les résultats sont gardés dans Documents\NettoyagePC.
+- Kit de réinstallation : sur une clé USB, la liste de tes applications (réinstallées d'un coup par
+  winget), tes pilotes, tes réseaux Wi-Fi et un script « Reinstaller.cmd » qui remet tout en place.
+- Santé de la batterie (portables) : usure, cycles, autonomie, historique de la capacité.
+- Thèmes de couleur : Océan, Émeraude, Améthyste, Coucher de soleil et Rubis (Réglages).
+
+Mode simple
+-----------
+Réglages > Mode simple : l'écran ne montre plus que « Nettoyer mon PC », « Vérifier mon PC » et
+« Appeler à l'aide », avec les points à régler et un bouton pour chacun. Le lien « Afficher toutes
+les options » en bas de l'écran revient au mode complet.
+
+Aide à distance
+---------------
+Outils > Aide à distance > « Ouvrir l'Assistance rapide ». La personne qui t'aide ouvre aussi
+l'Assistance rapide, clique sur « Aider quelqu'un » et te donne un code ; tu le tapes et tu
+acceptes. Tu vois tout ce qu'elle fait et tu peux arrêter à tout moment.
+ATTENTION : n'accepte jamais une demande que tu n'as pas faite toi-même. Microsoft, ta banque
+ou un « technicien » ne t'appellent jamais pour prendre la main sur ton PC.
+
+Sécurité
+--------
+- Un point de restauration est créé avant l'optimisation complète, la réparation de Windows et
+  l'installation des mises à jour Windows. Pour revenir en arrière : Protéger > Sécurité >
+  Plus d'options > « Restaurer le système ».
+- Chaque réglage modifié (jeux, confidentialité, programmes au démarrage, DNS, applications
+  retirées...) est noté dans l'Historique et peut être annulé.
+- Les gros fichiers et les doublons vont à la CORBEILLE (récupérables). Les dossiers Windows,
+  Program Files et ProgramData sont protégés.
+- Les bilans (sécurité, optimisation, santé des disques) ne modifient aucun réglage.
+
+Ce que l'application ne fait jamais
+-----------------------------------
+- Elle ne supprime pas tes documents, photos ou vidéos.
+- Les téléchargements de plus de 90 jours sont seulement DÉPLACÉS dans
+  Téléchargements\_A_verifier.
+- Elle ne touche pas aux cookies, mots de passe, historiques et favoris des navigateurs.
+- Elle ne défragmente jamais un SSD (ReTrim uniquement).
+- Elle ne désactive ni ton antivirus, ni ton pare-feu, ni les mises à jour de Windows.
+- Ni publicité, ni pistage, ni télémétrie. Internet sert seulement à vérifier les mises à jour
+  (GitHub), à vérifier une licence Premium achetée (Lemon Squeezy, avec un identifiant de PC
+  anonyme) et, quand tu le demandes, aux tests de connexion. Détails : Réglages > Informations
+  légales > Confidentialité.
+
+Mises à jour
+------------
+À chaque ouverture (puis toutes les 6 heures si elle reste ouverte), Nettoyage PC vérifie s'il
+existe une nouvelle version. Si c'est le cas, un bandeau s'affiche en haut de la fenêtre, sur
+toutes les pages : un clic sur « Installer maintenant », et elle s'installe toute seule
+(l'application se ferme puis se rouvre). « Plus tard » cache le bandeau jusqu'à la prochaine
+ouverture. Chaque mise à jour est vérifiée (empreinte SHA256) avant d'être installée. Pour ne
+plus vérifier automatiquement : Mises à jour > Nettoyage PC > décoche la case.
+
+Journaux et rapports
+--------------------
+Chaque action enregistre un journal dans Documents\NettoyagePC (gardés 60 jours).
+En cas de problème au démarrage : le « journal de démarrage » (Outils > Aide à distance > Plus
+d'options > Journal de démarrage, ou le fichier %LOCALAPPDATA%\NettoyagePC\demarrage.log) note chaque étape et la cause d'une
+erreur. Si un démarrage s'interrompt, le suivant se fait automatiquement en mode sans échec.
+
+Contenu du dossier d'installation
+---------------------------------
+- NettoyagePC.exe     : le programme (interface, moteur de nettoyage et entretien automatique)
+- mise-a-jour.json    : l'adresse officielle des mises à jour
+- legal\              : contrat de licence, conditions de vente, confidentialité, mentions légales
+- Desinstaller.exe    : la désinstallation
+- precedente\         : la version précédente, gardée pour un retour arrière automatique
