@@ -6,7 +6,7 @@ Version du 22 octobre 2026
 
 [PRÉNOM NOM] EI (entrepreneur individuel)
 Adresse : [ADRESSE POSTALE]
-E-mail : [E-MAIL DE CONTACT]
+E-mail : nettoyagepcai@gmail.com
 SIRET : [NUMÉRO SIRET]
 TVA : [NUMÉRO DE TVA INTRACOMMUNAUTAIRE, ou « TVA non applicable, art. 293 B du CGI »]
 Directeur de la publication : [PRÉNOM NOM]
@@ -42,4 +42,4 @@ Voir la politique de confidentialité, sur le site officiel (https://damiencouss
 
 CONTACT
 
-Pour toute question : [E-MAIL DE CONTACT]
+Pour toute question : nettoyagepcai@gmail.com
