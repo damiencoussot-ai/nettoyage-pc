@@ -23,6 +23,8 @@ namespace NettoyagePC
         }
         public void AppliquerTheme() { if (RoleTexte != Role.Transparent) ForeColor = Theme.P.Couleur(RoleTexte); }
         public override string Text { get { return base.Text; } set { base.Text = Langue.T(value); } }
+        /// <summary>Texte affiché tel quel (déjà traduit) : animation du titre.</summary>
+        public void TexteBrut(string t) { base.Text = t; }
 
         // (essais hors Windows) Mono ne passe pas à la ligne avec MaximumSize : on calcule la taille comme Windows
         public override Size GetPreferredSize(Size proposedSize)
@@ -69,10 +71,12 @@ namespace NettoyagePC
         private bool appui;
         public object Cible;
         private readonly Fondu fSurvol;
+        private readonly Impulsion reflet;
 
         public Bouton(string texte, bool principal, int largeur, int hauteur)
         {
             fSurvol = new Fondu(this) { Duree = 130 };
+            reflet = new Impulsion(this) { Duree = 650 };
             Text = texte; Principal = principal; Size = new Size(largeur, hauteur);
             FlatStyle = FlatStyle.Flat; Font = Theme.Normal; Cursor = Cursors.Hand; UseMnemonic = false;
             FlatAppearance.BorderSize = 0;
@@ -82,7 +86,7 @@ namespace NettoyagePC
 
         public void AppliquerTheme() { Invalidate(); }
 
-        protected override void OnMouseEnter(EventArgs e) { fSurvol.Vers(1); base.OnMouseEnter(e); }
+        protected override void OnMouseEnter(EventArgs e) { fSurvol.Vers(1); if (Principal && Enabled && !reflet.Active) reflet.Lancer(); base.OnMouseEnter(e); }
         protected override void OnMouseLeave(EventArgs e) { appui = false; fSurvol.Vers(0); Invalidate(); base.OnMouseLeave(e); }
         protected override void OnPaintBackground(PaintEventArgs e) { }   // tout est dessiné dans OnPaint
         protected override void OnMouseDown(MouseEventArgs e) { appui = true; Invalidate(); base.OnMouseDown(e); }
@@ -112,6 +116,19 @@ namespace NettoyagePC
                 if (appui) { c1 = Theme.Melanger(c1, Color.Black, 0.15); c2 = Theme.Melanger(c2, Color.Black, 0.15); }
                 else if (v > 0) { c1 = Theme.Melanger(c1, Color.White, 0.18 * v); c2 = Theme.Melanger(c2, Color.White, 0.18 * v); }
                 Theme.RemplirDegrade(g, c1, c2, 0.5f, 0.5f, w - 1.5f, h - 1.5f, r);
+                if (reflet.Active)
+                {
+                    // reflet de lumière qui traverse le bouton au survol
+                    float bande = Math.Max(36, h * 1.5f), x = -bande + Animations.Douce(reflet.Valeur) * (w + 2 * bande);
+                    using (var ch = Theme.CheminArrondi(0.5f, 0.5f, w - 1.5f, h - 1.5f, r))
+                    using (var br = new LinearGradientBrush(new RectangleF(x - bande / 2, 0, bande, h), Color.Transparent, Color.Transparent, 18f))
+                    {
+                        br.InterpolationColors = new ColorBlend { Colors = new[] { Color.FromArgb(0, Color.White), Color.FromArgb(Theme.EstSombre ? 110 : 90, Color.White), Color.FromArgb(0, Color.White) }, Positions = new[] { 0f, 0.5f, 1f } };
+                        var etat = g.Save(); g.SetClip(ch, CombineMode.Intersect);
+                        g.FillRectangle(br, x - bande / 2, 0, bande, h);
+                        g.Restore(etat);
+                    }
+                }
                 texte = Theme.TexteSur(Theme.Melanger(c1, c2, 0.5));
             }
             else

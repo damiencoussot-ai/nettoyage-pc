@@ -10,10 +10,10 @@ SetCompressor /SOLID lzma
 
 !define NOM        "Nettoyage PC"
 !ifndef VERSION
-  !define VERSION "4.5.1"
+  !define VERSION "4.6"
 !endif
 !ifndef VERSION4
-  !define VERSION4 "4.5.1.0"
+  !define VERSION4 "4.6.0.0"
 !endif
 !define EDITEUR    "Damien"
 !define CLE_DESINST "Software\Microsoft\Windows\CurrentVersion\Uninstall\NettoyagePC"

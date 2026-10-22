@@ -32,6 +32,10 @@ namespace NettoyagePC
         // Nouveautés intégrées (affichées même sans Internet)
         public static readonly List<KeyValuePair<string, string[]>> Nouveautes = new List<KeyValuePair<string, string[]>>
         {
+            N("4.6", "Interface encore plus futuriste et fluide : un indicateur lumineux glisse dans le menu, une lumière parcourt l'en-tête quand tu changes de rubrique, l'anneau de l'accueil respire, et les boutons principaux s'illuminent au survol.",
+                "Plus simple : l'accueil montre d'abord ce qu'il y a à faire, et ce qui va bien tient sur une seule ligne. Au premier lancement, tu choisis entre le mode simple (trois gros boutons) et le mode complet.",
+                "Le briefing vocal est retiré : Nettoyage PC t'accueille toujours par ton pseudo, sans parler.",
+                "Premium : l'achat par Stripe est prêt, avec Premium activé tout seul juste après le paiement (la boutique ouvrira bientôt)."),
             N("4.5.1", "Corrections de l'accueil : boutons, mesures et liste se placent bien sous le texte d'état, même sur plusieurs lignes ou quand la page est descendue.",
                 "Briefing vocal : le premier briefing après la création du profil n'est plus coupé, et les boutons « Écouter » suivent mieux la voix de Windows.",
                 "Petits écrans (portables 1366 × 768) : les fenêtres restent entières à l'écran, avec une barre de défilement si besoin.",

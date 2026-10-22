@@ -1,4 +1,4 @@
-// Nettoyage PC - fluidité de l'interface : animations douces (survols, sélection), défilement doux à la molette,
+﻿// Nettoyage PC - fluidité de l'interface : animations douces (survols, sélection), défilement doux à la molette,
 // affichage d'une page « d'un coup » (sans voir les morceaux se dessiner). Les animations suivent le réglage
 // « Effets d'animation » de Windows (Accessibilité) : désactivé, tout change instantanément.
 using System;
@@ -94,6 +94,68 @@ namespace NettoyagePC
             if (p >= 1f) Valeur = cible;
             proprio.Invalidate();
             return p < 1f;
+        }
+    }
+
+    /// <summary>Animation d'un seul passage (0 à 1) : reflet sur un bouton, balayage lumineux. Valeur -1 quand elle est finie.</summary>
+    internal class Impulsion : IAnimation
+    {
+        private readonly Control proprio;
+        private long debut;
+        public int Duree = 600;
+        public float Valeur = -1;
+        public bool Active { get { return Valeur >= 0; } }
+
+        public Impulsion(Control proprio) { this.proprio = proprio; }
+
+        public void Lancer()
+        {
+            if (!Animations.Actives || !proprio.IsHandleCreated || !proprio.Visible) return;
+            debut = Animations.Maintenant; Valeur = 0;
+            Animations.Lancer(this);
+        }
+
+        public bool Avancer(long t)
+        {
+            if (proprio.IsDisposed) return false;
+            float p = (t - debut) / (float)Duree;
+            Valeur = p >= 1f ? -1 : p;
+            proprio.Invalidate();
+            return p < 1f;
+        }
+    }
+
+    /// <summary>Titre qui « se décode » en un instant (lettres aléatoires remplacées une à une par le vrai texte).</summary>
+    internal class Decodage : IAnimation
+    {
+        private readonly Etiquette cible;
+        private string texte = "";
+        private long debut;
+        private const int Duree = 320;
+        private static readonly Random hasard = new Random();
+        private const string Signes = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
+        public Decodage(Etiquette cible) { this.cible = cible; }
+
+        public void Montrer(string nouveau)
+        {
+            texte = Langue.T(nouveau ?? "");
+            if (!Animations.Actives || !cible.IsHandleCreated || !cible.Visible || texte.Length == 0) { cible.TexteBrut(texte); return; }
+            debut = Animations.Maintenant;
+            Animations.Lancer(this);
+        }
+
+        public bool Avancer(long t)
+        {
+            if (cible.IsDisposed) return false;
+            float p = Math.Min(1f, (t - debut) / (float)Duree);
+            int reveles = (int)Math.Round(texte.Length * Animations.Douce(p));
+            if (p >= 1f || reveles >= texte.Length) { cible.TexteBrut(texte); return false; }
+            var sb = new System.Text.StringBuilder(texte.Length);
+            for (int i = 0; i < texte.Length; i++)
+                sb.Append(i < reveles || char.IsWhiteSpace(texte[i]) ? texte[i] : Signes[hasard.Next(Signes.Length)]);
+            cible.TexteBrut(sb.ToString());
+            return true;
         }
     }
 

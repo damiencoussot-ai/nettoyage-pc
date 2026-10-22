@@ -17,7 +17,7 @@ namespace NettoyagePC
         public PageReglages(FenetrePrincipale f) : base(f, "Reglages", "Réglages", "Apparence, langue, entretien automatique et informations sur l'application.", 0xE713)
         {
             var g = NouvelleGrille();
-            g.Controls.Add(NouvelleCarte("Mon profil", "Ton pseudo, ta couleur et le briefing vocal qui te dit, à l'ouverture, l'état du PC et les améliorations proposées.", "Modifier mon profil", Cible.Faire(() => FenetreProfil.Ouvrir(F, false)), true));
+            g.Controls.Add(NouvelleCarte("Mon profil", "Ton pseudo, ta couleur, et le mode simple (trois gros boutons) ou complet.", "Modifier mon profil", Cible.Faire(() => FenetreProfil.Ouvrir(F, false)), true));
             var carteTheme = NouvelleCarte("Apparence", "Thème clair, sombre, ou automatique (suit le réglage de Windows). Le bouton lune / soleil en haut bascule aussi en un clic.", f.LibelleTheme(), Cible.Faire(() => { F.ChangerModeTheme(); ActualiserTheme(); }), true);
             bTheme = carteTheme.Controls.OfType<Bouton>().First();
             g.Controls.Add(carteTheme);

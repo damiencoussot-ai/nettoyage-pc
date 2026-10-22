@@ -185,6 +185,24 @@ namespace NettoyagePC
 
         public Section SectionDe(string page) { return Sections.First(s => s.Pages.Contains(page)); }
 
+        private Decodage decodageTitre;
+        private Impulsion balayageEntete;
+
+        /// <summary>Trait fin sous l'en-tête ; une lumière le parcourt quand on change de rubrique.</summary>
+        private void PeindreLigneEntete(Graphics g)
+        {
+            var P = Theme.P;
+            int w = entete.ClientSize.Width, y = entete.ClientSize.Height - 1;
+            using (var p = new Pen(Color.FromArgb(Theme.EstSombre ? 40 : 60, P.Lueur1))) g.DrawLine(p, 0, y, w, y);
+            if (!balayageEntete.Active) return;
+            float l = Math.Max(160, w * 0.25f), x = -l + Animations.Douce(balayageEntete.Valeur) * (w + l);
+            using (var br = new LinearGradientBrush(new RectangleF(x, y - 1, l, 3), Color.Transparent, Color.Transparent, LinearGradientMode.Horizontal))
+            {
+                br.InterpolationColors = new ColorBlend { Colors = new[] { Color.FromArgb(0, P.Lueur1), Color.FromArgb(230, P.Lueur1), Color.FromArgb(0, P.Lueur1) }, Positions = new[] { 0f, 0.7f, 1f } };
+                g.FillRectangle(br, x, y - 1, l, 2);
+            }
+        }
+
         public void AfficherPage(string cle)
         {
             Page p;
@@ -203,7 +221,8 @@ namespace NettoyagePC
             hotePages.ResumeLayout();
             var sc = SectionDe(cle);
             SectionActive = sc.Cle; dernierePage[sc.Cle] = cle; PageActive = cle;
-            titrePage.Text = sc.Nom;
+            if (titrePage.Text != Langue.T(sc.Nom)) { decodageTitre.Montrer(sc.Nom); balayageEntete.Lancer(); }
+            if (boutonsNav.ContainsKey(sc.Cle)) barre.Indiquer(boutonsNav[sc.Cle]);
             sousTitrePage.Text = p.Sous;
             bool avecOnglets = sc.Pages.Length > 1;
             onglets.Visible = avecOnglets && !Reglages.ModeSimple;
@@ -312,7 +331,7 @@ namespace NettoyagePC
             var bas = new List<BoutonNav>();
             foreach (var sc in Sections.Where(x => !x.Cachee))
             {
-                var bn = new BoutonNav(this, sc) { Location = new Point(0, yNav), Size = new Size(220, sc.EnBas ? 36 : 42) };
+                var bn = new BoutonNav(this, sc) { Location = new Point(5, yNav), Size = new Size(215, sc.EnBas ? 36 : 42) };
                 bn.Click += (s, e) => AfficherSection(((BoutonNav)s).Section.Cle);
                 barre.Controls.Add(bn);
                 boutonsNav[sc.Cle] = bn;
@@ -329,7 +348,8 @@ namespace NettoyagePC
                 bool avecInfo = yInfo - hBas - 18 > finNav + 8;
                 int y = avecInfo ? yInfo - hBas - 6 : Math.Max(finNav + 18, barre.ClientSize.Height - hBas - 10);
                 barre.Separateur = y - 9;
-                foreach (var b in bas) { b.Location = new Point(0, y); y += 37; }
+                foreach (var b in bas) { b.Location = new Point(5, y); y += 37; }
+                barre.Recaler();
                 infoSysteme.Location = new Point(20, yInfo); infoSysteme.Visible = avecInfo;
                 barre.Invalidate();
             };
@@ -337,6 +357,9 @@ namespace NettoyagePC
             droite = new Surface(Role.Fond) { Dock = DockStyle.Fill };
             entete = new Surface(Role.Fond) { Dock = DockStyle.Top, Height = 76 };
             titrePage = new Etiquette("Accueil", Theme.TitrePage, Role.Texte, 28, 12);
+            decodageTitre = new Decodage(titrePage);
+            balayageEntete = new Impulsion(entete) { Duree = 700 };
+            entete.Paint += (s, e) => PeindreLigneEntete(e.Graphics);
             sousTitrePage = new Etiquette("", Theme.Normal, Role.Discret, 30, 46) { AutoSize = false, AutoEllipsis = true, Size = new Size(400, 22) };
             ChkSimu = new CaseACocher("Mode simulation (rien n'est modifié)") { Anchor = AnchorStyles.Top | AnchorStyles.Right };
             ChkSimu.CheckedChanged += (s, e) => SimulationChangee();
@@ -653,9 +676,34 @@ namespace NettoyagePC
 
     // ================================================================ Éléments dessinés de la fenêtre
 
-    internal class BarreLaterale : Panel, IThemable
+    internal class BarreLaterale : Panel, IThemable, IAnimation
     {
         public Image Logo;
+        // indicateur lumineux de la rubrique active (bande de gauche) : il glisse d'une rubrique à l'autre
+        private Control indique;
+        private float iy = -1, ih, dy, dh, cy, ch;
+        private long debut;
+        public void Indiquer(Control bouton)
+        {
+            indique = bouton;
+            float ny = bouton.Top + 7, nh = bouton.Height - 14;
+            if (Math.Abs(ny - cy) < 0.5f && Math.Abs(nh - ch) < 0.5f && iy >= 0) return;
+            bool glisser = Animations.Actives && iy >= 0 && Visible && IsHandleCreated;
+            cy = ny; ch = nh;
+            if (!glisser) { iy = cy; ih = ch; Invalidate(); return; }
+            dy = iy; dh = ih; debut = Animations.Maintenant;
+            Animations.Lancer(this);
+        }
+        /// <summary>Les boutons ont bougé (fenêtre redimensionnée) : l'indicateur suit sans animation.</summary>
+        public void Recaler() { if (indique != null) { cy = indique.Top + 7; ch = indique.Height - 14; iy = cy; ih = ch; Invalidate(); } }
+        public bool Avancer(long t)
+        {
+            if (IsDisposed) return false;
+            float p = Math.Min(1f, (t - debut) / 260f), e = Animations.Douce(p);
+            iy = dy + (cy - dy) * e; ih = dh + (ch - dh) * e;
+            Invalidate(new Rectangle(0, 0, 6, Height));
+            return p < 1f;
+        }
         /// <summary>Position du trait qui sépare le menu principal du groupe du bas.</summary>
         public int Separateur;
         public BarreLaterale(FenetrePrincipale f)
@@ -676,6 +724,12 @@ namespace NettoyagePC
             {
                 g.InterpolationMode = InterpolationMode.HighQualityBicubic;
                 g.DrawImage(Logo, 20, 24, 32, 32);
+            }
+            if (iy >= 0 && ih > 0)
+            {
+                g.SmoothingMode = SmoothingMode.AntiAlias;
+                using (var halo = new SolidBrush(Color.FromArgb(60, P.Lueur1))) g.FillRectangle(halo, 0, iy - 2, 5, ih + 4);
+                Theme.RemplirArrondi(g, P.Lueur1, 0, iy, 3, ih, 1.5f);
             }
         }
     }

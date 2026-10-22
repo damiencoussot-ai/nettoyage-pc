@@ -23,7 +23,7 @@ ci-après « l'Éditeur ».
 
 Ces informations sont créées et gardées uniquement sur votre ordinateur. L'Éditeur n'y a pas accès :
 - les journaux des actions et les rapports (dossier Documents\NettoyagePC, gardés 60 jours) ;
-- votre profil : le pseudo, la couleur et la voix choisis pour le briefing vocal (fichier parametres.json du même dossier). La voix est la synthèse vocale de Windows, qui fonctionne sans Internet ;
+- votre profil : le pseudo et la couleur choisis (fichier parametres.json du même dossier) ;
 - l'historique des modifications, qui permet de les annuler ;
 - vos réglages, les mesures de performances, l'état du gardien et des sauvegardes automatiques (dossier %LOCALAPPDATA%\NettoyagePC) ;
 - pour les outils Premium que vous utilisez : une « photo » quotidienne de la configuration du PC pour l'enquêteur (programmes au démarrage, services, réglages, gardée 150 jours), les mesures de santé (usure des SSD, température maximale de la carte graphique), les mesures de FPS, et l'estimation de consommation électrique par application (relevée par le gardien si l'option est cochée, gardée 400 jours), dans ce même dossier ;

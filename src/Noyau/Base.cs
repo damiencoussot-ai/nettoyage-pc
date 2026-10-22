@@ -15,7 +15,7 @@ namespace NettoyagePC
     internal static class Appli
     {
         public const string Nom = "Nettoyage PC";
-        public static readonly string Version = "4.5.1";
+        public static readonly string Version = "4.6";
         public const string Depot = "damiencoussot-ai/nettoyage-pc";
 
         public static bool EstAdmin
@@ -269,12 +269,9 @@ namespace NettoyagePC
         public bool ModeSimple;
         public string Accent = "aurore";   // couleur de l'interface (les autres qu'« aurore » font partie de Premium)
         public string OptionsOuvertes = "";   // pages dont « Plus d'options » est ouvert (clés séparées par des virgules)
-        // Profil (4.5) : pseudo affiché et prononcé, briefing vocal à l'ouverture. Tout reste sur ce PC.
+        // Profil : pseudo affiché à l'accueil. Tout reste sur ce PC.
         public string Pseudo = "";
         public bool ProfilCree;
-        public string Voix = "";            // nom de la voix de Windows ("" : celle de la langue de l'application)
-        public string Briefing = "jour";    // jour, ouverture, besoin, jamais
-        public string DernierBriefing = ""; // date (yyyy-MM-dd) du dernier briefing lu
 
         public static string Fichier { get { return Chemins.Fichier("parametres.json"); } }
 
@@ -296,9 +293,6 @@ namespace NettoyagePC
                 string o = Json.Texte(d, "OptionsOuvertes"); if (System.Text.RegularExpressions.Regex.IsMatch(o, "^[A-Za-z,]{0,300}$")) p.OptionsOuvertes = o;
                 p.Pseudo = Profil.Nettoyer(Json.Texte(d, "Pseudo"));
                 p.ProfilCree = Json.Bool(d, "ProfilCree");
-                p.Voix = Json.Texte(d, "Voix"); if (p.Voix.Length > 120) p.Voix = "";
-                string b = Json.Texte(d, "Briefing"); if (b == "jour" || b == "ouverture" || b == "besoin" || b == "jamais") p.Briefing = b;
-                p.DernierBriefing = Json.Texte(d, "DernierBriefing");
             }
             return p;
         }
@@ -309,7 +303,7 @@ namespace NettoyagePC
             {
                 Chemins.CreerDonnees();
                 var d = new Dictionary<string, object> { { "VerifAuto", VerifAuto }, { "DerniereVersionLancee", DerniereVersionLancee }, { "Theme", Theme }, { "Langue", Langue }, { "NouveautesVues", NouveautesVues }, { "ModeSimple", ModeSimple }, { "Accent", Accent }, { "OptionsOuvertes", OptionsOuvertes },
-                    { "Pseudo", Pseudo }, { "ProfilCree", ProfilCree }, { "Voix", Voix }, { "Briefing", Briefing }, { "DernierBriefing", DernierBriefing } };
+                    { "Pseudo", Pseudo }, { "ProfilCree", ProfilCree } };
                 FichierSur.EcrireInterface(Fichier, Json.Ecrire(d));
             }
             catch { }

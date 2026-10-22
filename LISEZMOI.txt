@@ -1,9 +1,9 @@
-NETTOYAGE PC 4.5.1
-==================
+NETTOYAGE PC 4.6
+================
 
 Installation
 ------------
-1. Double-clique sur « NettoyagePC-Setup-4.5.1.exe ».
+1. Double-clique sur « NettoyagePC-Setup-4.6.exe ».
 2. Windows peut afficher « Windows a protégé votre ordinateur » (SmartScreen) : clique sur
    « Informations complémentaires » puis « Exécuter quand même ». C'est normal pour un programme
    qui n'est pas signé par un éditeur connu.
@@ -13,12 +13,21 @@ Installation
    administrateur (fenêtre « Voulez-vous autoriser... », clique sur Oui) qu'au moment d'une action
    qui touche tout le PC (nettoyage profond, disques, réparation...), et seulement pour elle.
 
-Mise à jour depuis la version 3 : installe simplement la version 4.5.1 par-dessus (ou clique sur
+Mise à jour depuis la version 3 : installe simplement la version 4.6 par-dessus (ou clique sur
 « Installer » dans la rubrique Mises à jour). L'historique, les réglages, les statistiques et
 l'entretien automatique sont conservés.
 
 Désinstaller : Paramètres > Applications > Applications installées > Nettoyage PC > Désinstaller.
 La désinstallation retire aussi l'entretien automatique (tâches planifiées).
+
+Nouveautés de la version 4.6
+----------------------------
+- Interface plus futuriste et fluide : indicateur lumineux qui glisse dans le menu, lumière dans
+  l'en-tête, anneau de l'accueil qui respire, boutons qui s'illuminent.
+- Plus simple : l'accueil montre d'abord ce qu'il y a à faire ; au premier lancement, choix entre
+  le mode simple et le mode complet.
+- Le briefing vocal est retiré.
+- Premium : achat par Stripe prêt, avec activation automatique après le paiement.
 
 Nouveautés de la version 4.5.1 (corrections)
 --------------------------------------------

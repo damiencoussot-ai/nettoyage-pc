@@ -1,9 +1,8 @@
-﻿// Nettoyage PC - « Faisons connaissance » (4.5) : profil sur ce PC (pseudo, couleur, briefing vocal).
+﻿// Nettoyage PC - « Faisons connaissance » : profil sur ce PC (pseudo, couleur, mode simple ou complet).
 // Affiché au premier lancement, puis depuis Réglages > Mon profil. Rien n'est envoyé sur Internet.
 using System;
-using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
+using System.Drawing.Drawing2D;
 using System.Windows.Forms;
 
 namespace NettoyagePC
@@ -11,28 +10,18 @@ namespace NettoyagePC
     internal class FenetreProfil : FenetreTheme
     {
         private readonly FenetrePrincipale F;
+        private readonly bool premier;
         private readonly ZoneTexte zPseudo = new ZoneTexte(340);
-        private readonly ListeDeroulante cbQuand = new ListeDeroulante(330), cbVoix = new ListeDeroulante(330);
-        private readonly Etiquette lblExemple;
-        private readonly Bouton bEcouter;
-        private readonly List<string> voix = new List<string>();
-        private static readonly string[] Quand = { "jour", "ouverture", "besoin", "jamais" };
-
-        private bool lireApres;
+        private readonly CarteChoix cSimple, cComplet;
 
         public static void Ouvrir(FenetrePrincipale f, bool premierLancement)
         {
-            bool lire;
-            using (var w = new FenetreProfil(f, premierLancement)) { w.ShowDialog(f); lire = w.lireApres; }
-            Voix.Arreter();
-            // premier profil : le briefing du jour est lu tout de suite
-            var accueil = f.Pages["Accueil"] as PageAccueil;
-            if (lire && accueil != null) accueil.LireBriefing(false);
+            using (var w = new FenetreProfil(f, premierLancement)) w.ShowDialog(f);
         }
 
-        internal FenetreProfil(FenetrePrincipale f, bool premierLancement) : base(premierLancement ? "Faisons connaissance" : "Mon profil", 780, 640)
+        internal FenetreProfil(FenetrePrincipale f, bool premierLancement) : base(premierLancement ? "Faisons connaissance" : "Mon profil", 780, 560)
         {
-            F = f;
+            F = f; premier = premierLancement;
             var r = f.Reglages;
             Controls.Add(new Etiquette(premierLancement ? "// PREMIER LANCEMENT" : "// MON PROFIL", Theme.Mono, Role.AccentVif, 26, 18));
             Controls.Add(new Etiquette("Faisons connaissance", Theme.Grand, Role.Texte, 24, 36));
@@ -42,9 +31,8 @@ namespace NettoyagePC
             Controls.Add(new Etiquette("TON PSEUDO", Theme.Mono, Role.Discret, 26, y));
             zPseudo.Location = new Point(26, y + 20); zPseudo.Font = new Font(Theme.Grand.FontFamily, 14); zPseudo.MaxLength = 24;
             zPseudo.Text = r.Pseudo;
-            zPseudo.TextChanged += (s, e) => ActualiserExemple();
             Controls.Add(zPseudo);
-            Controls.Add(new Etiquette("C'est le nom que l'application affiche et prononce.", Theme.Petit, Role.Discret, 26, y + 60));
+            Controls.Add(new Etiquette("C'est le nom que l'application affiche pour t'accueillir.", Theme.Petit, Role.Discret, 26, y + 60));
 
             y = 206;
             Controls.Add(new Etiquette("TA COULEUR", Theme.Mono, Role.Discret, 26, y));
@@ -52,82 +40,82 @@ namespace NettoyagePC
             if (!Licence.Premium) Controls.Add(new Etiquette("Les autres couleurs font partie de Premium.", Theme.Petit, Role.Discret, 300, y + 30));
 
             y = 290;
-            Controls.Add(new Etiquette("BRIEFING VOCAL À L'OUVERTURE", Theme.Mono, Role.Discret, 26, y));
-            Controls.Add(new Etiquette("Quand ?", Theme.Normal, Role.Texte, 26, y + 24));
-            cbQuand.Location = new Point(26, y + 46);
-            cbQuand.Items.AddRange(new object[] { Langue.T("Une fois par jour"), Langue.T("À chaque ouverture"), Langue.T("Seulement s'il y a quelque chose à faire"), Langue.T("Jamais (texte seulement)") });
-            cbQuand.SelectedIndex = Math.Max(0, Array.IndexOf(Quand, r.Briefing));
-            Controls.Add(cbQuand);
-            Controls.Add(new Etiquette("Voix", Theme.Normal, Role.Texte, 400, y + 24));
-            cbVoix.Location = new Point(400, y + 46);
-            var liste = Voix.Disponible ? Voix.Lister() : new List<Tuple<string, string>>();
-            cbVoix.Items.Add(Langue.T("Automatique (langue de l'application)")); voix.Add("");
-            foreach (var v in liste) { cbVoix.Items.Add(v.Item1); voix.Add(v.Item1); }
-            cbVoix.SelectedIndex = Math.Max(0, voix.IndexOf(r.Voix));
-            cbVoix.Enabled = liste.Count > 0;
-            Controls.Add(cbVoix);
+            Controls.Add(new Etiquette("COMMENT VEUX-TU UTILISER NETTOYAGE PC ?", Theme.Mono, Role.Discret, 26, y));
+            cSimple = new CarteChoix("Simple", "Trois gros boutons : nettoyer, vérifier, appeler à l'aide. Idéal pour débuter.", "POUR DÉBUTER") { Location = new Point(24, y + 24), Size = new Size(356, 112) };
+            cComplet = new CarteChoix("Complet", "Toutes les rubriques et les outils : nettoyage, vitesse, sécurité, matériel, Premium.", "") { Location = new Point(396, y + 24), Size = new Size(356, 112) };
+            cSimple.Choisi = r.ModeSimple; cComplet.Choisi = !r.ModeSimple;
+            cSimple.Click += (s, e) => { cSimple.Choisi = true; cComplet.Choisi = false; };
+            cComplet.Click += (s, e) => { cSimple.Choisi = false; cComplet.Choisi = true; };
+            Controls.Add(cSimple); Controls.Add(cComplet);
+            Controls.Add(new Etiquette("Tu peux changer à tout moment dans Réglages.", Theme.Petit, Role.Discret, 26, y + 146));
 
-            y = 384;
-            var carte = new Carte(728, 120, true) { Location = new Point(24, y) };
-            bEcouter = new Bouton("▶  Écouter", true, 120, 36) { Location = new Point(18, 42) };
-            bEcouter.Click += (s, e) => Ecouter();
-            carte.Controls.Add(bEcouter);
-            lblExemple = new Etiquette("", Theme.Normal, Role.Texte, 154, 18) { AutoSize = false, Size = new Size(556, 86) };
-            carte.Controls.Add(lblExemple);
-            Controls.Add(carte);
-            Controls.Add(new Etiquette(liste.Count > 0 ? "La voix est celle de Windows : elle fonctionne sans Internet. Le briefing ne fait rien tout seul, il propose."
-                : "La voix de Windows n'est pas disponible sur ce PC : le briefing s'affichera seulement en texte.", Theme.Petit, Role.Discret, 26, y + 128) { MaximumSize = new Size(720, 0) });
-
-            var bPasser = new Bouton(premierLancement ? "Passer cette étape" : "Annuler", false, 180, 40) { Location = new Point(24, 578) };
-            bPasser.Click += (s, e) => { if (premierLancement) { F.Reglages.ProfilCree = true; F.Reglages.Briefing = "jamais"; F.Reglages.Ecrire(); } Close(); };
-            var bOk = new Bouton(premierLancement ? "Créer mon profil" : "Enregistrer", true, 220, 40) { Location = new Point(532, 578), Font = Theme.CarteTitre };
+            var bPasser = new Bouton(premierLancement ? "Passer cette étape" : "Annuler", false, 180, 40) { Location = new Point(24, 496) };
+            bPasser.Click += (s, e) => { if (premierLancement) { F.Reglages.ProfilCree = true; F.Reglages.Ecrire(); } Close(); };
+            var bOk = new Bouton(premierLancement ? "C'est parti" : "Enregistrer", true, 220, 40) { Location = new Point(532, 496), Font = Theme.CarteTitre };
             bOk.Click += (s, e) => Enregistrer();
             Controls.Add(bPasser); Controls.Add(bOk);
             AcceptButton = bOk;
-            ClientSize = new Size(776, 636);
+            ClientSize = new Size(776, 556);
             Theme.Appliquer(this);
-            ActualiserExemple();
             Shown += (s, e) => zPseudo.Focus();
-        }
-
-        private string Exemple()
-        {
-            var accueil = F.Pages.ContainsKey("Accueil") ? F.Pages["Accueil"] as PageAccueil : null;
-            var pts = accueil != null && accueil.Points.Count > 0 ? accueil.Points : new List<PointBilan>
-            {
-                new PointBilan { Etat = "attention", Parole = Langue.T("créer un point de restauration") }
-            };
-            int score = accueil != null && accueil.ScoreActuel >= 0 ? accueil.ScoreActuel : 93;
-            return Profil.TexteBriefing(Profil.Nettoyer(zPseudo.Text), score, pts);
-        }
-
-        private void ActualiserExemple() { lblExemple.Text = "« " + Exemple() + " »"; }
-
-        private void Ecouter()
-        {
-            if (Voix.EnCours) { Voix.Arreter(); bEcouter.Text = "▶  Écouter"; return; }
-            string nom = cbVoix.SelectedIndex > 0 ? voix[cbVoix.SelectedIndex] : "";
-            if (!Voix.Lire(Exemple(), nom)) { BoiteMessage.Info("La voix de Windows n'est pas disponible sur ce PC."); return; }
-            bEcouter.Text = "■  Arrêter";
-            var t = new Timer { Interval = 400 };
-            t.Tick += (s, e) => { if (IsDisposed || !Voix.EnCours) { t.Stop(); t.Dispose(); if (!IsDisposed) bEcouter.Text = "▶  Écouter"; } };
-            t.Start();
         }
 
         private void Enregistrer()
         {
             var r = F.Reglages;
             r.Pseudo = Profil.Nettoyer(zPseudo.Text);
-            r.Briefing = Quand[Math.Max(0, cbQuand.SelectedIndex)];
-            r.Voix = cbVoix.SelectedIndex > 0 ? voix[cbVoix.SelectedIndex] : "";
-            bool premier = !r.ProfilCree;
             r.ProfilCree = true;
-            if (premier && r.Briefing != "jamais") r.DernierBriefing = DateTime.Now.ToString("yyyy-MM-dd");
             r.Ecrire();
             F.ProfilChange();
-            var accueil = F.Pages["Accueil"] as PageAccueil;
-            lireApres = premier && r.Briefing != "jamais" && accueil != null && accueil.Points.Count > 0 && Programme.DossierAutotest == null;
+            if (cSimple.Choisi != r.ModeSimple) F.AppliquerModeSimple(cSimple.Choisi);
             DialogResult = DialogResult.OK;
+        }
+    }
+
+    /// <summary>Carte à choisir (comme un bouton radio), avec coins lumineux quand elle est choisie.</summary>
+    internal class CarteChoix : Control, IThemable
+    {
+        private readonly string titre, texte, badge;
+        private bool choisi, survol;
+        public bool Choisi { get { return choisi; } set { choisi = value; Invalidate(); } }
+
+        public CarteChoix(string titre, string texte, string badge)
+        {
+            this.titre = Langue.T(titre); this.texte = Langue.T(texte); this.badge = badge == "" ? "" : Langue.T(badge);
+            SetStyle(ControlStyles.OptimizedDoubleBuffer | ControlStyles.AllPaintingInWmPaint | ControlStyles.ResizeRedraw | ControlStyles.UserPaint | ControlStyles.Selectable, true);
+            Cursor = Cursors.Hand; TabStop = true;
+            AccessibleRole = AccessibleRole.RadioButton; AccessibleName = this.titre;
+        }
+
+        public void AppliquerTheme() { Invalidate(); }
+        protected override void OnMouseEnter(EventArgs e) { survol = true; Invalidate(); base.OnMouseEnter(e); }
+        protected override void OnMouseLeave(EventArgs e) { survol = false; Invalidate(); base.OnMouseLeave(e); }
+        protected override void OnGotFocus(EventArgs e) { Invalidate(); base.OnGotFocus(e); }
+        protected override void OnLostFocus(EventArgs e) { Invalidate(); base.OnLostFocus(e); }
+        protected override void OnKeyDown(KeyEventArgs e) { if (e.KeyCode == Keys.Space || e.KeyCode == Keys.Enter) { OnClick(EventArgs.Empty); e.Handled = true; } base.OnKeyDown(e); }
+
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            var g = e.Graphics; var P = Theme.P;
+            g.SmoothingMode = SmoothingMode.AntiAlias;
+            int w = Width, h = Height;
+            using (var fond = new SolidBrush(choisi ? Color.FromArgb(Theme.EstSombre ? 40 : 26, P.Accent) : P.Carte)) g.FillRectangle(fond, 0, 0, w, h);
+            using (var bord = new Pen(choisi ? P.Accent : survol ? Color.FromArgb(160, P.Accent) : P.Bordure, choisi ? 2 : 1)) g.DrawRectangle(bord, choisi ? 1 : 0, choisi ? 1 : 0, w - (choisi ? 3 : 1), h - (choisi ? 3 : 1));
+            if (choisi) Theme.Crochets(g, P.Lueur1, 0, 0, w, h, 14, 2);
+            // pastille du choix
+            int r = 9, cx = 22, cy = 28;
+            using (var p = new Pen(choisi ? P.Accent : P.Discret, 2)) g.DrawEllipse(p, cx - r, cy - r, 2 * r, 2 * r);
+            if (choisi) using (var b = new SolidBrush(P.Accent)) g.FillEllipse(b, cx - 5, cy - 5, 10, 10);
+            Theme.Texte(g, titre, Theme.CarteTitre, new Rectangle(42, 14, w - 60, 28), P.Texte, TextFormatFlags.Left | TextFormatFlags.VerticalCenter);
+            if (badge != "")
+            {
+                var tb = TextRenderer.MeasureText(badge, Theme.Mono);
+                var rb = new Rectangle(w - tb.Width - 30, 18, tb.Width + 14, 20);
+                using (var b = new SolidBrush(Color.FromArgb(Theme.EstSombre ? 50 : 30, P.Vert))) g.FillRectangle(b, rb);
+                Theme.Texte(g, badge, Theme.Mono, rb, P.Vert, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
+            }
+            Theme.Texte(g, texte, Theme.Normal, new Rectangle(42, 46, w - 60, h - 54), P.Discret, TextFormatFlags.Left | TextFormatFlags.Top | TextFormatFlags.WordBreak);
+            if (Focused && ShowFocusCues) using (var p = new Pen(Color.FromArgb(150, P.Lueur1)) { DashStyle = DashStyle.Dot }) g.DrawRectangle(p, 4, 4, w - 9, h - 9);
         }
     }
 }

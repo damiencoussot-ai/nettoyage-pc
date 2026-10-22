@@ -35,6 +35,14 @@ namespace NettoyagePC
             float cx = Width / 2f, cy = Height / 2f, R = Math.Min(Width, Height) / 2f - 4;
             float rotation = (float)(Pulsation * 4) % 360;
             Func<float, RectangleF> Cercle = r => new RectangleF(cx - r, cy - r, 2 * r, 2 * r);
+            // halo qui « respire » lentement derrière l'anneau
+            using (var halo = new GraphicsPath())
+            {
+                halo.AddEllipse(Cercle(R * 0.98f));
+                int alpha = (int)((Theme.EstSombre ? 62 : 34) + 16 * Math.Sin(Pulsation * 0.35));
+                using (var pb = new PathGradientBrush(halo) { CenterColor = Color.FromArgb(Math.Max(0, alpha), P.Lueur1), SurroundColors = new[] { Color.FromArgb(0, P.Lueur1) } })
+                    g.FillPath(pb, halo);
+            }
             // graduations
             for (int i = 0; i < 72; i++)
             {
@@ -48,6 +56,9 @@ namespace NettoyagePC
             float rr = R - 16;
             using (var s = new Pen(Color.FromArgb(40, P.Lueur1), 1)) g.DrawEllipse(s, Cercle(rr));
             double ar = (rotation - 90) * Math.PI / 180;
+            // traînée lumineuse derrière le repère qui tourne
+            for (int i = 1; i <= 10; i++)
+                using (var s = new Pen(Color.FromArgb((int)(150 * (1 - i / 11f)), P.Lueur1), 2f)) g.DrawArc(s, Cercle(rr), rotation - 90 - i * 3.2f, 3.4f);
             using (var b = new SolidBrush(P.Lueur1)) g.FillEllipse(b, (float)(cx + rr * Math.Cos(ar)) - 3, (float)(cy + rr * Math.Sin(ar)) - 3, 6, 6);
             // quatre secteurs
             float rs = R - 32; var rect = Cercle(rs);
@@ -134,14 +145,13 @@ namespace NettoyagePC
         }
     }
 
-    internal class PointBilan { public string Etat, Texte, Bouton, Parole = ""; public Cible Cible; }
+    internal class PointBilan { public string Etat, Texte, Bouton; public Cible Cible; }
 
     internal class PageAccueil : Page
     {
         private readonly Jauge jauge = new Jauge { Location = new Point(16, 0) };
         private readonly Etiquette etatTitre, etatCourt, etatTexte, lblPoints;
-        private readonly Bouton bUnClic, bAnalyse, bActualiser, bBriefing;
-        private readonly Timer minuteurVoix = new Timer { Interval = 500 };
+        private readonly Bouton bUnClic, bAnalyse, bActualiser;
         private readonly Mesure mCpu, mRam, mDisque, mTemp;
         private readonly FlowLayoutPanel listeBilan;
         private readonly Timer minuteurMesures = new Timer { Interval = 2000 }, minuteurAnim = new Timer { Interval = 16 }, minuteurPulse = new Timer { Interval = 60 };
@@ -160,9 +170,6 @@ namespace NettoyagePC
             etatTitre = Texte(Profil.Accueil(f.Reglages.Pseudo), 336, 10, Role.Texte, Theme.Grand);
             etatCourt = Texte("Analyse de ton PC...", 338, 48, Role.AccentVif, Theme.CarteTitre);
             etatTexte = Texte("", 338, 74); etatTexte.MaximumSize = new Size(600, 0);
-            bBriefing = NouveauBouton("▶  Écouter le briefing", false, 210, 30, 338, 106, () => BasculerBriefing());
-            bBriefing.Font = Theme.Petit;
-            Infobulle.Definir(bBriefing, "Nettoyage PC te dit à voix haute l'état de ton PC et les améliorations proposées (voix de Windows, sans Internet).");
             bUnClic = BoutonAction("Optimiser en 1 clic", true, 230, 46, 338, 146, "complet");
             bUnClic.Font = Theme.CarteTitre;
             Infobulle.Definir(bUnClic, "Point de restauration, nettoyage complet, disques, RAM, bilans d'optimisation et de sécurité.");
@@ -173,7 +180,6 @@ namespace NettoyagePC
             lblPoints.Font = Theme.MonoGras; lblPoints.RoleTexte = Role.Discret; lblPoints.AppliquerTheme();
             bActualiser = NouveauBouton("Actualiser", false, 100, 28, 260, 308, MettreAJourBilan);
             listeBilan = new FlowLayoutPanel { Location = new Point(28, 344), FlowDirection = FlowDirection.TopDown, WrapContents = false, AutoSize = true, BackColor = Theme.P.Fond };
-            minuteurVoix.Tick += (s, e) => { if (!Voix.EnCours) { minuteurVoix.Stop(); bBriefing.Text = "▶  Écouter le briefing"; } };
             Controls.Add(listeBilan);
             Resize += (s, e) => { AjusterBilan(); PlacerEntete(); };
             minuteurMesures.Tick += (s, e) => { if (F.PageActive == "Accueil" && F.WindowState != FormWindowState.Minimized) MettreAJourMesures(); };
@@ -344,34 +350,33 @@ namespace NettoyagePC
         {
             var pts = new List<PointBilan>();
             Action<string, string, string, Cible> Point = (etat, texte, bouton, cible) => pts.Add(new PointBilan { Etat = etat, Texte = texte, Bouton = bouton, Cible = cible });
-            Action<string> Dire = parole => pts[pts.Count - 1].Parole = Langue.T(parole);   // phrase courte lue par le briefing vocal
             string sd = Environment.GetEnvironmentVariable("SystemDrive") ?? "C:";
             if (d.DisqueTotal > 0)
             {
                 double pct = 100 * d.DisqueLibre / d.DisqueTotal;
                 string txt = "Disque " + sd + " " + Format.Taille(d.DisqueLibre) + " libres (" + pct.ToString("0", Appli.Fr) + " %)";
-                if (pct < 10) { Point("probleme", txt + " : presque plein, Windows ralentit.", "Libérer de l'espace", Cible.A("complet")); Dire("libérer de la place sur le disque, il est presque plein"); }
-                else if (pct < 20) { Point("attention", txt + " : il commence à se remplir.", "Nettoyer", Cible.A("standard")); Dire("faire un peu de place sur le disque"); }
+                if (pct < 10) { Point("probleme", txt + " : presque plein, Windows ralentit.", "Libérer de l'espace", Cible.A("complet")); }
+                else if (pct < 20) { Point("attention", txt + " : il commence à se remplir.", "Nettoyer", Cible.A("standard")); }
                 else Point("ok", txt, null, null);
             }
             long recup = d.Corbeille + d.Temp;
-            if (recup >= 1073741824L) { Point("attention", Format.Taille(recup) + " récupérables tout de suite (corbeille et fichiers temporaires).", "Nettoyer", Cible.A("standard")); Dire("vider la corbeille et les fichiers temporaires"); }
+            if (recup >= 1073741824L) { Point("attention", Format.Taille(recup) + " récupérables tout de suite (corbeille et fichiers temporaires).", "Nettoyer", Cible.A("standard")); }
             else Point("ok", "Corbeille et fichiers temporaires : " + Format.Taille(recup), null, null);
-            if (!d.DernierJournal.HasValue) { Point("attention", "Aucun nettoyage effectué avec Nettoyage PC pour l'instant.", "Nettoyer", Cible.A("standard")); Dire("faire un premier nettoyage"); }
+            if (!d.DernierJournal.HasValue) { Point("attention", "Aucun nettoyage effectué avec Nettoyage PC pour l'instant.", "Nettoyer", Cible.A("standard")); }
             else
             {
                 int jours = (int)(DateTime.Now - d.DernierJournal.Value).TotalDays;
-                if (jours > 14) { Point("attention", "Dernière action il y a " + jours + " jours.", "Nettoyer", Cible.A("standard")); Dire("refaire un nettoyage"); }
+                if (jours > 14) { Point("attention", "Dernière action il y a " + jours + " jours.", "Nettoyer", Cible.A("standard")); }
                 else Point("ok", "Dernière action : " + d.DernierJournal.Value.ToString("dd/MM/yyyy HH:mm"), null, null);
             }
             // matériel bridé (écran à 60 Hz, écran sur la carte mère, Resizable BAR...) : la mémoire bridée a déjà son propre point
-            foreach (var p in d.Potentiel.Where(x => !x.Ok && x.Cle != "expo")) { Point("attention", p.Titre + (p.Gain != "" ? " (" + p.Gain + ")" : ""), "Corriger", Cible.Page("Potentiel")); Dire("corriger un réglage qui bride ton matériel"); }
+            foreach (var p in d.Potentiel.Where(x => !x.Ok && x.Cle != "expo")) { Point("attention", p.Titre + (p.Gain != "" ? " (" + p.Gain + ")" : ""), "Corriger", Cible.Page("Potentiel")); }
             if (d.Tache) Point("ok", "Entretien automatique activé (chaque dimanche).", null, null);
-            else { Point("attention", "Entretien automatique désactivé : ton PC ne se nettoie pas tout seul.", "Activer", Cible.A("planifier")); Dire("activer l'entretien automatique"); }
+            else { Point("attention", "Entretien automatique désactivé : ton PC ne se nettoie pas tout seul.", "Activer", Cible.A("planifier")); }
             if (d.RamTotal > 0)
             {
                 double pr = 100 * (d.RamTotal - d.RamLibre) / d.RamTotal;
-                if (pr >= 85) { Point("attention", "Mémoire vive utilisée à " + pr.ToString("0") + " %.", "Libérer la RAM", Cible.A("ramlib")); Dire("libérer la mémoire vive"); }
+                if (pr >= 85) { Point("attention", "Mémoire vive utilisée à " + pr.ToString("0") + " %.", "Libérer la RAM", Cible.A("ramlib")); }
                 else Point("ok", "Mémoire vive utilisée à " + pr.ToString("0") + " %.", null, null);
             }
             if (d.Demarre.HasValue && (DateTime.Now - d.Demarre.Value).TotalDays >= 7)
@@ -381,38 +386,36 @@ namespace NettoyagePC
                     if (BoiteMessage.Question("Redémarrer le PC maintenant ?\n\nEnregistre ton travail et ferme tes applications avant."))
                         Programmes.Executer(Path.Combine(Chemins.Systeme32, "shutdown.exe"), "/r /t 5", 5000);
                 }));
-                Dire("redémarrer le PC");
             }
-            if (d.NbDemarrage >= 10) { Point("attention", d.NbDemarrage + " programmes se lancent au démarrage : Windows démarre plus lentement.", "Gérer", Cible.Page("Demarrage")); Dire("alléger le démarrage de Windows"); }
+            if (d.NbDemarrage >= 10) { Point("attention", d.NbDemarrage + " programmes se lancent au démarrage : Windows démarre plus lentement.", "Gérer", Cible.Page("Demarrage")); }
             else Point("ok", d.NbDemarrage + " programme(s) au démarrage.", "Gérer", Cible.Page("Demarrage"));
-            if (d.Malades.Count > 0) { Point("probleme", "Disque en mauvaise santé : " + string.Join(", ", d.Malades) + ". Sauvegarde tes données.", "Voir les disques", Cible.Page("Materiel")); Dire("sauvegarder tes documents, car un disque montre des signes de faiblesse"); }
+            if (d.Malades.Count > 0) { Point("probleme", "Disque en mauvaise santé : " + string.Join(", ", d.Malades) + ". Sauvegarde tes données.", "Voir les disques", Cible.Page("Materiel")); }
             else Point("ok", "Disques en bonne santé.", "Détails", Cible.Page("Materiel"));
-            if (d.MpPresent && !d.MpTempsReel && d.AutresAv.Count == 0) { Point("probleme", "Protection antivirus en temps réel désactivée.", "Ouvrir Sécurité Windows", Cible.Lien("windowsdefender://threat")); Dire("réactiver la protection antivirus"); }
-            else if (d.MpPresent && d.MpTempsReel && d.MpAge >= 7) { Point("attention", "Signatures antivirus vieilles de " + d.MpAge + " jours.", "Mettre à jour", Cible.A("antivirus")); Dire("mettre à jour l'antivirus"); }
+            if (d.MpPresent && !d.MpTempsReel && d.AutresAv.Count == 0) { Point("probleme", "Protection antivirus en temps réel désactivée.", "Ouvrir Sécurité Windows", Cible.Lien("windowsdefender://threat")); }
+            else if (d.MpPresent && d.MpTempsReel && d.MpAge >= 7) { Point("attention", "Signatures antivirus vieilles de " + d.MpAge + " jours.", "Mettre à jour", Cible.A("antivirus")); }
             else if (d.AutresAv.Count > 0) Point("ok", "Antivirus actif : " + string.Join(", ", d.AutresAv), null, null);
             else Point("ok", "Antivirus Microsoft Defender actif et à jour.", null, null);
             foreach (var a in d.AccesDistants)
             {
                 Point(a.Connexions > 0 ? "probleme" : "attention", Langue.F(a.Connexions > 0 ? "{0} est ouvert et connecté : quelqu'un peut voir ton écran." : "{0} est ouvert : il permet de prendre la main sur ton PC.", a.Nom), "Vérifier", Cible.Faire(() => { FenetreBouclier.Ouvrir(F); MettreAJourBilan(); }));
-                pts[pts.Count - 1].Parole = Langue.F("vérifier {0}, un logiciel qui permet de prendre la main sur ton PC", a.Nom);
             }
-            if (d.PareFeuOff.Count > 0) { Point("probleme", "Pare-feu désactivé (" + string.Join(", ", d.PareFeuOff) + ").", "Ouvrir le pare-feu", Cible.Lien("windowsdefender://network")); Dire("réactiver le pare-feu"); }
+            if (d.PareFeuOff.Count > 0) { Point("probleme", "Pare-feu désactivé (" + string.Join(", ", d.PareFeuOff) + ").", "Ouvrir le pare-feu", Cible.Lien("windowsdefender://network")); }
             else Point("ok", "Pare-feu Windows actif.", null, null);
             if (d.PointConnu || d.PointDate.HasValue)
             {
-                if (!d.PointDate.HasValue) { Point("attention", "Aucun point de restauration : impossible de revenir en arrière en cas de problème.", "Créer", Cible.A("point")); Dire("créer un point de restauration"); }
-                else if ((DateTime.Now - d.PointDate.Value).TotalDays > 30) { Point("attention", "Dernier point de restauration le " + d.PointDate.Value.ToString("dd/MM/yyyy") + ".", "Créer", Cible.A("point")); Dire("créer un nouveau point de restauration"); }
+                if (!d.PointDate.HasValue) { Point("attention", "Aucun point de restauration : impossible de revenir en arrière en cas de problème.", "Créer", Cible.A("point")); }
+                else if ((DateTime.Now - d.PointDate.Value).TotalDays > 30) { Point("attention", "Dernier point de restauration le " + d.PointDate.Value.ToString("dd/MM/yyyy") + ".", "Créer", Cible.A("point")); }
                 else Point("ok", "Point de restauration du " + d.PointDate.Value.ToString("dd/MM/yyyy") + ".", null, null);
             }
-            if (d.RedemarrageAttente) { Point("attention", "Des mises à jour Windows attendent un redémarrage.", null, null); Dire("redémarrer pour terminer les mises à jour de Windows"); }
+            if (d.RedemarrageAttente) { Point("attention", "Des mises à jour Windows attendent un redémarrage.", null, null); }
             if (d.DatePiloteGpu.HasValue)
             {
                 int mois = (int)Math.Floor((DateTime.Now - d.DatePiloteGpu.Value).TotalDays / 30.4);
-                if (mois >= 4) { Point("attention", "Pilote graphique (" + d.NomGpu + ") vieux de " + mois + " mois : une version plus récente existe sûrement.", "Mettre à jour", Cible.Page("Pilotes")); Dire("mettre à jour le pilote de ta carte graphique"); }
+                if (mois >= 4) { Point("attention", "Pilote graphique (" + d.NomGpu + ") vieux de " + mois + " mois : une version plus récente existe sûrement.", "Mettre à jour", Cible.Page("Pilotes")); }
                 else Point("ok", "Pilote graphique récent (" + d.NomGpu + ").", "Voir", Cible.Page("Pilotes"));
             }
             if (d.RamPrevue > 0 && d.RamReelle > 0 && d.RamReelle < d.RamPrevue - 100)
-                { Point("attention", "Mémoire vive à " + d.RamReelle + " MT/s au lieu de " + d.RamPrevue + " MT/s : active le profil EXPO / XMP dans le BIOS pour plus de performances.", "Comment faire", Cible.Page("Materiel")); Dire("activer le profil EXPO ou XMP de ta mémoire dans le BIOS"); }
+                { Point("attention", "Mémoire vive à " + d.RamReelle + " MT/s au lieu de " + d.RamPrevue + " MT/s : active le profil EXPO / XMP dans le BIOS pour plus de performances.", "Comment faire", Cible.Page("Materiel")); }
 
             int score = 100;
             foreach (var p in pts) score -= p.Etat == "probleme" ? 20 : p.Etat == "attention" ? 7 : 0;
@@ -427,33 +430,24 @@ namespace NettoyagePC
             etatCourt.AppliquerTheme();
             CalculerSecteurs(d, pts);
             etatTexte.Text = nbP == 0 && nbA == 0 ? "Rien à corriger pour l'instant. L'entretien automatique s'occupe du reste."
-                : nbP + " problème(s), " + nbA + " point(s) à améliorer. Clique sur « Optimiser en 1 clic » ou corrige les points un par un ci-dessous.";
+                : nbP > 0 ? Langue.F(nbP == 1 ? "1 point à régler en priorité. Clique sur « Optimiser en 1 clic » pour tout faire d'un coup, ou choisis ci-dessous." : "{0} points à régler en priorité. Clique sur « Optimiser en 1 clic » pour tout faire d'un coup, ou choisis ci-dessous.", nbP)
+                : Langue.F(nbA == 1 ? "1 amélioration possible. Clique sur « Optimiser en 1 clic » pour tout faire d'un coup, ou choisis ci-dessous." : "{0} améliorations possibles. Clique sur « Optimiser en 1 clic » pour tout faire d'un coup, ou choisis ci-dessous.", nbA);
             PlacerEntete();
             FichierSur.AjouterLigne(Chemins.Fichier("scores.csv"), DateTime.Now.ToString("yyyy-MM-dd HH:mm") + ";" + (int)jauge.Score);
             AfficherBilan();
             minuteurAnim.Start();
             try { var bp = BilanPret; if (bp != null) bp(); } catch (Exception ex) { JournalDemarrage.Erreur("bilan", ex); }
-            // briefing vocal (une fois par session au plus, selon le réglage du profil)
-            if (!briefingFait && Programme.DossierAutotest == null && F.WindowState != FormWindowState.Minimized && Profil.BriefingAttendu(F.Reglages, nbP + nbA > 0))
-            {
-                briefingFait = true;
-                F.Reglages.DernierBriefing = DateTime.Now.ToString("yyyy-MM-dd"); F.Reglages.Ecrire();
-                LireBriefing(false);
-            }
             var h = F.Pages["Historique"] as PageHistorique;
             if (F.PageActive == "Historique" && h != null) h.Charger();
         }
-
-        private bool briefingFait;
 
         /// <summary>Le texte d'état peut tenir sur plusieurs lignes : boutons, mesures et liste se placent dessous, sans chevauchement.</summary>
         private void PlacerEntete()
         {
             etatTexte.MaximumSize = new Size(Math.Max(320, Math.Min(620, ClientSize.Width - 338 - 30)), 0);
             // les positions sont relatives au défilement : la page peut être descendue quand le bilan se rafraîchit
-            int y = Math.Max(106 + AutoScrollPosition.Y, etatTexte.Bottom + 8);
-            bBriefing.Top = y;
-            bUnClic.Top = bAnalyse.Top = bBriefing.Bottom + 10;
+            int y = Math.Max(110 + AutoScrollPosition.Y, etatTexte.Bottom + 14);
+            bUnClic.Top = bAnalyse.Top = y;
             foreach (var m in new[] { mCpu, mRam, mDisque, mTemp }) m.Top = bUnClic.Bottom + 14;
             int haut = Math.Max(jauge.Bottom, mCpu.Bottom) + 14;
             lblPoints.Top = haut + 4; bActualiser.Top = haut - 2;
@@ -496,26 +490,6 @@ namespace NettoyagePC
         /// <summary>Le profil a changé (pseudo) : l'accueil suit.</summary>
         public void RafraichirProfil() { etatTitre.Text = Profil.Accueil(F.Reglages.Pseudo); }
 
-        private void BasculerBriefing()
-        {
-            if (Voix.EnCours) { Voix.Arreter(); minuteurVoix.Stop(); bBriefing.Text = "▶  Écouter le briefing"; return; }
-            LireBriefing(true);
-        }
-
-        /// <summary>Lit à voix haute l'état du PC et les améliorations proposées (rien n'est lancé).</summary>
-        public void LireBriefing(bool demande)
-        {
-            if (points.Count == 0 && bilanEnCours) return;
-            string texte = Profil.TexteBriefing(F.Reglages.Pseudo, ScoreActuel, points);
-            if (!Voix.Disponible || !Voix.Lire(texte, F.Reglages.Voix))
-            {
-                if (demande) BoiteMessage.Info(Langue.T("La voix de Windows n'est pas disponible sur ce PC. Voici le briefing :") + "\n\n" + texte);
-                return;
-            }
-            bBriefing.Text = "■  Arrêter le briefing";
-            minuteurVoix.Start();
-        }
-
         private int LargeurBilan { get { return Math.Max(640, ClientSize.Width - 60); } }
 
         private void AfficherBilan()
@@ -529,7 +503,30 @@ namespace NettoyagePC
                 c.Dispose();
             }
             int w = LargeurBilan;
-            foreach (var p in points)
+            // d'abord ce qu'il y a à faire ; ce qui va bien tient sur une seule ligne (détail sur demande)
+            var aFaire = points.Where(p => p.Etat != "ok").OrderBy(p => p.Etat == "probleme" ? 0 : 1).ToList();
+            var bons = points.Where(p => p.Etat == "ok").ToList();
+            foreach (var p in aFaire) AjouterLigne(p, w);
+            if (bons.Count > 0)
+            {
+                var ligne = new Carte(w, 46) { Margin = new Padding(0, 0, 0, 8) };
+                ligne.Controls.Add(new Etiquette("✔", Theme.CarteTitre, Role.Vert, 14, 11));
+                var t = new Etiquette(Langue.F(aFaire.Count == 0 ? "Tout va bien : {0} points vérifiés." : "{0} autres points vérifiés : tout va bien.", bons.Count), Theme.Normal, Role.Texte, 44, 13) { AutoSize = false, Size = new Size(w - 230, 22), AutoEllipsis = true, Tag = "texte" };
+                ligne.Controls.Add(t);
+                var b = new Bouton(okVisibles ? "Masquer la liste" : "Voir la liste", false, 160, 30) { Location = new Point(w - 172, 8) };
+                b.Click += (s, e) => { okVisibles = !okVisibles; BeginInvoke(new Action(AfficherBilan)); };
+                ligne.Controls.Add(b);
+                listeBilan.Controls.Add(ligne);
+                if (okVisibles) foreach (var p in bons) AjouterLigne(p, w);
+            }
+            listeBilan.ResumeLayout();
+            F.AppliquerDisponibilites();
+        }
+
+        private bool okVisibles;
+
+        private void AjouterLigne(PointBilan p, int w)
+        {
             {
                 var ligne = new Carte(w, 46) { Margin = new Padding(0, 0, 0, 8) };
                 Role r = p.Etat == "probleme" ? Role.Rouge : p.Etat == "attention" ? Role.Orange : Role.Vert;
@@ -547,8 +544,6 @@ namespace NettoyagePC
                 }
                 listeBilan.Controls.Add(ligne);
             }
-            listeBilan.ResumeLayout();
-            F.AppliquerDisponibilites();
         }
 
         private void AjusterBilan()

@@ -32,7 +32,7 @@ namespace NettoyagePC
                 "Enquêter", () => FenetreEnqueteur.Ouvrir(F), null);
             Outil(0xE95E, "Santé prédictive", "Repère les signes qui annoncent une panne avant qu'elle arrive : erreurs du matériel et du disque, usure des SSD, batterie, chauffe. Avec la tendance.",
                 "Vérifier", () => FenetreSante.Ouvrir(F), null);
-            Outil(0xE99A, "Assistant local", "Pose tes questions sur ton PC avec tes mots. L'IA tourne sur ton PC (Ollama) : rien ne part sur Internet. Compatible assistant vocal (ORION).",
+            Outil(0xE99A, "Assistant local", "Pose tes questions sur ton PC avec tes mots. L'IA tourne sur ton PC (Ollama) : rien ne part sur Internet.",
                 "Discuter", () => FenetreAssistant.Ouvrir(F, null), null);
             Outil(0xE7FC, "Preuve en FPS", "Mesure les images par seconde réelles de tes jeux (moyenne, 1 % et 0,1 % les plus lents) avant et après un réglage : le vrai gain, en chiffres.",
                 "Mesurer", () => FenetreFps.Ouvrir(F), null);

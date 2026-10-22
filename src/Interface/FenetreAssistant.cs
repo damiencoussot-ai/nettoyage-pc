@@ -71,9 +71,6 @@ namespace NettoyagePC
             bNouvelle.Click += (s, e) => { if (occupe) return; messages.Clear(); conversation.Clear(); propositions.Controls.Clear(); contexte = null; Accueil(); };
             Controls.Add(bEnvoyer); Controls.Add(bNouvelle);
             AcceptButton = bEnvoyer;
-            var lienOrion = new Lien("Commandes pour un assistant vocal (ORION...)", 20, 650) { Anchor = AnchorStyles.Bottom | AnchorStyles.Left, Font = Theme.Petit };
-            lienOrion.LinkClicked += (s, e) => AideVocale();
-            Controls.Add(lienOrion);
             ConstruireGuide();
             Controls.Add(guide);
             ClientSize = new Size(884, 680);
@@ -239,16 +236,5 @@ namespace NettoyagePC
             propositions.Controls.Add(b);
         }
 
-        private void AideVocale()
-        {
-            string exe = "\"" + Chemins.Exe + "\"";
-            BoiteMessage.Afficher(Langue.T("Un assistant vocal (comme ORION) peut piloter Nettoyage PC avec ces commandes :") + "\n\n" +
-                exe + " --etat\n   " + Langue.T("écrit l'état du PC (disque, mémoire, sécurité) au format JSON") + "\n\n" +
-                exe + " --assistant-texte \"" + Langue.T("ma question") + "\"\n   " + Langue.T("écrit la réponse de l'assistant (rien n'est exécuté)") + "\n\n" +
-                exe + " --assistant \"" + Langue.T("ma question") + "\"\n   " + Langue.T("ouvre l'assistant avec la question") + "\n\n" +
-                exe + " --page Nettoyage   |   --ouvrir bouclier\n   " + Langue.T("ouvre une page ou un outil") + "\n\n" +
-                exe + " --action standard\n   " + Langue.T("prépare une action : elle doit toujours être confirmée devant le PC") + "\n\n" +
-                Langue.T("Actions possibles : ") + string.Join(", ", Assistant.ActionsPermises.Keys), "Commandes pour un assistant vocal", MessageBoxButtons.OK, MessageBoxIcon.Information);
-        }
     }
 }

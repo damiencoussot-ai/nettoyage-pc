@@ -63,8 +63,6 @@ namespace NettoyagePC
         private readonly GrosBouton bNettoyer, bVerifier, bAide;
         private readonly FlowLayoutPanel problemes = new FlowLayoutPanel { FlowDirection = FlowDirection.TopDown, WrapContents = false, AutoSize = true };
         private readonly Lien lienComplet, lienArnaque;
-        private readonly Bouton bBriefing;
-        private readonly Timer minuteurVoix = new Timer { Interval = 500 };
         private PageAccueil accueil;
 
         public PageSimple(FenetrePrincipale f) : base(f, "Simple", "Accueil", "Tout ce qu'il faut, en trois boutons.", 0xE80F)
@@ -89,17 +87,6 @@ namespace NettoyagePC
             lienArnaque = new Lien("On t'appelle pour « réparer » ton PC ? Clique ici", 0, 0);
             lienArnaque.LinkClicked += (s, e) => FenetreBouclier.Ouvrir(F, true);
             Controls.Add(lienArnaque);
-            bBriefing = new Bouton("▶  Écouter", false, 150, 40) { Font = new Font(Theme.Normal.FontFamily, 10.5f) };
-            Infobulle.Definir(bBriefing, "Nettoyage PC te dit à voix haute l'état de ton PC et ce qu'il te propose.");
-            bBriefing.Click += (s, e) =>
-            {
-                if (Voix.EnCours) { Voix.Arreter(); bBriefing.Text = "▶  Écouter"; minuteurVoix.Stop(); return; }
-                if (accueil == null) return;
-                accueil.LireBriefing(true);
-                if (Voix.EnCours) { bBriefing.Text = "■  Arrêter"; minuteurVoix.Start(); }
-            };
-            minuteurVoix.Tick += (s, e) => { if (!Voix.EnCours) { minuteurVoix.Stop(); bBriefing.Text = "▶  Écouter"; } };
-            Controls.Add(bBriefing);
             Resize += (s, e) => Disposer();
             f.ActionFinie += cle => { if (F.Reglages.ModeSimple && cle == "standard") Verifier(false); };
         }
@@ -116,7 +103,6 @@ namespace NettoyagePC
             int y = 150;
             foreach (var b in new[] { bNettoyer, bVerifier, bAide }) { b.Size = new Size(l, 210); b.Location = new Point(x, y); x += l + ecart; }
             bonjour.Left = bNettoyer.Left; etat.Left = bNettoyer.Left + 2; detail.Left = bNettoyer.Left + 4;
-            bBriefing.Location = new Point(bAide.Right - bBriefing.Width, 26);
             detail.MaximumSize = new Size(Math.Max(300, 3 * l + 2 * ecart), 0);
             problemes.Location = new Point(bNettoyer.Left, y + 234);
             lienComplet.Location = new Point(Math.Max(20, w - lienComplet.Width - 30), Math.Max(problemes.Bottom + 16, ClientSize.Height - 34));

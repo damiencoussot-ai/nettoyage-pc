@@ -1,0 +1,17 @@
+Nettoyage PC 4.6
+
+- Interface encore plus futuriste et fluide : un indicateur lumineux glisse dans le menu d'une
+  rubrique à l'autre, une lumière parcourt l'en-tête et le titre se « décode » quand tu changes de
+  rubrique, l'anneau de l'accueil respire doucement avec une traînée lumineuse, et les boutons
+  principaux s'illuminent au survol. Tout se coupe si les animations sont désactivées dans Windows.
+- Plus simple : l'accueil montre d'abord ce qu'il y a à faire, avec des phrases plus claires ; ce qui
+  va bien tient sur une seule ligne (« Voir la liste » pour le détail). Au premier lancement, tu
+  choisis entre le mode simple (trois gros boutons) et le mode complet.
+- Le briefing vocal est retiré (boutons « Écouter », choix de la voix, aide pour assistant vocal) :
+  Nettoyage PC t'accueille toujours par ton pseudo, sans parler.
+- Premium : l'achat par Stripe est prêt, avec Premium activé tout seul juste après le paiement et
+  la clé affichée pour les autres PC. La boutique ouvrira bientôt.
+
+Comprend toutes les corrections de la 4.5.1.
+
+SHA256 de NettoyagePC-Setup-4.6.exe : voir le fichier NettoyagePC-Setup-4.6.sha256
