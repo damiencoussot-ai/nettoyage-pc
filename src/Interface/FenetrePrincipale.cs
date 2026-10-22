@@ -570,6 +570,17 @@ namespace NettoyagePC
                 CommandeExterne.Ecouter(c => { try { BeginInvoke(new Action(() => TraiterCommande(c, false))); } catch { } });
             }
             System.Threading.Tasks.Task.Run(() => { try { Licence.VerifierSiBesoin(); } catch { } });
+            // achat lancé depuis ce PC et payé pendant que l'application était fermée : la clé s'active toute seule
+            if (Programme.DossierAutotest == null && Licence.AchatEnAttente)
+                System.Threading.Tasks.Task.Run(() =>
+                {
+                    try
+                    {
+                        string cle, r = Licence.RecupererAchat(out cle);
+                        if (r == "paid") BeginInvoke(new Action(() => Notifier("Premium activé ✔", Langue.T("Ton achat est arrivé : tous les outils Premium sont débloqués. Ta clé, pour tes autres PC :") + " " + cle, "ok", () => AfficherPage("Premium"))));
+                    }
+                    catch { }
+                });
             // mesures gardées pour l'enquêteur (durées de démarrage) et la santé prédictive (usure des SSD)
             DonneesRecues += (cle, v) => { if (cle == "demarrage") Enqueteur.EnregistrerDemarrages(v); else if (cle == "disques") Sante.EnregistrerDisques(v); };
             Journal("Nettoyage PC " + Appli.Version + " - prêt.");

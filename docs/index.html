@@ -322,7 +322,7 @@ mark.a-completer { background: var(--orange); color: var(--sur-accent); padding:
             <li>Sans abonnement</li>
             <li>3 PC à la fois, toutes les versions 4</li>
             <li>Satisfait ou remboursé 14 jours</li>
-            <li>Paiement sécurisé par Lemon Squeezy</li>
+            <li>Paiement sécurisé par Stripe</li>
           </ul>
           <label class="accord" for="accord"><input type="checkbox" id="accord"><span>J'ai lu et j'accepte les <a href="conditions-de-vente.html">conditions de vente</a> et le <a href="licence.html">contrat de licence</a>.</span></label>
           <a class="bouton principal" id="bouton-achat" href="#acheter" aria-disabled="true" data-actif="non">Achat bientôt disponible</a>
@@ -404,10 +404,10 @@ mark.a-completer { background: var(--orange); color: var(--sur-accent); padding:
       <div class="questions">
         <details><summary>La version gratuite est-elle vraiment gratuite ?</summary><div class="reponse"><p>Oui. Le nettoyage, l'accélération, la protection et les outils restent gratuits, sans publicité et sans limite de durée. Premium ajoute 13 outils pour ceux qui veulent aller plus loin.</p></div></details>
         <details><summary>Premium, c'est un abonnement ?</summary><div class="reponse"><p>Non. Vous payez <strong>9,99 € TTC une seule fois</strong>. La licence vaut pour toutes les versions 4 de Nettoyage PC, sur 3 ordinateurs à la fois. Le bouton « Retirer la licence de ce PC » libère une place.</p></div></details>
-        <details><summary>Comment je reçois ma clé ?</summary><div class="reponse"><p>Après le paiement sur la page sécurisée de Lemon Squeezy, la clé arrive par e-mail avec la facture. Collez-la dans Nettoyage PC, onglet Premium, bouton « J'ai une clé ». Pensez à regarder le dossier « Courrier indésirable ».</p></div></details>
+        <details><summary>Comment je reçois ma clé ?</summary><div class="reponse"><p>Juste après le paiement sur la page sécurisée de Stripe, votre clé s'affiche à l'écran. <strong>Si vous achetez depuis Nettoyage PC, Premium s'active tout seul</strong> : il suffit de revenir dans l'application.</p><p>Sur un autre PC, collez la clé dans l'onglet Premium, bouton « J'ai une clé ». Gardez-la bien. Le reçu et la facture arrivent par e-mail, envoyés par Link, le service de paiement de Stripe.</p></div></details>
         <details><summary>Faut-il Internet ?</summary><div class="reponse"><p>Pour activer la clé, oui. Elle est ensuite revérifiée environ une fois par semaine et reste active 45 jours sans Internet. Les fonctions gratuites marchent sans Internet, sauf la recherche des mises à jour et les tests du réseau.</p></div></details>
         <details><summary>Windows affiche « Windows a protégé votre ordinateur ». C'est normal ?</summary><div class="reponse"><p>Oui. Ce message apparaît pour les programmes qui ne sont pas encore signés par un éditeur connu de Microsoft. Cliquez sur <strong>Informations complémentaires</strong>, puis sur <strong>Exécuter quand même</strong>.</p><p>Pour vérifier que le fichier est bien l'original, comparez son empreinte avec le fichier <code>.sha256</code> publié avec chaque version sur la <a href="https://github.com/damiencoussot-ai/nettoyage-pc/releases">page des versions</a>. Dans PowerShell : <code>Get-FileHash NettoyagePC-Setup.exe</code>.</p></div></details>
-        <details><summary>Qu'est-ce qui part sur Internet ?</summary><div class="reponse"><p>Presque rien : la recherche des mises à jour (auprès de GitHub), la vérification d'une clé Premium achetée (la clé et un identifiant anonyme du PC, du type « PC-1A2B3C4D », envoyés à Lemon Squeezy), et les tests du réseau que vous lancez vous-même. Tout est détaillé dans la <a href="confidentialite.html">politique de confidentialité</a>.</p></div></details>
+        <details><summary>Qu'est-ce qui part sur Internet ?</summary><div class="reponse"><p>Presque rien : la recherche des mises à jour (auprès de GitHub), la vérification d'une clé Premium achetée (la clé et un identifiant anonyme du PC, du type « PC-1A2B3C4D », envoyés au service de licences de l'éditeur), et les tests du réseau que vous lancez vous-même. Tout est détaillé dans la <a href="confidentialite.html">politique de confidentialité</a>.</p></div></details>
         <details><summary>Sur quels PC fonctionne-t-il ?</summary><div class="reponse"><p>Windows 10 et Windows 11, 64 bits. Le .NET Framework 4.8 nécessaire est déjà présent dans ces versions de Windows. L'application existe en français, en anglais et en espagnol. L'assistant local de Premium demande en plus le logiciel gratuit Ollama et 8 Go de mémoire vive au moins.</p></div></details>
         <details><summary>Comment le désinstaller ?</summary><div class="reponse"><p>Paramètres de Windows, Applications, Applications installées, Nettoyage PC, Désinstaller. La désinstallation retire aussi l'entretien automatique.</p></div></details>
       </div>
@@ -428,7 +428,7 @@ mark.a-completer { background: var(--orange); color: var(--sur-accent); padding:
       </nav>
     </div>
     <p class="contact">Assistance et remboursements : <span class="adresse">nettoyagepcai@gmail.com</span></p>
-    <p class="marques">Paiement assuré par Lemon Squeezy, revendeur officiel de l'éditeur. Windows, Microsoft Defender et Microsoft Store sont des marques de Microsoft Corporation. Nettoyage PC est un logiciel indépendant, ni affilié à Microsoft ni approuvé par Microsoft. Ce site n'utilise ni cookie ni traceur.</p>
+    <p class="marques">Paiement assuré par Stripe : la vente est faite par Link, le service de paiement de Stripe, revendeur officiel de l'éditeur. Windows, Microsoft Defender et Microsoft Store sont des marques de Microsoft Corporation. Nettoyage PC est un logiciel indépendant, ni affilié à Microsoft ni approuvé par Microsoft. Ce site n'utilise ni cookie ni traceur.</p>
   </div>
 </footer>
 

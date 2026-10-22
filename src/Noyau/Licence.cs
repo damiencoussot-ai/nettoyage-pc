@@ -1,4 +1,5 @@
-// Nettoyage PC - licence Premium : clés achetées sur la boutique Lemon Squeezy (vérifiées en ligne)
+﻿// Nettoyage PC - licence Premium : clés achetées (paiement Stripe, clés créées par le service de licences de l'éditeur,
+// même format que l'API de Lemon Squeezy, vérifiées en ligne)
 // et clés offertes (signées par l'éditeur, vérifiées sans Internet).
 using System;
 using System.Collections.Generic;
@@ -11,14 +12,17 @@ using System.Text.RegularExpressions;
 
 namespace NettoyagePC
 {
-    /// <summary>Réglages de la boutique. Les identifiants Lemon Squeezy sont publics (ils empêchent seulement qu'une clé d'une autre boutique soit acceptée).</summary>
+    /// <summary>Réglages de la boutique. Ces valeurs sont publiques : elles ne sont pas des secrets.</summary>
     internal static class Boutique
     {
-        // À remplir après la création du produit sur Lemon Squeezy (Store > Settings, Products) ;
-        // peuvent aussi être donnés dans mise-a-jour.json (installation dans Program Files) : "boutique": { "store_id": 0, "product_id": 0, "achat": "https://..." }
+        // Paiement : lien Stripe (buy.stripe.com) ; clés : service de licences de l'éditeur (Cloudflare Worker, dossier licences).
+        // Peuvent aussi être donnés dans mise-a-jour.json (installation dans Program Files) :
+        //   "boutique": { "achat": "https://buy.stripe.com/...", "licences": "https://....workers.dev" }
+        // (store_id / product_id : 1 et 1 avec le service de l'éditeur ; les numéros Lemon Squeezy sinon)
         private const long IdBoutiqueIntegre = 0;
         private const long IdProduitIntegre = 0;
         private const string UrlAchatIntegree = "";
+        private const string ServeurLicencesIntegre = "";
         public const string Prix = "9,99 €";
         public const int NombrePc = 3;
 
@@ -34,6 +38,9 @@ namespace NettoyagePC
                 config = new Dictionary<string, object>();
                 try
                 {
+                    // (essais hors Windows uniquement) boutique de test donnée par NP_BOUTIQUE, au format de "boutique"
+                    string essai = Natif.EstWindows ? null : Environment.GetEnvironmentVariable("NP_BOUTIQUE");
+                    if (!string.IsNullOrEmpty(essai)) { config = Json.Lire(essai) as Dictionary<string, object> ?? config; return config; }
                     // seulement pour une installation dans Program Files (fichier modifiable par les administrateurs uniquement)
                     if (Chemins.EstInstalle)
                     {
@@ -47,8 +54,24 @@ namespace NettoyagePC
             }
         }
 
-        public static long IdBoutique { get { long v = Json.Long(Config, "store_id"); return v > 0 ? v : IdBoutiqueIntegre; } }
-        public static long IdProduit { get { long v = Json.Long(Config, "product_id"); return v > 0 ? v : IdProduitIntegre; } }
+        public static long IdBoutique { get { long v = Json.Long(Config, "store_id"); return v > 0 ? v : IdBoutiqueIntegre > 0 ? IdBoutiqueIntegre : ServeurLicences != "" ? 1 : 0; } }
+        public static long IdProduit { get { long v = Json.Long(Config, "product_id"); return v > 0 ? v : IdProduitIntegre > 0 ? IdProduitIntegre : ServeurLicences != "" ? 1 : 0; } }
+
+        /// <summary>Service de licences de l'éditeur (adresse https sans paramètres), ou "" pour celui de Lemon Squeezy.</summary>
+        public static string ServeurLicences
+        {
+            get
+            {
+                string u = Json.Texte(Config, "licences");
+                if (u == "") u = ServeurLicencesIntegre;
+                Uri uri;
+                if (!Uri.TryCreate(u, UriKind.Absolute, out uri)) return "";
+                bool local = !Natif.EstWindows && uri.IsLoopback && uri.Scheme == "http";   // (essais hors Windows) service local
+                return (uri.Scheme == "https" || local) && uri.Query == "" && uri.Fragment == "" ? u.TrimEnd('/') : "";
+            }
+        }
+        /// <summary>Paiement Stripe + service de l'éditeur : la clé arrive toute seule dans l'application après le paiement.</summary>
+        public static bool AchatAutomatique { get { return ServeurLicences != "" && UrlAchat.StartsWith("https://buy.stripe.com/", StringComparison.OrdinalIgnoreCase); } }
         public static string UrlAchat
         {
             get
@@ -56,7 +79,8 @@ namespace NettoyagePC
                 string u = Json.Texte(Config, "achat");
                 if (u == "") u = UrlAchatIntegree;
                 Uri uri;
-                return Uri.TryCreate(u, UriKind.Absolute, out uri) && uri.Scheme == "https" && Regex.IsMatch(uri.Host, @"(^|\.)lemonsqueezy\.com$", RegexOptions.IgnoreCase) ? u : "";
+                return Uri.TryCreate(u, UriKind.Absolute, out uri) && uri.Scheme == "https"
+                    && (Regex.IsMatch(uri.Host, @"(^|\.)lemonsqueezy\.com$", RegexOptions.IgnoreCase) || uri.Host.Equals("buy.stripe.com", StringComparison.OrdinalIgnoreCase)) ? u : "";
             }
         }
         public static bool Ouverte { get { return IdBoutique > 0 && IdProduit > 0; } }
@@ -293,12 +317,13 @@ namespace NettoyagePC
             }
         }
 
-        // ------------------------------------------------------------ Lemon Squeezy (API des licences, sans clé d'API)
+        // ------------------------------------------------------------ Vérifications en ligne (API des licences de Lemon Squeezy, ou service de l'éditeur au même format)
         private static Dictionary<string, object> Appeler(string action, Dictionary<string, string> champs, out int code)
         {
             code = 0;
             try { ServicePointManager.SecurityProtocol |= (SecurityProtocolType)3072; } catch { }
-            var req = (HttpWebRequest)WebRequest.Create("https://api.lemonsqueezy.com/v1/licenses/" + action);
+            string serveur = Boutique.ServeurLicences != "" ? Boutique.ServeurLicences + "/v1/licenses/" : "https://api.lemonsqueezy.com/v1/licenses/";
+            var req = (HttpWebRequest)WebRequest.Create(serveur + action);
             req.Method = "POST"; req.Accept = "application/json"; req.ContentType = "application/x-www-form-urlencoded";
             req.UserAgent = "NettoyagePC/" + Appli.Version; req.Timeout = 20000; req.ReadWriteTimeout = 20000;
             byte[] corps = Encoding.UTF8.GetBytes(string.Join("&", champs.Select(c => c.Key + "=" + Uri.EscapeDataString(c.Value))));
@@ -412,6 +437,78 @@ namespace NettoyagePC
             bool avant = Premium;
             Evaluer();
             if (avant != Premium) Signaler();
+        }
+
+        // ------------------------------------------------------------ Achat avec activation automatique (Stripe + service de l'éditeur)
+        // L'application ouvre le lien de paiement avec une référence aléatoire (client_reference_id). Le service de licences
+        // relie le paiement à cette référence : l'application récupère sa clé et l'active toute seule, sans copier-coller.
+        private static string FichierAchat { get { return Path.Combine(Chemins.Local, "achat-en-cours.dat"); } }
+        private const int JoursAchatEnAttente = 7;
+
+        private static string ReferenceAchat(bool creer)
+        {
+            try
+            {
+                if (File.Exists(FichierAchat))
+                {
+                    var d = Json.Lire(Deproteger(File.ReadAllText(FichierAchat))) as Dictionary<string, object>;
+                    DateTime t;
+                    string r0 = Json.Texte(d, "ref");
+                    if (d != null && Regex.IsMatch(r0, "^[A-Za-z0-9_-]{24,200}$")
+                        && DateTime.TryParse(Json.Texte(d, "date"), System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.RoundtripKind, out t)
+                        && (DateTime.UtcNow - t.ToUniversalTime()).TotalDays < JoursAchatEnAttente) return r0;
+                }
+            }
+            catch { }
+            if (!creer) return "";
+            byte[] o = new byte[24];
+            using (var alea = RandomNumberGenerator.Create()) alea.GetBytes(o);
+            string r = "NPC_" + B64(o);
+            try
+            {
+                Directory.CreateDirectory(Chemins.Local);
+                File.WriteAllText(FichierAchat, Proteger(Json.Ecrire(new Dictionary<string, object> { { "ref", r }, { "date", DateTime.UtcNow.ToString("o") } })));
+            }
+            catch { }
+            return r;
+        }
+
+        /// <summary>Un achat lancé depuis ce PC attend encore sa clé (7 jours au plus).</summary>
+        public static bool AchatEnAttente { get { return Boutique.AchatAutomatique && ReferenceAchat(false) != ""; } }
+
+        /// <summary>Adresse de la page de paiement à ouvrir (avec la référence de ce PC si la clé arrive toute seule).</summary>
+        public static string AdresseAchat()
+        {
+            string url = Boutique.UrlAchat;
+            if (url == "" || !Boutique.AchatAutomatique) return url;
+            return url + (url.Contains("?") ? "&" : "?") + "client_reference_id=" + ReferenceAchat(true);
+        }
+
+        /// <summary>Demande au service de licences si l'achat lancé depuis ce PC est payé ; si oui, active la clé.
+        /// Renvoie "paid" (Premium activé), "pending" (pas encore payé), "disabled" (remboursé), "none" (aucun achat en attente) ou un message d'erreur.</summary>
+        public static string RecupererAchat(out string cle)
+        {
+            cle = "";
+            string reference = ReferenceAchat(false);
+            if (reference == "" || Boutique.ServeurLicences == "") return "none";
+            try { ServicePointManager.SecurityProtocol |= (SecurityProtocolType)3072; } catch { }
+            var req = (HttpWebRequest)WebRequest.Create(Boutique.ServeurLicences + "/v1/achats/" + reference);
+            req.Method = "GET"; req.Accept = "application/json"; req.UserAgent = "NettoyagePC/" + Appli.Version; req.Timeout = 15000; req.ReadWriteTimeout = 15000;
+            Dictionary<string, object> rep;
+            try
+            {
+                using (var r = (HttpWebResponse)req.GetResponse())
+                using (var lecteur = new StreamReader(r.GetResponseStream(), Encoding.UTF8))
+                    rep = Json.Lire(lecteur.ReadToEnd()) as Dictionary<string, object> ?? new Dictionary<string, object>();
+            }
+            catch (Exception ex) { return "service de licences injoignable (" + ex.Message + ")"; }
+            string statut = Json.Texte(rep, "status");
+            if (statut != "paid") return statut == "" ? "réponse inattendue du service de licences" : statut;
+            cle = Json.Texte(rep, "license_key");
+            string erreur = Activer(cle);
+            if (erreur != "") return erreur;
+            try { File.Delete(FichierAchat); } catch { }
+            return "paid";
         }
 
         /// <summary>Retire la licence de ce PC (libère une activation pour un autre PC).</summary>

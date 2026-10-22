@@ -679,7 +679,7 @@ namespace NettoyagePC
             "TTC  ·  paiement unique, sans abonnement", "incl. VAT  ·  one-time payment, no subscription", "IVA incl.  ·  pago único, sin suscripción",
             "{0} PC  ·  toutes les versions 4", "{0} PCs  ·  all version 4 releases", "{0} PC  ·  todas las versiones 4",
             "Satisfait ou remboursé 14 jours", "14-day money-back guarantee", "Satisfecho o reembolsado 14 días",
-            "Paiement sécurisé (Lemon Squeezy)", "Secure payment (Lemon Squeezy)", "Pago seguro (Lemon Squeezy)",
+            "Paiement sécurisé (Stripe)", "Secure payment (Stripe)", "Pago seguro (Stripe)",
             "Sans abonnement", "No subscription", "Sin suscripción",
             "3 PC, toutes les versions 4", "3 PCs, all version 4 releases", "3 PC, todas las versiones 4",
             "Ni publicité, ni pistage", "No ads, no tracking", "Sin publicidad ni rastreo",
@@ -1555,6 +1555,13 @@ namespace NettoyagePC
             "(installée)", "(installed)", "(instalada)",
             "(nouvelle)", "(new)", "(nueva)",
             "(pas de description)", "(no description)", "(sin descripción)",
+            "La page de paiement s'ouvre dans ton navigateur. Dès que le paiement est validé, Premium s'active tout seul ici : garde cette fenêtre ouverte.", "The payment page opens in your browser. As soon as the payment goes through, Premium turns on by itself here: keep this window open.", "La página de pago se abre en tu navegador. En cuanto se confirme el pago, Premium se activa solo aquí: deja esta ventana abierta.",
+            "Paiement sécurisé par Stripe (carte bancaire, Apple Pay, Google Pay...). Premium s'active tout seul après le paiement, et ta clé s'affiche pour tes autres PC. Satisfait ou remboursé 14 jours.", "Secure payment by Stripe (bank card, Apple Pay, Google Pay...). Premium turns on by itself after payment, and your key is shown for your other PCs. 14-day money-back guarantee.", "Pago seguro con Stripe (tarjeta, Apple Pay, Google Pay...). Premium se activa solo tras el pago y tu clave se muestra para tus otros PC. Satisfecho o reembolsado en 14 días.",
+            "Ta clé, pour tes autres PC (elle marche sur 3 PC à la fois) :", "Your key, for your other PCs (it works on 3 PCs at a time):", "Tu clave, para tus otros PC (funciona en 3 PC a la vez):",
+            "Ce paiement a été remboursé ou contesté : la clé n'est pas active.", "This payment was refunded or disputed: the key is not active.", "Este pago fue reembolsado o impugnado: la clave no está activa.",
+            "Aucun achat en attente sur ce PC.", "No pending purchase on this PC.", "No hay ninguna compra pendiente en este PC.",
+            "Ton achat est arrivé : tous les outils Premium sont débloqués. Ta clé, pour tes autres PC :", "Your purchase has arrived: all Premium tools are unlocked. Your key, for your other PCs:", "Tu compra ha llegado: todas las herramientas Premium están desbloqueadas. Tu clave, para tus otros PC:",
+            "réponse inattendue du service de licences", "unexpected response from the licence service", "respuesta inesperada del servicio de licencias",
         };
         private static readonly string[] Prefixes =
         {

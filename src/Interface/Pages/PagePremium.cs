@@ -272,7 +272,7 @@ namespace NettoyagePC
     // ================================================================ Garanties (rangée de pastilles)
     internal class RangeeGaranties : Control, IThemable
     {
-        private static readonly string[] Elements = { "Paiement sécurisé (Lemon Squeezy)", "Satisfait ou remboursé 14 jours", "Sans abonnement", "3 PC, toutes les versions 4", "Ni publicité, ni pistage" };
+        private static readonly string[] Elements = { "Paiement sécurisé (Stripe)", "Satisfait ou remboursé 14 jours", "Sans abonnement", "3 PC, toutes les versions 4", "Ni publicité, ni pistage" };
         private readonly List<Rectangle> rects = new List<Rectangle>();
 
         public RangeeGaranties()
@@ -513,13 +513,23 @@ namespace NettoyagePC
             {
                 if (!chkConditions.Checked) return;
                 if (Boutique.UrlAchat == "") { BoiteMessage.Info("La boutique ouvre bientôt. En attendant, tu peux essayer Premium gratuitement, ou demander une clé à l'éditeur."); return; }
-                Programmes.Ouvrir(Boutique.UrlAchat);
-                resultat.Text = "La page de paiement s'ouvre dans ton navigateur. Après le paiement, tu reçois ta clé par e-mail : colle-la ci-dessous.";
+                Programmes.Ouvrir(Licence.AdresseAchat());
+                if (Boutique.AchatAutomatique)
+                {
+                    resultat.Text = "La page de paiement s'ouvre dans ton navigateur. Dès que le paiement est validé, Premium s'active tout seul ici : garde cette fenêtre ouverte.";
+                    AttendrePaiement();
+                }
+                else
+                {
+                    resultat.Text = "La page de paiement s'ouvre dans ton navigateur. Après le paiement, tu reçois ta clé par e-mail : colle-la ci-dessous.";
+                    zone.Focus();
+                }
                 resultat.RoleTexte = Role.AccentVif; resultat.AppliquerTheme();
-                zone.Focus();
             };
             Controls.Add(bAcheter);
-            Controls.Add(new Etiquette("Paiement sécurisé par Lemon Squeezy, revendeur officiel (carte bancaire, PayPal...). La clé arrive par e-mail juste après. Satisfait ou remboursé 14 jours.", Theme.Petit, Role.Discret, 300, y + 2) { MaximumSize = new Size(350, 0) });
+            Controls.Add(new Etiquette(Boutique.AchatAutomatique || Boutique.UrlAchat == ""
+                ? "Paiement sécurisé par Stripe (carte bancaire, Apple Pay, Google Pay...). Premium s'active tout seul après le paiement, et ta clé s'affiche pour tes autres PC. Satisfait ou remboursé 14 jours."
+                : "Paiement sécurisé par Lemon Squeezy, revendeur officiel (carte bancaire, PayPal...). La clé arrive par e-mail juste après. Satisfait ou remboursé 14 jours.", Theme.Petit, Role.Discret, 300, y + 2) { MaximumSize = new Size(350, 0) });
             y += 66;
             Controls.Add(new Etiquette("J'ai une clé :", Theme.CarteTitre, Role.Texte, 24, y));
             zone.Location = new Point(26, y + 28); zone.Width = 610;
@@ -533,6 +543,46 @@ namespace NettoyagePC
             Controls.Add(bFermer); CancelButton = bFermer;
             ClientSize = new Size(ClientSize.Width, y + 198);
             Theme.Appliquer(this);
+        }
+
+        // ------------------------------------------------------------ attente du paiement (la clé arrive toute seule)
+        private Timer minuteurPaiement;
+        private bool interrogation;
+
+        private void AttendrePaiement()
+        {
+            if (minuteurPaiement != null) return;
+            DateTime fin = DateTime.Now.AddMinutes(30);
+            minuteurPaiement = new Timer { Interval = 5000 };
+            minuteurPaiement.Tick += (s, e) =>
+            {
+                if (interrogation || IsDisposed) return;
+                if (DateTime.Now > fin) { minuteurPaiement.Stop(); return; }
+                interrogation = true;
+                System.Threading.Tasks.Task.Run(() =>
+                {
+                    string cle, r;
+                    try { r = Licence.RecupererAchat(out cle); } catch (Exception ex) { r = ex.Message; cle = ""; }
+                    try { BeginInvoke(new Action(() => { interrogation = false; ResultatPaiement(r, cle); })); } catch { }
+                });
+            };
+            minuteurPaiement.Start();
+            FormClosed += (s, e) => { minuteurPaiement.Stop(); minuteurPaiement.Dispose(); };
+        }
+
+        private void ResultatPaiement(string r, string cle)
+        {
+            if (IsDisposed || r == "pending" || r.StartsWith("service de licences injoignable")) return;   // on réessaie dans 5 secondes
+            minuteurPaiement.Stop();
+            if (r == "paid")
+            {
+                BoiteMessage.Info(Langue.T("Premium activé ✔\n\nMerci ! Tous les outils Premium sont débloqués sur ce PC.") + "\n\n" + Langue.T("Ta clé, pour tes autres PC (elle marche sur 3 PC à la fois) :") + "\n" + cle, "Nettoyage PC Premium");
+                DialogResult = DialogResult.OK;
+                return;
+            }
+            resultat.Text = r == "disabled" ? Langue.T("Ce paiement a été remboursé ou contesté : la clé n'est pas active.")
+                : r == "none" ? Langue.T("Aucun achat en attente sur ce PC.") : Langue.T("Clé non activée") + " : " + Langue.T(r);
+            resultat.RoleTexte = Role.Rouge; resultat.AppliquerTheme();
         }
 
         private void Activer()

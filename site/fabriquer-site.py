@@ -21,7 +21,7 @@ def constante(fichier, motif, defaut=''):
 
 VERSION = constante('src/Noyau/Base.cs', r'Version = "([\d.]+)"')
 URL_ACHAT = constante('src/Noyau/Licence.cs', r'UrlAchatIntegree = "([^"]*)"')
-if not re.match(r'^https://[a-z0-9-]+\.lemonsqueezy\.com/', URL_ACHAT or ''): URL_ACHAT = ''
+if not re.match(r'^https://(buy\.stripe\.com|[a-z0-9-]+\.lemonsqueezy\.com)/', URL_ACHAT or ''): URL_ACHAT = ''
 EMAIL = constante('legal/MENTIONS-LEGALES.txt', r'\nE-mail : (.+)', '[E-MAIL DE CONTACT]').strip()
 EMAIL_A_COMPLETER = EMAIL.startswith('[')
 
@@ -167,7 +167,7 @@ def accueil():
         'VERSION': VERSION, 'TELECHARGER': TELECHARGER, 'RELEASES': VERSIONS, 'SITE': SITE, 'TAILLE': taille_installateur(),
         'URL_ACHAT': URL_ACHAT or '#acheter', 'ACHAT_ACTIF': 'oui' if achat_actif else 'non',
         'TEXTE_ACHAT': 'Acheter · 9,99 €' if achat_actif else 'Achat bientôt disponible',
-        'NOTE_ACHAT': 'La clé arrive par e-mail juste après le paiement.' if achat_actif else "La boutique ouvre bientôt. En attendant, l'essai gratuit de 7 jours est dans l'application, onglet Premium.",
+        'NOTE_ACHAT': "Votre clé s'affiche juste après le paiement. Acheté depuis l'application, Premium s'active tout seul." if achat_actif else "La boutique ouvre bientôt. En attendant, l'essai gratuit de 7 jours est dans l'application, onglet Premium.",
         'EMAIL': ("l'adresse de l'éditeur indiquée dans les conditions de vente" if EMAIL_A_COMPLETER else '<span class="adresse-email">%s</span>' % html.escape(EMAIL)),
         'CONTACT': ('Assistance : l\'adresse de contact sera publiée ici à l\'ouverture de la boutique Premium.' if EMAIL_A_COMPLETER else 'Assistance et remboursements : <span class="adresse">%s</span>' % html.escape(EMAIL)),
     }

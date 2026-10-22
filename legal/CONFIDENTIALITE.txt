@@ -42,15 +42,16 @@ Le logiciel interroge le service GitHub (GitHub, Inc.), qui héberge Nettoyage P
 Si vous utilisez la « Preuve en FPS », le logiciel télécharge aussi, au premier usage, l'outil libre PresentMon d'Intel depuis sa page officielle sur GitHub (github.com/GameTechDev/PresentMon), selon les mêmes règles.
 
 3.2 Licence Premium achetée
-À l'activation d'une clé, puis environ une fois par semaine, le logiciel envoie au service de licences de Lemon Squeezy :
+À l'activation d'une clé, puis environ une fois par semaine, le logiciel envoie au service de licences de l'Éditeur (hébergé par Cloudflare, Inc.) :
 - votre clé de licence ;
 - un identifiant d'ordinateur pseudonyme (du type « PC-1A2B3C4D », calculé à partir de Windows, sans votre nom ni le nom de l'ordinateur) ;
 - et, comme pour toute connexion, votre adresse IP.
-En retour, il reçoit l'état de la licence, ainsi que le nom et l'adresse e-mail de l'acheteur, affichés dans l'onglet Premium. Base légale : l'exécution du contrat de licence (vérifier que la clé est valide et respecter la limite de 3 ordinateurs). Les clés offertes et l'essai gratuit sont vérifiés sur votre ordinateur, sans Internet.
+En retour, il reçoit l'état de la licence, ainsi que le nom et l'adresse e-mail de l'acheteur, affichés dans l'onglet Premium. Le service de licences conserve, pour chaque clé : le nom et l'adresse e-mail de l'acheteur, le numéro de la commande, la date, l'état de la clé (active, remboursée...) et la liste des ordinateurs activés (identifiants pseudonymes). Base légale : l'exécution du contrat de licence (vérifier que la clé est valide et respecter la limite de 3 ordinateurs). Les clés offertes et l'essai gratuit sont vérifiés sur votre ordinateur, sans Internet.
 
 3.3 Achat
-L'achat se fait sur la page de paiement de Lemon Squeezy, revendeur de l'Éditeur. Lemon Squeezy collecte les données nécessaires au paiement et à la facture (nom, adresse e-mail, pays, moyen de paiement) et en est responsable pour le paiement, selon sa propre politique : https://www.lemonsqueezy.com/privacy
-L'Éditeur reçoit de Lemon Squeezy le nom, l'adresse e-mail, le pays et les informations de la commande. Il les utilise uniquement pour gérer votre licence, vous assister, traiter un remboursement et tenir sa comptabilité. Elles ne sont jamais vendues ni utilisées pour de la publicité. Base légale : l'exécution du contrat et les obligations comptables de l'Éditeur.
+L'achat se fait sur la page de paiement de Stripe (service Managed Payments). La vente est faite par Sold through Link, LLC (service « Link » du groupe Stripe), revendeur de l'Éditeur, qui collecte les données nécessaires au paiement et à la facture (nom, adresse e-mail, pays, moyen de paiement) et en est responsable pour le paiement, selon sa propre politique : https://link.com/privacy-center
+Quand l'achat est lancé depuis Nettoyage PC, le logiciel ajoute à la page de paiement une référence tirée au hasard (sans lien avec votre identité ni avec votre ordinateur) : elle permet au logiciel de récupérer votre clé et d'activer Premium tout seul après le paiement. Elle est effacée de votre ordinateur dès que la clé est activée, et du service de licences au bout de 90 jours.
+L'Éditeur reçoit de Stripe le nom, l'adresse e-mail, le pays et les informations de la commande. Il les utilise uniquement pour gérer votre licence, vous assister, traiter un remboursement et tenir sa comptabilité. Elles ne sont jamais vendues ni utilisées pour de la publicité. Base légale : l'exécution du contrat et les obligations comptables de l'Éditeur.
 
 3.4 Tests que vous lancez vous-même (onglet Réseau)
 - Test de débit : téléchargement et envoi de données de test vers les serveurs de Cloudflare (speed.cloudflare.com), qui reçoivent votre adresse IP.
@@ -70,7 +71,7 @@ Certains boutons ouvrent un site dans votre navigateur (pilotes AMD, NVIDIA ou I
 Les messages que vous envoyez à l'Éditeur (assistance, remboursement) et les fichiers que vous y joignez sont utilisés uniquement pour vous répondre.
 
 3.8 Le site officiel
-Le site officiel de Nettoyage PC (https://damiencoussot-ai.github.io/nettoyage-pc/) n'utilise ni cookie, ni traceur, ni outil de mesure d'audience, et ne charge aucun contenu depuis un autre site. Il est hébergé par GitHub (service GitHub Pages) qui, comme pour tout site web, reçoit l'adresse IP des visiteurs pour faire fonctionner et sécuriser le service. Le bouton « Télécharger » récupère l'installateur sur GitHub ; le bouton « Acheter » ouvre la page de paiement de Lemon Squeezy (voir 3.3).
+Le site officiel de Nettoyage PC (https://damiencoussot-ai.github.io/nettoyage-pc/) n'utilise ni cookie, ni traceur, ni outil de mesure d'audience, et ne charge aucun contenu depuis un autre site. Il est hébergé par GitHub (service GitHub Pages) qui, comme pour tout site web, reçoit l'adresse IP des visiteurs pour faire fonctionner et sécuriser le service. Le bouton « Télécharger » récupère l'installateur sur GitHub ; le bouton « Acheter » ouvre la page de paiement de Stripe (voir 3.3).
 
 
 4. DURÉE DE CONSERVATION
@@ -82,7 +83,7 @@ Le site officiel de Nettoyage PC (https://damiencoussot-ai.github.io/nettoyage-p
 
 5. DESTINATAIRES ET TRANSFERTS HORS DE L'UNION EUROPÉENNE
 
-Les seuls prestataires concernés sont GitHub (site officiel et mises à jour), Lemon Squeezy et ses prestataires de paiement (achat et licence) et Cloudflare (test de débit, à votre demande). Certains sont situés aux États-Unis ; ils encadrent les transferts de données selon leurs propres engagements (par exemple le cadre de protection des données UE - États-Unis ou les clauses contractuelles types de la Commission européenne), décrits dans leurs politiques de confidentialité.
+Les seuls prestataires concernés sont GitHub (site officiel et mises à jour), Stripe, Link et leurs prestataires de paiement (achat), et Cloudflare (service de licences, et test de débit à votre demande). Certains sont situés aux États-Unis ; ils encadrent les transferts de données selon leurs propres engagements (par exemple le cadre de protection des données UE - États-Unis ou les clauses contractuelles types de la Commission européenne), décrits dans leurs politiques de confidentialité.
 
 
 6. VOS DROITS
