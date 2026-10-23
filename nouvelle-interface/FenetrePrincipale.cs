@@ -82,15 +82,65 @@ namespace NettoyagePC.Nouveau
         /// <summary>Pose une question dans la fenêtre ; « reponse » reçoit vrai pour le bouton principal.</summary>
         public void Demander(string titre, string texte, string oui, string non, Action<bool> reponse, bool alerte = false)
         {
-            calqueDialogue.Children.Clear();
-            var d = new Dialogue(titre, texte, oui, non, r =>
-            {
-                calqueDialogue.Children.Clear(); calqueDialogue.IsVisible = false;
-                reponse(r);
-            }, alerte);
-            calqueDialogue.Children.Add(d);
+            Dialogue d = null;
+            d = new Dialogue(titre, texte, oui, non, r => { Retirer(d); reponse(r); }, alerte);
+            Superposer(d);
+        }
+
+        /// <summary>Calque par-dessus la fenêtre (question, fenêtre intérieure) ; les calques s'empilent.</summary>
+        public void Superposer(Control c)
+        {
+            calqueDialogue.Children.Add(c);
             calqueDialogue.IsVisible = true;
         }
+
+        /// <summary>Ferme tous les calques (captures, changement de thème).</summary>
+        public void ViderCalques() { calqueDialogue.Children.Clear(); calqueDialogue.IsVisible = false; }
+
+        public void Retirer(Control c)
+        {
+            calqueDialogue.Children.Remove(c);
+            calqueDialogue.IsVisible = calqueDialogue.Children.Count > 0;
+        }
+
+        /// <summary>Fenêtre intérieure (fond assombri, carte avec titre et « Fermer ») : bouclier, réglages de Windows...</summary>
+        public FenetreInterieure Ouvrir(string titre, Control contenu, double largeur = 720)
+        {
+            var f = new FenetreInterieure(this, titre, contenu, largeur);
+            Superposer(f);
+            return f;
+        }
+
+        /// <summary>Une fonction pas encore refaite dans la nouvelle interface : on le dit simplement.</summary>
+        public void Bientot(string nom)
+        {
+            Demander(nom, "Cette fonction arrive bientôt dans la nouvelle interface. Elle existe déjà dans la version 4 de Nettoyage PC.", "Compris", null, r => { });
+        }
+
+        // ---- « Plus d'options » ouverts (gardés dans les réglages, comme la version 4) et page choisie dans chaque rubrique
+        private HashSet<string> optionsOuvertes;
+        private readonly Dictionary<string, string> sousPages = new Dictionary<string, string>();
+
+        public bool OptionOuverte(string cle)
+        {
+            if (optionsOuvertes == null)
+            {
+                optionsOuvertes = new HashSet<string>();
+                try { foreach (var o in (Parametres.Lire().OptionsOuvertes ?? "").Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)) optionsOuvertes.Add(o); } catch { }
+            }
+            return optionsOuvertes.Contains(cle);
+        }
+
+        public void OptionOuverte(string cle, bool ouvert)
+        {
+            OptionOuverte(cle);
+            if (ouvert) optionsOuvertes.Add(cle); else optionsOuvertes.Remove(cle);
+            if (Source.Immediat) return;   // aperçus et essais : rien n'est enregistré
+            try { var r = Parametres.Lire(); r.OptionsOuvertes = string.Join(",", optionsOuvertes); r.Ecrire(); } catch { }
+        }
+
+        public string SousPage(string rubrique) { string s; return sousPages.TryGetValue(rubrique, out s) ? s : null; }
+        public void SousPage(string rubrique, string cle) { sousPages[rubrique] = cle; }
 
         public void FermerPanneauAction() { panneauVisible = false; if (panneauAction != null) panneauAction.IsVisible = false; }
 
@@ -151,8 +201,29 @@ namespace NettoyagePC.Nouveau
             if (type == "action" && Actions.ContainsKey(cle)) { LancerAction(cle); return; }
             if (type == "page")
             {
-                string rubrique = cle == "Demarrage" || cle == "Pilotes" || cle == "Potentiel" ? "Accelerer" : cle == "Materiel" ? "Outils" : cle;
+                // pages de la version 4 → rubrique (et onglet) de la nouvelle interface
+                var ou = new Dictionary<string, string[]>
+                {
+                    { "Nettoyage", new[] { "Nettoyer", "Nettoyage" } }, { "Disques", new[] { "Nettoyer", "Disques" } }, { "Doublons", new[] { "Nettoyer", "Doublons" } },
+                    { "Optimisation", new[] { "Accelerer", "Optimisation" } }, { "Demarrage", new[] { "Accelerer", "Demarrage" } },
+                    { "Applications", new[] { "Accelerer", "Applications" } }, { "Jeux", new[] { "Accelerer", "Jeux" } },
+                    { "Securite", new[] { "Proteger", "Securite" } }, { "Sauvegarde", new[] { "Proteger", "Sauvegarde" } },
+                    { "Reseau", new[] { "Outils", "Reseau" } }, { "Aide", new[] { "Outils", "Aide" } },
+                    { "Materiel", new[] { "Outils", "Materiel" } }, { "Potentiel", new[] { "Outils", "Potentiel" } }, { "Pilotes", new[] { "MisesAJour", "Pilotes" } },
+                };
+                string[] cible2;
+                string rubrique = ou.TryGetValue(cle, out cible2) ? cible2[0] : cle;
+                if (cible2 != null) SousPage(cible2[0], cible2[1]);
                 if (Rubriques.Any(r => r.Cle == rubrique)) { Afficher(rubrique, true); return; }
+            }
+            if (type == "code" && cle == "bouclier") { Bouclier5.Ouvrir(this); return; }
+            if (type == "code" && cle == "redemarrer")
+            {
+                Demander("Redémarrer le PC maintenant ?", "Enregistre ton travail et ferme tes applications avant.", "Redémarrer", "Annuler", oui =>
+                {
+                    if (oui) Programmes.Executer(System.IO.Path.Combine(Chemins.Systeme32, "shutdown.exe"), "/r /t 5", 5000);
+                }, true);
+                return;
             }
             if (type == "uri" && cle.StartsWith("windowsdefender:", StringComparison.OrdinalIgnoreCase))
             {
@@ -177,10 +248,10 @@ namespace NettoyagePC.Nouveau
         private void DefinirRubriques()
         {
             Rubriques.Add(new Rubrique { Cle = "Accueil", Nom = "Accueil", Sous = "L'état de ton PC en un coup d'œil.", Page = () => new PageAccueil(this) });
-            Rubriques.Add(new Rubrique { Cle = "Nettoyer", Nom = "Nettoyer", Sous = "Libère de l'espace sans toucher à tes documents.", Page = () => PageAVenir.Nettoyer() });
-            Rubriques.Add(new Rubrique { Cle = "Accelerer", Nom = "Accélérer", Sous = "Démarrage, jeux, pilotes et applications.", Page = () => PageAVenir.Accelerer() });
-            Rubriques.Add(new Rubrique { Cle = "Proteger", Nom = "Protéger", Sous = "Antivirus, bouclier anti-arnaque, sauvegarde et confidentialité.", Page = () => PageAVenir.Proteger() });
-            Rubriques.Add(new Rubrique { Cle = "Outils", Nom = "Outils", Sous = "Matériel, plein potentiel, réseau et aide à distance.", Page = () => PageAVenir.Outils() });
+            Rubriques.Add(new Rubrique { Cle = "Nettoyer", Nom = "Nettoyer", Sous = "Libère de l'espace sans toucher à tes documents.", Page = () => PageNettoyer.Creer(this) });
+            Rubriques.Add(new Rubrique { Cle = "Accelerer", Nom = "Accélérer", Sous = "Démarrage, jeux, pilotes et applications.", Page = () => PageAccelerer.Creer(this) });
+            Rubriques.Add(new Rubrique { Cle = "Proteger", Nom = "Protéger", Sous = "Antivirus, bouclier anti-arnaque, sauvegarde et confidentialité.", Page = () => PageProteger.Creer(this) });
+            Rubriques.Add(new Rubrique { Cle = "Outils", Nom = "Outils", Sous = "Matériel, plein potentiel, réseau et aide à distance.", Page = () => PageOutils.Creer(this) });
             Rubriques.Add(new Rubrique { Cle = "Premium", Nom = "Premium", Sous = "Les outils des pros, débloqués d'un coup.", Page = () => PageAVenir.Premium() });
             Rubriques.Add(new Rubrique { Cle = "MisesAJour", Nom = "Mises à jour", Sous = "Version installée et nouveautés.", EnBas = true, Page = () => PageAVenir.Simple("Mises à jour", "Recherche des mises à jour, nouveautés de chaque version, installation en un clic.") });
             Rubriques.Add(new Rubrique { Cle = "Historique", Nom = "Historique", Sous = "Tout ce que Nettoyage PC a fait, et l'annulation.", EnBas = true, Page = () => PageAVenir.Simple("Historique", "Chaque modification est notée et peut être annulée.") });
@@ -274,7 +345,8 @@ namespace NettoyagePC.Nouveau
                 },
             };
             droite.Children.Add(recherche);
-            var bTheme = new BoutonNoyau(P.Sombre ? "☀" : "☾", false, 38, 38) { TaillePolice = 15 };
+            var bTheme = new BoutonNoyau("", false, 38, 38) { Icone = P.Sombre ? "soleil" : "lune" };
+            ToolTip.SetTip(bTheme, P.Sombre ? "Passer en thème clair" : "Passer en thème sombre");
             bTheme.Clic += () => ChangerTheme(!Habillage.P.Sombre);
             droite.Children.Add(bTheme);
             droite.Children.Add(PastilleSimulation());

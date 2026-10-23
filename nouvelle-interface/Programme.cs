@@ -136,6 +136,82 @@ namespace NettoyagePC.Nouveau
                     catch (Exception ex) { erreurs++; rapport.AppendLine("ERREUR : " + cle + " : " + ex); }
                 }
             }
+            // rubrique Nettoyer : ses trois onglets, et « Plus d'options » ouvert
+            try
+            {
+                f.ChangerTheme(true);
+                foreach (var onglet in new[] { "Disques", "Doublons" })
+                {
+                    f.SousPage("Nettoyer", onglet);
+                    f.Afficher("Nettoyer", false);
+                    Capturer(f, dossier, "sombre-Nettoyer-" + onglet + ".png", rapport, ref erreurs);
+                }
+                f.SousPage("Nettoyer", "Nettoyage");
+                f.OptionOuverte("Nettoyage", true);
+                f.Afficher("Nettoyer", false);
+                Capturer(f, dossier, "sombre-Nettoyer-options.png", rapport, ref erreurs);
+                f.OptionOuverte("Nettoyage", false);
+            }
+            catch (Exception ex) { erreurs++; rapport.AppendLine("ERREUR : onglets de Nettoyer : " + ex); }
+
+            // rubrique Accélérer : optimisation et jeux (les listes de démarrage et d'applications ne sont lues que sous Windows)
+            try
+            {
+                foreach (var onglet in new[] { "Optimisation", "Jeux" })
+                {
+                    f.SousPage("Accelerer", onglet);
+                    f.Afficher("Accelerer", false);
+                    Capturer(f, dossier, "sombre-Accelerer-" + onglet + ".png", rapport, ref erreurs);
+                }
+                if (OperatingSystem.IsWindows())
+                    foreach (var onglet in new[] { "Demarrage", "Applications" })
+                    {
+                        f.SousPage("Accelerer", onglet);
+                        f.Afficher("Accelerer", false);
+                        for (int k = 0; k < 40; k++) { Dispatcher.UIThread.RunJobs(); System.Threading.Thread.Sleep(100); }   // liste lue en arrière-plan
+                        Capturer(f, dossier, "sombre-Accelerer-" + onglet + ".png", rapport, ref erreurs);
+                    }
+                f.SousPage("Accelerer", "Optimisation");
+            }
+            catch (Exception ex) { erreurs++; rapport.AppendLine("ERREUR : onglets d'Accélérer : " + ex); }
+
+            // Outils : matériel, aide à distance (plein potentiel : sous Windows seulement, l'analyse lit le matériel)
+            try
+            {
+                foreach (var onglet in OperatingSystem.IsWindows() ? new[] { "Materiel", "Potentiel", "Aide" } : new[] { "Materiel", "Aide" })
+                {
+                    f.SousPage("Outils", onglet);
+                    f.Afficher("Outils", false);
+                    if (onglet == "Potentiel") for (int k = 0; k < 60; k++) { Dispatcher.UIThread.RunJobs(); System.Threading.Thread.Sleep(100); }
+                    Capturer(f, dossier, "sombre-Outils-" + onglet + ".png", rapport, ref erreurs);
+                }
+            }
+            catch (Exception ex) { erreurs++; rapport.AppendLine("ERREUR : onglets d'Outils : " + ex); }
+
+            // Protéger, et le bouclier anti-arnaque avec deux logiciels d'exemple (rien n'est détecté ni fermé)
+            try
+            {
+                f.ChangerTheme(true);
+                f.Afficher("Proteger", false);
+                Capturer(f, dossier, "sombre-Proteger.png", rapport, ref erreurs);
+                Bouclier5.Exemple = new System.Collections.Generic.List<AccesDistant>
+                {
+                    new AccesDistant { Nom = "AnyDesk", Connexions = 1 },
+                    new AccesDistant { Nom = "Assistance rapide", Microsoft = true },
+                };
+                Bouclier5.Ouvrir(f);
+                Capturer(f, dossier, "sombre-bouclier.png", rapport, ref erreurs);
+                f.ViderCalques();
+                f.ChangerTheme(false);
+                f.Afficher("Proteger", false);
+                Bouclier5.Ouvrir(f, true);
+                Capturer(f, dossier, "clair-bouclier-urgence.png", rapport, ref erreurs);
+                f.ViderCalques();
+                Bouclier5.Exemple = null;
+                f.ChangerTheme(true);
+            }
+            catch (Exception ex) { erreurs++; rapport.AppendLine("ERREUR : bouclier : " + ex); }
+
             // action en cours, puis terminée (lignes d'exemple, rien n'est lancé), et question de confirmation
             try
             {

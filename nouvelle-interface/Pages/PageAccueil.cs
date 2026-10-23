@@ -207,7 +207,7 @@ namespace NettoyagePC.Nouveau
             Grid.SetColumn(t, 1); g.Children.Add(t);
             if (p.Bouton != null)
             {
-                var b = new BoutonNoyau(p.Bouton, p.Etat == EtatPoint.Probleme, 160, 30) { TaillePolice = 13, Margin = new Thickness(12, 0, 10, 0), VerticalAlignment = VerticalAlignment.Center };
+                var b = new BoutonNoyau(p.Bouton, p.Etat == EtatPoint.Probleme, Math.Max(160, Math.Min(260, p.Bouton.Length * 7.6 + 40)), 30) { TaillePolice = 13, Margin = new Thickness(12, 0, 10, 0), VerticalAlignment = VerticalAlignment.Center };
                 if (clic != null) b.Clic += clic;
                 else if (p.Cible != null) b.Clic += () => F.Executer(p.Cible, p.Bouton);
                 Grid.SetColumn(b, 2); g.Children.Add(b);

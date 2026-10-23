@@ -9,10 +9,10 @@ on:
     branches: [ interface-avalonia ]
   workflow_dispatch:
 
-# un seul envoi à la fois : le suivant attend (les branches de résultats ne se marchent pas dessus)
+# un seul envoi à la fois : un nouvel envoi annule la fabrication dépassée (les résultats sont remplacés)
 concurrency:
   group: nouvelle-interface
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 permissions:
   contents: write

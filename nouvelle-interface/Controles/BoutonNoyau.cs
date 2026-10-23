@@ -14,6 +14,8 @@ namespace NettoyagePC.Nouveau
         public string Texte;
         public bool Principal;
         public double TaillePolice = 14;
+        /// <summary>Icône dessinée à la place du texte : "soleil" ou "lune" (pas d'emoji : même rendu partout).</summary>
+        public string Icone;
         public event Action Clic;
 
         private double survol;          // 0 à 1, glisse en douceur
@@ -115,6 +117,28 @@ namespace NettoyagePC.Nouveau
                 var bord = Habillage.Melanger(P.Bordure, P.Accent, survol * 0.8);
                 ctx.DrawRectangle(Habillage.Pinceau(fond), new Pen(Habillage.Pinceau(bord), 1), forme);
                 texte = P.Texte;
+            }
+            if (Icone != null)
+            {
+                var c = new Point(Bounds.Width / 2, Bounds.Height / 2);
+                var crayon = new Pen(Habillage.Pinceau(texte), 1.6, lineCap: PenLineCap.Round);
+                if (Icone == "soleil")
+                {
+                    ctx.DrawEllipse(null, crayon, c, 4.2, 4.2);
+                    for (int i = 0; i < 8; i++)
+                    {
+                        double a = i * Math.PI / 4;
+                        ctx.DrawLine(crayon, new Point(c.X + 7 * Math.Cos(a), c.Y + 7 * Math.Sin(a)), new Point(c.X + 9.5 * Math.Cos(a), c.Y + 9.5 * Math.Sin(a)));
+                    }
+                }
+                else
+                {
+                    var lune = new CombinedGeometry(GeometryCombineMode.Exclude,
+                        new EllipseGeometry(new Rect(c.X - 7.5, c.Y - 7.5, 15, 15)), new EllipseGeometry(new Rect(c.X - 3, c.Y - 11, 15, 15)));
+                    ctx.DrawGeometry(Habillage.Pinceau(texte), null, lune);
+                }
+                if (IsFocused) ctx.DrawRectangle(null, new Pen(Habillage.Pinceau(P.Accent, 160), 1, new DashStyle(new double[] { 2, 2 }, 0)), new RoundedRect(r.Deflate(3), Math.Max(1, rayon - 2)));
+                return;
             }
             var ft = new FormattedText(Texte ?? "", CultureInfo.CurrentCulture, FlowDirection.LeftToRight,
                 new Typeface(Habillage.Corps, FontStyle.Normal, Principal ? FontWeight.SemiBold : FontWeight.Normal), TaillePolice, Habillage.Pinceau(texte))
