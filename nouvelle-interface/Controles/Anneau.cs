@@ -31,9 +31,9 @@ namespace NettoyagePC.Nouveau
             halo.IsHitTestVisible = false; tournant.IsHitTestVisible = false; segments.IsHitTestVisible = false;
             Children.Add(halo); Children.Add(fixe); Children.Add(segments); Children.Add(tournant);
             var centre = new StackPanel { HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center, Spacing = 0 };
-            tTitre = new TextBlock { Text = "INTÉGRITÉ", FontFamily = Theme.Console, FontSize = 11, Foreground = Theme.Pinceau(Theme.P.Discret), HorizontalAlignment = HorizontalAlignment.Center };
-            tScore = new TextBlock { Text = "…", FontFamily = Theme.Affichage, FontSize = 62, FontWeight = FontWeight.SemiBold, Foreground = Theme.Pinceau(Theme.P.Texte), HorizontalAlignment = HorizontalAlignment.Center, Margin = new Thickness(0, -4, 0, -6) };
-            tEtat = new TextBlock { Text = "analyse…", FontFamily = Theme.Corps, FontSize = 13, Foreground = Theme.Pinceau(Theme.P.Orange), HorizontalAlignment = HorizontalAlignment.Center };
+            tTitre = new TextBlock { Text = "INTÉGRITÉ", FontFamily = Habillage.Console, FontSize = 11, Foreground = Habillage.Pinceau(Habillage.P.Discret), HorizontalAlignment = HorizontalAlignment.Center };
+            tScore = new TextBlock { Text = "…", FontFamily = Habillage.Affichage, FontSize = 62, FontWeight = FontWeight.SemiBold, Foreground = Habillage.Pinceau(Habillage.P.Texte), HorizontalAlignment = HorizontalAlignment.Center, Margin = new Thickness(0, -4, 0, -6) };
+            tEtat = new TextBlock { Text = "analyse…", FontFamily = Habillage.Corps, FontSize = 13, Foreground = Habillage.Pinceau(Habillage.P.Orange), HorizontalAlignment = HorizontalAlignment.Center };
             centre.Children.Add(tTitre); centre.Children.Add(tScore); centre.Children.Add(tEtat);
             Children.Add(centre);
             long debut = Horloge.Maintenant;
@@ -55,11 +55,11 @@ namespace NettoyagePC.Nouveau
             int cible = b.Score, depart = Math.Max(0, score);
             score = cible;
             tEtat.Text = Textes.Niveau(cible);
-            tEtat.Foreground = Theme.Pinceau(Theme.Niveau(cible));
+            tEtat.Foreground = Habillage.Pinceau(Habillage.Niveau(cible));
             long t0 = Horloge.Maintenant;
             Horloge.Lancer(t =>
             {
-                double p = Math.Min(1, (t - t0) / 1100.0), e = Theme.Douce(p);
+                double p = Math.Min(1, (t - t0) / 1100.0), e = Habillage.Douce(p);
                 fixe.Progression = e;
                 tScore.Text = ((int)Math.Round(depart + (cible - depart) * e)).ToString();
                 fixe.InvalidateVisual();
@@ -76,12 +76,12 @@ namespace NettoyagePC.Nouveau
 
         public override void Render(DrawingContext ctx)
         {
-            var P = Theme.P;
+            var P = Habillage.P;
             double w = Bounds.Width, h = Bounds.Height, R = Math.Min(w, h) / 2 - 4;
             var c = new Point(w / 2, h / 2);
             // graduations
-            var fine = new Pen(Theme.Pinceau(P.Accent, 70), 1);
-            var grande = new Pen(Theme.Pinceau(P.Accent, 150), 1.4);
+            var fine = new Pen(Habillage.Pinceau(P.Accent, 70), 1);
+            var grande = new Pen(Habillage.Pinceau(P.Accent, 150), 1.4);
             for (int i = 0; i < 72; i++)
             {
                 double a = i * 5 * Math.PI / 180;
@@ -90,25 +90,25 @@ namespace NettoyagePC.Nouveau
                 ctx.DrawLine(g ? grande : fine, new Point(c.X + r1 * Math.Cos(a), c.Y + r1 * Math.Sin(a)), new Point(c.X + r2 * Math.Cos(a), c.Y + r2 * Math.Sin(a)));
             }
             // fin cercle du repère (le repère lui-même est sur le calque qui tourne)
-            ctx.DrawEllipse(null, new Pen(Theme.Pinceau(P.Accent, 40), 1), c, R - 16, R - 16);
+            ctx.DrawEllipse(null, new Pen(Habillage.Pinceau(P.Accent, 40), 1), c, R - 16, R - 16);
             // secteurs
             double rs = R - 32;
-            var piste = new Pen(Theme.Pinceau(P.Accent, 34), 11);
+            var piste = new Pen(Habillage.Pinceau(P.Accent, 34), 11);
             for (int k = 0; k < 4; k++)
             {
                 double debut = -90 + k * 90 + 5;
-                ctx.DrawGeometry(null, piste, Theme.Arc(c, rs, debut, 80));
+                ctx.DrawGeometry(null, piste, Habillage.Arc(c, rs, debut, 80));
                 double v = Secteurs != null && k < Secteurs.Length ? Secteurs[k] : -1;
                 if (v >= 0 && Progression > 0)
                 {
                     double balayage = Math.Max(1, 80 * Math.Max(0.04, v / 100) * Progression);
-                    var plein = new Pen(Theme.Pinceau(Theme.Niveau(v)), 11, lineCap: PenLineCap.Flat);
-                    ctx.DrawGeometry(null, plein, Theme.Arc(c, rs, debut, balayage));
+                    var plein = new Pen(Habillage.Pinceau(Habillage.Niveau(v)), 11, lineCap: PenLineCap.Flat);
+                    ctx.DrawGeometry(null, plein, Habillage.Arc(c, rs, debut, balayage));
                 }
             }
             // disque central
             double rc = R - 50;
-            ctx.DrawEllipse(Theme.Pinceau(P.Sombre ? Color.FromRgb(8, 14, 26) : Colors.White), new Pen(Theme.Pinceau(P.Accent, 60), 1), c, rc, rc);
+            ctx.DrawEllipse(Habillage.Pinceau(P.Sombre ? Color.FromRgb(8, 14, 26) : Colors.White), new Pen(Habillage.Pinceau(P.Accent, 60), 1), c, rc, rc);
         }
     }
 
@@ -117,13 +117,13 @@ namespace NettoyagePC.Nouveau
     {
         public override void Render(DrawingContext ctx)
         {
-            var P = Theme.P;
+            var P = Habillage.P;
             double w = Bounds.Width, h = Bounds.Height, R = Math.Min(w, h) / 2 - 4, rr = R - 16;
             var c = new Point(w / 2, h / 2);
             for (int i = 1; i <= 12; i++)
-                ctx.DrawGeometry(null, new Pen(Theme.Pinceau(P.Accent, (int)(170 * (1 - i / 13.0))), 2), Theme.Arc(c, rr, -90 - i * 3.2, 3.4));
-            ctx.DrawEllipse(Theme.Pinceau(P.Accent), null, new Point(c.X, c.Y - rr), 3.2, 3.2);
-            ctx.DrawEllipse(Theme.Pinceau(P.Accent, 60), null, new Point(c.X, c.Y - rr), 7, 7);
+                ctx.DrawGeometry(null, new Pen(Habillage.Pinceau(P.Accent, (int)(170 * (1 - i / 13.0))), 2), Habillage.Arc(c, rr, -90 - i * 3.2, 3.4));
+            ctx.DrawEllipse(Habillage.Pinceau(P.Accent), null, new Point(c.X, c.Y - rr), 3.2, 3.2);
+            ctx.DrawEllipse(Habillage.Pinceau(P.Accent, 60), null, new Point(c.X, c.Y - rr), 7, 7);
         }
     }
 
@@ -132,11 +132,11 @@ namespace NettoyagePC.Nouveau
     {
         public override void Render(DrawingContext ctx)
         {
-            var P = Theme.P;
+            var P = Habillage.P;
             double w = Bounds.Width, h = Bounds.Height, R = Math.Min(w, h) / 2 - 4, r = R - 58;
             var c = new Point(w / 2, h / 2);
-            var pen = new Pen(Theme.Pinceau(P.Accent, 90), 2);
-            for (int k = 0; k < 12; k++) ctx.DrawGeometry(null, pen, Theme.Arc(c, r, k * 30 + 4, 18));
+            var pen = new Pen(Habillage.Pinceau(P.Accent, 90), 2);
+            for (int k = 0; k < 12; k++) ctx.DrawGeometry(null, pen, Habillage.Arc(c, r, k * 30 + 4, 18));
         }
     }
 
@@ -145,14 +145,14 @@ namespace NettoyagePC.Nouveau
     {
         public override void Render(DrawingContext ctx)
         {
-            var P = Theme.P;
+            var P = Habillage.P;
             double w = Bounds.Width, h = Bounds.Height, R = Math.Min(w, h) / 2 - 2;
             var c = new Point(w / 2, h / 2);
             int pas = 14;
             for (int i = 0; i < pas; i++)
             {
                 double r = R * (1 - i / (double)pas);
-                ctx.DrawEllipse(Theme.Pinceau(P.Accent, P.Sombre ? 5 : 3), null, c, r, r);
+                ctx.DrawEllipse(Habillage.Pinceau(P.Accent, P.Sombre ? 5 : 3), null, c, r, r);
             }
         }
     }

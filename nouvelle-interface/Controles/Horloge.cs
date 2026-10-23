@@ -21,7 +21,7 @@ namespace NettoyagePC.Nouveau
         /// <summary>Animation ponctuelle : appelée à chaque image tant qu'elle renvoie true.</summary>
         public static void Lancer(Func<long, bool> pas)
         {
-            if (!Theme.Animations) { pas(long.MaxValue / 4); return; }
+            if (!Habillage.Animations) { pas(long.MaxValue / 4); return; }
             animations.Add(pas);
             Demarrer();
         }
@@ -30,7 +30,7 @@ namespace NettoyagePC.Nouveau
         public static void Ambiance(Action<long> pas)
         {
             ambiances.Add(pas);
-            if (Theme.Animations) Demarrer();
+            if (Habillage.Animations) Demarrer();
         }
 
         public static void RetirerAmbiance(Action<long> pas) { ambiances.Remove(pas); }
@@ -61,9 +61,9 @@ namespace NettoyagePC.Nouveau
                 try { continuer = animations[i](t); } catch { continuer = false; }
                 if (!continuer) animations.RemoveAt(i);
             }
-            if (!enPause && Theme.Animations)
+            if (!enPause && Habillage.Animations)
                 foreach (var a in ambiances.ToArray()) { try { a(t); } catch { } }
-            if (animations.Count == 0 && (enPause || ambiances.Count == 0 || !Theme.Animations)) minuteur.Stop();
+            if (animations.Count == 0 && (enPause || ambiances.Count == 0 || !Habillage.Animations)) minuteur.Stop();
         }
     }
 }

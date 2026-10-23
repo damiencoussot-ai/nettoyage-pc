@@ -43,16 +43,16 @@ namespace NettoyagePC.Nouveau
 
         private static Control Cartes(params (string Titre, string Texte)[] cartes)
         {
-            var P = Theme.P;
+            var P = Habillage.P;
             var s = new StackPanel { Margin = new Thickness(28, 18, 28, 28), Spacing = 16 };
             var note = new Border
             {
-                BorderBrush = Theme.Pinceau(P.Accent, 120), BorderThickness = new Thickness(0, 0, 0, 0), Background = Theme.Pinceau(P.Accent, P.Sombre ? 18 : 14),
+                BorderBrush = Habillage.Pinceau(P.Accent, 120), BorderThickness = new Thickness(0, 0, 0, 0), Background = Habillage.Pinceau(P.Accent, P.Sombre ? 18 : 14),
                 CornerRadius = new CornerRadius(3), Padding = new Thickness(16, 12),
                 Child = new TextBlock
                 {
                     Text = "Cette rubrique arrive bientôt dans la nouvelle interface. Tout ce qu'elle contient existe déjà dans la version 4.",
-                    FontFamily = Theme.Corps, FontSize = 13.5, Foreground = Theme.Pinceau(P.Texte), TextWrapping = TextWrapping.Wrap,
+                    FontFamily = Habillage.Corps, FontSize = 13.5, Foreground = Habillage.Pinceau(P.Texte), TextWrapping = TextWrapping.Wrap,
                 },
             };
             s.Children.Add(note);
@@ -62,11 +62,11 @@ namespace NettoyagePC.Nouveau
                 var carte = new Border
                 {
                     Width = 300, Margin = new Thickness(0, 0, 16, 16), Padding = new Thickness(20, 18), CornerRadius = new CornerRadius(3),
-                    Background = Theme.Pinceau(P.Carte), BorderBrush = Theme.Pinceau(P.Bordure), BorderThickness = new Thickness(1),
+                    Background = Habillage.Pinceau(P.Carte), BorderBrush = Habillage.Pinceau(P.Bordure), BorderThickness = new Thickness(1),
                 };
                 var t = new StackPanel { Spacing = 8 };
-                t.Children.Add(new TextBlock { Text = c.Titre, FontFamily = Theme.Affichage, FontSize = 16, FontWeight = FontWeight.SemiBold, Foreground = Theme.Pinceau(P.Texte) });
-                t.Children.Add(new TextBlock { Text = c.Texte, FontFamily = Theme.Corps, FontSize = 13, Foreground = Theme.Pinceau(P.Discret), TextWrapping = TextWrapping.Wrap });
+                t.Children.Add(new TextBlock { Text = c.Titre, FontFamily = Habillage.Affichage, FontSize = 16, FontWeight = FontWeight.SemiBold, Foreground = Habillage.Pinceau(P.Texte) });
+                t.Children.Add(new TextBlock { Text = c.Texte, FontFamily = Habillage.Corps, FontSize = 13, Foreground = Habillage.Pinceau(P.Discret), TextWrapping = TextWrapping.Wrap });
                 carte.Child = t;
                 grille.Children.Add(carte);
             }

@@ -17,7 +17,7 @@ namespace NettoyagePC.Nouveau
         public override void Initialize()
         {
             Styles.Add(new FluentTheme());
-            RequestedThemeVariant = Theme.P.Sombre ? ThemeVariant.Dark : ThemeVariant.Light;
+            RequestedThemeVariant = Habillage.P.Sombre ? ThemeVariant.Dark : ThemeVariant.Light;
         }
 
         public override void OnFrameworkInitializationCompleted()
@@ -51,7 +51,7 @@ namespace NettoyagePC.Nouveau
         public static int Faire(string dossier)
         {
             Directory.CreateDirectory(dossier);
-            Theme.Animations = false;   // états finaux, sans attendre les animations
+            Habillage.Animations = false;   // états finaux, sans attendre les animations
             AppBuilder.Configure<App>().UseSkia().UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false }).SetupWithoutStarting();
             int erreurs = 0;
             var rapport = new System.Text.StringBuilder();

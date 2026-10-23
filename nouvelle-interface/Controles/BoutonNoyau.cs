@@ -31,7 +31,7 @@ namespace NettoyagePC.Nouveau
         {
             base.OnPointerEntered(e);
             VersSurvol(1);
-            if (Principal && reflet < 0 && Theme.Animations)
+            if (Principal && reflet < 0 && Habillage.Animations)
             {
                 long debut = Horloge.Maintenant;
                 reflet = 0;
@@ -63,12 +63,12 @@ namespace NettoyagePC.Nouveau
         private void VersSurvol(double v)
         {
             cibleSurvol = v;
-            if (!Theme.Animations) { survol = v; InvalidateVisual(); return; }
+            if (!Habillage.Animations) { survol = v; InvalidateVisual(); return; }
             double depart = survol; long debut = Horloge.Maintenant;
             Horloge.Lancer(t =>
             {
                 double p = Math.Min(1, (t - debut) / 140.0);
-                survol = depart + (cibleSurvol - depart) * Theme.Douce(p);
+                survol = depart + (cibleSurvol - depart) * Habillage.Douce(p);
                 InvalidateVisual();
                 return p < 1 && Math.Abs(cibleSurvol - v) < 0.001;
             });
@@ -76,21 +76,21 @@ namespace NettoyagePC.Nouveau
 
         public override void Render(DrawingContext ctx)
         {
-            var P = Theme.P;
+            var P = Habillage.P;
             var r = new Rect(Bounds.Size).Deflate(0.5);
             double rayon = Math.Min(10, Bounds.Height / 2 - 1);
             var forme = new RoundedRect(r, rayon);
             Color texte;
             if (!IsEffectivelyEnabled)
             {
-                ctx.DrawRectangle(Theme.Pinceau(P.Bordure), null, forme);
+                ctx.DrawRectangle(Habillage.Pinceau(P.Bordure), null, forme);
                 texte = P.Discret;
             }
             else if (Principal)
             {
                 Color c1 = P.Accent, c2 = P.Accent2;
-                if (appui) { c1 = Theme.Melanger(c1, Colors.Black, 0.15); c2 = Theme.Melanger(c2, Colors.Black, 0.15); }
-                else if (survol > 0) { c1 = Theme.Melanger(c1, Colors.White, 0.18 * survol); c2 = Theme.Melanger(c2, Colors.White, 0.18 * survol); }
+                if (appui) { c1 = Habillage.Melanger(c1, Colors.Black, 0.15); c2 = Habillage.Melanger(c2, Colors.Black, 0.15); }
+                else if (survol > 0) { c1 = Habillage.Melanger(c1, Colors.White, 0.18 * survol); c2 = Habillage.Melanger(c2, Colors.White, 0.18 * survol); }
                 var fond = new LinearGradientBrush
                 {
                     StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative), EndPoint = new RelativePoint(1, 0, RelativeUnit.Relative),
@@ -99,28 +99,28 @@ namespace NettoyagePC.Nouveau
                 ctx.DrawRectangle(fond, null, forme);
                 if (reflet >= 0)
                 {
-                    double bande = Math.Max(36, Bounds.Height * 1.5), x = -bande + Theme.Douce(reflet) * (Bounds.Width + 2 * bande);
+                    double bande = Math.Max(36, Bounds.Height * 1.5), x = -bande + Habillage.Douce(reflet) * (Bounds.Width + 2 * bande);
                     var lumiere = new LinearGradientBrush
                     {
                         StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative), EndPoint = new RelativePoint(1, 0.3, RelativeUnit.Relative),
-                        GradientStops = { new GradientStop(Theme.Alpha(Colors.White, 0), 0), new GradientStop(Theme.Alpha(Colors.White, P.Sombre ? 110 : 90), 0.5), new GradientStop(Theme.Alpha(Colors.White, 0), 1) },
+                        GradientStops = { new GradientStop(Habillage.Alpha(Colors.White, 0), 0), new GradientStop(Habillage.Alpha(Colors.White, P.Sombre ? 110 : 90), 0.5), new GradientStop(Habillage.Alpha(Colors.White, 0), 1) },
                     };
                     using (ctx.PushClip(forme)) ctx.DrawRectangle(lumiere, null, new Rect(x - bande / 2, 0, bande, Bounds.Height));
                 }
-                texte = Theme.TexteSur(Theme.Melanger(c1, c2, 0.5));
+                texte = Habillage.TexteSur(Habillage.Melanger(c1, c2, 0.5));
             }
             else
             {
-                var fond = appui ? Theme.Melanger(P.CarteSurvol, P.Fond, 0.4) : Theme.Melanger(P.Carte, P.CarteSurvol, survol);
-                var bord = Theme.Melanger(P.Bordure, P.Accent, survol * 0.8);
-                ctx.DrawRectangle(Theme.Pinceau(fond), new Pen(Theme.Pinceau(bord), 1), forme);
+                var fond = appui ? Habillage.Melanger(P.CarteSurvol, P.Fond, 0.4) : Habillage.Melanger(P.Carte, P.CarteSurvol, survol);
+                var bord = Habillage.Melanger(P.Bordure, P.Accent, survol * 0.8);
+                ctx.DrawRectangle(Habillage.Pinceau(fond), new Pen(Habillage.Pinceau(bord), 1), forme);
                 texte = P.Texte;
             }
             var ft = new FormattedText(Texte ?? "", CultureInfo.CurrentCulture, FlowDirection.LeftToRight,
-                new Typeface(Theme.Corps, FontStyle.Normal, Principal ? FontWeight.SemiBold : FontWeight.Normal), TaillePolice, Theme.Pinceau(texte))
+                new Typeface(Habillage.Corps, FontStyle.Normal, Principal ? FontWeight.SemiBold : FontWeight.Normal), TaillePolice, Habillage.Pinceau(texte))
             { MaxTextWidth = Math.Max(10, Bounds.Width - 16), Trimming = TextTrimming.CharacterEllipsis, MaxLineCount = 1 };
             ctx.DrawText(ft, new Point((Bounds.Width - ft.Width) / 2, (Bounds.Height - ft.Height) / 2));
-            if (IsFocused) ctx.DrawRectangle(null, new Pen(Theme.Pinceau(P.Accent, 160), 1, new DashStyle(new double[] { 2, 2 }, 0)), new RoundedRect(r.Deflate(3), Math.Max(1, rayon - 2)));
+            if (IsFocused) ctx.DrawRectangle(null, new Pen(Habillage.Pinceau(P.Accent, 160), 1, new DashStyle(new double[] { 2, 2 }, 0)), new RoundedRect(r.Deflate(3), Math.Max(1, rayon - 2)));
         }
     }
 }

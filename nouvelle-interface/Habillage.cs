@@ -33,7 +33,7 @@ namespace NettoyagePC.Nouveau
         public Color AccentBarre { get { return Color.FromRgb(61, 245, 255); } }
     }
 
-    public static class Theme
+    public static class Habillage
     {
         public static Palette P = Palette.SombreNoyau;
 

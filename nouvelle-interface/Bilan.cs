@@ -57,9 +57,9 @@ namespace NettoyagePC.Nouveau
         {
             int p = 0, a = 0;
             foreach (var x in b.Points) { if (x.Etat == EtatPoint.Probleme) p++; else if (x.Etat == EtatPoint.Attention) a++; }
-            if (p > 0) { couleur = Theme.P.Rouge; return "Ton PC a besoin d'attention"; }
-            if (a > 0) { couleur = Theme.P.Orange; return "Ton PC peut être amélioré"; }
-            couleur = Theme.P.Vert; return "Ton PC est en pleine forme";
+            if (p > 0) { couleur = Habillage.P.Rouge; return "Ton PC a besoin d'attention"; }
+            if (a > 0) { couleur = Habillage.P.Orange; return "Ton PC peut être amélioré"; }
+            couleur = Habillage.P.Vert; return "Ton PC est en pleine forme";
         }
 
         public static string EtatDetail(Bilan b)
