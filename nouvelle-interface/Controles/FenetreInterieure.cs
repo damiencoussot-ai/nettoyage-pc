@@ -39,7 +39,8 @@ namespace NettoyagePC.Nouveau
             Grid.SetColumn(fermer, 1); tete.Children.Add(fermer);
             DockPanel.SetDock(tete, Dock.Top);
             d.Children.Add(tete);
-            d.Children.Add(new ScrollViewer { Content = contenu, Padding = new Thickness(26, 10, 26, 24), VerticalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Auto, HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled });
+            // marge autour du contenu dans le défilement (et non sur le ScrollViewer : le texte serait mesuré trop large)
+            d.Children.Add(new ScrollViewer { Content = new Border { Child = contenu, Padding = new Thickness(26, 10, 26, 24) }, VerticalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Auto, HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled });
             carte.Child = d;
             Children.Add(carte);
             AttachedToVisualTree += (o, e) =>

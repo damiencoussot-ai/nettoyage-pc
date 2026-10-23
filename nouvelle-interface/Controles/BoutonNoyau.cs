@@ -25,8 +25,17 @@ namespace NettoyagePC.Nouveau
 
         public BoutonNoyau(string texte, bool principal, double largeur, double hauteur)
         {
-            Texte = texte; Principal = principal; Width = largeur; Height = hauteur;
+            Texte = texte; Principal = principal; Height = hauteur;
+            if (largeur > 0) Width = largeur;   // sinon : largeur du texte (MeasureOverride)
             Focusable = true; Cursor = new Cursor(StandardCursorType.Hand);
+        }
+
+        protected override Size MeasureOverride(Size disponible)
+        {
+            if (!double.IsNaN(Width) || Icone != null) return base.MeasureOverride(disponible);
+            var ft = new FormattedText(Texte ?? "", CultureInfo.CurrentCulture, FlowDirection.LeftToRight,
+                new Typeface(Habillage.Corps, FontStyle.Normal, Principal ? FontWeight.SemiBold : FontWeight.Normal), TaillePolice, Brushes.White);
+            return new Size(Math.Min(disponible.Width, ft.WidthIncludingTrailingWhitespace + 2 * Math.Max(18, Height * 0.5)), Height);
         }
 
         protected override void OnPointerEntered(PointerEventArgs e)

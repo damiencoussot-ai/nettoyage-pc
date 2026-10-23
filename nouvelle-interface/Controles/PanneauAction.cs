@@ -63,8 +63,8 @@ namespace NettoyagePC.Nouveau
             tDetail = new SelectableTextBlock { FontFamily = Habillage.Console, FontSize = 12, Foreground = Habillage.Pinceau(P.Texte), TextWrapping = TextWrapping.Wrap };
             defilement = new ScrollViewer
             {
-                Content = tDetail, MaxHeight = 220, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled, VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
-                Padding = new Thickness(10, 8), Background = Habillage.Pinceau(P.Sombre ? Color.FromRgb(5, 9, 17) : Color.FromRgb(244, 247, 250)),
+                Content = new Border { Child = tDetail, Padding = new Thickness(10, 8) }, MaxHeight = 220, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled, VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+                Background = Habillage.Pinceau(P.Sombre ? Color.FromRgb(5, 9, 17) : Color.FromRgb(244, 247, 250)),
             };
             cadreDetail = new Border { Child = defilement, BorderBrush = Habillage.Pinceau(P.Bordure), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(3) };
             pile.Children.Add(cadreDetail);

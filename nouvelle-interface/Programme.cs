@@ -67,7 +67,7 @@ namespace NettoyagePC.Nouveau
         }
 
         /// <summary>Thème des applications choisi dans Windows (Paramètres > Personnalisation > Couleurs).</summary>
-        private static bool WindowsEnClair()
+        internal static bool WindowsEnClair()
         {
             if (!OperatingSystem.IsWindows()) return false;
             try { return Convert.ToInt32(Microsoft.Win32.Registry.GetValue(@"HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize", "AppsUseLightTheme", 0) ?? 0) == 1; }
@@ -187,6 +187,15 @@ namespace NettoyagePC.Nouveau
                 }
             }
             catch (Exception ex) { erreurs++; rapport.AppendLine("ERREUR : onglets d'Outils : " + ex); }
+
+            // Réglages
+            try
+            {
+                f.ChangerTheme(true);
+                f.Afficher("Reglages", false);
+                Capturer(f, dossier, "sombre-Reglages.png", rapport, ref erreurs);
+            }
+            catch (Exception ex) { erreurs++; rapport.AppendLine("ERREUR : réglages : " + ex); }
 
             // Protéger, et le bouclier anti-arnaque avec deux logiciels d'exemple (rien n'est détecté ni fermé)
             try

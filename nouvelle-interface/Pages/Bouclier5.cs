@@ -37,7 +37,7 @@ namespace NettoyagePC.Nouveau
             tDetail = new TextBlock { FontFamily = Habillage.Corps, FontSize = 13.5, LineHeight = 20, Foreground = Habillage.Pinceau(P.Discret), TextWrapping = TextWrapping.Wrap };
             Children.Add(tEtat); Children.Add(tDetail);
             Children.Add(liste);
-            var urgence = new BoutonNoyau("On me demande de prendre la main sur mon PC", true, 420, 46) { TaillePolice = 15, HorizontalAlignment = HorizontalAlignment.Left, Margin = new Thickness(0, 8, 0, 0) };
+            var urgence = new BoutonNoyau("On me demande de prendre la main sur mon PC", true, 0, 46) { TaillePolice = 15, HorizontalAlignment = HorizontalAlignment.Left, Margin = new Thickness(0, 8, 0, 0) };
             urgence.Clic += Urgence;
             Children.Add(urgence);
             Children.Add(new TextBlock { Text = Langue.T("Au téléphone, par message ou par une fenêtre qui fait peur ? Clique ici."), FontFamily = Habillage.Corps, FontSize = 12.5, Foreground = Habillage.Pinceau(P.Discret) });

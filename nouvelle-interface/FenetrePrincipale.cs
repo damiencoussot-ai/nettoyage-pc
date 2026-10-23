@@ -139,6 +139,14 @@ namespace NettoyagePC.Nouveau
             try { var r = Parametres.Lire(); r.OptionsOuvertes = string.Join(",", optionsOuvertes); r.Ecrire(); } catch { }
         }
 
+        /// <summary>Modifie et enregistre les réglages (même fichier que la version 4) ; rien n'est écrit pendant les aperçus.</summary>
+        public void EnregistrerReglage(Action<Parametres> modifier)
+        {
+            if (Source.Immediat) return;
+            try { var r = Parametres.Lire(); modifier(r); r.Ecrire(); }
+            catch (Exception ex) { JournalDemarrage.Erreur("réglages (version 5)", ex); }
+        }
+
         public string SousPage(string rubrique) { string s; return sousPages.TryGetValue(rubrique, out s) ? s : null; }
         public void SousPage(string rubrique, string cle) { sousPages[rubrique] = cle; }
 
@@ -181,6 +189,7 @@ namespace NettoyagePC.Nouveau
                     Statut((Moteur.Arrete ? "Arrêtée : " : "Terminé : ") + Moteur.Titre + " (" + DateTime.Now.ToString("HH:mm") + ")");
                     if (apres != null) { try { apres(); } catch (Exception ex) { JournalDemarrage.Erreur("après l'action (version 5)", ex); } }
                     if (!simulation) ActualiserBilan();
+                    if (cle == "planifier" || cle == "deplanifier") { PageReglages5.EntretienActif = null; if (PageActive == "Reglages") Afficher("Reglages", false); }
                 };
                 Moteur.Fini += fini;
             };
@@ -255,7 +264,7 @@ namespace NettoyagePC.Nouveau
             Rubriques.Add(new Rubrique { Cle = "Premium", Nom = "Premium", Sous = "Les outils des pros, débloqués d'un coup.", Page = () => PageAVenir.Premium() });
             Rubriques.Add(new Rubrique { Cle = "MisesAJour", Nom = "Mises à jour", Sous = "Version installée et nouveautés.", EnBas = true, Page = () => PageAVenir.Simple("Mises à jour", "Recherche des mises à jour, nouveautés de chaque version, installation en un clic.") });
             Rubriques.Add(new Rubrique { Cle = "Historique", Nom = "Historique", Sous = "Tout ce que Nettoyage PC a fait, et l'annulation.", EnBas = true, Page = () => PageAVenir.Simple("Historique", "Chaque modification est notée et peut être annulée.") });
-            Rubriques.Add(new Rubrique { Cle = "Reglages", Nom = "Réglages", Sous = "Apparence, langue, profil et informations.", EnBas = true, Page = () => PageAVenir.Simple("Réglages", "Thème, langue, mode simple ou complet, entretien automatique.") });
+            Rubriques.Add(new Rubrique { Cle = "Reglages", Nom = "Réglages", Sous = "Apparence, langue, profil et informations.", EnBas = true, Page = () => PageReglages5.Creer(this) });
         }
 
         // ------------------------------------------------------------ construction (refaite à chaque changement de thème)
@@ -347,7 +356,7 @@ namespace NettoyagePC.Nouveau
             droite.Children.Add(recherche);
             var bTheme = new BoutonNoyau("", false, 38, 38) { Icone = P.Sombre ? "soleil" : "lune" };
             ToolTip.SetTip(bTheme, P.Sombre ? "Passer en thème clair" : "Passer en thème sombre");
-            bTheme.Clic += () => ChangerTheme(!Habillage.P.Sombre);
+            bTheme.Clic += () => { ChangerTheme(!Habillage.P.Sombre); EnregistrerReglage(r => r.Theme = Habillage.P.Sombre ? "Sombre" : "Clair"); };
             droite.Children.Add(bTheme);
             droite.Children.Add(PastilleSimulation());
             Grid.SetColumn(droite, 1);
