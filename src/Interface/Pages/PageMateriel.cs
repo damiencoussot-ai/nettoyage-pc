@@ -89,32 +89,14 @@ namespace NettoyagePC
             }
             lvRam.EndUpdate();
             lvRam.Height = Math.Min(170, 34 + Math.Max(1, b.Count) * 24);
-            long total = b.Sum(x => x.Capacite);
-            string type = b.Select(x => x.Type).FirstOrDefault() ?? "";
-            if (b.Count == 0) { lblRam.Text = "Barrettes non détectées"; lblRamDetail.Text = "Windows ne donne pas d'information sur les barrettes de ce PC (machine virtuelle ?)."; return; }
-            lblRam.Text = Format.Taille(total) + " " + type + " · " + (infos.Reelle > 0 ? infos.Reelle + " MT/s" : "vitesse inconnue");
+            lblRam.Text = infos.TitreMemoire();
+            int niveau;
+            lblRamDetail.Text = infos.ExplicationMemoire(out niveau);
+            if (b.Count == 0) return;
             lblCarteMere.Text = (infos.CarteMere != "" ? "Carte mère : " + infos.CarteMere : "") + (infos.Bios != "" ? "   ·   BIOS " + infos.Bios : "");
-            Role r = Role.Discret;
-            if (infos.Bridee)
-            {
-                int gain = (int)Math.Round(100.0 * (infos.Prevue - infos.Reelle) / infos.Reelle);
-                lblRam.Text = Format.Taille(total) + " " + type + " · bridée à " + infos.Reelle + " MT/s";
-                lblRamDetail.Text = "Tes barrettes sont prévues pour " + infos.Prevue + " MT/s mais tournent à " + infos.Reelle + " MT/s : le profil " + infos.Profil +
-                    " n'est pas activé dans le BIOS. L'activer donne environ " + gain + " % de bande passante mémoire en plus (plus de FPS minimum dans les jeux, Windows plus réactif). C'est un réglage prévu par le fabricant, sans risque pour les barrettes.";
-                r = Role.Orange;
-                bGuide.Visible = true; bBios.Visible = Natif.Build >= 10240 || !Natif.EstWindows;
-            }
-            else if (infos.Prevue > 0)
-            {
-                lblRamDetail.Text = "✔ Les barrettes tournent à leur vitesse prévue (" + infos.Prevue + " MT/s) : le profil " + infos.Profil + " est bien activé.";
-                r = Role.Vert; bGuide.Visible = false; bBios.Visible = false;
-            }
-            else
-            {
-                lblRamDetail.Text = "La vitesse prévue par le fabricant n'est pas indiquée dans la référence des barrettes : vérifie sur la boîte ou l'étiquette (par ex. « 6000 » ou « 3200 »). Si elle est plus élevée que " + (infos.Reelle > 0 ? infos.Reelle + " MT/s" : "la vitesse actuelle") + ", active le profil " + infos.Profil + " dans le BIOS.";
-                bGuide.Visible = true; bBios.Visible = false;
-            }
-            if (b.Count == 1 && total >= 8L * 1073741824) lblRamDetail.Text += "\nUne seule barrette : une deuxième identique (double canal) peut nettement améliorer les performances.";
+            Role r = niveau == 1 ? Role.Orange : niveau == 2 ? Role.Vert : Role.Discret;
+            bGuide.Visible = niveau != 2;
+            bBios.Visible = niveau == 1 && (Natif.Build >= 10240 || !Natif.EstWindows);
             lblRamDetail.RoleTexte = r; lblRamDetail.AppliquerTheme();
         }
 
@@ -181,33 +163,7 @@ namespace NettoyagePC
         private void Guide()
         {
             if (infos == null) return;
-            string p = infos.Profil, etapes;
-            switch (infos.MarqueCarteMere)
-            {
-                case "ASUS":
-                    etapes = "2. Appuie sur F7 pour passer en mode avancé (« Advanced Mode »), si l'écran est simplifié.\n3. Onglet « Ai Tweaker » : réglage « Ai Overclock Tuner », choisis « " + (p == "XMP" ? "XMP I" : p == "EXPO" ? "EXPO I" : "D.O.C.P.") + " ».\n   (En mode simple « EZ Mode », c'est le réglage « " + p + " » à droite de l'écran.)\n4. Appuie sur F10, puis « OK » : le PC enregistre et redémarre.";
-                    break;
-                case "MSI":
-                    etapes = "2. En haut de l'écran principal, clique sur le bouton « " + (p == "XMP" ? "XMP" : "EXPO") + " » (ou « A-XMP ») pour l'allumer, profil 1.\n3. Appuie sur F10, puis « Yes » : le PC enregistre et redémarre.";
-                    break;
-                case "Gigabyte":
-                    etapes = "2. Appuie sur F2 pour passer en mode avancé, si l'écran est simplifié.\n3. Onglet « Tweaker » : réglage « Extreme Memory Profile (X.M.P.) »" + (p == "EXPO" ? " ou « EXPO »" : "") + ", choisis « Profile 1 ».\n4. Appuie sur F10, puis « Save & Exit » : le PC enregistre et redémarre.";
-                    break;
-                case "ASRock":
-                    etapes = "2. Appuie sur F6 pour passer en mode avancé, si l'écran est simplifié.\n3. Onglet « OC Tweaker », partie « DRAM Configuration » : « Load " + (p == "EXPO" ? "EXPO" : "XMP") + " Setting », choisis « Profile 1 ».\n4. Appuie sur F10, puis « Yes » : le PC enregistre et redémarre.";
-                    break;
-                case "Marque":
-                    etapes = "2. Les PC de marque (Dell, HP, Lenovo...) ne proposent pas toujours ce réglage. Cherche dans les menus « Memory », « Performance » ou « Overclocking » un réglage « XMP », « EXPO » ou « Memory Profile » et choisis « Profile 1 ».\n3. Enregistre avec F10 (« Save & Exit »). Si tu ne trouves pas ce réglage, ton PC ne le permet pas : rien à faire.";
-                    break;
-                default:
-                    etapes = "2. Cherche dans les menus « OC », « Tweaker », « Memory » ou « Overclocking » le réglage « " + p + " » (ou « XMP », « Memory Profile ») et choisis « Profile 1 ».\n3. Appuie sur F10 pour enregistrer (« Save & Exit ») : le PC redémarre.";
-                    break;
-            }
-            string texte = "Activer le profil " + p + " de ta mémoire vive" + (infos.CarteMere != "" ? " (carte mère " + infos.CarteMere + ")" : "") + " :\n\n" +
-                "1. Clique sur « Redémarrer dans le BIOS » (ou redémarre et appuie plusieurs fois sur Suppr ou F2 dès l'allumage).\n" + etapes + "\n\n" +
-                "Bon à savoir :\n- Au premier démarrage après le changement, l'écran peut rester noir 1 à 3 minutes : le PC « apprend » la mémoire, n'éteins pas.\n" +
-                "- Si le PC ne démarre plus (rare), il revient tout seul aux réglages d'origine après 2 ou 3 essais ; sinon, choisis « Load Optimized Defaults » dans le BIOS.\n" +
-                "- Reviens ensuite sur cette page : elle doit afficher " + (infos.Prevue > 0 ? infos.Prevue + " MT/s" : "la nouvelle vitesse") + ".";
+            string p = infos.Profil, texte = infos.GuideProfil();
             BoiteMessage.Afficher(texte, "Nettoyage PC - activer " + p, MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
     }

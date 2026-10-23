@@ -12,8 +12,6 @@ namespace NettoyagePC
 {
     internal class FenetreFps : FenetreTheme
     {
-        private class CibleJeu { public string Processus = "", Libelle = ""; public bool Jeu; public override string ToString() { return Libelle; } }
-
         private readonly FenetrePrincipale F;
         private readonly ListeDeroulante cbJeu = new ListeDeroulante(430), cbDuree = new ListeDeroulante(130), cbDelai = new ListeDeroulante(150);
         private readonly ZoneTexte txtLibelle = new ZoneTexte(260);
@@ -79,32 +77,12 @@ namespace NettoyagePC
             Shown += (s, e) => { RemplirJeux(); historique = Fps.Historique(); AfficherHistorique(); };
         }
 
-        private static readonly HashSet<string> Ignorer = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-        { "explorer", "ApplicationFrameHost", "TextInputHost", "SystemSettings", "ShellExperienceHost", "StartMenuExperienceHost", "SearchHost", "LockApp", "Taskmgr", "NettoyagePC", "steamwebhelper", "msedgewebview2" };
-
         private void RemplirJeux()
         {
             var avant = cbJeu.SelectedItem as CibleJeu;
-            var l = new List<CibleJeu>();
-            HashSet<string> exesJeux;
-            try { exesJeux = new HashSet<string>(DetectionJeux.Lister().Where(j => j.Exe != "").Select(j => Path.GetFileName(j.Exe)), StringComparer.OrdinalIgnoreCase); } catch { exesJeux = new HashSet<string>(StringComparer.OrdinalIgnoreCase); }
-            int moi = Process.GetCurrentProcess().Id;
-            foreach (var p in Process.GetProcesses())
-            {
-                try
-                {
-                    if (p.Id == moi || p.MainWindowHandle == IntPtr.Zero || string.IsNullOrWhiteSpace(p.MainWindowTitle) || Ignorer.Contains(p.ProcessName)) continue;
-                    string chemin = ""; try { chemin = p.MainModule.FileName; } catch { }
-                    string exe = p.ProcessName + ".exe";
-                    bool jeu = exesJeux.Contains(exe) || System.Text.RegularExpressions.Regex.IsMatch(chemin, @"steamapps\\common|Epic Games|XboxGames|Riot Games|Ubisoft Game Launcher\\games|EA Games|GOG Galaxy\\Games|Battle\.net", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
-                    if (l.Any(c => c.Processus.Equals(exe, StringComparison.OrdinalIgnoreCase))) continue;
-                    l.Add(new CibleJeu { Processus = exe, Jeu = jeu, Libelle = (jeu ? "★ " : "") + p.MainWindowTitle.Trim() + "  (" + exe + ")" });
-                }
-                catch { }
-                finally { p.Dispose(); }
-            }
+            var l = Fps.FenetresOuvertes();
             cbJeu.Items.Clear();
-            foreach (var c in l.OrderByDescending(c => c.Jeu).ThenBy(c => c.Libelle)) cbJeu.Items.Add(c);
+            foreach (var c in l) cbJeu.Items.Add(c);
             if (cbJeu.Items.Count == 0) { cbJeu.Items.Add(new CibleJeu { Libelle = Langue.T("Aucun jeu ouvert : lance-le, puis clique sur « Actualiser »") }); }
             int i = avant == null ? 0 : cbJeu.Items.Cast<CibleJeu>().ToList().FindIndex(c => c.Processus == avant.Processus);
             cbJeu.SelectedIndex = Math.Max(0, i);
@@ -120,32 +98,10 @@ namespace NettoyagePC
             bool telecharger = !Fps.OutilPresent;
             if (telecharger && !BoiteMessage.Question("Pour mesurer, Nettoyage PC utilise PresentMon, l'outil gratuit et open source d'Intel.\n\nIl va être téléchargé depuis sa page officielle (GitHub, environ 2 Mo), vérifié, puis installé dans le dossier de Nettoyage PC. Windows demandera ensuite ton autorisation pour la mesure.\n\nContinuer ?")) return;
             enCours = true; bMesurer.Enabled = false; cbJeu.Enabled = false;
-            Etat(telecharger ? "Téléchargement et vérification de PresentMon..." : "Windows demande ton autorisation pour la mesure : clique sur « Oui ».", Role.AccentVif);
             var fil = new Thread(() =>
             {
-                string erreur = null; MesureFps m = null;
-                try
-                {
-                    string source = "-", empreinte, version;
-                    if (telecharger) source = Fps.Telecharger(out empreinte, out version);
-                    else empreinte = Moteur.Empreinte(Fps.Exe);
-                    if (empreinte == null) throw new InvalidOperationException(Langue.T("PresentMon est illisible : réessaie."));
-                    if (telecharger) Invoquer(() => Etat("Windows demande ton autorisation pour la mesure : clique sur « Oui ».", Role.AccentVif));
-                    Invoquer(() => { finPrevue = DateTime.Now.AddSeconds(secondes + delai + 3); compte.Start(); });
-                    int code = Elevation.CommandeAttendre(secondes + delai + 90, "mesurer-fps", source, empreinte, c.Processus, secondes.ToString(), delai.ToString());
-                    if (telecharger && source != "-") try { Directory.Delete(Path.GetDirectoryName(source), true); } catch { }
-                    if (code == -1) erreur = Langue.T("Mesure annulée : l'autorisation de Windows a été refusée.");
-                    else if (code == 4) erreur = Langue.T("PresentMon n'a pas pu être vérifié comme version officielle : rien n'a été installé.");
-                    else if (code == 5) erreur = Langue.T("Aucune image mesurée : le jeu était-il bien ouvert et au premier plan pendant la mesure ?");
-                    else if (code != 0) erreur = Langue.F("La mesure n'a pas pu se faire (code {0}).", code);
-                    else
-                    {
-                        m = Fps.Analyser(Fps.Csv);
-                        if (m == null) erreur = Langue.T("Pas assez d'images mesurées : reste dans le jeu pendant toute la mesure.");
-                        else { m.Libelle = libelle; m.Jeu = c.Processus.Substring(0, c.Processus.Length - 4); }
-                    }
-                }
-                catch (Exception ex) { erreur = Langue.T("Mesure impossible : ") + ex.Message; }
+                string erreur;
+                var m = Fps.Mesurer(c, secondes, delai, libelle, t => Invoquer(() => Etat(t, Role.AccentVif)), () => Invoquer(() => { finPrevue = DateTime.Now.AddSeconds(secondes + delai + 3); compte.Start(); }), out erreur);
                 Invoquer(() => Fin(m, erreur));
             }) { IsBackground = true };
             fil.SetApartmentState(ApartmentState.STA);
@@ -183,16 +139,9 @@ namespace NettoyagePC
             tMoy.Valeur = f(m.Moyenne); tBas1.Valeur = f(m.Bas1); tBas01.Valeur = f(m.Bas01); tSacc.Valeur = m.Saccades.ToString("0");
             tSacc.Couleur = m.Saccades > m.Secondes ? Role.Orange : Role.Texte;
             foreach (var t in new[] { tMoy, tBas1, tBas01, tSacc }) t.Invalidate();
-            var avant = historique.Where(x => x != m && x.Jeu == m.Jeu && string.CompareOrdinal(x.Date, m.Date) < 0).OrderByDescending(x => x.Date).FirstOrDefault();
-            if (avant == null) { lblComparaison.Text = Langue.T("Fais une autre mesure après ton réglage pour voir la différence."); lblComparaison.RoleTexte = Role.Discret; }
-            else
-            {
-                Func<double, double, string> pct = (a, b) => { double d = a > 0 ? (b - a) / a * 100 : 0; return (d >= 0 ? "+" : "") + d.ToString("0", Appli.Fr) + " %"; };
-                double gain = avant.Moyenne > 0 ? (m.Moyenne - avant.Moyenne) / avant.Moyenne : 0;
-                lblComparaison.Text = Langue.F("Par rapport à « {0} » : {1} de FPS moyen, {2} sur les 1 % les plus lents, {3} sur les 0,1 %.", avant.Libelle, pct(avant.Moyenne, m.Moyenne), pct(avant.Bas1, m.Bas1), pct(avant.Bas01, m.Bas01))
-                    + (Math.Abs(gain) < 0.03 ? "  " + Langue.T("(différence trop faible pour être sûre : refais la mesure au même endroit)") : "");
-                lblComparaison.RoleTexte = gain >= 0.03 ? Role.Vert : gain <= -0.03 ? Role.Orange : Role.Texte;
-            }
+            int niveau;
+            lblComparaison.Text = Fps.Comparaison(historique, m, out niveau);
+            lblComparaison.RoleTexte = niveau == 0 ? Role.Discret : niveau == 2 ? Role.Vert : niveau == 1 ? Role.Orange : Role.Texte;
             lblComparaison.AppliquerTheme();
         }
 
