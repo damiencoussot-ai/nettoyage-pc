@@ -65,8 +65,8 @@ namespace NettoyagePC.Nouveau
         {
             return Cartes.Page(f, null, new[]
             {
-                CarteAction.Code("Preuve en FPS", "Mesure les images par seconde réelles d'un jeu, avant puis après un réglage : tu vois le vrai gain, en chiffres (PresentMon, l'outil gratuit d'Intel).", "Mesurer un jeu", () => f.Bientot("Preuve en FPS"), true),
-                CarteAction.Code("Réglages des jeux", "Mode jeu de Windows, planification matérielle du GPU, optimisations pour le jeu en fenêtré : l'état de chacun et un conseil.", "Voir les réglages", () => f.Bientot("Réglages des jeux")),
+                CarteAction.Code("Preuve en FPS", "Mesure les images par seconde réelles d'un jeu, avant puis après un réglage : tu vois le vrai gain, en chiffres (PresentMon, l'outil gratuit d'Intel).", "Mesurer un jeu", () => Fps5.OuvrirPremium(f), true),
+                CarteAction.Code("Réglages des jeux", "Mode jeu de Windows, planification matérielle du GPU, optimisations pour le jeu en fenêtré : l'état de chacun et un conseil.", "Voir les réglages", () => ReglagesWindows5.Jeux(f)),
             }, "Jeux");
         }
     }
@@ -194,7 +194,7 @@ namespace NettoyagePC.Nouveau
             var bParam = new BoutonNoyau("Ouvrir Paramètres > Applications", false, 250, 32) { TaillePolice = 13, Margin = new Thickness(0, 0, 10, 6) };
             bParam.Clic += () => Programmes.Ouvrir("ms-settings:appsfeatures");
             var bInutiles = new BoutonNoyau("Applications préinstallées inutiles", false, 260, 32) { TaillePolice = 13, Margin = new Thickness(0, 0, 10, 6) };
-            bInutiles.Clic += () => F.Bientot("Applications préinstallées inutiles");
+            bInutiles.Clic += () => AppsInutiles5.Ouvrir(F);
             boutons.Children.Add(bDes); boutons.Children.Add(bActu); boutons.Children.Add(bParam); boutons.Children.Add(bInutiles);
             Children.Add(boutons);
             recherche.TextChanged += (s, e) => Afficher();

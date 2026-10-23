@@ -53,7 +53,7 @@ namespace NettoyagePC.Nouveau
             {
                 CarteAction.A("Optimiser les disques", "Santé SMART, usure et température, TRIM, ReTrim des SSD (jamais de défragmentation), défragmentation des disques durs.", "Optimiser", "disques", true),
                 CarteAction.A("Vérifier les disques", "Comme « Optimiser », plus l'analyse du système de fichiers de chaque disque, en lecture seule.", "Vérifier", "verifier"),
-                CarteAction.Code("Carte de l'espace disque", "Chaque dossier est un rectangle proportionnel à sa taille : tu vois d'un coup d'œil ce qui remplit ton disque.", "Afficher la carte", () => f.Bientot("Carte de l'espace disque")),
+                CarteAction.Code("Carte de l'espace disque", "Chaque dossier est un rectangle proportionnel à sa taille : tu vois d'un coup d'œil ce qui remplit ton disque.", "Afficher la carte", () => CarteEspace5.Ouvrir(f)),
             }));
             pile.Children.Add(new GrosFichiers(f));
             return pile;

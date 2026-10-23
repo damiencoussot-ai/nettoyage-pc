@@ -26,8 +26,8 @@ namespace NettoyagePC.Nouveau
                 CarteAction.Code("Bouclier anti-arnaque", "Faux technicien au téléphone ? Repère les logiciels qui permettent de prendre la main sur ton PC (AnyDesk, TeamViewer...) et dit quoi faire.", "Vérifier", () => Bouclier5.Ouvrir(f)),
                 CarteAction.A("Créer un point de restauration", "Une photo de Windows pour revenir en arrière en cas de problème après une installation ou une modification.", "Créer", "point"),
                 CarteAction.A("Réparer Windows", "Répare l'image de Windows (DISM) et les fichiers système (SFC), avec un point de restauration avant. 20 à 50 min.", "Réparer", "reparer").Plus(),
-                CarteAction.Code("Extensions des navigateurs", "Liste les extensions de Chrome, Edge, Brave, Vivaldi et Firefox, et signale celles à vérifier (hors boutique, accès à tous les sites).", "Vérifier", () => f.Bientot("Extensions des navigateurs")).Plus(),
-                CarteAction.Code("Confidentialité", "Moins de publicité et de pistage : identifiant publicitaire, suggestions de Windows, recherche Bing du menu Démarrer. Réversible.", "Régler", () => f.Bientot("Confidentialité")).Plus(),
+                CarteAction.Code("Extensions des navigateurs", "Liste les extensions de Chrome, Edge, Brave, Vivaldi et Firefox, et signale celles à vérifier (hors boutique, accès à tous les sites).", "Vérifier", () => Extensions5.Ouvrir(f)).Plus(),
+                CarteAction.Code("Confidentialité", "Moins de publicité et de pistage : identifiant publicitaire, suggestions de Windows, recherche Bing du menu Démarrer. Réversible.", "Régler", () => ReglagesWindows5.Confidentialite(f)).Plus(),
                 CarteAction.Code("Restaurer le système", "Revenir à un point de restauration précédent si quelque chose ne fonctionne plus (outil de Windows).", "Ouvrir", () => Programmes.Ouvrir(Path.Combine(Chemins.Systeme32, "rstrui.exe"))).Plus(),
                 CarteAction.Code("Sécurité Windows", "Ouvre le centre de sécurité de Windows : antivirus, pare-feu, protection des applications et du navigateur.", "Ouvrir", () => Programmes.Ouvrir("windowsdefender:")).Plus(),
             }, "Securite");

@@ -219,6 +219,49 @@ namespace NettoyagePC.Nouveau
             }
             catch (Exception ex) { erreurs++; rapport.AppendLine("ERREUR : onglets d'Outils : " + ex); }
 
+            // mémoire vive bridée (exemple : rien n'est lu sur le PC) et son guide du BIOS
+            try
+            {
+                var m = new InfosMateriel { CarteMere = "ASUSTeK COMPUTER INC. TUF GAMING B650-PLUS", MarqueCarteMere = "ASUS", Bios = "3024 du 12/03/2026", Processeur = "AMD Ryzen 7 7800X3D 8-Core Processor", Prevue = 6000, Reelle = 4800 };
+                foreach (var emplacement in new[] { "DIMM_A2", "DIMM_B2" })
+                    m.Barrettes.Add(new Barrette { Capacite = 16L * 1073741824, TypeSmbios = 34, Vitesse = 6000, VitesseConfiguree = 4800, Fabricant = "Kingston", Reference = "KF560C36-16", Emplacement = emplacement });
+                Memoire5.Exemple = m;
+                f.ChangerTheme(true); f.SousPage("Outils", "Materiel"); f.Afficher("Outils", false);
+                Memoire5.Ouvrir(f);
+                Capturer(f, dossier, "sombre-memoire.png", rapport, ref erreurs);
+                f.ViderCalques();
+                Memoire5.Exemple = null;
+            }
+            catch (Exception ex) { Memoire5.Exemple = null; erreurs++; rapport.AppendLine("ERREUR : mémoire vive : " + ex); }
+
+            // Preuve en FPS avec deux mesures d'exemple (rien n'est mesuré)
+            try
+            {
+                var j = DateTime.Now;
+                Fps5.Exemple = new System.Collections.Generic.List<MesureFps>
+                {
+                    new MesureFps { Date = j.ToString("yyyy-MM-dd HH:mm"), Jeu = "Cyberpunk2077", Libelle = "après nettoyage", Secondes = 60, Images = 8142, Moyenne = 135.7, Bas1 = 98.4, Bas01 = 81.2, Saccades = 6 },
+                    new MesureFps { Date = j.AddMinutes(-25).ToString("yyyy-MM-dd HH:mm"), Jeu = "Cyberpunk2077", Libelle = "avant", Secondes = 60, Images = 7410, Moyenne = 123.5, Bas1 = 71.9, Bas01 = 52.6, Saccades = 41 },
+                };
+                f.ChangerTheme(true); f.SousPage("Accelerer", "Jeux"); f.Afficher("Accelerer", false);
+                Fps5.Ouvrir(f);
+                Capturer(f, dossier, "sombre-fps.png", rapport, ref erreurs);
+                f.ViderCalques(); f.SousPage("Accelerer", "Optimisation");
+                Fps5.Exemple = null;
+            }
+            catch (Exception ex) { Fps5.Exemple = null; erreurs++; rapport.AppendLine("ERREUR : FPS : " + ex); }
+
+            // Réseau avec une connexion et des mesures d'exemple (rien n'est mesuré ni modifié)
+            try
+            {
+                Reseau5.Exemple = true;
+                f.ChangerTheme(true); f.SousPage("Outils", "Reseau"); f.Afficher("Outils", false);
+                Capturer(f, dossier, "sombre-Outils-Reseau.png", rapport, ref erreurs);
+                f.SousPage("Outils", "Materiel");
+                Reseau5.Exemple = false;
+            }
+            catch (Exception ex) { Reseau5.Exemple = false; erreurs++; rapport.AppendLine("ERREUR : réseau : " + ex); }
+
             // Historique avec des données d'exemple (rien n'est lu ni annulé)
             try
             {
@@ -249,6 +292,27 @@ namespace NettoyagePC.Nouveau
             }
             catch (Exception ex) { erreurs++; rapport.AppendLine("ERREUR : mises à jour : " + ex); }
 
+            // Windows et pilotes, avec une carte graphique et des mises à jour d'exemple (rien n'est demandé à Windows Update)
+            try
+            {
+                var j = DateTime.Today;
+                Pilotes5.Exemple = Tuple.Create(
+                    new System.Collections.Generic.List<CarteGraphique> { new CarteGraphique { Nom = "AMD Radeon RX 7900 XTX", PnpId = "PCI\\VEN_1002&DEV_744C", VersionPilote = "32.0.21001.9024", DatePilote = j.AddMonths(-7), Memoire = 24L * 1073741824 } },
+                    new System.Collections.Generic.List<MajWindows>
+                    {
+                        new MajWindows { Id = "8a7c3f12-4b1e-4d6a-9f0e-2c5b7d9e1a31", Titre = "Mise à jour de la veille de sécurité pour Microsoft Defender Antivirus - KB2267602", Taille = 182000000 },
+                        new MajWindows { Id = "1f2e3d4c-5b6a-4978-8a1b-2c3d4e5f6a7b", Titre = "Mise à jour cumulative pour Windows 11 Version 25H2 pour les systèmes x64 (KB5066835)", Taille = 812000000, Redemarrage = true },
+                        new MajWindows { Id = "9e8d7c6b-5a4f-4321-9abc-def012345678", Titre = "Advanced Micro Devices, Inc. - Display - 31.0.24033.1003", Pilote = true, Classe = "Display", Fournisseur = "Advanced Micro Devices, Inc.", DatePilote = j.AddMonths(-11), Facultative = true, Taille = 640000000 },
+                        new MajWindows { Id = "0a1b2c3d-4e5f-4a6b-8c7d-9e0f1a2b3c4d", Titre = "Realtek Semiconductor Corp. - Extension - 10.0.26100.21", Pilote = true, Facultative = true, Taille = 1200000 },
+                        new MajWindows { Id = "5f4e3d2c-1b0a-4f9e-8d7c-6b5a4f3e2d1c", Titre = "Mise à jour cumulative préliminaire pour Windows 11 Version 25H2 (KB5067036)", Facultative = true, Taille = 790000000 },
+                    });
+                f.ChangerTheme(true); f.SousPage("MisesAJour", "Pilotes"); f.Afficher("MisesAJour", false);
+                Capturer(f, dossier, "sombre-Pilotes.png", rapport, ref erreurs);
+                f.SousPage("MisesAJour", "MisesAJour");
+                Pilotes5.Exemple = null;
+            }
+            catch (Exception ex) { Pilotes5.Exemple = null; erreurs++; rapport.AppendLine("ERREUR : pilotes : " + ex); }
+
             // Premium (licence lue sur ce PC : sous Linux, aucune) et la fenêtre d'achat
             try
             {
@@ -260,6 +324,29 @@ namespace NettoyagePC.Nouveau
                 f.ViderCalques();
             }
             catch (Exception ex) { erreurs++; rapport.AppendLine("ERREUR : premium : " + ex); }
+
+            // carte de l'espace disque, sur le dossier du programme (rien n'est modifié)
+            try
+            {
+                f.ChangerTheme(true); f.SousPage("Nettoyer", "Disques"); f.Afficher("Nettoyer", false);
+                var carte = CarteEspace5.Ouvrir(f);
+                for (int k = 0; k < 4; k++) { Dispatcher.UIThread.RunJobs(); AvaloniaHeadlessPlatform.ForceRenderTimerTick(); }
+                string d = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, ".."));
+                carte.AnalyserPourEssai(Directory.Exists(d) ? d : AppContext.BaseDirectory);
+                Capturer(f, dossier, "sombre-carte-espace.png", rapport, ref erreurs);
+                f.ViderCalques(); f.SousPage("Nettoyer", "Nettoyage");
+            }
+            catch (Exception ex) { erreurs++; rapport.AppendLine("ERREUR : carte de l'espace : " + ex); }
+
+            // réglages de confidentialité (état lu sur ce PC ; rien n'est appliqué)
+            try
+            {
+                f.ChangerTheme(true); f.Afficher("Proteger", false);
+                ReglagesWindows5.Confidentialite(f);
+                Capturer(f, dossier, "sombre-confidentialite.png", rapport, ref erreurs);
+                f.ViderCalques();
+            }
+            catch (Exception ex) { erreurs++; rapport.AppendLine("ERREUR : confidentialité : " + ex); }
 
             // premier lancement : « Faisons connaissance »
             try

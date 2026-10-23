@@ -30,6 +30,9 @@ namespace NettoyagePC.Nouveau
             Focusable = true; Cursor = new Cursor(StandardCursorType.Hand);
         }
 
+        /// <summary>Change le texte du bouton (sa largeur suit si elle est automatique).</summary>
+        public void Changer(string texte) { if (texte == Texte) return; Texte = texte; InvalidateMeasure(); InvalidateVisual(); }
+
         protected override Size MeasureOverride(Size disponible)
         {
             if (!double.IsNaN(Width) || Icone != null) return base.MeasureOverride(disponible);

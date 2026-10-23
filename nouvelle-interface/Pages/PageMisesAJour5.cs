@@ -20,20 +20,8 @@ namespace NettoyagePC.Nouveau
             return new Onglets(f, "MisesAJour", new[]
             {
                 Tuple.Create<string, string, Func<Control>>("MisesAJour", "Nettoyage PC", () => new PageMisesAJour5(f)),
-                Tuple.Create<string, string, Func<Control>>("Pilotes", "Windows et pilotes", () => Pilotes(f)),
+                Tuple.Create<string, string, Func<Control>>("Pilotes", "Windows et pilotes", () => new Pilotes5(f)),
             });
-        }
-
-        private static Control Pilotes(FenetrePrincipale f)
-        {
-            string gpu = "";
-            try { var g = InfosPc.CarteGraphiquePrincipale(); if (g != null) gpu = g.Nom + (g.DatePilote.HasValue ? " — " + Langue.T("pilote du") + " " + g.DatePilote.Value.ToString("dd/MM/yyyy") : ""); } catch { }
-            return Cartes.Page(f, null, new[]
-            {
-                CarteAction.Code("Pilote de la carte graphique", (gpu != "" ? gpu + ". " : "") + "L'outil officiel du fabricant (AMD, NVIDIA, Intel) installe le dernier pilote en toute sécurité.", "Mettre à jour le pilote", () => f.Bientot("Pilote de la carte graphique"), true),
-                CarteAction.Code("Mises à jour Windows et pilotes", "Windows Update : mises à jour de sécurité, pilotes et mises à jour facultatives. Tu choisis ce qui est installé.", "Ouvrir Windows Update", () => Programmes.Ouvrir("ms-settings:windowsupdate")),
-                CarteAction.A("Mettre à jour les applications", "Met à jour tes logiciels avec winget, l'outil officiel de Microsoft. Corrige aussi des failles de sécurité.", "Mettre à jour", "majapps"),
-            }, "Pilotes");
         }
     }
 

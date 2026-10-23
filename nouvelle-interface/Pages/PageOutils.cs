@@ -30,7 +30,7 @@ namespace NettoyagePC.Nouveau
         {
             return Cartes.Page(f, null, new[]
             {
-                CarteAction.Code("Mémoire vive et BIOS", "Vitesse réelle des barrettes comparée à leur vitesse prévue (profil EXPO / XMP), avec le guide du BIOS de ta carte mère.", "Voir le détail", () => f.Bientot("Mémoire vive et BIOS"), true),
+                CarteAction.Code("Mémoire vive et BIOS", "Vitesse réelle des barrettes comparée à leur vitesse prévue (profil EXPO / XMP), avec le guide du BIOS de ta carte mère.", "Voir le détail", () => Memoire5.Ouvrir(f), true),
                 CarteAction.A("Santé détaillée des disques", "Usure, température, erreurs et heures de fonctionnement de chaque disque, d'après leurs capteurs (SMART).", "Analyser", "santedisques"),
                 CarteAction.A("Rapport du PC", "Espace disque, gros fichiers, doublons, dossiers lourds, programmes volumineux. Enregistré dans tes Documents.", "Générer le rapport", "rapport"),
                 CarteAction.A("Compatibilité de ce PC", "Ce que ton matériel permet : Windows 11, TPM, Secure Boot, virtualisation.", "Vérifier", "compat").Plus(),
@@ -40,11 +40,14 @@ namespace NettoyagePC.Nouveau
 
         private static Control Reseau(FenetrePrincipale f)
         {
-            return Cartes.Page(f, null, new[]
+            // test de la connexion et serveurs DNS, puis le raccourci vers les réglages de Windows
+            var s = new StackPanel { Spacing = 14 };
+            s.Children.Add(new Reseau5(f));
+            s.Children.Add(Cartes.Page(f, null, new[]
             {
-                CarteAction.Code("Serveurs DNS", "L'« annuaire » d'Internet : compare la vitesse de ton fournisseur avec Cloudflare, Google et Quad9, et choisis le plus rapide. Réversible.", "Comparer", () => f.Bientot("Serveurs DNS"), true),
                 CarteAction.Code("Paramètres réseau de Windows", "Wi-Fi, Ethernet, VPN, mode avion : les réglages de Windows.", "Ouvrir", () => Programmes.Ouvrir("ms-settings:network")),
-            }, "Reseau");
+            }, "Reseau"));
+            return s;
         }
     }
 
@@ -117,8 +120,9 @@ namespace NettoyagePC.Nouveau
                 if (!p.Ok && (p.Reglage != "" || p.Cle == "rebar" || p.Cle == "expo"))
                 {
                     string uri = p.Reglage;
-                    var b = new BoutonNoyau(uri != "" ? "Ouvrir le réglage" : "Onglet Matériel", uri != "", 170, 32) { TaillePolice = 13, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(14, 0, 0, 0) };
-                    b.Clic += () => { if (uri != "") Programmes.Ouvrir(uri); else F.Executer("page:Materiel", "Matériel"); };
+                    var b = new BoutonNoyau(uri != "" ? "Ouvrir le réglage" : p.Cle == "expo" ? "Voir le guide" : "Onglet Matériel", uri != "", 170, 32) { TaillePolice = 13, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(14, 0, 0, 0) };
+                    string cle = p.Cle;
+                    b.Clic += () => { if (uri != "") Programmes.Ouvrir(uri); else if (cle == "expo") Memoire5.Ouvrir(F); else F.Executer("page:Materiel", "Matériel"); };
                     Grid.SetColumn(b, 2); g.Children.Add(b);
                 }
                 liste.Children.Add(new Border { Child = g, Padding = new Thickness(16, p.Ok ? 11 : 14), CornerRadius = new CornerRadius(3), Background = Habillage.Pinceau(P.Carte), BorderBrush = Habillage.Pinceau(p.Ok ? P.Bordure : Habillage.Alpha(P.Orange, 110)), BorderThickness = new Thickness(1) });

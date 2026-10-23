@@ -57,10 +57,10 @@ namespace NettoyagePC.Nouveau
             var b = new Bilan { Score = 72, Processeur = 9, Memoire = 41, Temperature = 46, DisqueLibre = "27,6 Go libres" };
             b.Secteurs = new double[] { 44, 100, 60, 100 };
             b.Points.Add(new PointBilan(EtatPoint.Attention, "Disque C: 27,6 Go libres (11 %) : il commence à se remplir.", "Nettoyer", "action:standard"));
-            b.Points.Add(new PointBilan(EtatPoint.Attention, "1,03 Go récupérables tout de suite (corbeille et fichiers temporaires).", "Nettoyer"));
-            b.Points.Add(new PointBilan(EtatPoint.Attention, "Entretien automatique désactivé : ton PC ne se nettoie pas tout seul.", "Activer"));
-            b.Points.Add(new PointBilan(EtatPoint.Attention, "AnyDesk est ouvert : il permet de prendre la main sur ton PC.", "Vérifier"));
-            b.Points.Add(new PointBilan(EtatPoint.Attention, "Aucun point de restauration : impossible de revenir en arrière en cas de problème.", "Créer"));
+            b.Points.Add(new PointBilan(EtatPoint.Attention, "1,03 Go récupérables tout de suite (corbeille et fichiers temporaires).", "Nettoyer", "action:standard"));
+            b.Points.Add(new PointBilan(EtatPoint.Attention, "Entretien automatique désactivé : ton PC ne se nettoie pas tout seul.", "Activer", "action:planifier"));
+            b.Points.Add(new PointBilan(EtatPoint.Attention, "AnyDesk est ouvert : il permet de prendre la main sur ton PC.", "Vérifier", "code:bouclier"));
+            b.Points.Add(new PointBilan(EtatPoint.Attention, "Aucun point de restauration : impossible de revenir en arrière en cas de problème.", "Créer", "action:point"));
             foreach (var t in new[] { "Mémoire vive utilisée à 41 %.", "Disques en bonne santé.", "Antivirus Microsoft Defender actif et à jour.", "Pare-feu Windows actif.", "8 programme(s) au démarrage." })
                 b.Points.Add(new PointBilan(EtatPoint.Ok, t));
             return b;

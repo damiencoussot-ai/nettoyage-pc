@@ -40,7 +40,7 @@ namespace NettoyagePC.Nouveau
                 Outil("Pourquoi mon PC ralentit ?", "L'enquêteur retrace tout ce qui a changé (applications, pilotes, mises à jour, démarrage, réglages) et le compare aux performances : il désigne le coupable.", "Enquêter", null),
                 Outil("Santé prédictive", "Repère les signes qui annoncent une panne avant qu'elle arrive : erreurs du matériel et du disque, usure des SSD, batterie, chauffe. Avec la tendance.", "Vérifier", null),
                 Outil("Assistant local", "Pose tes questions sur ton PC avec tes mots. L'IA tourne sur ton PC (Ollama) : rien ne part sur Internet.", "Discuter", null),
-                Outil("Preuve en FPS", "Mesure les images par seconde réelles de tes jeux (moyenne, 1 % et 0,1 % les plus lents) avant et après un réglage : le vrai gain, en chiffres.", "Mesurer", null),
+                Outil("Preuve en FPS", "Mesure les images par seconde réelles de tes jeux (moyenne, 1 % et 0,1 % les plus lents) avant et après un réglage : le vrai gain, en chiffres.", "Mesurer", null, () => Fps5.Ouvrir(F)),
                 Outil("Coût en électricité", "Combien ton PC te coûte chaque mois en euros, quelles applications consomment le plus, et comment payer moins.", "Voir", null),
                 Outil("Sauvegarde automatique", "Dès que ta clé USB ou ton disque externe est branché, les nouvelles photos et les documents modifiés sont copiés. Rien n'est jamais effacé de la sauvegarde.", "Configurer", null),
                 Outil("Analyse des plantages", "Écrans bleus, arrêts brutaux, applications qui plantent, erreurs matérielles : la cause expliquée simplement, et quoi faire.", "Analyser", "plantages"),
@@ -87,12 +87,13 @@ namespace NettoyagePC.Nouveau
         }
 
         /// <summary>Carte d'un outil : sans Premium, le bouton ouvre la fenêtre d'achat (essai gratuit possible).</summary>
-        private CarteAction Outil(string titre, string texte, string bouton, string action)
+        private CarteAction Outil(string titre, string texte, string bouton, string action, Action ouvrir = null)
         {
             return CarteAction.Code(titre, texte, bouton, () =>
             {
                 if (!Licence.Premium) { Achat5.Ouvrir(F); return; }
-                if (action != null) F.LancerAction(action);
+                if (ouvrir != null) ouvrir();
+                else if (action != null) F.LancerAction(action);
                 else F.Bientot(titre);
             });
         }
