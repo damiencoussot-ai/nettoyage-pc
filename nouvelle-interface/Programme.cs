@@ -68,6 +68,8 @@ namespace NettoyagePC.Nouveau
             Demarrage.AppliquerDossiersUtilisateur(args);
             int? code = Demarrage.SansInterface(args);
             if (code.HasValue) return code.Value;
+            // le gardien (zone de notification) reste celui de la version 4 installée : l'aperçu n'ouvre rien
+            if (args.Length > 0 && args[0] == "--gardien") { JournalDemarrage.Noter("Aperçu de la version 5 : le gardien reste celui de la version 4."); return 0; }
 
             int ie = Array.IndexOf(args, "--essai-demarrage");
             if (ie >= 0 && ie + 1 < args.Length) App.FichierEssaiDemarrage = Path.GetFullPath(args[ie + 1]);
@@ -268,6 +270,11 @@ namespace NettoyagePC.Nouveau
                 f.ChangerTheme(true);
                 f.Afficher("Proteger", false);
                 Capturer(f, dossier, "sombre-Proteger.png", rapport, ref erreurs);
+                f.SousPage("Proteger", "Sauvegarde");
+                f.Afficher("Proteger", false);
+                for (int k = 0; k < 10; k++) { Dispatcher.UIThread.RunJobs(); System.Threading.Thread.Sleep(30); }
+                Capturer(f, dossier, "sombre-Sauvegarde.png", rapport, ref erreurs);
+                f.SousPage("Proteger", "Securite");
                 Bouclier5.Exemple = new System.Collections.Generic.List<AccesDistant>
                 {
                     new AccesDistant { Nom = "AnyDesk", Connexions = 1 },

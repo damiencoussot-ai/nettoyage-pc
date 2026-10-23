@@ -59,13 +59,7 @@ namespace NettoyagePC.Nouveau
             return pile;
         }
 
-        private static Control Doublons(FenetrePrincipale f)
-        {
-            return Cartes.Page(f, null, new[]
-            {
-                CarteAction.Code("Fichiers en double", "Fichiers identiques repérés par empreinte SHA-256 (jamais par le nom seul). Tu vois chaque groupe et tu choisis : les copies vont à la corbeille, l'original reste.", "Chercher les doublons", () => f.Bientot("Doublons"), true),
-            }, "Doublons");
-        }
+        private static Control Doublons(FenetrePrincipale f) { return new Doublons5(f); }
     }
 
     /// <summary>Gros fichiers d'un dossier : liste triée par taille, ouvrir l'emplacement, mettre à la corbeille (récupérable).</summary>

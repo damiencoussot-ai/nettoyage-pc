@@ -201,7 +201,10 @@ namespace NettoyagePC.Nouveau
         /// Lance une action du moteur. Simulation (pastille en haut) : l'action montre ce qu'elle ferait, sans rien modifier.
         /// Sinon, une question est posée avant toute action qui modifie le PC.
         /// </summary>
-        public void LancerAction(string cle, Action apres = null)
+        public void LancerAction(string cle, Action apres = null) { LancerAction(cle, null, null, apres); }
+
+        /// <summary>Avec des options en plus (sauvegarde : destination, dossiers) et une question propre à ce lancement.</summary>
+        public void LancerAction(string cle, IEnumerable<string> supplementaires, string confirmation, Action apres = null)
         {
             ActionMoteur a;
             if (!Actions.TryGetValue(cle, out a)) { Statut("Action inconnue : " + cle, true); return; }
@@ -213,18 +216,19 @@ namespace NettoyagePC.Nouveau
                 Demander(a.Titre, Langue.T(raison ?? "Cette action n'est pas disponible sur ce PC."), "Compris", null, r => { });
                 return;
             }
+            // aperçu : les tâches planifiées pointeraient vers ce fichier d'aperçu (qui peut être déplacé ou supprimé)
+            if (cle == "planifier" || cle == "deplanifier")
+            {
+                Demander(a.Titre, "Dans cet aperçu de la version 5, l'entretien automatique se règle depuis la version 4 installée (Réglages > Entretien automatique) : les tâches de Windows doivent pointer vers le programme installé, pas vers ce fichier d'aperçu.", "Compris", null, r => { });
+                return;
+            }
             if (Moteur.EnCours) { Demander("Une action est déjà en cours", "Attends qu'elle se termine, ou arrête-la avec le bouton « Arrêter » en bas de la fenêtre.", "Compris", null, r => { }); return; }
             bool simulation = Simulation && a.Simu;
+            var options = supplementaires == null ? null : supplementaires.ToList();
             Action partir = () =>
             {
                 MontrerPanneauAction();
                 Statut((simulation ? "Simulation : " : "En cours : ") + a.Titre + "…");
-                Moteur.Lancer(a, simulation, null, erreur =>
-                {
-                    if (erreur == "refus") Statut("Autorisation refusée : l'action n'a pas été lancée, rien n'a été modifié.", true);
-                    else Statut("Action impossible : " + erreur, true);
-                    FermerPanneauAction();
-                });
                 Action fini = null;
                 fini = () =>
                 {
@@ -235,10 +239,18 @@ namespace NettoyagePC.Nouveau
                     if (cle == "planifier" || cle == "deplanifier") { PageReglages5.EntretienActif = null; if (PageActive == "Reglages") Afficher("Reglages", false); }
                 };
                 Moteur.Fini += fini;
+                Moteur.Lancer(a, simulation, options, erreur =>
+                {
+                    Moteur.Fini -= fini;
+                    if (erreur == "refus") Statut("Autorisation refusée : l'action n'a pas été lancée, rien n'a été modifié.", true);
+                    else Statut("Action impossible : " + erreur, true);
+                    FermerPanneauAction();
+                });
             };
-            if (simulation || a.Confirmer == null) { partir(); return; }
+            string conf = confirmation ?? a.Confirmer;
+            if (simulation || conf == null) { partir(); return; }
             // texte de confirmation de la version 4 : première ligne = question, le reste = explication
-            string conf = Langue.T(a.Confirmer);
+            conf = Langue.T(conf);
             int coupe = conf.IndexOf("\n\n", StringComparison.Ordinal);
             string question = coupe > 0 ? conf.Substring(0, coupe) : conf, detail = coupe > 0 ? conf.Substring(coupe + 2) : "";
             Demander(question, detail, "Oui, lancer", "Annuler", oui => { if (oui) partir(); else Statut("Annulé : rien n'a été modifié."); });

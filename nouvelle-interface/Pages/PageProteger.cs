@@ -33,12 +33,6 @@ namespace NettoyagePC.Nouveau
             }, "Securite");
         }
 
-        private static Control Sauvegarde(FenetrePrincipale f)
-        {
-            return Cartes.Page(f, null, new[]
-            {
-                CarteAction.Code("Sauvegarder mes fichiers", "Copie tes photos et documents sur une clé USB ou un disque externe, dans un dossier daté. Rien n'est supprimé de ton PC.", "Préparer la sauvegarde", () => f.Bientot("Sauvegarde"), true),
-            }, "Sauvegarde");
-        }
+        private static Control Sauvegarde(FenetrePrincipale f) { return new Sauvegarde5(f); }
     }
 }

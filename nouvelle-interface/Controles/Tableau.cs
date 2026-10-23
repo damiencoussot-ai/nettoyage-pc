@@ -165,6 +165,27 @@ namespace NettoyagePC.Nouveau
 
         public int Nombre { get { return elements.Count; } }
 
+        /// <summary>Sélectionne la ligne de cet élément (si elle existe).</summary>
+        public void Selectionner(object o)
+        {
+            foreach (var x in liste.Items) { var g = x as Control; if (g != null && Equals(g.Tag, o)) { liste.SelectedItem = x; liste.ScrollIntoView(x); return; } }
+        }
+
+        /// <summary>Met à jour les textes et les cases sans reconstruire la liste (la sélection et le défilement restent).</summary>
+        public void Rafraichir()
+        {
+            remplissage = true;
+            foreach (var x in liste.Items)
+            {
+                var g = x as Grid;
+                if (g == null) continue;
+                var cb = g.Children.OfType<CheckBox>().FirstOrDefault();
+                if (cb != null && coche != null) cb.IsChecked = coche(g.Tag);
+                RemplirLigne(g, g.Tag);
+            }
+            remplissage = false;
+        }
+
         public void Retirer(object o) { elements.Remove(o); Afficher(); }
     }
 }
