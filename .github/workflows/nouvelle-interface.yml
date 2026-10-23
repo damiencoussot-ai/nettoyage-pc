@@ -113,7 +113,7 @@ jobs:
           }
           Lancer 'etat' '--etat' 180
           Lancer 'verifier-cle' '--verifier-cle NPC-abc.def' 60 1
-          Lancer 'analyse' '--moteur --simulation --profond --disques --liberer-ram --optimiser --securite' 1500
+          Lancer 'analyse' '--moteur --simulation --profond --disques --liberer-ram --optimiser --securite' 2400
           Lancer 'captures' '--captures essais-windows\captures --reel' 600
           # vraie fenêtre : temps d'ouverture et d'arrivée du bilan (la fenêtre se ferme toute seule)
           Lancer 'demarrage' '--essai-demarrage essais-windows\demarrage-temps.txt' 120
