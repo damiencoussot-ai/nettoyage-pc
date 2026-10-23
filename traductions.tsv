@@ -1682,3 +1682,397 @@ POUR DÉBUTER	FOR BEGINNERS	PARA EMPEZAR
 Tu peux changer à tout moment dans Réglages.	You can change this at any time in Settings.	Puedes cambiarlo cuando quieras en Ajustes.
 Ton pseudo, ta couleur, et le mode simple (trois gros boutons) ou complet.	Your nickname, your color, and simple mode (three big buttons) or full mode.	Tu apodo, tu color y el modo sencillo (tres botones grandes) o completo.
 Pose tes questions sur ton PC avec tes mots. L'IA tourne sur ton PC (Ollama) : rien ne part sur Internet.	Ask questions about your PC in your own words. The AI runs on your PC (Ollama): nothing goes over the Internet.	Haz preguntas sobre tu PC con tus palabras. La IA funciona en tu PC (Ollama): nada sale a Internet.
+# --- Nettoyage PC 5 (nouvelle interface)
+(automatique)	(automatic)	(automático)
+(autorisation refusée ?)	(permission denied?)	(¿permiso denegado?)
+(choisi manuellement)	(set manually)	(elegido manualmente)
+(clique sur « Arrêter » pour interrompre)	(click "Stop" to interrupt)	(pulsa «Detener» para interrumpir)
+- Chaque modification peut être annulée (Historique).	- Every change can be undone (History).	- Cada cambio se puede deshacer (Historial).
+- Les mises à jour sont vérifiées (SHA256) avant installation.	- Updates are verified (SHA256) before installation.	- Las actualizaciones se verifican (SHA256) antes de instalarse.
+- Nettoyage PC ne tourne jamais en administrateur : Windows demande l'autorisation pour chaque action qui touche tout le PC.	- Nettoyage PC never runs as administrator: Windows asks for permission for each action that affects the whole PC.	- Nettoyage PC nunca se ejecuta como administrador: Windows pide permiso para cada acción que afecta a todo el PC.
+- Ni publicité, ni pistage, ni télémétrie.	- No ads, no tracking, no telemetry.	- Sin publicidad, sin rastreo, sin telemetría.
+- Tes documents, photos et vidéos ne sont jamais supprimés.	- Your documents, photos and videos are never deleted.	- Tus documentos, fotos y vídeos nunca se eliminan.
+- Un point de restauration est créé avant les opérations importantes.	- A restore point is created before major operations.	- Se crea un punto de restauración antes de las operaciones importantes.
+1 Go	1 GB	1 GB
+1 Mo	1 MB	1 MB
+10 Mo	10 MB	10 MB
+100 Ko	100 KB	100 KB
+100 Mo	100 MB	100 MB
+50 Mo	50 MB	50 MB
+500 Mo	500 MB	500 MB
+1 amélioration possible.	1 possible improvement.	1 mejora posible.
+1 point à régler en priorité.	1 item to fix first.	1 punto que arreglar primero.
+{0} améliorations possibles.	{0} possible improvements.	{0} mejoras posibles.
+{0} points à régler en priorité.	{0} items to fix first.	{0} puntos que arreglar primero.
+1. Appelle cette personne. Elle ouvre l'Assistance rapide sur son PC et te donne un code.	1. Call that person. They open Quick Assist on their PC and give you a code.	1. Llama a esa persona. Abre Asistencia rápida en su PC y te da un código.
+2. Clique sur « Ouvrir l'Assistance rapide » ici, tape le code, puis accepte.	2. Click "Open Quick Assist" here, type the code, then accept.	2. Pulsa «Abrir Asistencia rápida» aquí, escribe el código y acepta.
+Quelqu'un que tu connais va pouvoir voir ton écran pour t'aider.	Someone you know will be able to see your screen to help you.	Alguien que conoces podrá ver tu pantalla para ayudarte.
+Attention : n'accepte jamais si c'est quelqu'un qui t'a appelé sans que tu le demandes (faux technicien, fausse banque).	Warning: never accept if someone called you without you asking (fake technician, fake bank).	Atención: nunca aceptes si te ha llamado alguien sin que lo pidieras (falso técnico, falso banco).
+ATTENTION : action arrêtée par l'utilisateur.	WARNING: action stopped by the user.	ATENCIÓN: acción detenida por el usuario.
+Action	Action	Acción
+Rubrique	Section	Sección
+Action arrêtée.	Action stopped.	Acción detenida.
+~Action impossible : 	Action not possible: 	Acción imposible:
+~Action inconnue : 	Unknown action: 	Acción desconocida:
+~Arrêtée : 	Stopped: 	Detenida:
+~Simulation : 	Simulation: 	Simulación:
+~Autorisation demandée à Windows : 	Asking Windows for permission: 	Pidiendo permiso a Windows:
+~Impossible de redémarrer : 	Could not restart: 	No se pudo reiniciar:
+~E-mail : 	E-mail: 	Correo:
+~Journaux : 	Logs: 	Registros:
+~Page officielle : 	Official page: 	Página oficial:
+Actuellement : {0}.	Currently: {0}.	Actualmente: {0}.
+Alertes discrètes et nettoyage léger automatique.	Discreet alerts and automatic light cleanup.	Alertas discretas y limpieza ligera automática.
+Analyse de {0}…	Analyzing {0}…	Analizando {0}…
+Analyse en cours… (cela peut prendre quelques minutes sur un gros dossier)	Analyzing… (this may take a few minutes on a large folder)	Analizando… (puede tardar unos minutos en una carpeta grande)
+Analyse non lancée (autorisation refusée ou action déjà en cours).	Analysis not started (permission denied or an action is already running).	Análisis no iniciado (permiso denegado o ya hay una acción en curso).
+Annuler toutes les modifications actives ?	Undo all active changes?	¿Deshacer todos los cambios activos?
+Annulé : rien n'a été modifié.	Cancelled: nothing was changed.	Cancelado: no se ha cambiado nada.
+Antivirus, bouclier anti-arnaque, sauvegarde et confidentialité.	Antivirus, anti-scam shield, backup and privacy.	Antivirus, escudo antiestafas, copia de seguridad y privacidad.
+Antivirus, pare-feu, réparation de Windows et points de restauration.	Antivirus, firewall, Windows repair and restore points.	Antivirus, cortafuegos, reparación de Windows y puntos de restauración.
+AnyDesk est ouvert : il permet de prendre la main sur ton PC.	AnyDesk is open: it lets someone take control of your PC.	AnyDesk está abierto: permite tomar el control de tu PC.
+Apparence, langue, profil et informations.	Appearance, language, profile and information.	Apariencia, idioma, perfil e información.
+Application des réglages…	Applying the settings…	Aplicando los ajustes…
+Applications inutiles	Useless apps	Aplicaciones inútiles
+Applications préinstallées et anciens pilotes oubliés par Windows.	Preinstalled apps and old drivers left behind by Windows.	Aplicaciones preinstaladas y controladores antiguos olvidados por Windows.
+Appliquer	Apply	Aplicar
+Appliquer ces réglages ?	Apply these settings?	¿Aplicar estos ajustes?
+Arrêt non autorisé : l'action continue.	Stop not allowed: the action continues.	Detención no autorizada: la acción continúa.
+Arrêter la recherche	Stop the search	Detener la búsqueda
+Astuce : prends cette fenêtre en photo avec ton téléphone pour garder les étapes sous les yeux dans le BIOS.	Tip: take a photo of this window with your phone to keep the steps in front of you in the BIOS.	Consejo: hazle una foto a esta ventana con el móvil para tener los pasos a la vista en la BIOS.
+Attends qu'elle se termine : la mesure serait faussée.	Wait for it to finish: the measurement would be skewed.	Espera a que termine: la medición saldría falseada.
+Attends qu'elle se termine, ou arrête-la avec le bouton « Arrêter » en bas de la fenêtre.	Wait for it to finish, or stop it with the "Stop" button at the bottom of the window.	Espera a que termine, o detenla con el botón «Detener» en la parte inferior de la ventana.
+Au premier lancement, rien n'est modifié : tu vois ce qui serait fait. Clique pour passer en mode réel.	On first launch, nothing is changed: you see what would be done. Click to switch to real mode.	En el primer inicio no se cambia nada: ves lo que se haría. Pulsa para pasar al modo real.
+Aucun doublon trouvé parmi {0} fichier(s). ✔	No duplicates found among {0} file(s). ✔	No se encontraron duplicados entre {0} archivo(s). ✔
+Aucun fichier de cette taille dans ce dossier.	No file of this size in this folder.	No hay archivos de este tamaño en esta carpeta.
+Aucun programme au démarrage.	No startup programs.	Ningún programa al inicio.
+Aucun réglage à proposer sur ce PC.	No settings to suggest on this PC.	Ningún ajuste que proponer en este PC.
+Aucun serveur n'a répondu : la connexion bloque peut-être les serveurs DNS publics.	No server responded: the connection may be blocking public DNS servers.	Ningún servidor respondió: quizá la conexión bloquee los servidores DNS públicos.
+Aucune action depuis l'ouverture	No action since opening	Ninguna acción desde la apertura
+Aucune sauvegarde sur cette destination (clé débranchée ?).	No backup on this destination (drive unplugged?).	No hay copia de seguridad en este destino (¿memoria desconectada?).
+Aucune sauvegarde trouvée	No backup found	No se encontró ninguna copia de seguridad
+Automatique (comme Windows)	Automatic (like Windows)	Automático (como Windows)
+Autres connexions actives :	Other active connections:	Otras conexiones activas:
+Bienvenue dans Nettoyage PC. Deux petites questions, et c'est parti. Tout reste sur ce PC : pas de compte, pas de mot de passe.	Welcome to Nettoyage PC. Two quick questions and you're ready. Everything stays on this PC: no account, no password.	Bienvenido a Nettoyage PC. Dos preguntas rápidas y listo. Todo se queda en este PC: sin cuenta, sin contraseña.
+Box (passerelle) :	Router (gateway):	Router (puerta de enlace):
+Branche le câble réseau ou connecte-toi au Wi-Fi, puis reviens sur cette page.	Plug in the network cable or connect to Wi-Fi, then come back to this page.	Conecta el cable de red o conéctate al Wi-Fi y vuelve a esta página.
+C'est fait	Done	Hecho
+C'est une application gratuite de Microsoft. L'installer depuis le Microsoft Store ?	It's a free Microsoft app. Install it from the Microsoft Store?	Es una aplicación gratuita de Microsoft. ¿Instalarla desde Microsoft Store?
+CARTE GRAPHIQUE	GRAPHICS CARD	TARJETA GRÁFICA
+TEMPÉRATURE	TEMPERATURE	TEMPERATURA
+PROCESSEUR	PROCESSOR	PROCESADOR
+MÉMOIRE VIVE	MEMORY	MEMORIA
+DISQUE {0}	DISK {0}	DISCO {0}
+Carte graphique et mises à jour de Windows : tu choisis ce qui s'installe.	Graphics card and Windows updates: you choose what gets installed.	Tarjeta gráfica y actualizaciones de Windows: tú eliges lo que se instala.
+Carte mère :	Motherboard:	Placa base:
+Ce dossier n'existe pas	This folder does not exist	Esta carpeta no existe
+Ce fichier n'a que des copies de sauvegarde : rien n'est proposé. Coche toi-même la copie à mettre à la corbeille en dessous.	This file only has backup copies: nothing is suggested. Tick the copy to move to the Recycle Bin yourself below.	Este archivo solo tiene copias de seguridad: no se propone nada. Marca tú mismo abajo la copia que quieres mandar a la papelera.
+Ce que ton matériel permet : Windows 11, TPM, Secure Boot, virtualisation.	What your hardware supports: Windows 11, TPM, Secure Boot, virtualization.	Lo que permite tu hardware: Windows 11, TPM, Secure Boot, virtualización.
+Ce qui prend de la place, avec une carte de l'espace occupé.	What takes up space, with a map of the used space.	Lo que ocupa espacio, con un mapa del espacio ocupado.
+Ce sont ceux de ta box.	Those are your router's.	Son los de tu router.
+Ce sont des services de Windows : désinstalle-les depuis Accélérer > Applications si tu ne t'en sers pas.	These are Windows services: uninstall them from Speed up > Apps if you don't use them.	Son servicios de Windows: desinstálalos desde Acelerar > Aplicaciones si no los usas.
+Certains logiciels n'ont pas pu être fermés	Some programs could not be closed	Algunos programas no se pudieron cerrar
+Certains prennent effet à la prochaine ouverture de session ou après un redémarrage.	Some take effect at your next sign-in or after a restart.	Algunos se aplican en el próximo inicio de sesión o tras reiniciar.
+Ces applications seraient retirées :	These apps would be removed:	Se quitarían estas aplicaciones:
+Ces réglages seraient appliqués :	These settings would be applied:	Se aplicarían estos ajustes:
+Cette action n'est pas disponible sur ce PC.	This action is not available on this PC.	Esta acción no está disponible en este PC.
+Cette fonction arrive bientôt dans la nouvelle interface. Elle existe déjà dans la version 4 de Nettoyage PC.	This feature is coming soon in the new interface. It already exists in version 4 of Nettoyage PC.	Esta función llegará pronto a la nueva interfaz. Ya existe en la versión 4 de Nettoyage PC.
+Cette rubrique arrive bientôt dans la nouvelle interface. Tout ce qu'elle contient existe déjà dans la version 4.	This section is coming soon in the new interface. Everything in it already exists in version 4.	Esta sección llegará pronto a la nueva interfaz. Todo lo que contiene ya existe en la versión 4.
+« {0} » arrive dans la prochaine étape de la nouvelle interface ; la version 4 le fait déjà.	"{0}" is coming in the next step of the new interface; version 4 already does it.	«{0}» llegará en la próxima etapa de la nueva interfaz; la versión 4 ya lo hace.
+Changement des serveurs DNS	Changing DNS servers	Cambio de servidores DNS
+Changement des serveurs DNS… (Windows demande l'autorisation)	Changing DNS servers… (Windows asks for permission)	Cambiando los servidores DNS… (Windows pide permiso)
+Chaque dossier est un rectangle proportionnel à sa taille : tu vois d'un coup d'œil ce qui remplit ton disque.	Each folder is a rectangle proportional to its size: you see at a glance what fills your disk.	Cada carpeta es un rectángulo proporcional a su tamaño: ves de un vistazo lo que llena tu disco.
+Chaque réglage est enregistré dans l'Historique et peut être annulé.	Each setting is recorded in the History and can be undone.	Cada ajuste se registra en el Historial y se puede deshacer.
+Chaque réglage est enregistré dans l'Historique et peut être annulé. Certains prennent effet à la prochaine ouverture de session ou après un redémarrage.	Each setting is recorded in the History and can be undone. Some take effect at your next sign-in or after a restart.	Cada ajuste se registra en el Historial y se puede deshacer. Algunos se aplican en el próximo inicio de sesión o tras reiniciar.
+Choisie par toi : corbeille	Your choice: Recycle Bin	Tu elección: papelera
+Choisis le dossier où ranger la sauvegarde (de préférence sur un autre disque que celui du PC).	Choose the folder to store the backup in (preferably on a different disk from the PC's).	Elige la carpeta donde guardar la copia (mejor en otro disco que el del PC).
+Choisis un dossier qui existe	Choose a folder that exists	Elige una carpeta que exista
+Choisis un jeu	Choose a game	Elige un juego
+Choisis une destination et au moins un dossier.	Choose a destination and at least one folder.	Elige un destino y al menos una carpeta.
+Clair	Light	Claro
+Sombre	Dark	Oscuro
+Clique sur « Optimiser en 1 clic » pour tout faire d'un coup, ou choisis ci-dessous.	Click "Optimize in 1 click" to do everything at once, or choose below.	Pulsa «Optimizar en 1 clic» para hacerlo todo de una vez, o elige abajo.
+Clique sur « Oui » dans la fenêtre de Windows pour continuer.	Click "Yes" in the Windows window to continue.	Pulsa «Sí» en la ventana de Windows para continuar.
+Coche au moins une mise à jour dans la liste.	Tick at least one update in the list.	Marca al menos una actualización de la lista.
+Colle-le (Ctrl+V) dans un e-mail ou un message pour la personne qui t'aide. Il ne contient ni mot de passe ni fichier personnel.	Paste it (Ctrl+V) into an e-mail or a message for the person helping you. It contains no password and no personal file.	Pégalo (Ctrl+V) en un correo o un mensaje para la persona que te ayuda. No contiene contraseñas ni archivos personales.
+Combien le PC coûte par jour, par mois et par an.	How much the PC costs per day, per month and per year.	Cuánto cuesta el PC al día, al mes y al año.
+Comment veux-tu qu'on t'appelle ? (facultatif)	What should we call you? (optional)	¿Cómo quieres que te llamemos? (opcional)
+Comment veux-tu utiliser Nettoyage PC ?	How do you want to use Nettoyage PC?	¿Cómo quieres usar Nettoyage PC?
+Comparaison du contenu…	Comparing contents…	Comparando el contenido…
+Compris	Got it	Entendido
+Connexion Internet ?	Internet connection?	¿Conexión a Internet?
+Connexion instable (gigue élevée) : un téléchargement en cours ou un autre appareil sature peut-être la ligne.	Unstable connection (high jitter): a download in progress or another device may be saturating the line.	Conexión inestable (jitter alto): quizá una descarga en curso u otro dispositivo saturen la línea.
+Continuer	Continue	Continuar
+Dans cet aperçu de la version 5, l'entretien automatique se règle depuis la version 4 installée (Réglages > Entretien automatique) : les tâches de Windows doivent pointer vers le programme installé, pas vers ce fichier d'aperçu.	In this version 5 preview, automatic maintenance is set up from the installed version 4 (Settings > Automatic maintenance): Windows tasks must point to the installed program, not to this preview file.	En esta vista previa de la versión 5, el mantenimiento automático se configura desde la versión 4 instalada (Ajustes > Mantenimiento automático): las tareas de Windows deben apuntar al programa instalado, no a este archivo de vista previa.
+Dans cet aperçu de la version 5, le gardien s'active depuis la version 4 installée (Premium > Gardien en temps réel) : Windows doit le lancer depuis le programme installé, pas depuis ce fichier d'aperçu. Tes réglages ci-dessous sont communs aux deux versions.	In this version 5 preview, the guardian is turned on from the installed version 4 (Premium > Real-time guardian): Windows must start it from the installed program, not from this preview file. Your settings below are shared by both versions.	En esta vista previa de la versión 5, el guardián se activa desde la versión 4 instalada (Premium > Guardián en tiempo real): Windows debe iniciarlo desde el programa instalado, no desde este archivo de vista previa. Tus ajustes de abajo son comunes a ambas versiones.
+Dans cet aperçu, la mise à jour s'installe depuis la version 4 de Nettoyage PC (bandeau « Installer maintenant » en haut de sa fenêtre).	In this preview, the update is installed from version 4 of Nettoyage PC ("Install now" banner at the top of its window).	En esta vista previa, la actualización se instala desde la versión 4 de Nettoyage PC (banda «Instalar ahora» en la parte superior de su ventana).
+Dernière sauvegarde :	Last backup:	Última copia de seguridad:
+Dernière vérification :	Last check:	Última comprobación:
+Documents et photos copiés sur une clé USB, en un clic.	Documents and photos copied to a USB drive, in one click.	Documentos y fotos copiados en una memoria USB, en un clic.
+Dossier où chercher les fichiers en double	Folder to search for duplicate files	Carpeta donde buscar archivos duplicados
+Dossier à analyser	Folder to analyze	Carpeta que analizar
+Démarrage, jeux, pilotes et applications.	Startup, games, drivers and apps.	Inicio, juegos, controladores y aplicaciones.
+Démarrage…	Starting…	Iniciando…
+Désactive ce qui ralentit le démarrage, réactivable à tout moment.	Turn off what slows down startup, can be turned back on at any time.	Desactiva lo que ralentiza el inicio; se puede reactivar en cualquier momento.
+Désactiver le gardien ?	Turn off the guardian?	¿Desactivar el guardián?
+Désinstallation de « {0} » lancée. Clique sur « Actualiser » quand elle est terminée.	Uninstall of "{0}" started. Click "Refresh" when it is finished.	Desinstalación de «{0}» iniciada. Pulsa «Actualizar» cuando termine.
+Désinstallation de « {0} »…	Uninstalling "{0}"…	Desinstalando «{0}»…
+Désinstaller « {0} » ?	Uninstall "{0}"?	¿Desinstalar «{0}»?
+En attendant, tu peux essayer Premium gratuitement, ou demander une clé à l'éditeur.	Meanwhile, you can try Premium for free, or ask the publisher for a key.	Mientras tanto, puedes probar Premium gratis o pedir una clave al editor.
+En plus : restes de Windows Update, nettoyage de disque et DISM, avec un point de restauration avant.	Plus: Windows Update leftovers, disk cleanup and DISM, with a restore point first.	Además: restos de Windows Update, limpieza de disco y DISM, con un punto de restauración antes.
+Engagements :	Commitments:	Compromisos:
+Enregistre et ferme ton travail d'abord. Le PC redémarre 15 secondes après ta confirmation.	Save and close your work first. The PC restarts 15 seconds after you confirm.	Guarda y cierra tu trabajo primero. El PC se reinicia 15 segundos después de tu confirmación.
+Une fois dans le BIOS, suis le guide (garde-le sous les yeux sur ton téléphone, ou note les étapes).	Once in the BIOS, follow the guide (keep it in front of you on your phone, or write down the steps).	Una vez en la BIOS, sigue la guía (tenla a la vista en el móvil o apunta los pasos).
+Enregistre ton travail et ferme tes applications avant.	Save your work and close your apps first.	Guarda tu trabajo y cierra tus aplicaciones antes.
+Erreur pendant la mise à la corbeille.	Error while moving to the Recycle Bin.	Error al mandar a la papelera.
+Essaie d'abord gratuitement 7 jours. Après l'achat, tu es satisfait ou remboursé pendant 14 jours, sans justification.	Try it free for 7 days first. After purchase, you get a 14-day money-back guarantee, no questions asked.	Pruébalo gratis 7 días primero. Tras la compra, satisfecho o reembolsado durante 14 días, sin justificación.
+Est-ce un abonnement ?	Is it a subscription?	¿Es una suscripción?
+Et si ça ne me convient pas ?	What if it's not for me?	¿Y si no me convence?
+Extensions des navigateurs et réglages de Windows.	Browser extensions and Windows settings.	Extensiones de los navegadores y ajustes de Windows.
+Faut-il Internet ?	Is Internet needed?	¿Hace falta Internet?
+Faux technicien ? Logiciels de prise en main à distance	Fake technician? Remote-control software	¿Falso técnico? Programas de control remoto
+Ferme ton navigateur Internet pour un meilleur résultat.	Close your web browser for a better result.	Cierra tu navegador de Internet para un mejor resultado.
+Fermer ces logiciels	Close these programs	Cerrar estos programas
+Fichier introuvable	File not found	Archivo no encontrado
+Fichiers	Files	Archivos
+Fichiers identiques repérés par empreinte SHA-256 : tu vérifies avant de supprimer.	Identical files found by SHA-256 fingerprint: you check before deleting.	Archivos idénticos detectados por huella SHA-256: compruebas antes de eliminar.
+Fichiers temporaires, caches de Windows, des navigateurs et des applications, corbeille.	Temporary files, Windows, browser and app caches, Recycle Bin.	Archivos temporales, cachés de Windows, de los navegadores y de las aplicaciones, papelera.
+Garder	Keep	Conservar
+Garder :	Keep:	Conservar:
+Garder {0}, mettre {1} copie(s) à la corbeille	Keep {0}, move {1} copy(ies) to the Recycle Bin	Conservar {0}, mandar {1} copia(s) a la papelera
+Gardien	Guardian	Guardián
+Gardien désactivé : il ne démarrera plus avec Windows.	Guardian turned off: it will no longer start with Windows.	Guardián desactivado: ya no se iniciará con Windows.
+Gardée (choisie par toi)	Kept (your choice)	Conservada (tu elección)
+Il ne démarrera plus avec Windows. Tu peux le réactiver à tout moment.	It will no longer start with Windows. You can turn it back on at any time.	Ya no se iniciará con Windows. Puedes reactivarlo en cualquier momento.
+Il s'affiche à l'accueil (« Bonjour, … »). Il reste sur ce PC.	It is shown on the home screen ("Hello, …"). It stays on this PC.	Se muestra en el inicio («Hola, …»). Se queda en este PC.
+Il tourne comme un service de Windows. Si tu ne t'en sers pas, désinstalle-le : Accélérer > Applications, puis « Désinstaller ».	It runs as a Windows service. If you don't use it, uninstall it: Speed up > Apps, then "Uninstall".	Se ejecuta como servicio de Windows. Si no lo usas, desinstálalo: Acelerar > Aplicaciones y luego «Desinstalar».
+Impossible : il faut garder au moins une copie de chaque fichier.	Not possible: at least one copy of each file must be kept.	Imposible: hay que conservar al menos una copia de cada archivo.
+Impossible d'annuler :	Could not undo:	No se pudo deshacer:
+Impossible de créer le raccourci	Could not create the shortcut	No se pudo crear el acceso directo
+Impossible de modifier « {0} » :	Could not change "{0}":	No se pudo modificar «{0}»:
+Impossible de préparer cette destination :	Could not prepare this destination:	No se pudo preparar este destino:
+Impossible de vérifier les mises à jour	Could not check for updates	No se pudieron comprobar las actualizaciones
+Internet ne répond pas : vérifie la box (voyants), puis redémarre-la si besoin.	The Internet is not responding: check the router (lights), then restart it if needed.	Internet no responde: revisa el router (luces) y reinícialo si hace falta.
+Journal :	Log:	Registro:
+Jusqu'au bureau	Until the desktop	Hasta el escritorio
+L'Assistance rapide de Windows, pour qu'un proche t'aide.	Windows Quick Assist, so someone close can help you.	Asistencia rápida de Windows, para que te ayude alguien cercano.
+L'Assistance rapide n'est pas installée	Quick Assist is not installed	Asistencia rápida no está instalada
+L'action a été arrêtée avant la fin.	The action was stopped before the end.	La acción se detuvo antes de terminar.
+L'enquêteur retrace ce qui a changé et désigne le coupable.	The investigator traces what changed and points out the culprit.	El investigador repasa lo que ha cambiado y señala al culpable.
+L'écran ne montrera plus que trois gros boutons : Nettoyer mon PC, Vérifier mon PC, Appeler à l'aide. Le lien « Afficher toutes les options » en bas de l'écran permet de revenir au mode complet.	The screen will only show three big buttons: Clean my PC, Check my PC, Call for help. The "Show all options" link at the bottom of the screen brings back the full mode.	La pantalla solo mostrará tres botones grandes: Limpiar mi PC, Revisar mi PC, Pedir ayuda. El enlace «Mostrar todas las opciones» abajo permite volver al modo completo.
+La boutique ouvre bientôt	The store opens soon	La tienda abre pronto
+La box répond lentement : redémarrer la box peut aider.	The router responds slowly: restarting it may help.	El router responde despacio: reiniciarlo puede ayudar.
+La langue changera au redémarrage de Nettoyage PC. Redémarrer maintenant ?	The language will change when Nettoyage PC restarts. Restart now?	El idioma cambiará al reiniciar Nettoyage PC. ¿Reiniciar ahora?
+La sauvegarde automatique est faite par le gardien.	Automatic backup is done by the guardian.	La copia de seguridad automática la hace el guardián.
+La sauvegarde sera rangée dans un dossier « NettoyagePC-Sauvegarde », daté, sur cette destination.	The backup will be stored in a dated "NettoyagePC-Sauvegarde" folder on this destination.	La copia se guardará en una carpeta «NettoyagePC-Sauvegarde», con fecha, en este destino.
+La version la plus récente de chaque pilote est gardée, et Windows refuse de retirer un pilote encore utilisé. Un point de restauration n'est pas nécessaire : ces versions ne servent plus.	The newest version of each driver is kept, and Windows refuses to remove a driver still in use. A restore point is not needed: these versions are no longer used.	Se conserva la versión más reciente de cada controlador y Windows se niega a quitar un controlador en uso. No hace falta un punto de restauración: estas versiones ya no se usan.
+La vitesse prévue est lue dans la référence des barrettes. Activer le profil du fabricant (EXPO chez AMD, XMP chez Intel) est un réglage prévu pour ça, sans risque pour le matériel.	The rated speed is read from the memory modules' part number. Turning on the manufacturer's profile (EXPO on AMD, XMP on Intel) is a setting designed for this, with no risk for the hardware.	La velocidad prevista se lee en la referencia de los módulos. Activar el perfil del fabricante (EXPO en AMD, XMP en Intel) es un ajuste previsto para ello, sin riesgo para el hardware.
+Lancer l'essai	Start the trial	Iniciar la prueba
+Le PC ne redémarre pas. Passe en mode réel (pastille en haut) pour redémarrer vraiment dans le BIOS.	The PC does not restart. Switch to real mode (badge at the top) to really restart into the BIOS.	El PC no se reinicia. Pasa al modo real (insignia de arriba) para reiniciar de verdad en la BIOS.
+Le bilan n'a pas pu être calculé. Détails : journal de démarrage.	The check-up could not be calculated. Details: startup log.	No se pudo calcular el diagnóstico. Detalles: registro de inicio.
+Le dossier « _A_verifier » n'existe pas encore : il est créé au premier nettoyage, quand des téléchargements de plus de 90 jours sont rangés.	The "_A_verifier" folder doesn't exist yet: it is created at the first cleanup, when downloads older than 90 days are put away.	La carpeta «_A_verifier» aún no existe: se crea en la primera limpieza, cuando se guardan las descargas de más de 90 días.
+Le débit est faible : ferme les téléchargements en cours, ou compare avec le débit prévu par ton abonnement.	The speed is low: close downloads in progress, or compare with the speed of your plan.	La velocidad es baja: cierra las descargas en curso o compárala con la de tu contrato.
+Le détail de chaque nettoyage et de chaque bilan est enregistré dans Documents\NettoyagePC (gardé 60 jours).	The details of each cleanup and each check-up are saved in Documents\NettoyagePC (kept 60 days).	El detalle de cada limpieza y de cada diagnóstico se guarda en Documentos\NettoyagePC (60 días).
+Le gardien est arrêté	The guardian is stopped	El guardián está detenido
+Le mode jeu est en cours : performances maximales. Termine-le après ta partie pour revenir comme avant.	Game mode is on: maximum performance. End it after your game to go back to how it was.	El modo juego está activo: rendimiento máximo. Termínalo después de tu partida para volver a como estaba.
+Le programme de désinstallation de l'application va s'ouvrir : suis ses étapes. Si tu as un doute sur ce programme, réponds « Annuler » et renseigne-toi d'abord.	The app's uninstaller will open: follow its steps. If you have doubts about this program, answer "Cancel" and look it up first.	Se abrirá el desinstalador de la aplicación: sigue sus pasos. Si tienes dudas sobre este programa, responde «Cancelar» e infórmate antes.
+Le raccourci « Nettoyage PC » est sur le Bureau.	The "Nettoyage PC" shortcut is on the Desktop.	El acceso directo «Nettoyage PC» está en el Escritorio.
+Le redémarrage vers le BIOS n'a pas été lancé (autorisation refusée, ou PC sans BIOS UEFI).	The restart into the BIOS was not started (permission denied, or PC without UEFI BIOS).	No se inició el reinicio en la BIOS (permiso denegado, o PC sin BIOS UEFI).
+Redémarre normalement et appuie plusieurs fois sur Suppr (ou F2) dès l'allumage.	Restart normally and press Del (or F2) several times as soon as it powers on.	Reinicia normalmente y pulsa varias veces Supr (o F2) nada más encenderse.
+Les fichiers inutiles (temporaires, caches) sont supprimés et la corbeille est vidée. Tes documents, photos et vidéos ne sont jamais touchés.	Useless files (temporary files, caches) are deleted and the Recycle Bin is emptied. Your documents, photos and videos are never touched.	Se eliminan los archivos inútiles (temporales, cachés) y se vacía la papelera. Tus documentos, fotos y vídeos nunca se tocan.
+Les fichiers sont copiés, rien n'est supprimé de ton PC. Laisse la clé branchée jusqu'à la fin.	Files are copied, nothing is deleted from your PC. Keep the drive plugged in until the end.	Los archivos se copian, no se elimina nada de tu PC. Deja la memoria conectada hasta el final.
+Les outils des pros, débloqués d'un coup.	Pro tools, unlocked all at once.	Las herramientas de los profesionales, desbloqueadas de una vez.
+Les signes d'une panne, repérés avant qu'elle arrive.	Signs of a failure, spotted before it happens.	Las señales de una avería, detectadas antes de que llegue.
+Les téléchargements reviennent à leur place, les programmes au démarrage sont réactivés et le mode d'alimentation précédent est rétabli.	Downloads go back to their place, startup programs are turned back on and the previous power mode is restored.	Las descargas vuelven a su sitio, los programas de inicio se reactivan y se restablece el modo de energía anterior.
+Licence retirée de ce PC	License removed from this PC	Licencia retirada de este PC
+Masquer le détail	Hide details	Ocultar el detalle
+Voir le détail	See details	Ver el detalle
+Matériel, plein potentiel, réseau et aide à distance.	Hardware, full potential, network and remote help.	Hardware, máximo potencial, red y ayuda remota.
+Mesure impossible.	Measurement not possible.	Medición imposible.
+Mesure les images par seconde réelles d'un jeu, avant puis après un réglage : tu vois le vrai gain, en chiffres (PresentMon, l'outil gratuit d'Intel).	Measures a game's real frames per second, before and after a setting: you see the real gain, in numbers (PresentMon, Intel's free tool).	Mide las imágenes por segundo reales de un juego, antes y después de un ajuste: ves la ganancia real, en cifras (PresentMon, la herramienta gratuita de Intel).
+Mesurer un jeu	Measure a game	Medir un juego
+Mis à la corbeille :	Moved to the Recycle Bin:	Mandado a la papelera:
+Mises à jour de Nettoyage PC	Nettoyage PC updates	Actualizaciones de Nettoyage PC
+Mode complet	Full mode	Modo completo
+Mode jeu (actif)	Game mode (on)	Modo juego (activo)
+Mode jeu de Windows, planification matérielle du GPU, optimisations pour le jeu en fenêtré : l'état de chacun et un conseil.	Windows Game Mode, hardware-accelerated GPU scheduling, optimizations for windowed games: the status of each and a tip.	Modo juego de Windows, programación de GPU acelerada por hardware, optimizaciones para juegos en ventana: el estado de cada uno y un consejo.
+Mode réel	Real mode	Modo real
+Mode simulation	Simulation mode	Modo simulación
+Mode simulation : rien n'est modifié	Simulation mode: nothing is changed	Modo simulación: no se cambia nada
+Mode simulation : rien n'est modifié tant que tu ne passes pas en mode réel.	Simulation mode: nothing is changed until you switch to real mode.	Modo simulación: no se cambia nada hasta que pases al modo real.
+Moins d'options  ▴	Fewer options  ▴	Menos opciones  ▴
+Plus d'options  ▾	More options  ▾	Más opciones  ▾
+Moteur de la version {0}	Version {0} engine	Motor de la versión {0}
+Mémoire vive bridée (profil EXPO / XMP), santé détaillée des disques.	Throttled memory (EXPO / XMP profile), detailed disk health.	Memoria limitada (perfil EXPO / XMP), salud detallada de los discos.
+Mémoire vive et BIOS	Memory and BIOS	Memoria y BIOS
+Même disque que Windows	Same disk as Windows	Mismo disco que Windows
+NPC-… ou la clé reçue par e-mail	NPC-… or the key received by e-mail	NPC-… o la clave recibida por correo
+Ne déplace pas le dossier de l'application, sinon le raccourci ne fonctionnera plus.	Don't move the app's folder, otherwise the shortcut will stop working.	No muevas la carpeta de la aplicación o el acceso directo dejará de funcionar.
+Ne rien fermer	Don't close anything	No cerrar nada
+Nettoyage PC 5 (aperçu)	Nettoyage PC 5 (preview)	Nettoyage PC 5 (vista previa)
+Nettoyage PC 5 (aperçu) — moteur {0}	Nettoyage PC 5 (preview) — engine {0}	Nettoyage PC 5 (vista previa) — motor {0}
+Nettoyage PC : nettoyage, optimisation et sécurité	Nettoyage PC: cleanup, optimization and security	Nettoyage PC: limpieza, optimización y seguridad
+Nettoyage, optimisation, sécurité, disques et mémoire vive pour Windows 10 et 11.	Cleanup, optimization, security, disks and memory for Windows 10 and 11.	Limpieza, optimización, seguridad, discos y memoria para Windows 10 y 11.
+~Éditeur : 	Publisher: 	Editor:
+Nettoyer le PC maintenant ?	Clean the PC now?	¿Limpiar el PC ahora?
+Non : tu payes {0} une seule fois, et Premium reste actif pour toutes les versions 4.	No: you pay {0} only once, and Premium stays active for all version 4 releases.	No: pagas {0} una sola vez y Premium sigue activo en todas las versiones 4.
+Non appliqué :	Not applied:	No aplicado:
+Non modifié	Not changed	Sin cambios
+Non modifié pour :	Not changed for:	Sin cambios para:
+Non retirée(s) :	Not removed:	No quitada(s):
+Non touchés :	Not touched:	No tocados:
+Oui, lancer	Yes, start	Sí, iniciar
+Ouvre {0}	Open {0}	Abre {0}
+puis va dans {0}	then go to {0}	y luego ve a {0}
+PAS ASSEZ DE PLACE : décoche des dossiers ou prends une clé plus grande.	NOT ENOUGH SPACE: untick some folders or use a bigger drive.	NO HAY SITIO SUFICIENTE: desmarca carpetas o usa una memoria más grande.
+Paramètres réseau de Windows	Windows network settings	Configuración de red de Windows
+Passe en mode réel (pastille en haut) pour les appliquer vraiment.	Switch to real mode (badge at the top) to really apply them.	Pasa al modo real (insignia de arriba) para aplicarlos de verdad.
+Passer au mode complet ?	Switch to full mode?	¿Pasar al modo completo?
+Passer au mode simple	Switch to simple mode	Pasar al modo simple
+Passer au mode simple ?	Switch to simple mode?	¿Pasar al modo simple?
+Passer en automatique	Switch to automatic	Pasar a automático
+Passer en clair	Switch to light	Pasar a claro
+Passer en sombre	Switch to dark	Pasar a oscuro
+Performances	Performance	Rendimiento
+Ping, débit et comparaison des serveurs DNS.	Ping, speed and DNS server comparison.	Ping, velocidad y comparación de servidores DNS.
+Place libre sur la destination :	Free space on the destination:	Espacio libre en el destino:
+Points vérifiés	Checked items	Puntos comprobados
+Pour activer la clé, puis une petite vérification par semaine. Sans Internet, Premium reste actif 45 jours.	To activate the key, then a small check once a week. Without Internet, Premium stays active for 45 days.	Para activar la clave y luego una pequeña comprobación por semana. Sin Internet, Premium sigue activo 45 días.
+Pour une vraie sauvegarde, préfère une clé USB ou un disque externe.	For a real backup, prefer a USB drive or an external disk.	Para una copia de seguridad de verdad, mejor una memoria USB o un disco externo.
+Si ce disque tombe en panne, la sauvegarde sera perdue avec lui.	If this disk fails, the backup will be lost with it.	Si este disco se estropea, la copia se perderá con él.
+Premium (essai gratuit 7 jours)	Premium (7-day free trial)	Premium (prueba gratuita de 7 días)
+Préparation du résumé du PC…	Preparing the PC summary…	Preparando el resumen del PC…
+Pseudo enregistré : {0}.	Nickname saved: {0}.	Apodo guardado: {0}.
+Pseudo retiré.	Nickname removed.	Apodo quitado.
+Qu'est-ce qui reste gratuit ?	What stays free?	¿Qué sigue siendo gratis?
+Que veux-tu faire ? (nettoyer, démarrage, sauvegarde…)	What do you want to do? (clean, startup, backup…)	¿Qué quieres hacer? (limpiar, inicio, copia de seguridad…)
+Quelques secondes : rien n'est modifié pendant l'analyse.	A few seconds: nothing is changed during the analysis.	Unos segundos: no se cambia nada durante el análisis.
+Raccourci créé	Shortcut created	Acceso directo creado
+Rapport :	Report:	Informe:
+Rapport de batterie	Battery report	Informe de batería
+Rapport de batterie ouvert.	Battery report opened.	Informe de batería abierto.
+Recherche arrêtée.	Search stopped.	Búsqueda detenida.
+Rechercher une application	Search for an app	Buscar una aplicación
+Redémarrage non lancé	Restart not started	Reinicio no iniciado
+Redémarrer le PC directement dans le BIOS ?	Restart the PC directly into the BIOS?	¿Reiniciar el PC directamente en la BIOS?
+Redémarrer le PC maintenant ?	Restart the PC now?	¿Reiniciar el PC ahora?
+Repère les logiciels de prise en main à distance et explique quoi faire.	Spots remote-control software and explains what to do.	Detecta los programas de control remoto y explica qué hacer.
+Rester en mode simple	Stay in simple mode	Seguir en modo simple
+Retirer ces applications de ton compte ?	Remove these apps from your account?	¿Quitar estas aplicaciones de tu cuenta?
+Retirer la licence de ce PC	Remove the license from this PC	Retirar la licencia de este PC
+Retirer {0} ancienne(s) version(s) de pilotes ({1}) ?	Remove {0} old driver version(s) ({1})?	¿Quitar {0} versión(es) antigua(s) de controladores ({1})?
+Retrait de la licence…	Removing the license…	Retirando la licencia…
+Revenir	Revert	Volver
+Revenir aux serveurs DNS automatiques ?	Go back to automatic DNS servers?	¿Volver a los servidores DNS automáticos?
+Rien trouvé. Essaie un autre mot (par exemple : nettoyer, disque, démarrage, antivirus).	Nothing found. Try another word (for example: clean, disk, startup, antivirus).	No se encontró nada. Prueba otra palabra (por ejemplo: limpiar, disco, inicio, antivirus).
+Rien à vérifier pour l'instant	Nothing to check for now	Nada que revisar por ahora
+Réglages de Windows qui donnent plus d'images par seconde. Tout est réversible depuis l'Historique.	Windows settings that give more frames per second. Everything can be undone from the History.	Ajustes de Windows que dan más imágenes por segundo. Todo se puede deshacer desde el Historial.
+Réglages de ton compte Windows qui limitent la publicité et le pistage. Rien n'est désactivé côté sécurité : Windows Update, l'antivirus et le pare-feu ne sont pas touchés.	Settings of your Windows account that limit ads and tracking. Nothing security-related is turned off: Windows Update, the antivirus and the firewall are not touched.	Ajustes de tu cuenta de Windows que limitan la publicidad y el rastreo. No se desactiva nada de seguridad: Windows Update, el antivirus y el cortafuegos no se tocan.
+Réglages des jeux	Game settings	Ajustes de juegos
+Réglages du gardien	Guardian settings	Ajustes del guardián
+Réglages du gardien enregistrés.	Guardian settings saved.	Ajustes del guardián guardados.
+Résumé copié	Summary copied	Resumen copiado
+Réversible à tout moment (Historique, ou « Revenir au DNS automatique »).	Reversible at any time (History, or "Go back to automatic DNS").	Reversible en cualquier momento (Historial, o «Volver al DNS automático»).
+Sauvegarder {0} vers {1} ?	Back up {0} to {1}?	¿Copiar {0} en {1}?
+Serveurs DNS de {0} activés.	{0} DNS servers turned on.	Servidores DNS de {0} activados.
+Simulation : rien n'a été modifié. Voici ce qui serait fait :	Simulation: nothing was changed. Here is what would be done:	Simulación: no se ha cambiado nada. Esto es lo que se haría:
+Simulation : rien n'est modifié	Simulation: nothing is changed	Simulación: no se cambia nada
+Steam, Epic, Xbox, GOG, Ubisoft, Battle.net, EA, Riot, Rockstar, avec des réglages réversibles.	Steam, Epic, Xbox, GOG, Ubisoft, Battle.net, EA, Riot, Rockstar, with reversible settings.	Steam, Epic, Xbox, GOG, Ubisoft, Battle.net, EA, Riot, Rockstar, con ajustes reversibles.
+Super	Great	Genial
+Supprimer	Delete	Eliminar
+Sur combien de PC ?	On how many PCs?	¿En cuántos PC?
+Sélectionne d'abord un programme dans la liste.	First select a program in the list.	Primero selecciona un programa de la lista.
+Sélectionne d'abord une extension dans la liste.	First select an extension in the list.	Primero selecciona una extensión de la lista.
+Sélectionne-le puis « Utiliser le serveur choisi ».	Select it then "Use the chosen server".	Selecciónalo y luego «Usar el servidor elegido».
+TTC, une seule fois	incl. VAT, one-time	IVA incl., una sola vez
+Ta question…	Your question…	Tu pregunta…
+Texte introuvable.	Text not found.	Texto no encontrado.
+Thème clair	Light theme	Tema claro
+Thème sombre	Dark theme	Tema oscuro
+Thème clair, sombre, ou automatique (suit le réglage de Windows). Le bouton soleil / lune en haut bascule aussi en un clic.	Light, dark or automatic theme (follows the Windows setting). The sun / moon button at the top also switches in one click.	Tema claro, oscuro o automático (sigue el ajuste de Windows). El botón sol / luna de arriba también cambia en un clic.
+Ton PC a besoin de toi : {0} chose(s) à régler.	Your PC needs you: {0} thing(s) to fix.	Tu PC te necesita: {0} cosa(s) que arreglar.
+Ton PC va bien, mais {0} chose(s) peuvent être améliorées.	Your PC is fine, but {0} thing(s) can be improved.	Tu PC está bien, pero {0} cosa(s) se pueden mejorar.
+Ton Wi-Fi est un peu faible ou instable : rapproche le PC de la box, ou utilise un câble réseau (idéal pour jouer).	Your Wi-Fi is a bit weak or unstable: move the PC closer to the router, or use a network cable (ideal for gaming).	Tu Wi-Fi es algo débil o inestable: acerca el PC al router o usa un cable de red (ideal para jugar).
+Ton pseudo	Your nickname	Tu apodo
+Ton pseudo, affiché à l'accueil. Il reste sur ce PC : pas de compte, pas de mot de passe.	Your nickname, shown on the home screen. It stays on this PC: no account, no password.	Tu apodo, mostrado en el inicio. Se queda en este PC: sin cuenta, sin contraseña.
+Tout ce que Nettoyage PC a fait, et l'annulation.	Everything Nettoyage PC has done, and how to undo it.	Todo lo que ha hecho Nettoyage PC, y cómo deshacerlo.
+Tout garder	Keep everything	Conservar todo
+Tout le reste : nettoyage, sécurité, mises à jour, sauvegarde, jeux, aide à distance.	Everything else: cleanup, security, updates, backup, games, remote help.	Todo lo demás: limpieza, seguridad, actualizaciones, copia de seguridad, juegos, ayuda remota.
+Tout mon dossier utilisateur	My whole user folder	Toda mi carpeta de usuario
+Toutes les rubriques et les options : nettoyage, accélération, sécurité, outils. En simulation au début : rien n'est modifié.	All sections and options: cleanup, speed-up, security, tools. In simulation at first: nothing is changed.	Todas las secciones y opciones: limpieza, aceleración, seguridad, herramientas. En simulación al principio: no se cambia nada.
+Toutes les rubriques et les options avancées seront affichées. Tu pourras revenir au mode simple dans Réglages.	All sections and advanced options will be shown. You can go back to simple mode in Settings.	Se mostrarán todas las secciones y las opciones avanzadas. Podrás volver al modo simple en Ajustes.
+Toutes les versions sur GitHub	All versions on GitHub	Todas las versiones en GitHub
+Trois gros boutons : Nettoyer, Vérifier, Appeler à l'aide. Idéal pour débuter ou pour un proche.	Three big buttons: Clean, Check, Call for help. Ideal for beginners or for a relative.	Tres botones grandes: Limpiar, Revisar, Pedir ayuda. Ideal para empezar o para un familiar.
+Tu peux l'activer sur un autre PC avec la même clé.	You can activate it on another PC with the same key.	Puedes activarla en otro PC con la misma clave.
+Tu peux tout restaurer depuis l'Historique (« Annuler la sélection »), tant que la corbeille n'est pas vidée.	You can restore everything from the History ("Undo the selection"), as long as the Recycle Bin is not emptied.	Puedes restaurarlo todo desde el Historial («Deshacer la selección»), mientras no se vacíe la papelera.
+Tu pourras les récupérer depuis la corbeille tant qu'elle n'est pas vidée, ou depuis l'Historique de Nettoyage PC.	You can get them back from the Recycle Bin as long as it is not emptied, or from the Nettoyage PC History.	Podrás recuperarlos desde la papelera mientras no se vacíe, o desde el Historial de Nettoyage PC.
+Tu pourras les réinstaller depuis le Microsoft Store (l'Historique t'y emmène).	You can reinstall them from the Microsoft Store (the History takes you there).	Podrás reinstalarlas desde Microsoft Store (el Historial te lleva allí).
+Une action est déjà en cours	An action is already running	Ya hay una acción en curso
+Une action est en cours	An action is running	Hay una acción en curso
+Une erreur s'est produite :	An error occurred:	Se ha producido un error:
+Une partie du test de débit n'a pas pu se faire :	Part of the speed test could not be done:	Parte de la prueba de velocidad no se pudo hacer:
+Usure, température, erreurs et heures de fonctionnement de chaque disque, d'après leurs capteurs (SMART).	Wear, temperature, errors and power-on hours of each disk, from their sensors (SMART).	Desgaste, temperatura, errores y horas de funcionamiento de cada disco, según sus sensores (SMART).
+Utiliser	Use	Usar
+Utiliser ces serveurs DNS ?	Use these DNS servers?	¿Usar estos servidores DNS?
+Vitesse réelle des barrettes comparée à leur vitesse prévue (profil EXPO / XMP), avec le guide du BIOS de ta carte mère.	Real speed of the memory modules compared with their rated speed (EXPO / XMP profile), with the BIOS guide for your motherboard.	Velocidad real de los módulos comparada con su velocidad prevista (perfil EXPO / XMP), con la guía de la BIOS de tu placa base.
+Voir le guide	See the guide	Ver la guía
+Voir les réglages	See the settings	Ver los ajustes
+Vérification et mise à la corbeille…	Checking and moving to the Recycle Bin…	Comprobando y mandando a la papelera…
+Vérifie le chemin, ou choisis-le avec « Parcourir… ».	Check the path, or choose it with "Browse…".	Revisa la ruta, o elígela con «Examinar…».
+Vérifier avant de mettre à la corbeille	Check before moving to the Recycle Bin	Revisar antes de mandar a la papelera
+Vérifier et mettre {0} fichier(s) à la corbeille	Check and move {0} file(s) to the Recycle Bin	Revisar y mandar {0} archivo(s) a la papelera
+Mettre {0} fichier(s) à la corbeille	Move {0} file(s) to the Recycle Bin	Mandar {0} archivo(s) a la papelera
+Mettre {0} fichier(s) à la corbeille ({1}) ?	Move {0} file(s) to the Recycle Bin ({1})?	¿Mandar {0} archivo(s) a la papelera ({1})?
+Wi-Fi, Ethernet, VPN, mode avion : les réglages de Windows.	Wi-Fi, Ethernet, VPN, airplane mode: the Windows settings.	Wi-Fi, Ethernet, VPN, modo avión: los ajustes de Windows.
+Windows prépare le rapport de batterie…	Windows is preparing the battery report…	Windows está preparando el informe de batería…
+Windows te demandera l'autorisation (bouclier) : clique sur « Oui ». Le PC redémarre 15 secondes après, directement dans les réglages du BIOS.	Windows will ask for your permission (shield): click "Yes". The PC restarts 15 seconds later, directly into the BIOS settings.	Windows te pedirá permiso (escudo): pulsa «Sí». El PC se reinicia 15 segundos después, directamente en los ajustes de la BIOS.
+analyse…	analyzing…	analizando…
+clic pour entrer	click to enter	clic para entrar
+corbeille :	Recycle Bin:	papelera:
+demande l'autorisation de Windows	asks for Windows permission	pide permiso a Windows
+en simulation : rien n'est modifié	in simulation: nothing is changed	en simulación: no se cambia nada
+fichier(s) de même taille	file(s) of the same size	archivo(s) del mismo tamaño
+fichiers comptés	files counted	archivos contados
+installée	installed	instalada
+nouvelle	new	nueva
+par ex. « avant EXPO »	e.g. "before EXPO"	p. ej. «antes de EXPO»
+service de licences injoignable	license service unreachable	servicio de licencias inaccesible
+{0} % de pertes	{0} % loss	{0} % de pérdidas
+{0} % perdus	{0} % lost	{0} % perdidos
+{0} ancienne(s) version(s) cochée(s) : {1} à récupérer.	{0} old version(s) ticked: {1} to recover.	{0} versión(es) antigua(s) marcada(s): {1} que recuperar.
+{0} application(s) retirée(s).	{0} app(s) removed.	{0} aplicación(es) quitada(s).
+{0} application(s) trouvée(s), {1} cochée(s).	{0} app(s) found, {1} ticked.	{0} aplicación(es) encontrada(s), {1} marcada(s).
+{0} autre(s) fichier(s)	{0} other file(s)	{0} archivo(s) más
+{0} autres éléments	{0} other items	{0} elementos más
+{0} chacun	{0} each	{0} cada uno
+{0} en même temps. Avant de donner un PC, « Gérer la licence » libère sa place.	{0} at the same time. Before giving a PC away, "Manage the license" frees its slot.	{0} a la vez. Antes de regalar un PC, «Gestionar la licencia» libera su plaza.
+{0} est le plus rapide ({1} ms contre {2} ms aujourd'hui).	{0} is the fastest ({1} ms versus {2} ms today).	{0} es el más rápido ({1} ms frente a {2} ms hoy).
+{0} est le plus rapide ({1} ms).	{0} is the fastest ({1} ms).	{0} es el más rápido ({1} ms).
+{0} extension(s), aucune n'est suspecte. ✔	{0} extension(s), none is suspicious. ✔	{0} extensión(es), ninguna es sospechosa. ✔
+{0} extension(s), dont {1} à vérifier (marquées ⚠). Si tu ne la reconnais pas, supprime-la depuis le navigateur.	{0} extension(s), including {1} to check (marked ⚠). If you don't recognize one, remove it from the browser.	{0} extensión(es), de ellas {1} que revisar (marcadas ⚠). Si no la reconoces, elimínala desde el navegador.
+{0} fichier(s) en double, {1} copie(s) en trop ({2}). Sélection : {3} fichier(s) à mettre à la corbeille, {4} libérés.	{0} duplicate file(s), {1} extra copy(ies) ({2}). Selection: {3} file(s) to move to the Recycle Bin, {4} freed.	{0} archivo(s) duplicado(s), {1} copia(s) de más ({2}). Selección: {3} archivo(s) a la papelera, {4} liberados.
+{0} fichier(s) examiné(s)	{0} file(s) examined	{0} archivo(s) examinado(s)
+{0} fichier(s) mis à la corbeille (restaurables depuis l'Historique).	{0} file(s) moved to the Recycle Bin (restorable from the History).	{0} archivo(s) mandado(s) a la papelera (restaurables desde el Historial).
+{0} fichier(s) mis à la corbeille, {1} libérés.	{0} file(s) moved to the Recycle Bin, {1} freed.	{0} archivo(s) mandado(s) a la papelera, {1} liberados.
+{0} fichier(s) mis à la corbeille, {1} libérés. Restaurables depuis l'Historique.	{0} file(s) moved to the Recycle Bin, {1} freed. Restorable from the History.	{0} archivo(s) mandado(s) a la papelera, {1} liberados. Restaurables desde el Historial.
+{0} fichier(s) non touché(s) par sécurité :	{0} file(s) left untouched for safety:	{0} archivo(s) sin tocar por seguridad:
+{0} fichier(s) vont aller à la corbeille ({1} libérés)	{0} file(s) will go to the Recycle Bin ({1} freed)	{0} archivo(s) irán a la papelera ({1} liberados)
+{0} gros fichier(s) trouvé(s), {1} au total. Sélectionne-en pour les ouvrir ou les mettre à la corbeille (récupérables).	{0} large file(s) found, {1} in total. Select some to open them or move them to the Recycle Bin (recoverable).	{0} archivo(s) grande(s) encontrado(s), {1} en total. Selecciona algunos para abrirlos o mandarlos a la papelera (recuperables).
+{0} ignoré(s) (fichiers système protégés, en cours d'utilisation, ou hors d'un disque local).	{0} skipped (protected system files, in use, or not on a local disk).	{0} omitido(s) (archivos del sistema protegidos, en uso o fuera de un disco local).
+{0} mise(s) à jour disponible(s) ; {1} cochée(s) ({2}). Coche ou décoche, puis « Installer la sélection ».	{0} update(s) available; {1} ticked ({2}). Tick or untick, then "Install the selection".	{0} actualización(es) disponible(s); {1} marcada(s) ({2}). Marca o desmarca y luego «Instalar la selección».
+{0} modification(s) annulée(s).	{0} change(s) undone.	{0} cambio(s) deshecho(s).
+{0} n'a pas pu être fermé complètement	{0} could not be fully closed	{0} no se pudo cerrar por completo
+{0} programme(s) se lancent avec Windows, {1} désactivé(s).	{0} program(s) start with Windows, {1} turned off.	{0} programa(s) se inician con Windows, {1} desactivado(s).
+{0} réglage(s) appliqué(s).	{0} setting(s) applied.	{0} ajuste(s) aplicado(s).
+« {0} » ne se lancera plus au démarrage (recoche-le pour annuler).	"{0}" will no longer start at startup (tick it again to undo).	«{0}» ya no se iniciará al arrancar (vuelve a marcarlo para deshacer).
+« {0} » se lancera de nouveau au démarrage.	"{0}" will start at startup again.	«{0}» volverá a iniciarse al arrancar.
+À copier :	To copy:	Por copiar:
+Écran sous sa fréquence, mauvais câble, liaison de la carte graphique.	Display below its refresh rate, wrong cable, graphics card link.	Pantalla por debajo de su frecuencia, cable inadecuado, enlace de la tarjeta gráfica.
+Écrans bleus, redémarrages brutaux et applications qui se ferment : les causes probables, d'après les journaux de Windows.	Blue screens, sudden restarts and apps that close: the likely causes, from the Windows logs.	Pantallas azules, reinicios bruscos y aplicaciones que se cierran: las causas probables, según los registros de Windows.
+à soigner	needs attention	por mejorar
+★  PREMIUM	★  PREMIUM	★  PREMIUM
+Autorisation de Windows demandée…	Asking Windows for permission…	Pidiendo permiso a Windows…
+Lecture de la liste…	Reading the list…	Leyendo la lista…
+Recherche des fichiers…	Searching for files…	Buscando archivos…
+erreur inconnue	unknown error	error desconocido
+impossible de préparer l'action (canal de communication)	could not prepare the action (communication channel)	no se pudo preparar la acción (canal de comunicación)

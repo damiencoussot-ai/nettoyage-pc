@@ -85,6 +85,8 @@ namespace NettoyagePC
             if (texte.Length == 0) return texte;
             string r;
             if (phrases.TryGetValue(texte, out r)) return r;
+            // la version 5 écrit « … » là où la table (version 4) a « ... » : même phrase
+            if (texte.IndexOf('…') >= 0 && phrases.TryGetValue(texte.Replace("…", "..."), out r)) return r.Replace("...", "…");
             foreach (var m in motifs) { var x = m.Key.Match(texte); if (x.Success) return x.Result(m.Value); }
             foreach (var d in debuts) if (texte.StartsWith(d.Key, StringComparison.Ordinal) && texte.Length > d.Key.Length) return d.Value + texte.Substring(d.Key.Length);
             if (Manquantes != null) lock (Manquantes) Manquantes.Add(texte);
