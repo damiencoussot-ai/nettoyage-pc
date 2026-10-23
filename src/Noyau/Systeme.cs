@@ -27,7 +27,7 @@ namespace NettoyagePC
             try
             {
                 var scope = new ManagementScope(espace);
-                var opts = new EnumerationOptions { Timeout = TimeSpan.FromSeconds(delaiSecondes), ReturnImmediately = true, Rewindable = false };
+                var opts = new System.Management.EnumerationOptions { Timeout = TimeSpan.FromSeconds(delaiSecondes), ReturnImmediately = true, Rewindable = false };
                 using (var s = new ManagementObjectSearcher(scope, new ObjectQuery(requete), opts))
                     foreach (ManagementObject o in s.Get()) l.Add(o);
             }

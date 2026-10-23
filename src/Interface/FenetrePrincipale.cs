@@ -10,13 +10,6 @@ using System.Windows.Forms;
 
 namespace NettoyagePC
 {
-    internal class ActionMoteur
-    {
-        public string Cle, Titre, Confirmer, Requiert;
-        public string[] Args = new string[0];
-        public bool Simu, SansAdmin;
-    }
-
     /// <summary>Ce qu'un bouton déclenche : une action du moteur, une page, un lien ou du code.</summary>
     internal class Cible
     {
@@ -35,12 +28,7 @@ namespace NettoyagePC
         public Parametres Reglages = Parametres.Lire();
         public readonly Dictionary<string, ActionMoteur> Actions = new Dictionary<string, ActionMoteur>();
         public readonly Dictionary<string, bool> Disponible = new Dictionary<string, bool>();
-        public readonly Dictionary<string, string> Raisons = new Dictionary<string, string>
-        {
-            { "winget", "winget (App Installer) n'est pas installé sur ce PC." }, { "defender", "Microsoft Defender n'est pas l'antivirus actif sur ce PC." },
-            { "stockage", "Les outils de stockage de Windows sont absents de ce PC." }, { "mdsched", "Le Diagnostic de mémoire Windows est absent de ce PC." },
-            { "restaurer", "Les points de restauration ne sont pas disponibles sur ce PC." }
-        };
+        public readonly Dictionary<string, string> Raisons = CatalogueActions.Raisons;
         public readonly List<Bouton> BoutonsActions = new List<Bouton>();
         public readonly Dictionary<string, Page> Pages = new Dictionary<string, Page>();
         public readonly List<Section> Sections = new List<Section>();
@@ -109,44 +97,10 @@ namespace NettoyagePC
             FormClosing += Fermeture;
         }
 
-        // ------------------------------------------------------------ Actions du moteur
-        private void Act(string cle, string titre, string args, bool simu, bool sansAdmin = false, string confirmer = null, string requiert = null)
-        {
-            Actions[cle] = new ActionMoteur { Cle = cle, Titre = Langue.T(titre), Args = args.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries), Simu = simu, SansAdmin = sansAdmin, Confirmer = confirmer, Requiert = requiert };
-        }
-
+        // ------------------------------------------------------------ Actions du moteur (catalogue partagé : Noyau/CatalogueActions.cs)
         private void DefinirActions()
         {
-            Act("standard", "Nettoyage rapide", "", true, true, "Lancer le nettoyage rapide ?\n\nTemporaires et caches supprimés, corbeille vidée, téléchargements de plus de 90 jours rangés dans « _A_verifier ». Ferme tes navigateurs pour un meilleur résultat.");
-            Act("complet", "Optimisation complète", "--profond --disques --liberer-ram --optimiser --securite", true, false, "Lancer l'optimisation complète ?\n\nUn point de restauration est créé d'abord. Puis : nettoyage, nettoyage profond de Windows, optimisation des disques, libération de la RAM, bilans d'optimisation et de sécurité.\n\nCela peut durer longtemps : évite d'éteindre le PC et enregistre ton travail.");
-            Act("analyse", "Analyse complète (sans modification)", "--simulation --profond --disques --liberer-ram --optimiser --securite", false);
-            Act("disques", "Optimisation des disques", "--disques-seuls", true, false, "Optimiser les disques maintenant ?\n\nSSD : ReTrim (rapide, jamais de défragmentation). Disques durs : défragmentation (peut être long).", "stockage");
-            Act("verifier", "Vérification des disques", "--disques-seuls --verifier", true, false, "Optimiser et vérifier les disques ?\n\nL'analyse du système de fichiers est en lecture seule mais peut durer plusieurs minutes par disque.", "stockage");
-            Act("ramlib", "Libération de la RAM", "--ram-seule --liberer-ram", true);
-            Act("raminfo", "Infos mémoire vive", "--ram-seule", false, true);
-            Act("ramtest", "Test des barrettes", "--tester-ram", false, true, "Ouvrir le Diagnostic de mémoire Windows ?\n\nIl te proposera de redémarrer le PC pour tester les barrettes. Enregistre ton travail avant.", "mdsched");
-            Act("rapport", "Rapport du PC", "--rapport-seul", false, true);
-            Act("analyselite", "Analyse (sans modification)", "--simulation", false, true);
-            Act("compat", "Compatibilité de ce PC", "--compat", false, true);
-            Act("planifier", "Planification", "--planifier", false, false, "Activer l'entretien automatique ?\n\n- Nettoyage rapide : chaque dimanche à 10h\n- Optimisation complète : toutes les 4 semaines, le dimanche à 11h\n- Surveillance des disques : chaque jour\n\nNe déplace plus le dossier de l'application ensuite.");
-            Act("deplanifier", "Suppression de la planification", "--deplanifier", false);
-            Act("optim", "Bilan d'optimisation", "--optimiser --seul", false);
-            Act("perf", "Mode performances", "--mode-alim Performances --seul", true, false, "Activer le mode « Performances élevées » ?\n\nPlus réactif, consommation un peu plus élevée (autonomie réduite sur portable). Réversible avec « Mode équilibré ».");
-            Act("equilibre", "Mode équilibré", "--mode-alim Equilibre --seul", true);
-            Act("majapps", "Mise à jour des applications", "--maj-apps --seul", true, false, "Mettre à jour toutes les applications ?\n\nwinget, l'outil officiel de Microsoft, télécharge les nouvelles versions depuis les éditeurs. Ferme si possible les applications concernées. Cela peut durer longtemps.", "winget");
-            Act("secu", "Bilan de sécurité", "--securite --seul", false);
-            Act("antivirus", "Analyse antivirus", "--securite --antivirus --seul", true, false, null, "defender");
-            Act("reparer", "Réparation de Windows", "--reparer --seul", true, false, "Réparer Windows ?\n\nUn point de restauration est créé, puis DISM et SFC vérifient et réparent les fichiers système (20 à 50 minutes). Évite d'éteindre le PC pendant l'opération.");
-            Act("point", "Point de restauration", "--point-restauration --seul", false, false, null, "restaurer");
-            Act("modejeu", "Mode jeu", "--mode-jeu --ram-seule --liberer-ram --seul", true);
-            Act("finmodejeu", "Fin du mode jeu", "--fin-mode-jeu --seul", true, true);
-            Act("sauvegarde", "Sauvegarde", "", true, true);
-            Act("majwin", "Mises à jour Windows et pilotes", "", true);
-            Act("pilotes", "Nettoyage des anciens pilotes", "--anciens-pilotes --seul", true);
-            Act("santedisques", "Santé détaillée des disques", "--sante-disques", false);
-            Act("demarrage", "Analyse du démarrage", "--analyse-demarrage", false);
-            Act("kit", "Kit de réinstallation", "--kit-reinstallation", false);
-            Act("plantages", "Analyse des plantages", "--analyse-plantages", false, true);
+            foreach (var a in CatalogueActions.Creer()) Actions[a.Key] = a.Value;
         }
 
         // ------------------------------------------------------------ Rubriques et pages
@@ -461,12 +415,7 @@ namespace NettoyagePC
         // ------------------------------------------------------------ Disponibilités
         private void DetecterDisponibilites()
         {
-            Disponible["winget"] = InfosPc.Winget() != null;
-            Disponible["defender"] = true;   // vérifié en arrière-plan après l'ouverture (requête WMI lente)
-            Disponible["stockage"] = Programmes.ExisteSysteme("defrag.exe");
-            Disponible["mdsched"] = Programmes.ExisteSysteme("mdsched.exe");
-            Disponible["restaurer"] = Programmes.ExisteSysteme("rstrui.exe");
-            if (!Natif.EstWindows) foreach (var k in Disponible.Keys.ToList()) Disponible[k] = true;   // (essais hors Windows)
+            foreach (var d in CatalogueActions.Disponibilites()) Disponible[d.Key] = d.Value;
         }
 
         public void EnregistrerBoutonAction(Bouton b) { if (!BoutonsActions.Contains(b)) BoutonsActions.Add(b); }
