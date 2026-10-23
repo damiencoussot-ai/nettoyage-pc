@@ -11,17 +11,6 @@ using System.Windows.Forms;
 
 namespace NettoyagePC
 {
-    internal static class Corbeille
-    {
-        /// <summary>Met un fichier à la corbeille (récupérable). Vrai si le fichier n'est plus là.</summary>
-        public static bool Envoyer(string chemin)
-        {
-            try { Microsoft.VisualBasic.FileIO.FileSystem.DeleteFile(chemin, Microsoft.VisualBasic.FileIO.UIOption.OnlyErrorDialogs, Microsoft.VisualBasic.FileIO.RecycleOption.SendToRecycleBin); }
-            catch { return false; }
-            return !File.Exists(chemin);
-        }
-    }
-
     // ================================================================ Disques et gros fichiers
     internal class PageDisques : Page
     {
