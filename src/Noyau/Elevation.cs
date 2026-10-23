@@ -10,7 +10,9 @@ using System.Linq;
 using System.Security.Principal;
 using System.Text;
 using System.Threading;
+#if !NET5_0_OR_GREATER
 using System.Windows.Forms;
+#endif
 using Microsoft.Win32;
 using Microsoft.Win32.SafeHandles;
 
@@ -226,7 +228,12 @@ namespace NettoyagePC
                 using (var p = Process.Start(psi))
                 {
                     var limite = DateTime.Now.AddSeconds(delaiSecondes);
+#if NET5_0_OR_GREATER
+                    // version 5 : appelée hors du fil de l'interface, une simple attente suffit
+                    while (!p.HasExited && DateTime.Now < limite) Thread.Sleep(50);
+#else
                     while (!p.HasExited && DateTime.Now < limite) { Application.DoEvents(); Thread.Sleep(50); }
+#endif
                     if (!p.HasExited) return false;
                     try { return p.ExitCode == 0; } catch { return true; }
                 }

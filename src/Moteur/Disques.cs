@@ -1,4 +1,4 @@
-// Nettoyage PC - moteur : disques (santé, TRIM, optimisation, vérification) et anciens pilotes
+﻿// Nettoyage PC - moteur : disques (santé, TRIM, optimisation, vérification) et anciens pilotes
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -409,7 +409,7 @@ namespace NettoyagePC
                 }
             }
             catch { }
-            return Encoding.Default;
+            return Encodages.Ansi;
         }
     }
 }

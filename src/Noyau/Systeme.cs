@@ -1,15 +1,19 @@
-// Nettoyage PC - informations sur le PC (WMI), notifications, journaux d'événements
+﻿// Nettoyage PC - informations sur le PC (WMI), notifications, journaux d'événements
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.Eventing.Reader;
+#if !NET5_0_OR_GREATER
 using System.Drawing;
+#endif
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Management;
 using System.Threading;
+#if !NET5_0_OR_GREATER
 using System.Windows.Forms;
+#endif
 
 namespace NettoyagePC
 {
@@ -71,6 +75,23 @@ namespace NettoyagePC
 
     internal static class InfosPc
     {
+        /// <summary>Température : carte graphique si possible (source "gpu"), sinon capteur de la carte mère vu par Windows ("systeme") ; -1 si aucune.</summary>
+        public static double Temperature(out string source)
+        {
+            source = "";
+            double t = Natif.TemperatureCarteGraphique();
+            if (t > 0) { source = "gpu"; return t; }
+            try
+            {
+                var z = Wmi.Requete("SELECT HighPrecisionTemperature, Temperature FROM Win32_PerfFormattedData_Counters_ThermalZoneInformation", @"root\cimv2", 5)
+                    .Select(o => { long h = Wmi.Long(o, "HighPrecisionTemperature"); return h > 0 ? h / 10.0 - 273.15 : Wmi.Long(o, "Temperature") - 273.15; })
+                    .Where(x => x > 15 && x < 120).ToList();
+                if (z.Count > 0) { source = "systeme"; return z.Max(); }
+            }
+            catch { }
+            return -1;
+        }
+
         private static string resume;
 
         public static string VersionWindows
@@ -217,6 +238,95 @@ namespace NettoyagePC
         }
     }
 
+#if NET5_0_OR_GREATER
+    /// <summary>
+    /// Notification Windows (bulle de la zone de notification, affichée comme une notification), sans Windows Forms :
+    /// une fenêtre cachée, une icône dans la zone de notification le temps de la bulle, puis tout est retiré.
+    /// Un clic sur la bulle ouvre Nettoyage PC.
+    /// </summary>
+    internal static class Notification
+    {
+        public static void Afficher(string titre, string texte)
+        {
+            if (!OperatingSystem.IsWindows()) return;
+            IntPtr fenetre = IntPtr.Zero, icone = IntPtr.Zero;
+            bool iconeExtraite = false, ajoutee = false;
+            var d = new NotifNative.NOTIFYICONDATA();
+            try
+            {
+                fenetre = NotifNative.CreateWindowEx(0, "STATIC", "Nettoyage PC - notification", 0, 0, 0, 0, 0, IntPtr.Zero, IntPtr.Zero, IntPtr.Zero, IntPtr.Zero);
+                if (fenetre == IntPtr.Zero) return;
+                icone = NotifNative.ExtractIcon(IntPtr.Zero, Chemins.Exe, 0);
+                iconeExtraite = icone != IntPtr.Zero && icone != (IntPtr)1;
+                if (!iconeExtraite) icone = NotifNative.LoadIcon(IntPtr.Zero, (IntPtr)32516);   // IDI_INFORMATION
+                d.cbSize = System.Runtime.InteropServices.Marshal.SizeOf(typeof(NotifNative.NOTIFYICONDATA));
+                d.hWnd = fenetre; d.uID = 1; d.uCallbackMessage = NotifNative.WM_RAPPEL; d.hIcon = icone;
+                d.uFlags = NotifNative.NIF_MESSAGE | NotifNative.NIF_ICON | NotifNative.NIF_TIP | NotifNative.NIF_INFO;
+                d.szTip = "Nettoyage PC";
+                d.szInfo = Couper(texte, 255); d.szInfoTitle = Couper(titre, 63);
+                d.dwInfoFlags = NotifNative.NIIF_INFO; d.uTimeoutOrVersion = 10000;
+                ajoutee = NotifNative.Shell_NotifyIcon(NotifNative.NIM_ADD, ref d);
+                if (!ajoutee) return;
+                var fin = DateTime.Now.AddSeconds(9);
+                NotifNative.MSG m;
+                while (DateTime.Now < fin)
+                {
+                    while (NotifNative.PeekMessage(out m, IntPtr.Zero, 0, 0, 1))
+                    {
+                        if (m.message == NotifNative.WM_RAPPEL && ((long)m.lParam & 0xFFFF) == NotifNative.NIN_BALLOONUSERCLICK)
+                        {
+                            try { Process.Start(new ProcessStartInfo(Chemins.Exe) { UseShellExecute = true }); } catch { }
+                            fin = DateTime.Now;
+                        }
+                        NotifNative.TranslateMessage(ref m);
+                        NotifNative.DispatchMessage(ref m);
+                    }
+                    Thread.Sleep(100);
+                }
+            }
+            catch { }
+            finally
+            {
+                try { if (ajoutee) NotifNative.Shell_NotifyIcon(NotifNative.NIM_DELETE, ref d); } catch { }
+                try { if (iconeExtraite) NotifNative.DestroyIcon(icone); } catch { }
+                try { if (fenetre != IntPtr.Zero) NotifNative.DestroyWindow(fenetre); } catch { }
+            }
+        }
+
+        private static string Couper(string s, int max) { s = s ?? ""; return s.Length <= max ? s : s.Substring(0, max - 1) + "…"; }
+    }
+
+    internal static class NotifNative
+    {
+        public const int NIM_ADD = 0, NIM_DELETE = 2, NIF_MESSAGE = 1, NIF_ICON = 2, NIF_TIP = 4, NIF_INFO = 0x10, NIIF_INFO = 1;
+        public const int WM_RAPPEL = 0x8000 + 0x4E50, NIN_BALLOONUSERCLICK = 0x405;
+
+        [System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential, CharSet = System.Runtime.InteropServices.CharSet.Unicode)]
+        public struct NOTIFYICONDATA
+        {
+            public int cbSize; public IntPtr hWnd; public int uID; public int uFlags; public int uCallbackMessage; public IntPtr hIcon;
+            [System.Runtime.InteropServices.MarshalAs(System.Runtime.InteropServices.UnmanagedType.ByValTStr, SizeConst = 128)] public string szTip;
+            public int dwState, dwStateMask;
+            [System.Runtime.InteropServices.MarshalAs(System.Runtime.InteropServices.UnmanagedType.ByValTStr, SizeConst = 256)] public string szInfo;
+            public int uTimeoutOrVersion;
+            [System.Runtime.InteropServices.MarshalAs(System.Runtime.InteropServices.UnmanagedType.ByValTStr, SizeConst = 64)] public string szInfoTitle;
+            public int dwInfoFlags; public Guid guidItem; public IntPtr hBalloonIcon;
+        }
+
+        [System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]
+        public struct MSG { public IntPtr hwnd; public int message; public IntPtr wParam, lParam; public int time, x, y; }
+
+        [System.Runtime.InteropServices.DllImport("shell32.dll", CharSet = System.Runtime.InteropServices.CharSet.Unicode)] public static extern bool Shell_NotifyIcon(int message, ref NOTIFYICONDATA data);
+        [System.Runtime.InteropServices.DllImport("shell32.dll", CharSet = System.Runtime.InteropServices.CharSet.Unicode)] public static extern IntPtr ExtractIcon(IntPtr instance, string fichier, int index);
+        [System.Runtime.InteropServices.DllImport("user32.dll", CharSet = System.Runtime.InteropServices.CharSet.Unicode)] public static extern IntPtr CreateWindowEx(int exStyle, string classe, string titre, int style, int x, int y, int l, int h, IntPtr parent, IntPtr menu, IntPtr instance, IntPtr param);
+        [System.Runtime.InteropServices.DllImport("user32.dll")] public static extern bool DestroyWindow(IntPtr fenetre);
+        [System.Runtime.InteropServices.DllImport("user32.dll")] public static extern IntPtr LoadIcon(IntPtr instance, IntPtr nom);
+        [System.Runtime.InteropServices.DllImport("user32.dll")] public static extern bool DestroyIcon(IntPtr icone);
+        [System.Runtime.InteropServices.DllImport("user32.dll", CharSet = System.Runtime.InteropServices.CharSet.Unicode)] public static extern bool PeekMessage(out MSG m, IntPtr fenetre, int min, int max, int retirer);
+        [System.Runtime.InteropServices.DllImport("user32.dll")] public static extern bool TranslateMessage(ref MSG m);
+        [System.Runtime.InteropServices.DllImport("user32.dll", CharSet = System.Runtime.InteropServices.CharSet.Unicode)] public static extern IntPtr DispatchMessage(ref MSG m);
+    }
+#else
     /// <summary>Notification Windows (bulle de la zone de notification, affichée comme une notification).</summary>
     internal static class Notification
     {
@@ -239,4 +349,5 @@ namespace NettoyagePC
             catch { }
         }
     }
+#endif
 }

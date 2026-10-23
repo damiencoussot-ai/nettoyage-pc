@@ -163,7 +163,7 @@ namespace NettoyagePC
         /// <summary>(Essai automatique de l'interface uniquement) Montre un état de licence sans rien enregistrer : "", "essai", "offerte".</summary>
         public static void SimulerPourAutotest(string type)
         {
-            if (Programme.DossierAutotest == null) return;
+            if (Appli.DossierAutotest == null) return;
             if (type == "") { Evaluer(); Signaler(); return; }
             Premium = true; EnEssai = type == "essai"; JoursEssaiRestants = EnEssai ? 5 : 0; Type = type; Titulaire = EnEssai ? "" : "Maman"; Remarque = "";
             Signaler();
@@ -307,7 +307,7 @@ namespace NettoyagePC
         {
             var d = new Dictionary<string, object> { { "produit", "NettoyagePC-Premium" }, { "nom", nom }, { "creee", DateTime.Today.ToString("yyyy-MM-dd") } };
             if (!string.IsNullOrEmpty(fin)) d["fin"] = fin;
-            byte[] donnees = Encoding.UTF8.GetBytes(new System.Web.Script.Serialization.JavaScriptSerializer().Serialize(d));
+            byte[] donnees = Encoding.UTF8.GetBytes(Json.Compact(d));
             using (var rsa = new RSACryptoServiceProvider())
             {
                 rsa.PersistKeyInCsp = false;
