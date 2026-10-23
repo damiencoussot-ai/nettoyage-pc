@@ -149,6 +149,26 @@ namespace NettoyagePC
 
     internal static class Enqueteur
     {
+        /// <summary>Verdict de l'enquête depuis une date. periode : « depuis 2 semaines »... niveau : 0 rien n'a changé, 1 sans suspect, 2 suspects.</summary>
+        public static string Verdict(ResultatEnquete res, DateTime depuis, string periode, out int niveau, out string detail)
+        {
+            int nbSuspects = res.Changements.Count(c => c.Date >= depuis && c.Suspicion >= 2);
+            int nbTotal = res.Changements.Count(c => c.Date >= depuis);
+            if (nbTotal == 0)
+            {
+                niveau = 0;
+                detail = Langue.T("Le ralentissement vient sûrement d'ailleurs : disque presque plein, trop de programmes ouverts, onglets du navigateur, ou connexion Internet. Le bilan de l'accueil et l'onglet Optimisation t'aident à le trouver.");
+                return Langue.F("Rien n'a changé sur ton PC {0}.", periode);
+            }
+            var top = res.Changements.Where(c => c.Date >= depuis).OrderByDescending(c => c.Suspicion).ThenByDescending(c => c.Date).First();
+            niveau = nbSuspects > 0 ? 2 : 1;
+            var tendances = res.Metriques.Where(m => m.Cle != "nbdemarrage").Select(m => Tendance(m, depuis)).Where(t => t != "").ToList();
+            string memoire = res.NbInstantanes < 7 ? Langue.T("L'enquêteur photographie ton PC chaque jour : plus il est utilisé longtemps, plus il repère de changements (programmes au démarrage, services, réglages). Installations, pilotes et mises à jour sont déjà retrouvés dans l'historique de Windows.") : "";
+            detail = string.Join("   ·   ", tendances) + (tendances.Count > 0 && memoire != "" ? "\n" : "") + memoire;
+            return nbSuspects == 0 ? Langue.F(nbTotal == 1 ? "1 changement {1}, sans suspect évident." : "{0} changements {1}, sans suspect évident.", nbTotal, periode)
+                : Langue.F(nbSuspects == 1 ? "{0} changements {2}, dont 1 suspect : {3}" : "{0} changements {2}, dont {1} suspects. Le premier : {3}", nbTotal, nbSuspects, periode, top.Titre);
+        }
+
         private static string FichierDemarrages { get { return Path.Combine(Chemins.Local, "demarrages.json"); } }
 
         /// <summary>Garde les durées de démarrage lues par « Analyse du démarrage » (autorisation administrateur), fusionnées avec les précédentes.</summary>

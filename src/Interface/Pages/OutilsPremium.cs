@@ -149,105 +149,35 @@ namespace NettoyagePC
             if (!F.LancerAction("plantages")) { lblResume.Text = "Analyse non lancée (une autre action est peut-être en cours)."; lblResume.RoleTexte = Role.Orange; lblResume.AppliquerTheme(); }
         }
 
-        private static string Date(string d) { DateTime x; return DateTime.TryParse(d, out x) ? x.ToString("dd/MM/yyyy HH:mm") : d; }
-
-        private static readonly Dictionary<string, string> NomsCategories = new Dictionary<string, string>
-        {
-            { "pilote", "Pilote" }, { "memoire", "Mémoire vive" }, { "disque", "Disque" }, { "graphique", "Carte graphique" }, { "materiel", "Matériel" }, { "systeme", "Windows" }
-        };
+        private static Role RoleNiveau(int n) { return n == 2 ? Role.Rouge : n == 1 ? Role.Orange : n == 3 ? Role.Vert : Role.Texte; }
 
         private void Afficher(Dictionary<string, object> d)
         {
             if (d == null) return;
-            var ecrans = Json.Objets(Json.Valeur(d, "Ecrans"));
-            var arrets = Json.Objets(Json.Valeur(d, "Arrets"));
-            var materiel = Json.Objets(Json.Valeur(d, "Materiel"));
-            var disques = Json.Objets(Json.Valeur(d, "Disques"));
-            var applis = Json.Objets(Json.Valeur(d, "Applications"));
-            long affichage = Json.Long(d, "Affichage");
-            int coupures = arrets.Count(a => Json.Texte(a, "Type") != "ecran-bleu");
-            long nbMat = materiel.Sum(m => Json.Long(m, "Fois")) + disques.Sum(m => Json.Long(m, "Fois")) + affichage;
-            tEcrans.Valeur = ecrans.Count.ToString(); tEcrans.Couleur = ecrans.Count > 0 ? Role.Rouge : Role.Vert;
-            tArrets.Valeur = coupures.ToString(); tArrets.Couleur = coupures > 0 ? Role.Orange : Role.Vert;
-            tMateriel.Valeur = nbMat.ToString(); tMateriel.Couleur = materiel.Any(m => Json.Bool(m, "Grave")) || disques.Count > 0 ? Role.Rouge : nbMat > 0 ? Role.Orange : Role.Vert;
-            tApplis.Valeur = applis.Count.ToString(); tApplis.Couleur = applis.Count > 5 ? Role.Orange : Role.Vert;
-            foreach (var t in new[] { tEcrans, tArrets, tMateriel, tApplis }) t.Invalidate();
-            graph.Semaines = new List<int[]>();
-            var sem = Json.Valeur(d, "Semaines") as System.Collections.IEnumerable;
-            if (sem != null) foreach (var s in sem) { var v = (s as System.Collections.IEnumerable); if (v == null) continue; var a = v.Cast<object>().Select(o => Convert.ToInt32(o)).ToArray(); if (a.Length == 3) graph.Semaines.Add(a); }
+            int[] niveaux;
+            var chiffres = AnalysePlantages.Chiffres(d, out niveaux);
+            var tuiles = new[] { tEcrans, tArrets, tMateriel, tApplis };
+            for (int i = 0; i < 4; i++) { tuiles[i].Valeur = chiffres[i].ToString(); tuiles[i].Couleur = RoleNiveau(niveaux[i]); tuiles[i].Invalidate(); }
+            graph.Semaines = AnalysePlantages.Semaines(d);
             graph.Invalidate();
-            double indice = 0; try { indice = Convert.ToDouble(Json.Valeur(d, "Indice") ?? -1); } catch { indice = -1; }
+            double indice = AnalysePlantages.Indice(d);
             lblIndice.Text = indice >= 0 ? Langue.T("Indice de stabilité de Windows") + " : " + indice.ToString("0.0", Appli.Fr) + " / 10" : "";
             lblIndice.RoleTexte = indice >= 8 ? Role.Vert : indice >= 5 ? Role.Orange : Role.Rouge; lblIndice.AppliquerTheme();
-
-            bool stable = ecrans.Count == 0 && coupures == 0 && nbMat == 0;
-            if (stable && applis.Count == 0) { lblResume.Text = "✔ Aucun plantage en 90 jours : ton PC est stable."; lblResume.RoleTexte = Role.Vert; }
-            else if (stable) { lblResume.Text = Langue.F("✔ Windows est stable. {0} application(s) ont planté ou se sont figées en 90 jours.", applis.Count); lblResume.RoleTexte = Role.Vert; }
-            else
-            {
-                var p = new List<string>();
-                if (ecrans.Count > 0) p.Add(Langue.F("{0} écran(s) bleu(s)", ecrans.Count));
-                if (coupures > 0) p.Add(Langue.F("{0} arrêt(s) brutal(aux)", coupures));
-                if (nbMat > 0) p.Add(Langue.F("{0} erreur(s) matérielle(s) ou de disque", nbMat));
-                if (applis.Count > 0) p.Add(Langue.F("{0} application(s) qui plantent", applis.Count));
-                lblResume.Text = string.Join(", ", p) + " " + Langue.T("en 90 jours.");
-                lblResume.RoleTexte = ecrans.Count > 0 || materiel.Any(m => Json.Bool(m, "Grave")) || disques.Count > 0 ? Role.Rouge : Role.Orange;
-            }
+            int niveau;
+            lblResume.Text = AnalysePlantages.Resume(d, out niveau);
+            lblResume.RoleTexte = RoleNiveau(niveau);
             lblResume.AppliquerTheme();
 
             lv.BeginUpdate(); lv.Items.Clear();
-            foreach (var e in ecrans)
+            foreach (var l in AnalysePlantages.Lignes(d))
             {
-                string cat = Json.Texte(e, "Categorie"), nom;
-                NomsCategories.TryGetValue(cat, out nom);
-                var it = lv.Ajouter(Langue.T(Json.Texte(e, "Explication")) + "\n\n" + Langue.T("Code technique") + " : " + Json.Texte(e, "Code") + " " + Json.Texte(e, "Nom") + (Json.Texte(e, "Dump") != "" ? "  ·  " + Json.Texte(e, "Dump") : ""),
-                    Langue.T("Écran bleu") + " : " + (Json.Texte(e, "Nom") != "" ? Json.Texte(e, "Nom") : Json.Texte(e, "Code")), Langue.T("Écran bleu") + " · " + Langue.T(nom ?? "Pilote"), "1", Date(Json.Texte(e, "Date")));
-                it.ForeColor = Theme.P.Rouge; it.SubItems[2].Tag = 1L;
-            }
-            foreach (var g in arrets.Where(a => Json.Texte(a, "Type") != "ecran-bleu").GroupBy(a => Json.Texte(a, "Type")))
-            {
-                bool bouton = g.Key == "bouton";
-                var it = lv.Ajouter(bouton ? Langue.T("Le PC a été éteint en maintenant le bouton d'alimentation, souvent parce qu'il ne répondait plus (blocage complet).") : Langue.T("Le PC s'est éteint d'un coup, sans écran bleu : coupure de courant, alimentation fatiguée, surchauffe, ou blocage complet."),
-                    bouton ? Langue.T("Arrêt forcé avec le bouton d'alimentation") : Langue.T("Arrêt brutal (coupure)"), Langue.T("Arrêt brutal"), g.Count().ToString(), Date(g.Max(a => Json.Texte(a, "Date"))));
-                it.ForeColor = Theme.P.Orange; it.SubItems[2].Tag = (long)g.Count();
-            }
-            foreach (var m in materiel)
-            {
-                bool grave = Json.Bool(m, "Grave");
-                var it = lv.Ajouter(Langue.T(grave ? "Erreur matérielle grave signalée par le processeur ou la carte mère : souvent un overclocking ou un profil EXPO / XMP instable, une surchauffe ou l'alimentation." : "Erreur matérielle corrigée automatiquement : sans conséquence si elle reste rare.") + "\n(" + Json.Texte(m, "Detail") + ")",
-                    Langue.T(Json.Texte(m, "Nom")), Langue.T(grave ? "Matériel · grave" : "Matériel · corrigée"), Json.Long(m, "Fois").ToString(), Date(Json.Texte(m, "Dernier")));
-                it.ForeColor = grave ? Theme.P.Rouge : Theme.P.Orange; it.SubItems[2].Tag = Json.Long(m, "Fois");
-            }
-            foreach (var m in disques)
-            {
-                var it = lv.Ajouter(Langue.T("Un disque a signalé des erreurs : sauvegarde tes fichiers et vérifie sa santé (Outils > Matériel).") + "\n(" + Json.Texte(m, "Detail") + ")",
-                    Langue.T(Json.Texte(m, "Nom")), Langue.T("Disque"), Json.Long(m, "Fois").ToString(), Date(Json.Texte(m, "Dernier")));
-                it.ForeColor = Theme.P.Rouge; it.SubItems[2].Tag = Json.Long(m, "Fois");
-            }
-            if (affichage > 0)
-            {
-                var it = lv.Ajouter(Langue.T("Le pilote de la carte graphique a cessé de répondre, puis Windows l'a relancé (écran noir quelques secondes). Mets le pilote à jour et surveille la température en jeu."),
-                    Langue.T("Pilote graphique arrêté puis relancé"), Langue.T("Carte graphique"), affichage.ToString(), Date(Json.Texte(d, "DernierAffichage")));
-                it.ForeColor = Theme.P.Orange; it.SubItems[2].Tag = affichage;
-            }
-            foreach (var a in applis)
-            {
-                long n = Json.Long(a, "Plantages"), fig = Json.Long(a, "Figee");
-                string module = Json.Texte(a, "Module"), expl = Json.Texte(a, "Explication");
-                string detail = (n > 0 ? Langue.T("Plantages") + " : " + n : "") + (fig > 0 ? (n > 0 ? "  ·  " : "") + Langue.T("blocages (l'application ne répondait plus)") + " : " + fig : "") +
-                    (module != "" ? "\n" + Langue.T("Composant en cause") + " : " + module + (expl != "" ? " (" + Langue.T(expl) + ")" : "") : "") +
-                    "\n" + Langue.T(Json.Texte(a, "Categorie") == "graphique" ? "Conseil : mets à jour le pilote de la carte graphique (Accélérer > Pilotes)." : Json.Texte(a, "Categorie") == "vcpp" ? "Conseil : réinstalle « Microsoft Visual C++ Redistributable » (site de Microsoft)." : "Conseil : mets l'application à jour (Accélérer > Applications), ou réinstalle-la.");
-                var it = lv.Ajouter(detail, Json.Texte(a, "Nom"), Langue.T(n > 0 ? "Application" : "Application figée"), (n + fig).ToString(), Date(Json.Texte(a, "Dernier")));
-                it.SubItems[2].Tag = n + fig;
+                var it = lv.Ajouter(l.Detail, l.Quoi, l.Type, l.Fois, l.Derniere);
+                if (l.Niveau == 1 || l.Niveau == 2) it.ForeColor = l.Niveau == 2 ? Theme.P.Rouge : Theme.P.Orange;
+                it.SubItems[2].Tag = l.Nombre;
             }
             if (lv.Items.Count == 0) lv.Ajouter("", Langue.T("Rien à signaler sur les 90 derniers jours."), "", "", "").ForeColor = Theme.P.Vert;
             lv.EndUpdate();
-            var conseils = new List<string>();
-            foreach (var o in (Json.Valeur(d, "Conseils") as System.Collections.IEnumerable ?? new object[0]))
-            {
-                var parts = o is string ? null : (o as System.Collections.IEnumerable)?.Cast<object>().ToList();
-                conseils.Add("•  " + (parts == null || parts.Count == 0 ? Langue.T(Convert.ToString(o)) : Langue.F(Convert.ToString(parts[0]), parts.Skip(1).ToArray())));
-            }
+            var conseils = AnalysePlantages.Conseils(d);
             lblConseils.Text = string.Join("\n", conseils);
             lblDetail.Text = "Clique sur une ligne pour voir l'explication.";
             Disposer();
@@ -338,8 +268,6 @@ namespace NettoyagePC
             };
         }
 
-        private static string Heures(TimeSpan? t) { return t.HasValue ? ((int)t.Value.TotalHours) + " h " + t.Value.Minutes.ToString("00") : "—"; }
-
         private void Afficher(InfosBatterie r)
         {
             if (IsDisposed) return;
@@ -355,23 +283,13 @@ namespace NettoyagePC
             }
             double s = r.Sante;
             jauge.Valeur = s; jauge.Invalidate();
-            lblEtat.Text = s < 0 ? "Batterie détectée, mais Windows n'indique pas sa capacité." : s >= 80 ? "✔ Batterie en bonne santé" : s >= 60 ? "Batterie usée, mais encore correcte" : "Batterie très usée : son remplacement est à prévoir";
-            lblEtat.RoleTexte = s < 0 ? Role.Discret : s >= 80 ? Role.Vert : s >= 60 ? Role.Orange : Role.Rouge;
+            int niveau;
+            lblEtat.Text = Batterie.Resume(r, out niveau);
+            lblEtat.RoleTexte = niveau == 0 ? Role.Discret : niveau == 3 ? Role.Vert : niveau == 2 ? Role.Orange : Role.Rouge;
             lblEtat.AppliquerTheme();
-            var l = new List<string>();
-            if (r.Origine > 0) l.Add(Langue.T("Capacité d'origine") + " : " + Format.Nombre(r.Origine) + " mWh");
-            if (r.Actuelle > 0) l.Add(Langue.T("Capacité actuelle (pleine charge)") + " : " + Format.Nombre(r.Actuelle) + " mWh" + (s >= 0 ? "  (" + Langue.T("usure") + " " + Math.Max(0, 100 - s).ToString("0") + " %)" : ""));
-            if (r.Cycles > 0) l.Add(Langue.T("Cycles de charge") + " : " + r.Cycles);
-            if (r.AutonomieActuelle.HasValue) l.Add(Langue.T("Autonomie estimée par Windows") + " : " + Heures(r.AutonomieActuelle) + (r.AutonomieOrigine.HasValue ? "  (" + Langue.T("neuve") + " : " + Heures(r.AutonomieOrigine) + ")" : ""));
-            if (r.Charge >= 0) l.Add(Langue.T("Charge actuelle") + " : " + r.Charge + " %" + (r.SurSecteur ? "  (" + Langue.T("sur secteur") + ")" : ""));
-            if (r.Fabricant != "" || r.NomChimie != "") l.Add(Langue.T("Batterie") + " : " + string.Join(" · ", new[] { r.Fabricant, Langue.T(r.NomChimie), r.Nom }.Where(x => !string.IsNullOrEmpty(x))));
-            lblDetails.Text = string.Join("\n", l);
+            lblDetails.Text = string.Join("\n", Batterie.Details(r));
             graph.Points = r.Historique; graph.Invalidate();
-            var c = new List<string>();
-            if (s >= 0 && s < 60) c.Add("La batterie a perdu plus de 40 % de sa capacité : un remplacement par le fabricant (ou un réparateur) redonnera de l'autonomie.");
-            else if (s >= 0 && s < 80) c.Add("Une usure de 20 à 40 % est normale après deux ou trois ans d'utilisation.");
-            c.Add("Pour la faire durer : évite de la laisser au soleil ou dans la chaleur, et ne la laisse pas souvent se vider complètement.");
-            c.Add("Si ton portable reste branché la plupart du temps, active la limite de charge (souvent 80 %) dans l'application du fabricant (Lenovo Vantage, MyASUS, Dell Power Manager, HP Smart...).");
+            var c = Batterie.Conseils(r);
             lblConseils.Text = string.Join("\n", c.Select(x => "•  " + Langue.T(x)));
         }
     }

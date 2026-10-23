@@ -130,8 +130,6 @@ namespace NettoyagePC
             if (res == null) return;
             var depuis = Depuis;
             var l = res.Changements.Where(c => c.Date >= depuis && (!cSuspects.Checked || c.Suspicion >= 1)).OrderByDescending(c => c.Suspicion).ThenByDescending(c => c.Date).ToList();
-            int nbSuspects = res.Changements.Count(c => c.Date >= depuis && c.Suspicion >= 2);
-            int nbTotal = res.Changements.Count(c => c.Date >= depuis);
             lv.BeginUpdate(); lv.Items.Clear();
             foreach (var c in l)
             {
@@ -140,22 +138,10 @@ namespace NettoyagePC
                 if (c.Suspicion >= 2) it.ForeColor = Theme.P.Orange;
             }
             lv.EndUpdate(); lv.AjusterColonnes();
-            if (nbTotal == 0)
-            {
-                lblVerdict.Text = Langue.F("Rien n'a changé sur ton PC {0}.", cbDepuis.SelectedItem as string ?? "");
-                lblVerdict.RoleTexte = Role.Vert;
-                lblDetail.Text = "Le ralentissement vient sûrement d'ailleurs : disque presque plein, trop de programmes ouverts, onglets du navigateur, ou connexion Internet. Le bilan de l'accueil et l'onglet Optimisation t'aident à le trouver.";
-            }
-            else
-            {
-                var top = res.Changements.Where(c => c.Date >= depuis).OrderByDescending(c => c.Suspicion).ThenByDescending(c => c.Date).First();
-                lblVerdict.Text = nbSuspects == 0 ? Langue.F(nbTotal == 1 ? "1 changement {1}, sans suspect évident." : "{0} changements {1}, sans suspect évident.", nbTotal, cbDepuis.SelectedItem as string ?? "")
-                    : Langue.F(nbSuspects == 1 ? "{0} changements {2}, dont 1 suspect : {3}" : "{0} changements {2}, dont {1} suspects. Le premier : {3}", nbTotal, nbSuspects, cbDepuis.SelectedItem as string ?? "", top.Titre);
-                lblVerdict.RoleTexte = nbSuspects > 0 ? Role.Orange : Role.Texte;
-                var tendances = res.Metriques.Where(m => m.Cle != "nbdemarrage").Select(m => Enqueteur.Tendance(m, depuis)).Where(t => t != "").ToList();
-                string memoire = res.NbInstantanes < 7 ? Langue.T("L'enquêteur photographie ton PC chaque jour : plus il est utilisé longtemps, plus il repère de changements (programmes au démarrage, services, réglages). Installations, pilotes et mises à jour sont déjà retrouvés dans l'historique de Windows.") : "";
-                lblDetail.Text = string.Join("   ·   ", tendances) + (tendances.Count > 0 && memoire != "" ? "\n" : "") + memoire;
-            }
+            int niveau; string detail;
+            lblVerdict.Text = Enqueteur.Verdict(res, depuis, cbDepuis.SelectedItem as string ?? "", out niveau, out detail);
+            lblVerdict.RoleTexte = niveau == 0 ? Role.Vert : niveau == 2 ? Role.Orange : Role.Texte;
+            lblDetail.Text = detail;
             lblVerdict.AppliquerTheme();
             int y = Math.Max(lblDetail.Bottom + 10, 196);
             courbe.Top = y; cbCourbe.Top = y + 6;

@@ -37,6 +37,30 @@ namespace NettoyagePC
 
     internal static class Benchmark
     {
+        public static string Points(double mo) { return Format.Nombre(mo * 10) + " pts"; }
+
+        /// <summary>Dossier de test sur le disque choisi (le dossier temporaire sur le disque de Windows).</summary>
+        public static string DossierTest(string racine)
+        {
+            string dossier = racine == Path.GetPathRoot(Path.GetTempPath()) ? Path.GetTempPath() : Path.Combine(racine, "NettoyagePC-test");
+            try { Directory.CreateDirectory(dossier); } catch { dossier = Path.GetTempPath(); }
+            return dossier;
+        }
+
+        /// <summary>Comparaison de la dernière mesure avec la précédente (texte non traduit d'un bloc).</summary>
+        public static string Comparaison(List<ResultatBenchmark> h)
+        {
+            if (h.Count == 0) return "Aucune mesure pour l'instant. Astuce : fais une mesure AVANT un réglage (par exemple l'EXPO), puis une APRÈS : la différence s'affiche ici.";
+            var der = h[h.Count - 1];
+            if (h.Count == 1) return "Première mesure enregistrée : refais-en une après un réglage pour voir la différence.";
+            var ref0 = h[h.Count - 2];
+            Func<double, double, string> pct = (a, b) => b <= 0 ? "—" : ((a - b) / b * 100).ToString("+0;-0;0", Appli.Fr) + " %";
+            return "Par rapport à la mesure précédente (" + ref0.Date + (ref0.Note != "" ? ", " + ref0.Note : "") + ") :   processeur " + pct(der.CpuN, ref0.CpuN) +
+                "   ·   mémoire " + pct(der.Memoire, ref0.Memoire) + "   ·   disque " + pct(der.DisqueLecture, ref0.DisqueLecture) +
+                (Math.Abs(der.Memoire - ref0.Memoire) / Math.Max(0.1, ref0.Memoire) > 0.1 && der.RamMts != ref0.RamMts && der.RamMts > 0 ? "\nLa mémoire est passée de " + ref0.RamMts + " à " + der.RamMts + " MT/s." : "") +
+                "\n(Écarts de moins de 3 % : variation normale d'une mesure à l'autre.)";
+        }
+
         public static string Fichier { get { return Chemins.Fichier("benchmarks.json"); } }
         public static volatile bool Arret;
 

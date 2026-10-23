@@ -678,39 +678,27 @@ namespace NettoyagePC
             if (!F.LancerAction("demarrage")) { lblResume.Text = "Analyse non lancée (autorisation refusée ou action déjà en cours)."; lblResume.RoleTexte = Role.Orange; lblResume.AppliquerTheme(); }
         }
 
-        private static string Sec(double ms) { return (ms / 1000.0).ToString(ms < 10000 ? "0.0" : "0", Appli.Fr) + " s"; }
+        private static string Sec(double ms) { return AnalyseDemarrage.Sec(ms); }
 
         private void Afficher(Dictionary<string, object> d)
         {
             if (d == null) return;
-            if (!Json.Bool(d, "Admin")) { lblResume.Text = "Sans l'autorisation de Windows, le chronométrage des démarrages ne peut pas être lu."; lblResume.RoleTexte = Role.Orange; lblResume.AppliquerTheme(); return; }
-            var dem = Json.Objets(Json.Valeur(d, "Demarrages"));
-            graph.Valeurs = dem.AsEnumerable().Reverse().Select(x => Tuple.Create(Json.Texte(x, "Date"), Json.Long(x, "Principal"), Json.Long(x, "Apres"))).ToList();
-            graph.Invalidate();
-            if (dem.Count == 0) { lblResume.Text = "Windows n'a encore chronométré aucun démarrage complet (ou le journal a été vidé)."; lblResume.RoleTexte = Role.Discret; }
-            else
-            {
-                var dernier = dem[0];
-                double moy = dem.Take(10).Average(x => Json.Long(x, "Total"));
-                lblResume.Text = "Dernier démarrage : " + Sec(Json.Long(dernier, "Total")) + "  (" + Sec(Json.Long(dernier, "Principal")) + " jusqu'au bureau + " + Sec(Json.Long(dernier, "Apres")) + " de programmes au démarrage)   ·   moyenne des 10 derniers : " + Sec(moy);
-                lblResume.RoleTexte = moy > 90000 ? Role.Orange : Role.Vert;
-            }
+            int niveau;
+            lblResume.Text = AnalyseDemarrage.Resume(d, out niveau);
+            lblResume.RoleTexte = niveau == -1 || niveau == 1 ? Role.Orange : niveau == 2 ? Role.Vert : Role.Discret;
             lblResume.AppliquerTheme();
-            var ral = Json.Objets(Json.Valeur(d, "Ralentissements"));
+            if (niveau == -1) return;
+            graph.Valeurs = AnalyseDemarrage.Demarrages(d);
+            graph.Invalidate();
             lv.BeginUpdate(); lv.Items.Clear();
-            foreach (var r in ral)
+            foreach (var l in AnalyseDemarrage.Lignes(d))
             {
-                long m = Json.Long(r, "Moyenne");
-                var it = lv.Ajouter(r, Json.Texte(r, "Nom"), Json.Texte(r, "Type"), Sec(m), Json.Long(r, "Fois").ToString(), Json.Texte(r, "Dernier"));
-                it.SubItems[2].Tag = m; it.SubItems[3].Tag = Json.Long(r, "Fois");
-                if (m >= 5000) it.ForeColor = Theme.P.Orange;
+                var it = lv.Ajouter(l, l.Quoi, l.Type, Sec(l.Valeur), l.Fois, l.Derniere);
+                it.SubItems[2].Tag = l.Valeur; it.SubItems[3].Tag = l.Nombre;
+                if (l.Niveau == 1) it.ForeColor = Theme.P.Orange;
             }
             lv.EndUpdate();
-            var conseils = new List<string>();
-            var pires = ral.Where(r => Json.Long(r, "Moyenne") >= 3000).Take(3).Select(r => Json.Texte(r, "Nom") + " (" + Sec(Json.Long(r, "Moyenne")) + ")").ToList();
-            if (pires.Count > 0) conseils.Add("Les plus gros freins : " + string.Join(", ", pires) + ". Pour une application, décoche-la dans Accélérer > Démarrage ; pour un pilote, mets-le à jour.");
-            if (!Json.Bool(d, "DemarrageRapide")) conseils.Add("Le démarrage rapide de Windows est désactivé : l'activer (Panneau de configuration > Options d'alimentation) peut faire gagner plusieurs secondes.");
-            if (conseils.Count == 0 && dem.Count > 0) conseils.Add("✔ Aucun ralentissement important repéré.");
+            var conseils = AnalyseDemarrage.Conseils(d);
             lblConseil.Text = string.Join("\n", conseils);
             graph.Top = lblConseil.Bottom + 12; lv.Top = graph.Bottom + 12; lv.Height = Math.Max(120, ClientSize.Height - lv.Top - 60);
         }
@@ -762,7 +750,7 @@ namespace NettoyagePC
             Afficher();
         }
 
-        private static string Pts(double mo) { return Format.Nombre(mo * 10) + " pts"; }
+        private static string Pts(double mo) { return Benchmark.Points(mo); }
 
         private void Afficher()
         {
@@ -772,15 +760,8 @@ namespace NettoyagePC
                 lv.Ajouter(r, r.Date, r.Note + (r.RamMts > 0 ? (r.Note != "" ? " · " : "") + "RAM " + r.RamMts : ""), Pts(r.Cpu1), Pts(r.CpuN), r.Memoire.ToString("0.0", Appli.Fr) + " Go/s",
                     Format.Nombre(r.DisqueLecture) + " Mo/s", Format.Nombre(r.DisqueEcriture) + " Mo/s", r.DisqueAleatoire > 0 ? Format.Nombre(r.DisqueAleatoire) + " /s" : "—");
             lv.EndUpdate();
-            if (h.Count == 0) { lblComparaison.Text = "Aucune mesure pour l'instant. Astuce : fais une mesure AVANT un réglage (par exemple l'EXPO), puis une APRÈS : la différence s'affiche ici."; return; }
-            var der = h[h.Count - 1];
-            if (h.Count == 1) { lblComparaison.Text = "Première mesure enregistrée : refais-en une après un réglage pour voir la différence."; return; }
-            var ref0 = h[h.Count - 2];
-            Func<double, double, string> pct = (a, b) => b <= 0 ? "—" : ((a - b) / b * 100).ToString("+0;-0;0", Appli.Fr) + " %";
-            lblComparaison.Text = "Par rapport à la mesure précédente (" + ref0.Date + (ref0.Note != "" ? ", " + ref0.Note : "") + ") :   processeur " + pct(der.CpuN, ref0.CpuN) +
-                "   ·   mémoire " + pct(der.Memoire, ref0.Memoire) + "   ·   disque " + pct(der.DisqueLecture, ref0.DisqueLecture) +
-                (Math.Abs(der.Memoire - ref0.Memoire) / Math.Max(0.1, ref0.Memoire) > 0.1 && der.RamMts != ref0.RamMts && der.RamMts > 0 ? "\nLa mémoire est passée de " + ref0.RamMts + " à " + der.RamMts + " MT/s." : "") +
-                "\n(Écarts de moins de 3 % : variation normale d'une mesure à l'autre.)";
+            lblComparaison.Text = Benchmark.Comparaison(h);
+            if (h.Count < 2) return;
             lblComparaison.RoleTexte = Role.Texte; lblComparaison.AppliquerTheme();
         }
 
@@ -789,8 +770,7 @@ namespace NettoyagePC
             if (enCours) { Benchmark.Arret = true; return; }
             if (F.ActionEnCours) { BoiteMessage.Info("Une action est en cours : attends qu'elle se termine, la mesure serait faussée."); return; }
             int i = cbDisque.SelectedIndex; if (i < 0 || i >= disques.Count) return;
-            string dossier = disques[i].Name == Path.GetPathRoot(Path.GetTempPath()) ? Path.GetTempPath() : Path.Combine(disques[i].Name, "NettoyagePC-test");
-            try { Directory.CreateDirectory(dossier); } catch { dossier = Path.GetTempPath(); }
+            string dossier = Benchmark.DossierTest(disques[i].Name);
             enCours = true; bLancer.Text = "Arrêter"; barre.Demarrer(); barre.Visible = true;
             string n = note.Text.Trim();
             System.Threading.Tasks.Task.Run(() =>

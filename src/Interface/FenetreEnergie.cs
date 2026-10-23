@@ -73,16 +73,15 @@ namespace NettoyagePC
             });
         }
 
-        private static string Kwh(double wh) { return (wh / 1000).ToString(wh < 10000 ? "0.00" : "0.0", Appli.Fr) + " kWh"; }
-        private static string Euros(double wh) { double e = wh / 1000 * Energie.Prix; return e.ToString(e < 10 ? "0.00" : "0", Appli.Fr) + " €"; }
+        private static string Kwh(double wh) { return Energie.Kwh(wh); }
+        private static string Euros(double wh) { return Energie.Euros(wh); }
 
         private ModeleEnergie modele;
         private void Afficher(ModeleEnergie m = null)
         {
             if (m != null) modele = m;
-            var reg = ReglagesGardien.Lire();
-            bool actif = Gardien.EnCours && reg.Energie;
-            lblEtat.Text = actif ? "● Mesure en cours (le gardien relève l'activité chaque minute)" : !reg.Actif || !Gardien.EnCours ? "Le gardien est arrêté : active-le pour mesurer la consommation." : "La mesure de consommation est désactivée dans les réglages du gardien.";
+            bool actif;
+            lblEtat.Text = Energie.EtatMesure(out actif);
             lblEtat.RoleTexte = actif ? Role.Vert : Role.Orange; lblEtat.AppliquerTheme();
             bGardien.Principal = !actif; bGardien.Invalidate();
             var auj = jours.FirstOrDefault(j => j.Jour == DateTime.Today);
@@ -99,26 +98,13 @@ namespace NettoyagePC
             courbe.Points = mois.Select(j => Tuple.Create(j.Jour, j.Wh / 1000)).ToList();
             courbe.VideTexte = "Pas encore de mesure : le gardien relève l'activité du PC chaque minute.";
             courbe.Invalidate();
-            var parApp = new Dictionary<string, double>(StringComparer.OrdinalIgnoreCase);
-            foreach (var j in mois) foreach (var a in j.Apps) { double v; parApp.TryGetValue(a.Key, out v); parApp[a.Key] = v + a.Value; }
-            apps.Lignes = parApp.OrderByDescending(a => a.Value).Take(8).Select(a => Tuple.Create(a.Key == Energie.NomSysteme ? Langue.T("Windows et PC allumé (au repos)") : a.Key, a.Value, Euros(a.Value))).ToList();
+            apps.Lignes = Energie.ParApplication(mois).Take(8).Select(a => Tuple.Create(a.Key == Energie.NomSysteme ? Langue.T("Windows et PC allumé (au repos)") : a.Key, a.Value, Euros(a.Value))).ToList();
             apps.Invalidate();
 
-            var conseils = new List<string>();
-            int minInactif = mois.Sum(j => j.MinutesInactif); double whInactif = mois.Sum(j => j.WhInactif);
-            if (nbJours >= 3 && minInactif / (double)Math.Max(1, nbJours) >= 60)
-                conseils.Add(Langue.F("•  Ton PC reste allumé {0} h par jour en moyenne sans que personne ne s'en serve. Une mise en veille automatique après 15 à 30 minutes économiserait environ {1} par an.",
-                    (minInactif / 60.0 / nbJours).ToString("0.#", Appli.Fr), Euros(whInactif / nbJours * 365 * 0.9)));
-            var jeu = parApp.Where(a => a.Key != Energie.NomSysteme).OrderByDescending(a => a.Value).FirstOrDefault();
-            if (jeu.Key != null && whMois > 0 && jeu.Value / whMois >= 0.25)
-                conseils.Add(Langue.F("•  « {0} » représente {1} % de la consommation. Si c'est un jeu : limiter les images par seconde à la fréquence de ton écran (et activer FreeSync / G-Sync) réduit nettement la consommation de la carte graphique, sans différence visible.",
-                    jeu.Key, (jeu.Value / whMois * 100).ToString("0")));
-            conseils.Add("•  Éteins (ou mets en veille) le PC la nuit : un PC de bureau allumé pour rien consomme autant qu'une ampoule halogène.");
-            conseils.Add("•  Le mode d'alimentation « Équilibré » consomme moins que « Performances élevées » sans ralentir l'usage courant (Accélérer > Optimisation).");
+            var conseils = Energie.Conseils(mois);
             lblConseils.Text = string.Join("\n", conseils);
             if (modele != null)
-                lblModele.Text = Langue.F("Base de calcul : processeur {0} ({1} W), carte graphique {2}, reste du PC {3} W, pertes de l'alimentation comprises. Écrans non comptés.",
-                    modele.Processeur == "" ? "?" : modele.Processeur, modele.Tdp, modele.Tbp > 0 ? modele.Carte + " (" + modele.Tbp + " W)" : Langue.T("intégrée"), modele.Base);
+                lblModele.Text = Energie.TexteModele(modele);
             Disposer();
         }
 
