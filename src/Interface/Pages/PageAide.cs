@@ -1,4 +1,4 @@
-// Nettoyage PC - page Aide : aide à distance (Assistance rapide de Windows), résumé du PC à transmettre, guide
+﻿// Nettoyage PC - page Aide : aide à distance (Assistance rapide de Windows), résumé du PC à transmettre, guide
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -80,33 +80,6 @@ namespace NettoyagePC
             });
         }
 
-        public static string ResumePc()
-        {
-            var sb = new StringBuilder();
-            Action<string> l = s => sb.AppendLine(s);
-            l("Résumé du PC « " + Environment.MachineName + " » - Nettoyage PC " + Appli.Version + " - " + DateTime.Now.ToString("dd/MM/yyyy HH:mm"));
-            l("Windows : " + InfosPc.Edition + " (build " + Natif.Build + ", " + (Environment.Is64BitOperatingSystem ? "64" : "32") + " bits)" + (InfosPc.EstPortable ? ", PC portable" : ""));
-            try { l("Démarré depuis : " + Math.Floor(TimeSpan.FromMilliseconds(Environment.TickCount & int.MaxValue).TotalHours) + " h" + (InfosPc.RedemarrageEnAttente() ? " (redémarrage en attente)" : "")); } catch { }
-            l("Processeur : " + InfosPc.Processeur());
-            try
-            {
-                var m = InfosMateriel.Lire();
-                long total = m.Barrettes.Sum(b => b.Capacite);
-                string ram = Format.Taille(total > 0 ? total : InfosPc.RamGo * 1073741824.0) + (m.Barrettes.Count > 0 ? " " + m.Barrettes[0].Type + ", " + m.Barrettes.Count + " barrette(s)" : "");
-                if (m.Reelle > 0) ram += ", " + m.Reelle + " MT/s" + (m.Bridee ? " (bridée : prévue pour " + m.Prevue + ", profil " + m.Profil + " désactivé)" : "");
-                l("Mémoire vive : " + ram);
-                if (m.CarteMere != "") l("Carte mère : " + m.CarteMere + (m.Bios != "" ? " (BIOS " + m.Bios + ")" : ""));
-                foreach (var d in m.Disques) l("Disque : " + d.Nom + " - " + d.Type + ", " + Format.Taille(d.Taille) + ", santé " + d.Sante);
-            }
-            catch { }
-            foreach (var g in InfosPc.CartesGraphiques()) l("Carte graphique : " + g.Nom + " (pilote " + g.VersionPilote + (g.DatePilote.HasValue ? " du " + g.DatePilote.Value.ToString("dd/MM/yyyy") : "") + ")");
-            foreach (var v in DriveInfo.GetDrives())
-            {
-                try { if (v.DriveType == DriveType.Fixed && v.IsReady) l("Lecteur " + v.Name.Substring(0, 2) + " " + Format.Taille(v.AvailableFreeSpace) + " libres sur " + Format.Taille(v.TotalSize)); } catch { }
-            }
-            var av = InfosPc.Antivirus();
-            l("Antivirus : " + (av.Count > 0 ? string.Join(", ", av) : "non détecté"));
-            return sb.ToString();
-        }
+        public static string ResumePc() { return ResumeDuPc.Creer(); }
     }
 }
