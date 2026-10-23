@@ -167,7 +167,9 @@ namespace NettoyagePC.Nouveau
         }
 
         /// <summary>Assistance rapide : application du Microsoft Store, ou ancienne version intégrée ; sinon la page du Store (avec question).</summary>
-        private void OuvrirAssistance()
+        private void OuvrirAssistance() { Ouvrir(F); }
+
+        public static void Ouvrir(FenetrePrincipale F)
         {
             try
             {

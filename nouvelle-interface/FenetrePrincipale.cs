@@ -319,8 +319,11 @@ namespace NettoyagePC.Nouveau
         {
             var P = Habillage.P;
             Background = Habillage.Pinceau(P.Fond);
-            var racine = new Grid { ColumnDefinitions = new ColumnDefinitions("220,*") };
-            racine.Children.Add(BarreDeMenu());
+            // mode simple : pas de menu, un seul écran à trois gros boutons
+            var racine = new Grid { ColumnDefinitions = new ColumnDefinitions(ModeSimple ? "0,*" : "220,*") };
+            var barreMenu = BarreDeMenu();
+            barreMenu.IsVisible = !ModeSimple;
+            racine.Children.Add(barreMenu);
             var droite = new DockPanel { LastChildFill = true };
             Grid.SetColumn(droite, 1);
             var entete = EnTete(); DockPanel.SetDock(entete, Dock.Top); droite.Children.Add(entete);
@@ -402,12 +405,13 @@ namespace NettoyagePC.Nouveau
             };
             recherche.Cursor = new Avalonia.Input.Cursor(Avalonia.Input.StandardCursorType.Hand);
             recherche.PointerReleased += (s, e) => OuvrirPalette();
+            recherche.IsVisible = !ModeSimple;
             droite.Children.Add(recherche);
             var bTheme = new BoutonNoyau("", false, 38, 38) { Icone = P.Sombre ? "soleil" : "lune" };
             ToolTip.SetTip(bTheme, P.Sombre ? "Passer en thème clair" : "Passer en thème sombre");
             bTheme.Clic += () => { ChangerTheme(!Habillage.P.Sombre); EnregistrerReglage(r => r.Theme = Habillage.P.Sombre ? "Sombre" : "Clair"); };
             droite.Children.Add(bTheme);
-            droite.Children.Add(PastilleSimulation());
+            if (!ModeSimple) droite.Children.Add(PastilleSimulation());
             Grid.SetColumn(droite, 1);
             g.Children.Add(droite);
             cadre.Children.Add(g);
@@ -465,13 +469,41 @@ namespace NettoyagePC.Nouveau
             statut = new TextBlock { Text = Simulation ? "Mode simulation : rien n'est modifié tant que tu ne passes pas en mode réel." : "Prêt.", FontFamily = Habillage.Corps, FontSize = 13, Foreground = Habillage.Pinceau(Simulation ? P.Orange : P.Discret), VerticalAlignment = VerticalAlignment.Center, TextTrimming = TextTrimming.CharacterEllipsis };
             g.Children.Add(statut);
             var b = new BoutonNoyau("Afficher les détails", false, 160, 30) { TaillePolice = 13, VerticalAlignment = VerticalAlignment.Center };
+            // la dernière action (panneau du bas) ; sans action depuis l'ouverture : le dossier des journaux
+            b.Clic += () =>
+            {
+                if (Moteur.Lignes.Count > 0 || Moteur.EnCours) { MontrerPanneauAction(); return; }
+                Demander("Aucune action depuis l'ouverture", "Le détail de chaque nettoyage et de chaque bilan est enregistré dans Documents\\NettoyagePC (gardé 60 jours).", "Ouvrir le dossier", "Fermer", oui =>
+                {
+                    if (oui) { try { Chemins.CreerDonnees(); Programmes.Ouvrir(Chemins.Donnees); } catch { } }
+                });
+            };
             Grid.SetColumn(b, 1); g.Children.Add(b);
             return new Border { Background = Habillage.Pinceau(P.Sombre ? Color.FromRgb(8, 13, 24) : Color.FromRgb(246, 249, 251)), BorderBrush = Habillage.Pinceau(P.Bordure), BorderThickness = new Thickness(0, 1, 0, 0), Child = g };
         }
 
         // ------------------------------------------------------------ navigation
+        /// <summary>Mode simple (débutants) : un seul écran, actions réelles avec question avant chacune (comme la version 4).</summary>
+        public bool ModeSimple;
+
+        public void AppliquerModeSimple(bool simple)
+        {
+            ModeSimple = simple;
+            if (simple) Simulation = false;
+            EnregistrerReglage(r => r.ModeSimple = simple);
+            PageActive = "Accueil";
+            Construire();
+        }
+
         public void Afficher(string cle, bool anime)
         {
+            if (ModeSimple)
+            {
+                PageActive = "Accueil";
+                titre.Text = Langue.T("Accueil"); sousTitre.Text = Langue.T("Tout ce qu'il faut, en trois boutons.");
+                contenu.Content = new ScrollViewer { Content = new PageSimple5(this), HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled, VerticalScrollBarVisibility = ScrollBarVisibility.Auto };
+                return;
+            }
             var r = Rubriques.FirstOrDefault(x => x.Cle == cle) ?? Rubriques[0];
             bool change = r.Cle != PageActive || titre.Text == "";
             PageActive = r.Cle;

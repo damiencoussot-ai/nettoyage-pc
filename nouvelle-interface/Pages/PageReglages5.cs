@@ -36,6 +36,8 @@ namespace NettoyagePC.Nouveau
             pile.Children.Add(CarteLangue(f, r));
             pile.Children.Add(Cartes.Page(f, null, new[]
             {
+                CarteAction.Code("Mode simple", "Pour un débutant (un parent, par exemple) : un seul écran avec trois gros boutons, sans les options avancées.", "Activer le mode simple", () =>
+                    f.Demander("Passer au mode simple ?", "L'écran ne montrera plus que trois gros boutons : Nettoyer mon PC, Vérifier mon PC, Appeler à l'aide. Le lien « Afficher toutes les options » en bas de l'écran permet de revenir au mode complet.", "Passer au mode simple", "Annuler", oui => { if (oui) f.AppliquerModeSimple(true); })),
                 CarteAction.Code("Informations légales", "Contrat de licence, conditions de vente, politique de confidentialité et mentions légales.", "Consulter", () => Legal5(f)),
                 CarteAction.Code("À propos", "Version, éditeur, page officielle et engagements de Nettoyage PC.", "Afficher", () => APropos(f)),
                 CarteAction.Code("Raccourci sur le Bureau", "Ajoute « Nettoyage PC » sur ton Bureau pour lancer l'application en un double-clic.", "Créer le raccourci", () => CreerRaccourci(f)).Plus(),

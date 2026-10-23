@@ -33,7 +33,7 @@ namespace NettoyagePC.Nouveau
                 CarteAction.A("Nettoyage rapide", "Fichiers temporaires, caches de Windows, des navigateurs et des applications, corbeille, vieux téléchargements rangés à part.", "Nettoyer", "standard", true),
                 CarteAction.A("Nettoyage profond", "Tout le nettoyage rapide, plus Windows Update, Nettoyage de disque Windows et DISM, avec un point de restauration avant.", "Nettoyer en profondeur", "complet"),
                 CarteAction.A("Voir ce qui serait nettoyé", "Analyse tout ce que l'optimisation complète ferait et affiche l'espace récupérable, sans rien supprimer.", "Analyser", "analyse"),
-                CarteAction.Code("Anciens pilotes", "Windows garde les anciennes versions de chaque pilote (souvent plusieurs Go pour la carte graphique). Tu choisis lesquelles retirer.", "Voir les anciens pilotes", () => f.Bientot("Anciens pilotes")).Plus(),
+                CarteAction.Code("Anciens pilotes", "Windows garde les anciennes versions de chaque pilote (souvent plusieurs Go pour la carte graphique). Tu choisis lesquelles retirer.", "Voir les anciens pilotes", () => AnciensPilotes5.Ouvrir(f)).Plus(),
                 CarteAction.A("Rapport complet du PC", "Espace disque, gros fichiers, doublons, dossiers lourds, programmes volumineux. Enregistré dans tes Documents.", "Générer le rapport", "rapport").Plus(),
                 CarteAction.Code("Téléchargements à vérifier", "Les téléchargements de plus de 90 jours sont rangés ici au lieu d'être supprimés. Garde ou supprime-les toi-même.", "Ouvrir le dossier", () => OuvrirAVerifier(f)).Plus(),
             }, "Nettoyage");

@@ -25,6 +25,7 @@ namespace NettoyagePC.Nouveau
         /// <summary>Source des données de l'accueil : le vrai PC sous Windows, l'exemple ailleurs (essais sous Linux).</summary>
         public static ISourceBilan Source = OperatingSystem.IsWindows() ? new SourceBilanPc() : (ISourceBilan)new BilanExemple();
         public static string Pseudo = "";
+        public static bool ModeSimple, ProfilCree = true;
 
         /// <summary>(essais) --essai-demarrage FICHIER : mesure l'ouverture de la fenêtre et l'arrivée du bilan, puis ferme.</summary>
         public static string FichierEssaiDemarrage;
@@ -34,6 +35,9 @@ namespace NettoyagePC.Nouveau
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime bureau)
             {
                 var f = new FenetrePrincipale(Source) { Pseudo = Pseudo };
+                if (ModeSimple) f.AppliquerModeSimple(true);
+                // premier lancement : « Faisons connaissance » (pseudo, mode simple ou complet)
+                if (!ProfilCree && FichierEssaiDemarrage == null) f.Opened += (s, e) => Bienvenue5.Ouvrir(f);
                 bureau.MainWindow = f;
                 if (FichierEssaiDemarrage != null)
                 {
@@ -82,6 +86,8 @@ namespace NettoyagePC.Nouveau
                 var reglages = Parametres.Lire();
                 Langue.Choisir(reglages.Langue);
                 App.Pseudo = reglages.Pseudo ?? "";
+                App.ModeSimple = reglages.ModeSimple;
+                App.ProfilCree = reglages.ProfilCree || !string.IsNullOrEmpty(reglages.Pseudo);
                 if (reglages.Theme == "Clair" || (reglages.Theme == "Auto" && WindowsEnClair())) Habillage.P = Palette.ClairNoyau;
             }
             catch (Exception ex) { JournalDemarrage.Erreur("réglages (version 5)", ex); }
@@ -254,6 +260,29 @@ namespace NettoyagePC.Nouveau
                 f.ViderCalques();
             }
             catch (Exception ex) { erreurs++; rapport.AppendLine("ERREUR : premium : " + ex); }
+
+            // premier lancement : « Faisons connaissance »
+            try
+            {
+                f.ChangerTheme(true); f.Afficher("Accueil", false);
+                Bienvenue5.Ouvrir(f);
+                Capturer(f, dossier, "sombre-bienvenue.png", rapport, ref erreurs);
+                f.ViderCalques();
+            }
+            catch (Exception ex) { erreurs++; rapport.AppendLine("ERREUR : bienvenue : " + ex); }
+
+            // mode simple (trois gros boutons), sombre et clair
+            try
+            {
+                foreach (var sombre in new[] { true, false })
+                {
+                    f.ChangerTheme(sombre);
+                    f.ModeSimple = true; f.Simulation = false; f.ChangerTheme(sombre);
+                    Capturer(f, dossier, (sombre ? "sombre" : "clair") + "-simple.png", rapport, ref erreurs);
+                }
+                f.ModeSimple = false; f.Simulation = true; f.ChangerTheme(true);
+            }
+            catch (Exception ex) { erreurs++; rapport.AppendLine("ERREUR : mode simple : " + ex); f.ModeSimple = false; f.Simulation = true; }
 
             // Réglages
             try
