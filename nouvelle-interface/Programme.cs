@@ -251,6 +251,100 @@ namespace NettoyagePC.Nouveau
             }
             catch (Exception ex) { Fps5.Exemple = null; erreurs++; rapport.AppendLine("ERREUR : FPS : " + ex); }
 
+            // outils Premium avec des données d'exemple (rien n'est lu, mesuré ni modifié)
+            try
+            {
+                var j = DateTime.Today;
+                var hasard = new Random(7);
+                f.ChangerTheme(true); f.Afficher("Premium", false);
+
+                var bat = new InfosBatterie { Presente = true, Nom = "5B10W51867", Fabricant = "Celxpert", Chimie = "LiP", Origine = 57000, Actuelle = 46100, Cycles = 312, Charge = 78, SurSecteur = true, AutonomieActuelle = new TimeSpan(5, 12, 0), AutonomieOrigine = new TimeSpan(7, 40, 0) };
+                for (int m = 18; m >= 0; m--) bat.Historique.Add(Tuple.Create(j.AddMonths(-m), 57000L - (18 - m) * 600L - hasard.Next(0, 300), 57000L));
+                Batterie5.Exemple = bat;
+                Batterie5.Ouvrir(f);
+                Capturer(f, dossier, "sombre-batterie.png", rapport, ref erreurs);
+                f.ViderCalques(); Batterie5.Exemple = null;
+
+                var ssd = new IndicateurSante { Cle = "ssd", Nom = "Usure du SSD (Samsung 990 PRO 2 To)", Valeur = "18 % de la durée de vie prévue consommée", Etat = "ok", Explication = "Un SSD s'use un peu à chaque écriture ; 100 % correspond à la durée prévue par le fabricant (il fonctionne souvent bien au-delà).", Prevision = "À ce rythme : 100 % dans environ 9 ans.", Unite = "%", Pente = 0.025, PrevisionJusqua = j.AddYears(2), Seuil = 100 };
+                for (int m = 12; m >= 0; m--) ssd.Points.Add(Tuple.Create(j.AddMonths(-m), 9.0 + (12 - m) * 0.75));
+                var arrets = new IndicateurSante { Cle = "arrets", Nom = "Arrêts brutaux", Valeur = "3 ces 30 derniers jours", Etat = "attention", Explication = "Le PC s'est éteint sans passer par « Arrêter » : coupure de courant, bouton maintenu, ou plantage.", Conseil = "Si ce n'était pas toi, l'analyse des plantages en donne la cause probable.", Bouton = "Analyser les plantages", Cible = "outil:plantages", Barres = true, Unite = "par semaine" };
+                for (int s2 = 12; s2 >= 0; s2--) arrets.Points.Add(Tuple.Create(j.AddDays(-7 * s2), s2 < 4 ? (double)(s2 % 2) + 0.0 : 0.0));
+                var gpu = new IndicateurSante { Cle = "gpu", Nom = "Température de la carte graphique", Valeur = "74 °C au maximum (moyenne des 7 derniers jours)", Etat = "ok", Explication = "Une carte graphique supporte jusqu'à 90 °C environ en jeu.", Unite = "°C" };
+                for (int d = 20; d >= 0; d--) gpu.Points.Add(Tuple.Create(j.AddDays(-d), 66.0 + hasard.Next(0, 9)));
+                var disque = new IndicateurSante { Cle = "erreurs", Nom = "Erreurs du disque", Valeur = "Aucune erreur ces 90 derniers jours", Etat = "ok" };
+                Sante5.Exemple = new System.Collections.Generic.List<IndicateurSante> { ssd, arrets, gpu, disque };
+                Sante5.Ouvrir(f);
+                Capturer(f, dossier, "sombre-sante.png", rapport, ref erreurs);
+                f.ViderCalques(); Sante5.Exemple = null;
+
+                var jours = new System.Collections.Generic.List<JourEnergie>();
+                for (int d = 29; d >= 0; d--)
+                {
+                    var je = new JourEnergie { Jour = j.AddDays(-d), Minutes = 300 + hasard.Next(0, 360), MinutesInactif = 60 + hasard.Next(0, 120) };
+                    je.WhInactif = je.MinutesInactif * 1.4;
+                    je.Apps[Energie.NomSysteme] = je.Minutes * 1.1;
+                    je.Apps["Cyberpunk2077"] = d % 3 == 0 ? 0 : 380 + hasard.Next(0, 420);
+                    je.Apps["chrome"] = 90 + hasard.Next(0, 80);
+                    je.Apps["Discord"] = 25 + hasard.Next(0, 20);
+                    je.Apps["Code"] = 30 + hasard.Next(0, 40);
+                    je.Wh = je.Apps.Values.Sum();
+                    jours.Add(je);
+                }
+                Energie5.Exemple = jours;
+                Energie5.Ouvrir(f);
+                Capturer(f, dossier, "sombre-energie.png", rapport, ref erreurs);
+                f.ViderCalques(); Energie5.Exemple = null;
+
+                Gardien5.Exemple = new ReglagesGardien { Actif = true, SauvegardeAuto = true };
+                Gardien5.Ouvrir(f);
+                Capturer(f, dossier, "sombre-gardien.png", rapport, ref erreurs);
+                f.ViderCalques(); Gardien5.Exemple = null;
+
+                var enquete = new ResultatEnquete { NbInstantanes = 24, ChronoDemarrages = true };
+                enquete.Changements.Add(new Changement { Date = j.AddDays(-9), Type = "Démarrage", Titre = "« Updater de Pilote Gratuit » ajouté au démarrage", Pourquoi = "Ajouté juste avant que le démarrage ralentisse (+14 s)", Cible = "page:Demarrage", Suspicion = 2 });
+                enquete.Changements.Add(new Changement { Date = j.AddDays(-9), Type = "Application", Titre = "Installation : Updater de Pilote Gratuit 3.2", Pourquoi = "Logiciel de « mise à jour des pilotes » : souvent inutile et publicitaire", Cible = "page:Applications", Suspicion = 2 });
+                enquete.Changements.Add(new Changement { Date = j.AddDays(-6), Type = "Mise à jour Windows", Titre = "Mise à jour cumulative (KB5066835)", Pourquoi = "", Cible = "uri:ms-settings:windowsupdate-history", Suspicion = 0 });
+                enquete.Changements.Add(new Changement { Date = j.AddDays(-3), Type = "Pilote", Titre = "Pilote graphique AMD 25.10.1", Pourquoi = "Change les performances en jeu (dans un sens ou dans l'autre)", Cible = "page:Pilotes", Suspicion = 1 });
+                var dem = new Metrique { Cle = "demarrage", Nom = "Durée du démarrage", Unite = "s" };
+                for (int d = 27; d >= 0; d--) dem.Points.Add(Tuple.Create(j.AddDays(-d), (d > 9 ? 21.0 : 35.0) + hasard.Next(0, 4)));
+                enquete.Metriques.Add(dem);
+                Enqueteur5.Exemple = enquete;
+                Enqueteur5.Ouvrir(f);
+                Capturer(f, dossier, "sombre-enqueteur.png", rapport, ref erreurs);
+                f.ViderCalques(); Enqueteur5.Exemple = null;
+
+                Benchmark5.Exemple = new System.Collections.Generic.List<ResultatBenchmark>
+                {
+                    new ResultatBenchmark { Date = j.AddDays(-1).ToString("dd/MM/yyyy") + " 21:04", Note = "avant EXPO", RamMts = 4800, Cpu1 = 268, CpuN = 3120, Memoire = 61.8, DisqueLecture = 6950, DisqueEcriture = 6120, DisqueAleatoire = 92000 },
+                    new ResultatBenchmark { Date = j.ToString("dd/MM/yyyy") + " 09:31", Note = "après EXPO", RamMts = 6000, Cpu1 = 274, CpuN = 3262, Memoire = 75.4, DisqueLecture = 6990, DisqueEcriture = 6080, DisqueAleatoire = 93500 },
+                };
+                Benchmark5.Ouvrir(f);
+                Capturer(f, dossier, "sombre-benchmark.png", rapport, ref erreurs);
+                f.ViderCalques(); Benchmark5.Exemple = null;
+
+                Assistant5.Essai = true;
+                Assistant5.Ouvrir(f);
+                for (int k = 0; k < 20; k++) { Dispatcher.UIThread.RunJobs(); System.Threading.Thread.Sleep(50); }
+                Capturer(f, dossier, "sombre-assistant.png", rapport, ref erreurs);
+                f.ViderCalques(); Assistant5.Essai = false;
+            }
+            catch (Exception ex) { Batterie5.Exemple = null; Sante5.Exemple = null; Energie5.Exemple = null; Gardien5.Exemple = null; Enqueteur5.Exemple = null; Benchmark5.Exemple = null; Assistant5.Essai = false; erreurs++; rapport.AppendLine("ERREUR : outils Premium : " + ex); }
+
+            // analyses des plantages et du démarrage avec des résultats d'exemple (rien n'est lancé)
+            try
+            {
+                f.ChangerTheme(true); f.Afficher("Premium", false);
+                Plantages5.Exemple = Json.Lire(@"{""Ecrans"": [{""Categorie"": ""pilote"", ""Code"": ""0x00000116"", ""Nom"": ""VIDEO_TDR_FAILURE"", ""Explication"": ""Le pilote de la carte graphique a cessé de répondre et Windows n'a pas pu le relancer."", ""Date"": ""2026-10-02T21:14:00"", ""Dump"": ""amdkmdag.sys""}], ""Arrets"": [{""Type"": ""bouton"", ""Date"": ""2026-10-05T22:40:00""}, {""Type"": ""coupure"", ""Date"": ""2026-09-20T18:02:00""}], ""Materiel"": [{""Nom"": ""Erreur matérielle corrigée (processeur)"", ""Grave"": false, ""Fois"": 3, ""Dernier"": ""2026-10-12T09:00:00"", ""Detail"": ""WHEA-Logger 19, bus PCI Express""}], ""Disques"": [], ""Affichage"": 2, ""DernierAffichage"": ""2026-10-02T21:13:00"", ""Applications"": [{""Nom"": ""Cyberpunk2077.exe"", ""Plantages"": 3, ""Figee"": 1, ""Module"": ""amdxx64.dll"", ""Explication"": ""pilote de la carte graphique"", ""Categorie"": ""graphique"", ""Dernier"": ""2026-10-14T20:11:00""}, {""Nom"": ""Discord.exe"", ""Plantages"": 0, ""Figee"": 2, ""Module"": """", ""Explication"": """", ""Categorie"": """", ""Dernier"": ""2026-10-09T12:00:00""}], ""Semaines"": [[0, 0, 0], [0, 1, 0], [0, 0, 0], [1, 0, 0], [0, 0, 0], [0, 2, 1], [0, 0, 0], [0, 0, 0], [1, 1, 2], [2, 0, 0], [0, 1, 0], [0, 0, 1], [0, 1, 0]], ""Indice"": 6.4, ""Conseils"": [""Mets à jour le pilote de la carte graphique : la plupart des plantages viennent de lui (Mises à jour > Windows et pilotes).""]}") as System.Collections.Generic.Dictionary<string, object>;
+                Plantages5.Ouvrir(f);
+                Capturer(f, dossier, "sombre-plantages.png", rapport, ref erreurs);
+                f.ViderCalques(); Plantages5.Exemple = null;
+                Demarrage5.Exemple = Json.Lire(@"{""Admin"": true, ""DemarrageRapide"": false, ""Demarrages"": [{""Date"": ""23/10"", ""Total"": 48200, ""Principal"": 31000, ""Apres"": 17200}, {""Date"": ""22/10"", ""Total"": 51800, ""Principal"": 32500, ""Apres"": 19300}, {""Date"": ""21/10"", ""Total"": 47100, ""Principal"": 30800, ""Apres"": 16300}, {""Date"": ""20/10"", ""Total"": 29900, ""Principal"": 21000, ""Apres"": 8900}, {""Date"": ""19/10"", ""Total"": 28800, ""Principal"": 20500, ""Apres"": 8300}, {""Date"": ""18/10"", ""Total"": 31200, ""Principal"": 21900, ""Apres"": 9300}, {""Date"": ""17/10"", ""Total"": 30100, ""Principal"": 21200, ""Apres"": 8900}, {""Date"": ""16/10"", ""Total"": 28500, ""Principal"": 20100, ""Apres"": 8400}], ""Ralentissements"": [{""Nom"": ""Updater de Pilote Gratuit"", ""Type"": ""Application"", ""Moyenne"": 9400, ""Fois"": 6, ""Dernier"": ""23/10/2026""}, {""Nom"": ""Pilote Realtek Audio"", ""Type"": ""Pilote"", ""Moyenne"": 3100, ""Fois"": 11, ""Dernier"": ""22/10/2026""}, {""Nom"": ""Service Steam Client"", ""Type"": ""Service"", ""Moyenne"": 1200, ""Fois"": 4, ""Dernier"": ""20/10/2026""}]}") as System.Collections.Generic.Dictionary<string, object>;
+                Demarrage5.Ouvrir(f);
+                Capturer(f, dossier, "sombre-demarrage.png", rapport, ref erreurs);
+                f.ViderCalques(); Demarrage5.Exemple = null;
+            }
+            catch (Exception ex) { Plantages5.Exemple = null; Demarrage5.Exemple = null; erreurs++; rapport.AppendLine("ERREUR : analyses : " + ex); }
+
             // Réseau avec une connexion et des mesures d'exemple (rien n'est mesuré ni modifié)
             try
             {

@@ -34,7 +34,7 @@ namespace NettoyagePC.Nouveau
                 CarteAction.A("Santé détaillée des disques", "Usure, température, erreurs et heures de fonctionnement de chaque disque, d'après leurs capteurs (SMART).", "Analyser", "santedisques"),
                 CarteAction.A("Rapport du PC", "Espace disque, gros fichiers, doublons, dossiers lourds, programmes volumineux. Enregistré dans tes Documents.", "Générer le rapport", "rapport"),
                 CarteAction.A("Compatibilité de ce PC", "Ce que ton matériel permet : Windows 11, TPM, Secure Boot, virtualisation.", "Vérifier", "compat").Plus(),
-                CarteAction.A("Analyse des plantages", "Écrans bleus, redémarrages brutaux et applications qui se ferment : les causes probables, d'après les journaux de Windows.", "Analyser", "plantages").Plus(),
+                CarteAction.Code("Analyse des plantages", "Écrans bleus, redémarrages brutaux et applications qui se ferment : les causes probables, d'après les journaux de Windows.", "Analyser", () => f.OuvrirOutil("plantages")).Plus(),
             }, "Materiel");
         }
 

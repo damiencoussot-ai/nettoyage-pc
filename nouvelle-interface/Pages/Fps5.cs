@@ -41,7 +41,7 @@ namespace NettoyagePC.Nouveau
                 s.Children.Add(new TextBlock { Text = Langue.T(titre).ToUpperInvariant(), FontFamily = Habillage.Console, FontSize = 10.5, Foreground = Habillage.Pinceau(P.Discret), TextTrimming = TextTrimming.CharacterEllipsis });
                 valeur = new TextBlock { Text = "—", FontFamily = Habillage.Affichage, FontSize = 26, FontWeight = FontWeight.SemiBold, Foreground = Habillage.Pinceau(P.Texte) };
                 s.Children.Add(valeur);
-                Child = s; Padding = new Thickness(14, 10); Margin = new Thickness(0, 0, 10, 10); Width = 190; CornerRadius = new CornerRadius(3);
+                Child = s; Padding = new Thickness(14, 10); Margin = new Thickness(0, 0, 10, 10); Width = 218; CornerRadius = new CornerRadius(3);
                 Background = Habillage.Pinceau(P.Carte); BorderBrush = Habillage.Pinceau(P.Bordure); BorderThickness = new Thickness(1);
             }
             public void Definir(string v, Color? c = null) { valeur.Text = v; valeur.Foreground = Habillage.Pinceau(c ?? Habillage.P.Texte); }
@@ -52,9 +52,7 @@ namespace NettoyagePC.Nouveau
 
         public static void Ouvrir(FenetrePrincipale f)
         {
-            var c = new Fps5(f);
-            var w = f.Ouvrir("Preuve en FPS", c, 980);
-            w.Fermee += () => { c.ouverte = false; c.compte.Stop(); };
+            f.Ouvrir("Preuve en FPS", new Fps5(f), 980);
         }
 
         private Fps5(FenetrePrincipale f)
@@ -102,7 +100,7 @@ namespace NettoyagePC.Nouveau
             tComparaison = new TextBlock { FontFamily = Habillage.Affichage, FontSize = 15, FontWeight = FontWeight.SemiBold, Foreground = Habillage.Pinceau(P.Discret), TextWrapping = TextWrapping.Wrap };
             Children.Add(tComparaison);
 
-            tableau = new Tableau(false, false, new Colonne("Date", "130", false, true, o => ((MesureFps)o).Date), new Colonne("Jeu", "1.3*"), new Colonne("Mesure", "1.3*"),
+            tableau = new Tableau(false, false, new Colonne("Date", "150", false, true, o => ((MesureFps)o).Date), new Colonne("Jeu", "1.3*"), new Colonne("Mesure", "1.3*"),
                 new Colonne("FPS moyen", "100", true, true, o => ((MesureFps)o).Moyenne), new Colonne("1 % lents", "90", true, true, o => ((MesureFps)o).Bas1),
                 new Colonne("0,1 % lents", "95", true, true, o => ((MesureFps)o).Bas01), new Colonne("Durée", "70", true, true, o => ((MesureFps)o).Secondes));
             tableau.HauteurListe = 200;
@@ -112,6 +110,8 @@ namespace NettoyagePC.Nouveau
             bSupprimer.Clic += Supprimer;
             Children.Add(bSupprimer);
             compte.Tick += (s, e) => Compter();
+            // fenêtre fermée pendant une mesure : la mesure continue et sera quand même enregistrée
+            DetachedFromVisualTree += (o, e) => { ouverte = false; compte.Stop(); };
             AttachedToVisualTree += (o, e) =>
             {
                 RemplirJeux();

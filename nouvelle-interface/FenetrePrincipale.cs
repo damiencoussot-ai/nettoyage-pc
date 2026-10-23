@@ -137,10 +137,19 @@ namespace NettoyagePC.Nouveau
                 var r = Rubriques.FirstOrDefault(x => x.Cle == o[0]);
                 l.Add(new EntreeCommande { Titre = o[2], Detail = r != null ? r.Nom : "", Type = "Rubrique", Faire = () => { SousPage(oo[0], oo[1]); Afficher(oo[0], true); } });
             }
-            foreach (var a in Actions.Values)
+            // comme la version 4 : les actions qui ont besoin d'options (destination, mises à jour choisies...) ou de leur
+            // propre fenêtre ne se lancent pas directement d'ici
+            var exclues = new HashSet<string> { "sauvegarde", "majwin", "finmodejeu", "analyselite", "deplanifier", "pilotes", "santedisques", "demarrage", "kit", "plantages" };
+            foreach (var a in Actions.Values.Where(x => !exclues.Contains(x.Cle)))
             {
                 var aa = a;
                 l.Add(new EntreeCommande { Titre = a.Titre, Detail = Simulation && a.Simu ? Langue.T("en simulation : rien n'est modifié") : a.SansAdmin ? "" : Langue.T("demande l'autorisation de Windows"), Type = "Action", Faire = () => LancerAction(aa.Cle) });
+            }
+            foreach (var o in new[] { new[] { "plantages", "Analyse des plantages" }, new[] { "demarrage", "Analyse du démarrage" }, new[] { "enqueteur", "Pourquoi mon PC ralentit ?" }, new[] { "sante", "Santé prédictive" },
+                new[] { "fps", "Preuve en FPS" }, new[] { "energie", "Coût en électricité" }, new[] { "gardien", "Gardien en temps réel" }, new[] { "assistant", "Assistant local" }, new[] { "benchmark", "Mesure des performances" }, new[] { "batterie", "Santé de la batterie" } })
+            {
+                string cle = o[0];
+                l.Add(new EntreeCommande { Titre = Langue.T(o[1]), Detail = Licence.Premium ? Langue.T("Premium") : Langue.T("Premium (essai gratuit 7 jours)"), Type = "Outil", Faire = () => OuvrirOutil(cle) });
             }
             l.Add(new EntreeCommande { Titre = Langue.T("Bouclier anti-arnaque"), Detail = Langue.T("Faux technicien ? Logiciels de prise en main à distance"), Type = "Action", Faire = () => Bouclier5.Ouvrir(this) });
             l.Add(new EntreeCommande { Titre = Langue.T(Habillage.P.Sombre ? "Thème clair" : "Thème sombre"), Detail = Langue.T("Apparence"), Type = "Action", Faire = () => { ChangerTheme(!Habillage.P.Sombre); EnregistrerReglage(r => r.Theme = Habillage.P.Sombre ? "Sombre" : "Clair"); } });
@@ -257,6 +266,25 @@ namespace NettoyagePC.Nouveau
         }
 
         /// <summary>Bouton d'un point du bilan (ou de l'accueil) : action du moteur, rubrique, lien.</summary>
+        /// <summary>Ouvre un outil Premium par sa clé ; sans Premium, la fenêtre d'achat (essai gratuit possible).</summary>
+        public bool OuvrirOutil(string cle)
+        {
+            var outils = new Dictionary<string, Action>
+            {
+                { "batterie", () => Batterie5.Ouvrir(this) }, { "sante", () => Sante5.Ouvrir(this) }, { "energie", () => Energie5.Ouvrir(this) },
+                { "gardien", () => Gardien5.Ouvrir(this) }, { "sauvegardeauto", () => Gardien5.Ouvrir(this) }, { "enqueteur", () => Enqueteur5.Ouvrir(this) },
+                { "fps", () => Fps5.Ouvrir(this) }, { "plantages", () => Plantages5.Ouvrir(this) }, { "demarrage", () => Demarrage5.Ouvrir(this) },
+                { "assistant", () => Assistant5.Ouvrir(this) }, { "benchmark", () => Benchmark5.Ouvrir(this) },
+            };
+            // le bouclier anti-arnaque est gratuit
+            if (cle == "bouclier") { Bouclier5.Ouvrir(this); return true; }
+            Action ouvrir;
+            if (!outils.TryGetValue(cle, out ouvrir)) return false;
+            if (!Licence.Premium) { Achat5.Ouvrir(this); return true; }
+            ouvrir();
+            return true;
+        }
+
         public void Executer(string cible, string libelle)
         {
             if (string.IsNullOrEmpty(cible)) return;
@@ -285,6 +313,10 @@ namespace NettoyagePC.Nouveau
             {
                 try { System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(cle) { UseShellExecute = true }); return; } catch { }
             }
+            // liens des listes fixes du moteur (réglages de Windows, outils de Windows, pages officielles)
+            if (type == "uri" && cle != "") { try { Programmes.Ouvrir(cle); return; } catch { } }
+            // outils Premium (sans Premium : la fenêtre d'achat)
+            if (type == "outil" && OuvrirOutil(cle)) return;
             Statut("« " + libelle + " » arrive dans la prochaine étape de la nouvelle interface ; la version 4 le fait déjà.", true);
         }
 
@@ -299,6 +331,13 @@ namespace NettoyagePC.Nouveau
             Activated += (s, e) => Horloge.Pause(false);
             Deactivated += (s, e) => Horloge.Pause(true);
             PropertyChanged += (s, e) => { if (e.Property == WindowStateProperty) Horloge.Pause(WindowState == WindowState.Minimized); };
+            // comme la version 4 : les durées de démarrage et la santé des disques lues par le moteur sont gardées
+            // pour l'enquêteur et la santé prédictive
+            Moteur.Donnees += (cle, v) =>
+            {
+                try { if (cle == "demarrage") Enqueteur.EnregistrerDemarrages(v); else if (cle == "disques") Sante.EnregistrerDisques(v); }
+                catch (Exception ex) { JournalDemarrage.Erreur("données du moteur « " + cle + " » (version 5)", ex); }
+            };
         }
 
         private void DefinirRubriques()

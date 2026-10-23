@@ -36,18 +36,18 @@ namespace NettoyagePC.Nouveau
             Children.Add(Garanties());
             var outils = new List<CarteAction>
             {
-                Outil("Gardien en temps réel", "Veille sur ton PC en continu : programme ajouté au démarrage, disque presque plein (avec nettoyage léger automatique), antivirus coupé, mémoire saturée, surchauffe.", "Régler le gardien", null),
-                Outil("Pourquoi mon PC ralentit ?", "L'enquêteur retrace tout ce qui a changé (applications, pilotes, mises à jour, démarrage, réglages) et le compare aux performances : il désigne le coupable.", "Enquêter", null),
-                Outil("Santé prédictive", "Repère les signes qui annoncent une panne avant qu'elle arrive : erreurs du matériel et du disque, usure des SSD, batterie, chauffe. Avec la tendance.", "Vérifier", null),
-                Outil("Assistant local", "Pose tes questions sur ton PC avec tes mots. L'IA tourne sur ton PC (Ollama) : rien ne part sur Internet.", "Discuter", null),
+                Outil("Gardien en temps réel", "Veille sur ton PC en continu : programme ajouté au démarrage, disque presque plein (avec nettoyage léger automatique), antivirus coupé, mémoire saturée, surchauffe.", "Régler le gardien", null, () => Gardien5.Ouvrir(F)),
+                Outil("Pourquoi mon PC ralentit ?", "L'enquêteur retrace tout ce qui a changé (applications, pilotes, mises à jour, démarrage, réglages) et le compare aux performances : il désigne le coupable.", "Enquêter", null, () => Enqueteur5.Ouvrir(F)),
+                Outil("Santé prédictive", "Repère les signes qui annoncent une panne avant qu'elle arrive : erreurs du matériel et du disque, usure des SSD, batterie, chauffe. Avec la tendance.", "Vérifier", null, () => Sante5.Ouvrir(F)),
+                Outil("Assistant local", "Pose tes questions sur ton PC avec tes mots. L'IA tourne sur ton PC (Ollama) : rien ne part sur Internet.", "Discuter", null, () => Assistant5.Ouvrir(F)),
                 Outil("Preuve en FPS", "Mesure les images par seconde réelles de tes jeux (moyenne, 1 % et 0,1 % les plus lents) avant et après un réglage : le vrai gain, en chiffres.", "Mesurer", null, () => Fps5.Ouvrir(F)),
-                Outil("Coût en électricité", "Combien ton PC te coûte chaque mois en euros, quelles applications consomment le plus, et comment payer moins.", "Voir", null),
-                Outil("Sauvegarde automatique", "Dès que ta clé USB ou ton disque externe est branché, les nouvelles photos et les documents modifiés sont copiés. Rien n'est jamais effacé de la sauvegarde.", "Configurer", null),
-                Outil("Analyse des plantages", "Écrans bleus, arrêts brutaux, applications qui plantent, erreurs matérielles : la cause expliquée simplement, et quoi faire.", "Analyser", "plantages"),
-                Outil("Analyse du démarrage", "Combien de temps met ton PC à démarrer, et qui le ralentit : le pilote, le service ou le programme précis, sur les 90 derniers jours.", "Analyser", "demarrage"),
-                Outil("Mesure des performances", "Processeur, mémoire vive et disque mesurés en chiffres. Compare avant / après un réglage (EXPO, pilote, nettoyage) pour voir le vrai gain.", "Mesurer", null),
+                Outil("Coût en électricité", "Combien ton PC te coûte chaque mois en euros, quelles applications consomment le plus, et comment payer moins.", "Voir", null, () => Energie5.Ouvrir(F)),
+                Outil("Sauvegarde automatique", "Dès que ta clé USB ou ton disque externe est branché, les nouvelles photos et les documents modifiés sont copiés. Rien n'est jamais effacé de la sauvegarde.", "Configurer", null, () => Gardien5.Ouvrir(F)),
+                Outil("Analyse des plantages", "Écrans bleus, arrêts brutaux, applications qui plantent, erreurs matérielles : la cause expliquée simplement, et quoi faire.", "Analyser", null, () => Plantages5.Ouvrir(F)),
+                Outil("Analyse du démarrage", "Combien de temps met ton PC à démarrer, et qui le ralentit : le pilote, le service ou le programme précis, sur les 90 derniers jours.", "Analyser", null, () => Demarrage5.Ouvrir(F)),
+                Outil("Mesure des performances", "Processeur, mémoire vive et disque mesurés en chiffres. Compare avant / après un réglage (EXPO, pilote, nettoyage) pour voir le vrai gain.", "Mesurer", null, () => Benchmark5.Ouvrir(F)),
                 Outil("Kit de réinstallation", "Avant de réinstaller Windows ou de changer de PC : tes applications (réinstallées d'un coup), tes pilotes et tes réseaux Wi-Fi, avec un script qui remet tout en place.", "Préparer le kit", "kit"),
-                Outil("Santé de la batterie", "Pour les portables : usure de la batterie, nombre de cycles, autonomie réelle comparée à celle d'origine, et conseils pour la faire durer.", "Vérifier", null),
+                Outil("Santé de la batterie", "Pour les portables : usure de la batterie, nombre de cycles, autonomie réelle comparée à celle d'origine, et conseils pour la faire durer.", "Vérifier", null, () => Batterie5.Ouvrir(F)),
             };
             Children.Add(Titre(Langue.F("{0} outils de pro, débloqués d'un coup", outils.Count)));
             Children.Add(Cartes.Grille(F, outils));
