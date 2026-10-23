@@ -111,6 +111,49 @@ namespace NettoyagePC.Nouveau
             return f;
         }
 
+        /// <summary>Onglets des rubriques : rubrique, clé de l'onglet (même clé que la page de la version 4), nom affiché.</summary>
+        public static readonly string[][] Onglets5 =
+        {
+            new[] { "Nettoyer", "Nettoyage", "Nettoyage" }, new[] { "Nettoyer", "Disques", "Disques et gros fichiers" }, new[] { "Nettoyer", "Doublons", "Doublons" },
+            new[] { "Accelerer", "Optimisation", "Optimisation" }, new[] { "Accelerer", "Demarrage", "Démarrage" }, new[] { "Accelerer", "Applications", "Applications" }, new[] { "Accelerer", "Jeux", "Jeux" },
+            new[] { "Proteger", "Securite", "Sécurité" }, new[] { "Proteger", "Sauvegarde", "Sauvegarde" },
+            new[] { "Outils", "Materiel", "Matériel" }, new[] { "Outils", "Potentiel", "Plein potentiel" }, new[] { "Outils", "Reseau", "Réseau" }, new[] { "Outils", "Aide", "Aide à distance" },
+            new[] { "MisesAJour", "MisesAJour", "Mises à jour de Nettoyage PC" }, new[] { "MisesAJour", "Pilotes", "Windows et pilotes" },
+        };
+
+        /// <summary>« Que veux-tu faire ? » (Ctrl+K) : rubriques, onglets et actions du moteur.</summary>
+        public void OuvrirPalette()
+        {
+            if (calqueDialogue.Children.OfType<PaletteCommandes>().Any()) return;
+            var l = new List<EntreeCommande>();
+            foreach (var r in Rubriques)
+            {
+                var rr = r;
+                l.Add(new EntreeCommande { Titre = r.Nom, Detail = r.Sous, Type = "Rubrique", Faire = () => Afficher(rr.Cle, true) });
+            }
+            foreach (var o in Onglets5)
+            {
+                var oo = o;
+                var r = Rubriques.FirstOrDefault(x => x.Cle == o[0]);
+                l.Add(new EntreeCommande { Titre = o[2], Detail = r != null ? r.Nom : "", Type = "Rubrique", Faire = () => { SousPage(oo[0], oo[1]); Afficher(oo[0], true); } });
+            }
+            foreach (var a in Actions.Values)
+            {
+                var aa = a;
+                l.Add(new EntreeCommande { Titre = a.Titre, Detail = Simulation && a.Simu ? Langue.T("en simulation : rien n'est modifié") : a.SansAdmin ? "" : Langue.T("demande l'autorisation de Windows"), Type = "Action", Faire = () => LancerAction(aa.Cle) });
+            }
+            l.Add(new EntreeCommande { Titre = Langue.T("Bouclier anti-arnaque"), Detail = Langue.T("Faux technicien ? Logiciels de prise en main à distance"), Type = "Action", Faire = () => Bouclier5.Ouvrir(this) });
+            l.Add(new EntreeCommande { Titre = Langue.T(Habillage.P.Sombre ? "Thème clair" : "Thème sombre"), Detail = Langue.T("Apparence"), Type = "Action", Faire = () => { ChangerTheme(!Habillage.P.Sombre); EnregistrerReglage(r => r.Theme = Habillage.P.Sombre ? "Sombre" : "Clair"); } });
+            foreach (var e in l) e.Cle = PaletteCommandes.Normaliser(e.Titre + " " + e.Detail);
+            Superposer(new PaletteCommandes(this, l));
+        }
+
+        protected override void OnKeyDown(Avalonia.Input.KeyEventArgs e)
+        {
+            base.OnKeyDown(e);
+            if (!e.Handled && e.Key == Avalonia.Input.Key.K && e.KeyModifiers.HasFlag(Avalonia.Input.KeyModifiers.Control)) { e.Handled = true; OuvrirPalette(); }
+        }
+
         /// <summary>Une fonction pas encore refaite dans la nouvelle interface : on le dit simplement.</summary>
         public void Bientot(string nom)
         {
@@ -211,15 +254,7 @@ namespace NettoyagePC.Nouveau
             if (type == "page")
             {
                 // pages de la version 4 → rubrique (et onglet) de la nouvelle interface
-                var ou = new Dictionary<string, string[]>
-                {
-                    { "Nettoyage", new[] { "Nettoyer", "Nettoyage" } }, { "Disques", new[] { "Nettoyer", "Disques" } }, { "Doublons", new[] { "Nettoyer", "Doublons" } },
-                    { "Optimisation", new[] { "Accelerer", "Optimisation" } }, { "Demarrage", new[] { "Accelerer", "Demarrage" } },
-                    { "Applications", new[] { "Accelerer", "Applications" } }, { "Jeux", new[] { "Accelerer", "Jeux" } },
-                    { "Securite", new[] { "Proteger", "Securite" } }, { "Sauvegarde", new[] { "Proteger", "Sauvegarde" } },
-                    { "Reseau", new[] { "Outils", "Reseau" } }, { "Aide", new[] { "Outils", "Aide" } },
-                    { "Materiel", new[] { "Outils", "Materiel" } }, { "Potentiel", new[] { "Outils", "Potentiel" } }, { "Pilotes", new[] { "MisesAJour", "Pilotes" } },
-                };
+                var ou = Onglets5.Where(o => o[1] == cle).Select(o => new[] { o[0], o[1] }).ToDictionary(o => o[1], o => o);
                 string[] cible2;
                 string rubrique = ou.TryGetValue(cle, out cible2) ? cible2[0] : cle;
                 if (cible2 != null) SousPage(cible2[0], cible2[1]);
@@ -262,7 +297,7 @@ namespace NettoyagePC.Nouveau
             Rubriques.Add(new Rubrique { Cle = "Proteger", Nom = "Protéger", Sous = "Antivirus, bouclier anti-arnaque, sauvegarde et confidentialité.", Page = () => PageProteger.Creer(this) });
             Rubriques.Add(new Rubrique { Cle = "Outils", Nom = "Outils", Sous = "Matériel, plein potentiel, réseau et aide à distance.", Page = () => PageOutils.Creer(this) });
             Rubriques.Add(new Rubrique { Cle = "Premium", Nom = "Premium", Sous = "Les outils des pros, débloqués d'un coup.", Page = () => PageAVenir.Premium() });
-            Rubriques.Add(new Rubrique { Cle = "MisesAJour", Nom = "Mises à jour", Sous = "Version installée et nouveautés.", EnBas = true, Page = () => PageAVenir.Simple("Mises à jour", "Recherche des mises à jour, nouveautés de chaque version, installation en un clic.") });
+            Rubriques.Add(new Rubrique { Cle = "MisesAJour", Nom = "Mises à jour", Sous = "Version installée et nouveautés.", EnBas = true, Page = () => RubriqueMisesAJour.Creer(this) });
             Rubriques.Add(new Rubrique { Cle = "Historique", Nom = "Historique", Sous = "Tout ce que Nettoyage PC a fait, et l'annulation.", EnBas = true, Page = () => new PageHistorique5(this) });
             Rubriques.Add(new Rubrique { Cle = "Reglages", Nom = "Réglages", Sous = "Apparence, langue, profil et informations.", EnBas = true, Page = () => PageReglages5.Creer(this) });
         }
@@ -353,6 +388,8 @@ namespace NettoyagePC.Nouveau
                     },
                 },
             };
+            recherche.Cursor = new Avalonia.Input.Cursor(Avalonia.Input.StandardCursorType.Hand);
+            recherche.PointerReleased += (s, e) => OuvrirPalette();
             droite.Children.Add(recherche);
             var bTheme = new BoutonNoyau("", false, 38, 38) { Icone = P.Sombre ? "soleil" : "lune" };
             ToolTip.SetTip(bTheme, P.Sombre ? "Passer en thème clair" : "Passer en thème sombre");

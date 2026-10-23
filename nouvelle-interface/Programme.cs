@@ -2,6 +2,7 @@
 // (aperçus et essais automatiques ; rien n'est lu ni modifié sur le PC).
 using System;
 using System.IO;
+using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -9,6 +10,7 @@ using Avalonia.Headless;
 using Avalonia.Styling;
 using Avalonia.Themes.Fluent;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
 
 namespace NettoyagePC.Nouveau
 {
@@ -24,10 +26,29 @@ namespace NettoyagePC.Nouveau
         public static ISourceBilan Source = OperatingSystem.IsWindows() ? new SourceBilanPc() : (ISourceBilan)new BilanExemple();
         public static string Pseudo = "";
 
+        /// <summary>(essais) --essai-demarrage FICHIER : mesure l'ouverture de la fenêtre et l'arrivée du bilan, puis ferme.</summary>
+        public static string FichierEssaiDemarrage;
+
         public override void OnFrameworkInitializationCompleted()
         {
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime bureau)
-                bureau.MainWindow = new FenetrePrincipale(Source) { Pseudo = Pseudo };
+            {
+                var f = new FenetrePrincipale(Source) { Pseudo = Pseudo };
+                bureau.MainWindow = f;
+                if (FichierEssaiDemarrage != null)
+                {
+                    var debut = System.Diagnostics.Process.GetCurrentProcess().StartTime;
+                    string ouverture = "?";
+                    f.Opened += (s, e) => ouverture = ((int)(DateTime.Now - debut).TotalMilliseconds).ToString();
+                    f.BilanPret += b =>
+                    {
+                        string texte = "fenêtre ouverte : " + ouverture + " ms\nbilan affiché : " + (int)(DateTime.Now - debut).TotalMilliseconds + " ms (note " + b.Score + ", " + b.Points.Count + " points)\n";
+                        try { File.WriteAllText(FichierEssaiDemarrage, texte); } catch { }
+                        DispatcherTimer.RunOnce(() => bureau.Shutdown(0), TimeSpan.FromSeconds(2));
+                    };
+                    DispatcherTimer.RunOnce(() => { try { File.AppendAllText(FichierEssaiDemarrage, "délai dépassé (fenêtre : " + ouverture + " ms)\n"); } catch { } bureau.Shutdown(2); }, TimeSpan.FromSeconds(60));
+                }
+            }
             base.OnFrameworkInitializationCompleted();
         }
     }
@@ -48,9 +69,11 @@ namespace NettoyagePC.Nouveau
             int? code = Demarrage.SansInterface(args);
             if (code.HasValue) return code.Value;
 
+            int ie = Array.IndexOf(args, "--essai-demarrage");
+            if (ie >= 0 && ie + 1 < args.Length) App.FichierEssaiDemarrage = Path.GetFullPath(args[ie + 1]);
             JournalDemarrage.Noter("--- Démarrage de Nettoyage PC 5 (aperçu) : Windows " + Environment.OSVersion.Version + ", .NET " + Environment.Version + ", dossier " + Chemins.Ici);
             // toujours avec les droits normaux : lancée en administrateur, l'application se relance par l'Explorateur
-            if (Appli.EstAdmin && Natif.EstWindows && Demarrage.RelancerSansAdmin()) return 0;
+            if (Appli.EstAdmin && Natif.EstWindows && App.FichierEssaiDemarrage == null && Demarrage.RelancerSansAdmin()) return 0;
             AppDomain.CurrentDomain.UnhandledException += (s, e) => JournalDemarrage.Erreur("fatale (version 5)", e.ExceptionObject as Exception);
             try
             {
@@ -209,6 +232,15 @@ namespace NettoyagePC.Nouveau
             }
             catch (Exception ex) { erreurs++; rapport.AppendLine("ERREUR : historique : " + ex); }
 
+            // Mises à jour : nouveautés intégrées (sans Internet), et l'onglet des pilotes
+            try
+            {
+                f.SousPage("MisesAJour", "MisesAJour");
+                f.Afficher("MisesAJour", false);
+                Capturer(f, dossier, "sombre-MisesAJour.png", rapport, ref erreurs);
+            }
+            catch (Exception ex) { erreurs++; rapport.AppendLine("ERREUR : mises à jour : " + ex); }
+
             // Réglages
             try
             {
@@ -241,6 +273,18 @@ namespace NettoyagePC.Nouveau
                 f.ChangerTheme(true);
             }
             catch (Exception ex) { erreurs++; rapport.AppendLine("ERREUR : bouclier : " + ex); }
+
+            // « Que veux-tu faire ? » avec une recherche tapée
+            try
+            {
+                f.ChangerTheme(true); f.Afficher("Accueil", false);
+                f.OuvrirPalette();
+                for (int k = 0; k < 3; k++) Dispatcher.UIThread.RunJobs();
+                foreach (var tb in f.GetVisualDescendants().OfType<TextBox>()) tb.Text = "demar";
+                Capturer(f, dossier, "sombre-palette.png", rapport, ref erreurs);
+                f.ViderCalques();
+            }
+            catch (Exception ex) { erreurs++; rapport.AppendLine("ERREUR : palette : " + ex); }
 
             // action en cours, puis terminée (lignes d'exemple, rien n'est lancé), et question de confirmation
             try

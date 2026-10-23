@@ -115,6 +115,9 @@ jobs:
           Lancer 'verifier-cle' '--verifier-cle NPC-abc.def' 60 1
           Lancer 'analyse' '--moteur --simulation --profond --disques --liberer-ram --optimiser --securite' 1500
           Lancer 'captures' '--captures essais-windows\captures --reel' 600
+          # vraie fenêtre : temps d'ouverture et d'arrivée du bilan (la fenêtre se ferme toute seule)
+          Lancer 'demarrage' '--essai-demarrage essais-windows\demarrage-temps.txt' 120
+          Lancer 'demarrage2' '--essai-demarrage essais-windows\demarrage-temps-2.txt' 120
           Copy-Item essais-windows\captures\rapport.txt essais-windows\captures-rapport.txt -ErrorAction SilentlyContinue
           $journal = Join-Path $env:LOCALAPPDATA 'NettoyagePC\demarrage.log'
           if (Test-Path $journal) { Copy-Item $journal essais-windows\demarrage.log }

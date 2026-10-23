@@ -15,6 +15,9 @@
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <!-- programme en un seul fichier : compressé (environ moitié moins gros), ressources en français, anglais et espagnol seulement -->
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+    <SatelliteResourceLanguages>fr;en;es</SatelliteResourceLanguages>
     <!-- moteur de la version 4 : API propres à Windows (CA1416), WebRequest (SYSLIB0014), champs remplis par réflexion (CS0649) -->
     <NoWarn>$(NoWarn);CS1591;CA1416;SYSLIB0014;CS0649;CS0168;CS0219;CS0414;CS0162</NoWarn>
   </PropertyGroup>
