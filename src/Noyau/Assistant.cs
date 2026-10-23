@@ -155,7 +155,7 @@ namespace NettoyagePC
             };
             var r = Requete("/api/chat", "POST", 120000);
             r.ContentType = "application/json";
-            var octets = Encoding.UTF8.GetBytes(new System.Web.Script.Serialization.JavaScriptSerializer { MaxJsonLength = int.MaxValue }.Serialize(corps));
+            var octets = Encoding.UTF8.GetBytes(Json.Compact(corps));
             using (var s = r.GetRequestStream()) s.Write(octets, 0, octets.Length);
             var tout = new StringBuilder();
             using (var rep = r.GetResponse()) using (var lec = new StreamReader(rep.GetResponseStream(), Encoding.UTF8))

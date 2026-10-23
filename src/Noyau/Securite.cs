@@ -1,4 +1,4 @@
-// Nettoyage PC - sécurité des chemins, écritures sûres, lancement de programmes
+﻿// Nettoyage PC - sécurité des chemins, écritures sûres, lancement de programmes
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -186,7 +186,7 @@ namespace NettoyagePC
                 var psi = new ProcessStartInfo(exe, arguments)
                 {
                     UseShellExecute = false, CreateNoWindow = true, RedirectStandardOutput = true, RedirectStandardError = true,
-                    StandardOutputEncoding = encodage ?? Encoding.Default, StandardErrorEncoding = encodage ?? Encoding.Default
+                    StandardOutputEncoding = encodage ?? Encodages.Ansi, StandardErrorEncoding = encodage ?? Encodages.Ansi
                 };
                 using (var p = Process.Start(psi))
                 {
@@ -211,7 +211,7 @@ namespace NettoyagePC
                 var psi = new ProcessStartInfo(exe, arguments)
                 {
                     UseShellExecute = false, CreateNoWindow = true, RedirectStandardOutput = true, RedirectStandardError = true,
-                    StandardOutputEncoding = encodage ?? Encoding.Default, StandardErrorEncoding = encodage ?? Encoding.Default
+                    StandardOutputEncoding = encodage ?? Encodages.Ansi, StandardErrorEncoding = encodage ?? Encodages.Ansi
                 };
                 using (var p = Process.Start(psi))
                 {

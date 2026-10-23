@@ -54,7 +54,7 @@ namespace NettoyagePC
         {
             try
             {
-                if (!Natif.EstWindows && Programme.DossierAutotest == null) return;
+                if (!Natif.EstWindows && Appli.DossierAutotest == null) return;
                 string f = Path.Combine(Dossier, DateTime.Now.ToString("yyyy-MM-dd") + ".json");
                 if (File.Exists(f)) return;
                 Directory.CreateDirectory(Dossier);

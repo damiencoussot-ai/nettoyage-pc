@@ -8,7 +8,6 @@ using System.Linq;
 using System.Reflection;
 using System.Security.Principal;
 using System.Text;
-using System.Web.Script.Serialization;
 
 namespace NettoyagePC
 {
@@ -28,12 +27,51 @@ namespace NettoyagePC
         }
 
         public static bool SousMono { get { return Type.GetType("Mono.Runtime") != null; } }
+
+        /// <summary>Dossier de l'essai automatique de l'interface (null en temps normal) : fixé au démarrage par l'interface.</summary>
+        public static string DossierAutotest;
         public static readonly CultureInfo Fr = CultureInfo.GetCultureInfo("fr-FR");
+    }
+
+    /// <summary>
+    /// Encodage « ANSI » de Windows (page de code du système, 1252 en France), utilisé par les vieux outils et fichiers INF.
+    /// .NET Framework : Encoding.Default. .NET 10 : Encoding.Default est l'UTF-8, on prend donc la vraie page de code.
+    /// </summary>
+    internal static class Encodages
+    {
+#if NET5_0_OR_GREATER
+        private static Encoding ansi;
+        [System.Runtime.InteropServices.DllImport("kernel32.dll")] private static extern int GetACP();
+        public static Encoding Ansi
+        {
+            get
+            {
+                if (ansi != null) return ansi;
+                try
+                {
+                    if (OperatingSystem.IsWindows())
+                    {
+                        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+                        ansi = Encoding.GetEncoding(GetACP());
+                    }
+                }
+                catch { }
+                return ansi ?? (ansi = Encoding.UTF8);
+            }
+        }
+#else
+        public static Encoding Ansi { get { return Encoding.Default; } }
+#endif
     }
 
     internal static class Chemins
     {
+#if NET5_0_OR_GREATER
+        // version 5 (un seul fichier) : l'emplacement de l'assembly est vide, on prend celui du programme
+        public static string Exe { get { return Environment.ProcessPath ?? Path.Combine(AppContext.BaseDirectory, "NettoyagePC.exe"); } }
+#else
         public static string Exe { get { return Assembly.GetExecutingAssembly().Location; } }
+#endif
         public static string Ici { get { return Path.GetDirectoryName(Exe); } }
 
         /// <summary>Documents de la personne qui utilise l'application (transmis par l'interface au moteur élevé).</summary>
@@ -140,18 +178,19 @@ namespace NettoyagePC
         }
     }
 
-    /// <summary>Lecture et écriture JSON (compatible avec les fichiers écrits par la version PowerShell).</summary>
+    /// <summary>
+    /// Lecture et écriture JSON, sans dépendance : même résultat sous .NET Framework (version 4) et sous .NET 10 (version 5).
+    /// Compatible avec les fichiers déjà écrits (par la version PowerShell et par JavaScriptSerializer) :
+    /// objets → Dictionary&lt;string, object&gt;, tableaux → object[], nombres → int, long ou decimal, dates « \/Date(ms)\/ ».
+    /// </summary>
     internal static class Json
     {
-        private static JavaScriptSerializer Serialiseur()
-        {
-            return new JavaScriptSerializer { MaxJsonLength = int.MaxValue, RecursionLimit = 64 };
-        }
+        private const int ProfondeurMax = 64;
 
         public static object Lire(string texte)
         {
             if (string.IsNullOrWhiteSpace(texte)) return null;
-            try { return Serialiseur().DeserializeObject(texte.TrimStart('﻿')); } catch { return null; }
+            try { return new LecteurJson(texte.TrimStart('\uFEFF')).Tout(); } catch { return null; }
         }
 
         public static object LireFichier(string chemin)
@@ -159,9 +198,263 @@ namespace NettoyagePC
             try { return File.Exists(chemin) ? Lire(File.ReadAllText(chemin, Encoding.UTF8)) : null; } catch { return null; }
         }
 
+        /// <summary>JSON lisible (indenté), pour les fichiers.</summary>
         public static string Ecrire(object valeur)
         {
-            return Indenter(Serialiseur().Serialize(valeur));
+            return Indenter(Compact(valeur));
+        }
+
+        /// <summary>JSON sur une ligne, pour les échanges (requêtes, clés).</summary>
+        public static string Compact(object valeur)
+        {
+            var sb = new StringBuilder();
+            EcrireValeur(sb, valeur, 0);
+            return sb.ToString();
+        }
+
+        private static readonly DateTime Epoque = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+
+        private static void EcrireValeur(StringBuilder sb, object v, int profondeur)
+        {
+            if (profondeur > ProfondeurMax) throw new InvalidOperationException("JSON : profondeur maximale dépassée");
+            if (v == null || v is DBNull) { sb.Append("null"); return; }
+            if (v is string) { EcrireTexte(sb, (string)v); return; }
+            if (v is bool) { sb.Append((bool)v ? "true" : "false"); return; }
+            if (v is char) { EcrireTexte(sb, v.ToString()); return; }
+            if (v is DateTime)
+            {
+                var d = ((DateTime)v).ToUniversalTime();
+                sb.Append("\"\\/Date(").Append(((long)(d - Epoque).TotalMilliseconds).ToString(CultureInfo.InvariantCulture)).Append(")\\/\"");
+                return;
+            }
+            if (v is double || v is float)
+            {
+                double x = Convert.ToDouble(v, CultureInfo.InvariantCulture);
+                if (double.IsNaN(x) || double.IsInfinity(x)) { sb.Append("null"); return; }
+                sb.Append(v is float ? ((float)v).ToString("r", CultureInfo.InvariantCulture) : x.ToString("r", CultureInfo.InvariantCulture));
+                return;
+            }
+            if (v is Enum) { sb.Append(Convert.ToInt64(v, CultureInfo.InvariantCulture).ToString(CultureInfo.InvariantCulture)); return; }
+            if (v is decimal || v is int || v is long || v is short || v is byte || v is sbyte || v is uint || v is ulong || v is ushort)
+            {
+                sb.Append(((IFormattable)v).ToString(null, CultureInfo.InvariantCulture));
+                return;
+            }
+            if (v is Guid || v is Uri) { EcrireTexte(sb, v.ToString()); return; }
+            var dict = v as IDictionary;
+            if (dict != null)
+            {
+                sb.Append('{');
+                bool premier = true;
+                foreach (DictionaryEntry e in dict)
+                {
+                    if (!premier) sb.Append(',');
+                    premier = false;
+                    EcrireTexte(sb, Convert.ToString(e.Key, CultureInfo.InvariantCulture));
+                    sb.Append(':');
+                    EcrireValeur(sb, e.Value, profondeur + 1);
+                }
+                sb.Append('}');
+                return;
+            }
+            var liste = v as IEnumerable;
+            if (liste != null)
+            {
+                sb.Append('[');
+                bool premier = true;
+                foreach (var x in liste)
+                {
+                    if (!premier) sb.Append(',');
+                    premier = false;
+                    EcrireValeur(sb, x, profondeur + 1);
+                }
+                sb.Append(']');
+                return;
+            }
+            // objet : champs puis propriétés publics (comme JavaScriptSerializer)
+            sb.Append('{');
+            bool prem = true;
+            var t = v.GetType();
+            foreach (var f in t.GetFields(BindingFlags.Public | BindingFlags.Instance))
+            {
+                if (!prem) sb.Append(',');
+                prem = false;
+                EcrireTexte(sb, f.Name); sb.Append(':'); EcrireValeur(sb, f.GetValue(v), profondeur + 1);
+            }
+            foreach (var pr in t.GetProperties(BindingFlags.Public | BindingFlags.Instance))
+            {
+                if (!pr.CanRead || pr.GetIndexParameters().Length > 0) continue;
+                object x;
+                try { x = pr.GetValue(v, null); } catch { continue; }
+                if (!prem) sb.Append(',');
+                prem = false;
+                EcrireTexte(sb, pr.Name); sb.Append(':'); EcrireValeur(sb, x, profondeur + 1);
+            }
+            sb.Append('}');
+        }
+
+        private static void EcrireTexte(StringBuilder sb, string s)
+        {
+            sb.Append('"');
+            foreach (char c in s)
+            {
+                switch (c)
+                {
+                    case '"': sb.Append("\\\""); break;
+                    case '\\': sb.Append("\\\\"); break;
+                    case '\n': sb.Append("\\n"); break;
+                    case '\r': sb.Append("\\r"); break;
+                    case '\t': sb.Append("\\t"); break;
+                    case '\b': sb.Append("\\b"); break;
+                    case '\f': sb.Append("\\f"); break;
+                    default:
+                        if (c < ' ' || c == '\u2028' || c == '\u2029') sb.Append("\\u").Append(((int)c).ToString("x4"));
+                        else sb.Append(c);
+                        break;
+                }
+            }
+            sb.Append('"');
+        }
+
+        private sealed class LecteurJson
+        {
+            private readonly string s;
+            private int i;
+            public LecteurJson(string texte) { s = texte; }
+
+            public object Tout()
+            {
+                var v = Valeur(0);
+                Blancs();
+                if (i < s.Length) throw Erreur("caractères en trop");
+                return v;
+            }
+
+            private Exception Erreur(string quoi) { return new FormatException("JSON invalide (" + quoi + ", position " + i + ")"); }
+
+            private void Blancs() { while (i < s.Length && char.IsWhiteSpace(s[i])) i++; }
+
+            private object Valeur(int profondeur)
+            {
+                if (profondeur > ProfondeurMax) throw Erreur("profondeur");
+                Blancs();
+                if (i >= s.Length) throw Erreur("fin inattendue");
+                char c = s[i];
+                if (c == '{') return Objet(profondeur);
+                if (c == '[') return Tableau(profondeur);
+                if (c == '"' || c == '\'') return TexteOuDate();
+                if (c == '-' || (c >= '0' && c <= '9')) return Nombre();
+                if (Mot("true")) return true;
+                if (Mot("false")) return false;
+                if (Mot("null")) return null;
+                throw Erreur("valeur inconnue");
+            }
+
+            private bool Mot(string m)
+            {
+                if (string.CompareOrdinal(s, i, m, 0, m.Length) != 0) return false;
+                i += m.Length;
+                return true;
+            }
+
+            private Dictionary<string, object> Objet(int profondeur)
+            {
+                var d = new Dictionary<string, object>();
+                i++;
+                Blancs();
+                if (i < s.Length && s[i] == '}') { i++; return d; }
+                while (true)
+                {
+                    Blancs();
+                    if (i >= s.Length || (s[i] != '"' && s[i] != '\'')) throw Erreur("nom attendu");
+                    string cle = Texte();
+                    Blancs();
+                    if (i >= s.Length || s[i] != ':') throw Erreur("« : » attendu");
+                    i++;
+                    d[cle] = Valeur(profondeur + 1);
+                    Blancs();
+                    if (i < s.Length && s[i] == ',') { i++; continue; }
+                    if (i < s.Length && s[i] == '}') { i++; return d; }
+                    throw Erreur("« , » ou « } » attendu");
+                }
+            }
+
+            private object[] Tableau(int profondeur)
+            {
+                var l = new List<object>();
+                i++;
+                Blancs();
+                if (i < s.Length && s[i] == ']') { i++; return l.ToArray(); }
+                while (true)
+                {
+                    l.Add(Valeur(profondeur + 1));
+                    Blancs();
+                    if (i < s.Length && s[i] == ',') { i++; continue; }
+                    if (i < s.Length && s[i] == ']') { i++; return l.ToArray(); }
+                    throw Erreur("« , » ou « ] » attendu");
+                }
+            }
+
+            private static readonly System.Text.RegularExpressions.Regex DateJson =
+                new System.Text.RegularExpressions.Regex(@"^\\/Date\((-?[0-9]+)(?:[a-zA-Z]|(?:\+|-)[0-9]{4})?\)\\/$");
+
+            private object TexteOuDate()
+            {
+                int debut = i;
+                string t = Texte();
+                // « \/Date(ms)\/ » (barres échappées dans le fichier) : date, comme JavaScriptSerializer
+                if (t.StartsWith("/Date(", StringComparison.Ordinal))
+                {
+                    var m = DateJson.Match(s.Substring(debut + 1, i - debut - 2));
+                    long ms;
+                    if (m.Success && long.TryParse(m.Groups[1].Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out ms))
+                        return Epoque.AddMilliseconds(ms);
+                }
+                return t;
+            }
+
+            private string Texte()
+            {
+                char fin = s[i++];
+                var sb = new StringBuilder();
+                while (true)
+                {
+                    if (i >= s.Length) throw Erreur("texte non terminé");
+                    char c = s[i++];
+                    if (c == fin) return sb.ToString();
+                    if (c != '\\') { sb.Append(c); continue; }
+                    if (i >= s.Length) throw Erreur("échappement");
+                    char e = s[i++];
+                    switch (e)
+                    {
+                        case 'n': sb.Append('\n'); break;
+                        case 'r': sb.Append('\r'); break;
+                        case 't': sb.Append('\t'); break;
+                        case 'b': sb.Append('\b'); break;
+                        case 'f': sb.Append('\f'); break;
+                        case 'u':
+                            if (i + 4 > s.Length) throw Erreur("\\u incomplet");
+                            int code;
+                            if (!int.TryParse(s.Substring(i, 4), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out code)) throw Erreur("\\u invalide");
+                            sb.Append((char)code); i += 4; break;
+                        default: sb.Append(e); break;   // \" \\ \/ \'
+                    }
+                }
+            }
+
+            private object Nombre()
+            {
+                int debut = i;
+                if (s[i] == '-') i++;
+                while (i < s.Length && ((s[i] >= '0' && s[i] <= '9') || s[i] == '.' || s[i] == 'e' || s[i] == 'E' || s[i] == '+' || s[i] == '-')) i++;
+                string n = s.Substring(debut, i - debut);
+                int a; long b; decimal c; double d;
+                if (int.TryParse(n, NumberStyles.Integer, CultureInfo.InvariantCulture, out a)) return a;
+                if (long.TryParse(n, NumberStyles.Integer, CultureInfo.InvariantCulture, out b)) return b;
+                if (decimal.TryParse(n, NumberStyles.Float, CultureInfo.InvariantCulture, out c)) return c;
+                if (double.TryParse(n, NumberStyles.Float, CultureInfo.InvariantCulture, out d)) return d;
+                throw Erreur("nombre invalide");
+            }
         }
 
         /// <summary>Liste d'objets JSON (un tableau, ou un objet seul).</summary>
@@ -226,7 +519,7 @@ namespace NettoyagePC
             return l;
         }
 
-        // Mise en forme lisible (le format compact de JavaScriptSerializer tient sur une ligne)
+        // Mise en forme lisible (le format compact tient sur une ligne)
         private static string Indenter(string json)
         {
             var sb = new StringBuilder(json.Length + json.Length / 4);

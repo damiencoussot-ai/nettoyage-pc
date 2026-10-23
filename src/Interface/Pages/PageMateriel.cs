@@ -8,42 +8,6 @@ using System.Windows.Forms;
 
 namespace NettoyagePC
 {
-    internal class InfosMateriel
-    {
-        public List<Barrette> Barrettes = new List<Barrette>();
-        public string CarteMere = "", MarqueCarteMere = "", Bios = "", Processeur = "";
-        public int Prevue, Reelle;
-        public List<DisquePhysique> Disques = new List<DisquePhysique>();
-        public bool AMD { get { return Processeur.IndexOf("AMD", StringComparison.OrdinalIgnoreCase) >= 0; } }
-        public bool Bridee { get { return Prevue > 0 && Reelle > 0 && Reelle < Prevue - 100; } }
-        public string Profil { get { return AMD && Barrettes.Any(b => b.TypeSmbios == 34) ? "EXPO" : AMD && MarqueCarteMere == "ASUS" ? "D.O.C.P." : "XMP"; } }
-
-        public static InfosMateriel Lire()
-        {
-            var i = new InfosMateriel();
-            try { i.Barrettes = Barrette.Lister(); i.Prevue = Barrette.VitessePrevue(i.Barrettes); i.Reelle = Barrette.VitesseReelle(i.Barrettes); } catch { }
-            try
-            {
-                var b = Wmi.Requete("SELECT Manufacturer, Product FROM Win32_BaseBoard").FirstOrDefault();
-                if (b != null)
-                {
-                    string fab = Wmi.Texte(b, "Manufacturer"), prod = Wmi.Texte(b, "Product");
-                    i.CarteMere = (fab + " " + prod).Trim();
-                    string t = fab + " " + prod;
-                    i.MarqueCarteMere = Regex.IsMatch(t, "ASUS", RegexOptions.IgnoreCase) ? "ASUS" : Regex.IsMatch(t, "Micro-Star|MSI", RegexOptions.IgnoreCase) ? "MSI"
-                        : Regex.IsMatch(t, "Gigabyte|AORUS", RegexOptions.IgnoreCase) ? "Gigabyte" : Regex.IsMatch(t, "ASRock", RegexOptions.IgnoreCase) ? "ASRock"
-                        : Regex.IsMatch(t, "Dell|Alienware|HP|Hewlett|Lenovo|Acer|Medion|Fujitsu", RegexOptions.IgnoreCase) ? "Marque" : "";
-                }
-                var bios = Wmi.Requete("SELECT SMBIOSBIOSVersion, ReleaseDate FROM Win32_BIOS").FirstOrDefault();
-                if (bios != null) { i.Bios = Wmi.Texte(bios, "SMBIOSBIOSVersion"); var d = Wmi.Date(bios, "ReleaseDate"); if (d.HasValue) i.Bios += " du " + d.Value.ToString("dd/MM/yyyy"); }
-            }
-            catch { }
-            i.Processeur = InfosPc.Processeur();
-            try { i.Disques = DisquePhysique.Lister(false); } catch { }
-            return i;
-        }
-    }
-
     internal class PageMateriel : Page
     {
         private readonly Carte carteRam = new Carte(600, 168, true) { Location = new Point(28, 4) };

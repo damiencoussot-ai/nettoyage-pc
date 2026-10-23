@@ -10,40 +10,6 @@ using System.Windows.Forms;
 
 namespace NettoyagePC
 {
-    internal class ElementDemarrage { public string Nom, Commande, Lieu, Appro, NomAppro; public bool Actif; }
-
-    internal static class ElementsDemarrage
-    {
-        public static List<ElementDemarrage> Lister()
-        {
-            var l = new List<ElementDemarrage>();
-            foreach (var s in GestionDemarrage.Sources)
-                foreach (var n in Registre.Valeurs(s.Cle))
-                {
-                    if (string.IsNullOrEmpty(n)) continue;
-                    l.Add(new ElementDemarrage { Nom = n, Commande = Convert.ToString(Registre.Lire(s.Cle, n)), Lieu = s.Lieu, Appro = s.Appro, NomAppro = n, Actif = GestionDemarrage.EstApprouve(s.Appro, n) });
-                }
-            foreach (var d in new[]
-            {
-                Tuple.Create(Environment.GetFolderPath(Environment.SpecialFolder.Startup), GestionDemarrage.ApproDossierUtilisateur, "Dossier Démarrage (ton compte)"),
-                Tuple.Create(Environment.GetFolderPath(Environment.SpecialFolder.CommonStartup), GestionDemarrage.ApproDossierTous, "Dossier Démarrage (tous)")
-            })
-            {
-                if (string.IsNullOrEmpty(d.Item1) || !Directory.Exists(d.Item1)) continue;
-                try
-                {
-                    foreach (var f in new DirectoryInfo(d.Item1).GetFiles())
-                    {
-                        if (f.Name.Equals("desktop.ini", StringComparison.OrdinalIgnoreCase)) continue;
-                        l.Add(new ElementDemarrage { Nom = Path.GetFileNameWithoutExtension(f.Name), Commande = f.FullName, Lieu = d.Item3, Appro = d.Item2, NomAppro = f.Name, Actif = GestionDemarrage.EstApprouve(d.Item2, f.Name) });
-                    }
-                }
-                catch { }
-            }
-            return l;
-        }
-    }
-
     internal class PageNettoyage : Page
     {
         public PageNettoyage(FenetrePrincipale f) : base(f, "Nettoyage", "Nettoyage", "Libère de l'espace sans toucher à tes documents.", 0xE74D)
