@@ -1,0 +1,104 @@
+# Nettoyage PC 5 (nouvelle interface Avalonia, en construction) : compilation et captures à chaque envoi
+# sur la branche interface-avalonia. Les résultats (journal de compilation, captures PNG) sont poussés sur
+# la branche « captures-avalonia » pour être consultés sans télécharger d'artefact.
+# Cette fabrication ne publie rien : la version 4 reste la version distribuée.
+name: Nouvelle interface
+
+on:
+  push:
+    branches: [ interface-avalonia ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apercu:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Compilation
+        id: compilation
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          dotnet build nouvelle-interface/NettoyagePC.Nouveau.csproj -c Release -o sortie-avalonia 2>&1 | tee compilation.txt
+
+      - name: Captures (rendu sans écran)
+        id: captures
+        if: steps.compilation.outcome == 'success'
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          dotnet sortie-avalonia/NettoyagePC.dll --captures captures 2>&1 | tee captures.txt
+
+      - name: Résultats sur la branche captures-avalonia
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p /tmp/envoi
+          cp compilation.txt /tmp/envoi/ 2>/dev/null || true
+          cp captures.txt /tmp/envoi/ 2>/dev/null || true
+          cp -r captures /tmp/envoi/ 2>/dev/null || true
+          printf 'commit %s\ncompilation %s\ncaptures %s\n' "$GITHUB_SHA" "${{ steps.compilation.outcome }}" "${{ steps.captures.outcome }}" > /tmp/envoi/etat.txt
+          cd /tmp/envoi
+          git init -q
+          git checkout -q -b captures-avalonia
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -q -m "Captures de $GITHUB_SHA"
+          git push -q -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/$GITHUB_REPOSITORY.git" captures-avalonia
+
+      - name: Échec si la compilation ou les captures ont échoué
+        if: steps.compilation.outcome != 'success' || steps.captures.outcome != 'success'
+        run: exit 1
+
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Programme Windows en un seul fichier
+        id: publication
+        continue-on-error: true
+        shell: pwsh
+        run: |
+          dotnet publish nouvelle-interface/NettoyagePC.Nouveau.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -o publie 2>&1 | Tee-Object publication.txt
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+          $f = Get-Item publie\NettoyagePC.exe
+          "NettoyagePC.exe : {0:N1} Mo" -f ($f.Length / 1MB) | Tee-Object -Append taille.txt
+
+      - name: Programme (artefact)
+        if: steps.publication.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: NettoyagePC-5-apercu
+          path: publie/NettoyagePC.exe
+
+      - name: Résultats sur la branche captures-avalonia-windows
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p /tmp/envoi
+          cp publication.txt taille.txt /tmp/envoi/ 2>/dev/null || true
+          printf 'commit %s\npublication %s\n' "$GITHUB_SHA" "${{ steps.publication.outcome }}" > /tmp/envoi/etat.txt
+          cd /tmp/envoi
+          git init -q
+          git checkout -q -b captures-avalonia-windows
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -q -m "Windows $GITHUB_SHA"
+          git push -q -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/$GITHUB_REPOSITORY.git" captures-avalonia-windows
