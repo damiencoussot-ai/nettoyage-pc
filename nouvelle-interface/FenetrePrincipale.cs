@@ -140,7 +140,7 @@ namespace NettoyagePC.Nouveau
         }
 
         /// <summary>Modifie et enregistre les réglages (même fichier que la version 4) ; rien n'est écrit pendant les aperçus.</summary>
-        public void EnregistrerReglage(Action<Parametres> modifier)
+        internal void EnregistrerReglage(Action<Parametres> modifier)
         {
             if (Source.Immediat) return;
             try { var r = Parametres.Lire(); modifier(r); r.Ecrire(); }
@@ -263,7 +263,7 @@ namespace NettoyagePC.Nouveau
             Rubriques.Add(new Rubrique { Cle = "Outils", Nom = "Outils", Sous = "Matériel, plein potentiel, réseau et aide à distance.", Page = () => PageOutils.Creer(this) });
             Rubriques.Add(new Rubrique { Cle = "Premium", Nom = "Premium", Sous = "Les outils des pros, débloqués d'un coup.", Page = () => PageAVenir.Premium() });
             Rubriques.Add(new Rubrique { Cle = "MisesAJour", Nom = "Mises à jour", Sous = "Version installée et nouveautés.", EnBas = true, Page = () => PageAVenir.Simple("Mises à jour", "Recherche des mises à jour, nouveautés de chaque version, installation en un clic.") });
-            Rubriques.Add(new Rubrique { Cle = "Historique", Nom = "Historique", Sous = "Tout ce que Nettoyage PC a fait, et l'annulation.", EnBas = true, Page = () => PageAVenir.Simple("Historique", "Chaque modification est notée et peut être annulée.") });
+            Rubriques.Add(new Rubrique { Cle = "Historique", Nom = "Historique", Sous = "Tout ce que Nettoyage PC a fait, et l'annulation.", EnBas = true, Page = () => new PageHistorique5(this) });
             Rubriques.Add(new Rubrique { Cle = "Reglages", Nom = "Réglages", Sous = "Apparence, langue, profil et informations.", EnBas = true, Page = () => PageReglages5.Creer(this) });
         }
 

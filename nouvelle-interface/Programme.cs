@@ -188,6 +188,27 @@ namespace NettoyagePC.Nouveau
             }
             catch (Exception ex) { erreurs++; rapport.AppendLine("ERREUR : onglets d'Outils : " + ex); }
 
+            // Historique avec des données d'exemple (rien n'est lu ni annulé)
+            try
+            {
+                var j = DateTime.Today;
+                PageHistorique5.Exemple = Tuple.Create(
+                    new System.Collections.Generic.List<Tuple<DateTime, long>> { Tuple.Create(j.AddDays(-27), 1900000000L), Tuple.Create(j.AddDays(-20), 640000000L), Tuple.Create(j.AddDays(-13), 2800000000L), Tuple.Create(j.AddDays(-6), 410000000L), Tuple.Create(j, 1250000000L) },
+                    new System.Collections.Generic.List<Tuple<DateTime, int>> { Tuple.Create(j.AddDays(-12), 58), Tuple.Create(j.AddDays(-9), 65), Tuple.Create(j.AddDays(-6), 72), Tuple.Create(j.AddDays(-3), 79), Tuple.Create(j, 86) },
+                    new System.Collections.Generic.List<Modif>
+                    {
+                        new Modif { Date = j.AddDays(-13).ToString("yyyy-MM-dd") + " 10:02", Titre = "Téléchargements de plus de 90 jours rangés dans « _A_verifier » (14 fichiers)" },
+                        new Modif { Date = j.AddDays(-6).ToString("yyyy-MM-dd") + " 21:40", Titre = "Programme au démarrage désactivé : Discord", Annule = true },
+                        new Modif { Date = j.ToString("yyyy-MM-dd") + " 09:15", Titre = "Mode d'alimentation : Performances élevées (avant : Équilibré)" },
+                    });
+                f.ChangerTheme(true);
+                f.Afficher("Historique", false);
+                for (int k = 0; k < 10; k++) { Dispatcher.UIThread.RunJobs(); System.Threading.Thread.Sleep(50); }
+                Capturer(f, dossier, "sombre-Historique.png", rapport, ref erreurs);
+                PageHistorique5.Exemple = null;
+            }
+            catch (Exception ex) { erreurs++; rapport.AppendLine("ERREUR : historique : " + ex); }
+
             // Réglages
             try
             {
