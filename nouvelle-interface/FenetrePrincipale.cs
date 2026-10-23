@@ -71,12 +71,84 @@ namespace NettoyagePC.Nouveau
             statut.Foreground = Habillage.Pinceau(alerte ? Habillage.P.Orange : Habillage.P.Discret);
         }
 
-        /// <summary>Bouton d'un point du bilan. Les rubriques arrivent une à une : en attendant, on dit ce qui va se passer.</summary>
+        // ---- actions du moteur (catalogue partagé avec la version 4)
+        public readonly ServiceMoteur Moteur = new ServiceMoteur();
+        public readonly Dictionary<string, ActionMoteur> Actions = CatalogueActions.Creer();
+        private Dictionary<string, bool> disponible;
+        private PanneauAction panneauAction;
+        private bool panneauVisible;
+        private Panel calqueDialogue;
+
+        /// <summary>Pose une question dans la fenêtre ; « reponse » reçoit vrai pour le bouton principal.</summary>
+        public void Demander(string titre, string texte, string oui, string non, Action<bool> reponse, bool alerte = false)
+        {
+            calqueDialogue.Children.Clear();
+            var d = new Dialogue(titre, texte, oui, non, r =>
+            {
+                calqueDialogue.Children.Clear(); calqueDialogue.IsVisible = false;
+                reponse(r);
+            }, alerte);
+            calqueDialogue.Children.Add(d);
+            calqueDialogue.IsVisible = true;
+        }
+
+        public void FermerPanneauAction() { panneauVisible = false; if (panneauAction != null) panneauAction.IsVisible = false; }
+
+        public void MontrerPanneauAction() { panneauVisible = true; if (panneauAction != null) panneauAction.IsVisible = true; }
+
+        /// <summary>
+        /// Lance une action du moteur. Simulation (pastille en haut) : l'action montre ce qu'elle ferait, sans rien modifier.
+        /// Sinon, une question est posée avant toute action qui modifie le PC.
+        /// </summary>
+        public void LancerAction(string cle, Action apres = null)
+        {
+            ActionMoteur a;
+            if (!Actions.TryGetValue(cle, out a)) { Statut("Action inconnue : " + cle, true); return; }
+            if (disponible == null) { try { disponible = CatalogueActions.Disponibilites(); } catch { disponible = new Dictionary<string, bool>(); } }
+            bool dispo;
+            if (a.Requiert != null && disponible.TryGetValue(a.Requiert, out dispo) && !dispo)
+            {
+                string raison; CatalogueActions.Raisons.TryGetValue(a.Requiert, out raison);
+                Demander(a.Titre, Langue.T(raison ?? "Cette action n'est pas disponible sur ce PC."), "Compris", null, r => { });
+                return;
+            }
+            if (Moteur.EnCours) { Demander("Une action est déjà en cours", "Attends qu'elle se termine, ou arrête-la avec le bouton « Arrêter » en bas de la fenêtre.", "Compris", null, r => { }); return; }
+            bool simulation = Simulation && a.Simu;
+            Action partir = () =>
+            {
+                MontrerPanneauAction();
+                Statut((simulation ? "Simulation : " : "En cours : ") + a.Titre + "…");
+                Moteur.Lancer(a, simulation, null, erreur =>
+                {
+                    if (erreur == "refus") Statut("Autorisation refusée : l'action n'a pas été lancée, rien n'a été modifié.", true);
+                    else Statut("Action impossible : " + erreur, true);
+                    FermerPanneauAction();
+                });
+                Action fini = null;
+                fini = () =>
+                {
+                    Moteur.Fini -= fini;
+                    Statut((Moteur.Arrete ? "Arrêtée : " : "Terminé : ") + Moteur.Titre + " (" + DateTime.Now.ToString("HH:mm") + ")");
+                    if (apres != null) { try { apres(); } catch (Exception ex) { JournalDemarrage.Erreur("après l'action (version 5)", ex); } }
+                    if (!simulation) ActualiserBilan();
+                };
+                Moteur.Fini += fini;
+            };
+            if (simulation || a.Confirmer == null) { partir(); return; }
+            // texte de confirmation de la version 4 : première ligne = question, le reste = explication
+            string conf = Langue.T(a.Confirmer);
+            int coupe = conf.IndexOf("\n\n", StringComparison.Ordinal);
+            string question = coupe > 0 ? conf.Substring(0, coupe) : conf, detail = coupe > 0 ? conf.Substring(coupe + 2) : "";
+            Demander(question, detail, "Oui, lancer", "Annuler", oui => { if (oui) partir(); else Statut("Annulé : rien n'a été modifié."); });
+        }
+
+        /// <summary>Bouton d'un point du bilan (ou de l'accueil) : action du moteur, rubrique, lien.</summary>
         public void Executer(string cible, string libelle)
         {
             if (string.IsNullOrEmpty(cible)) return;
             int i = cible.IndexOf(':');
             string type = i < 0 ? cible : cible.Substring(0, i), cle = i < 0 ? "" : cible.Substring(i + 1);
+            if (type == "action" && Actions.ContainsKey(cle)) { LancerAction(cle); return; }
             if (type == "page")
             {
                 string rubrique = cle == "Demarrage" || cle == "Pilotes" || cle == "Potentiel" ? "Accelerer" : cle == "Materiel" ? "Outils" : cle;
@@ -126,10 +198,14 @@ namespace NettoyagePC.Nouveau
             Grid.SetColumn(droite, 1);
             var entete = EnTete(); DockPanel.SetDock(entete, Dock.Top); droite.Children.Add(entete);
             var barreEtat = BarreEtat(); DockPanel.SetDock(barreEtat, Dock.Bottom); droite.Children.Add(barreEtat);
+            panneauAction = new PanneauAction(this, Moteur) { IsVisible = panneauVisible };
+            DockPanel.SetDock(panneauAction, Dock.Bottom); droite.Children.Add(panneauAction);
             contenu = new TransitioningContentControl { PageTransition = Habillage.Animations ? new CrossFade(TimeSpan.FromMilliseconds(180)) : null };
             droite.Children.Add(contenu);
             racine.Children.Add(droite);
-            Content = racine;
+            // calque des questions (par-dessus tout, caché tant qu'aucune question n'est posée)
+            calqueDialogue = new Panel { IsVisible = false };
+            Content = new Panel { Children = { racine, calqueDialogue } };
             Afficher(PageActive, false);
         }
 

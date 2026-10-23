@@ -56,9 +56,9 @@ namespace NettoyagePC.Nouveau
             texte.Children.Add(tEtat); texte.Children.Add(tDetail);
             var boutons = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 12, Margin = new Thickness(0, 12, 0, 0) };
             var unClic = new BoutonNoyau(f.Simulation ? "Simuler en 1 clic" : "Optimiser en 1 clic", true, 240, 48) { TaillePolice = 16 };
-            unClic.Clic += () => F.Executer("action:unclic", unClic.Texte);
+            unClic.Clic += () => F.LancerAction("complet");
             var analyser = new BoutonNoyau("Analyser sans rien modifier", false, 240, 48);
-            analyser.Clic += () => F.Executer("action:analyse", analyser.Texte);
+            analyser.Clic += () => F.LancerAction("analyse");
             boutons.Children.Add(unClic); boutons.Children.Add(analyser);
             texte.Children.Add(boutons);
 

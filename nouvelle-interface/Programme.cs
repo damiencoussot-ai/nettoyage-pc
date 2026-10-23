@@ -83,6 +83,15 @@ namespace NettoyagePC.Nouveau
     /// <summary>Captures de la fenêtre dans les deux thèmes, sur l'accueil et une autre rubrique.</summary>
     public static class Captures
     {
+        private static void Capturer(FenetrePrincipale f, string dossier, string nom, System.Text.StringBuilder rapport, ref int erreurs)
+        {
+            for (int k = 0; k < 6; k++) { Dispatcher.UIThread.RunJobs(); AvaloniaHeadlessPlatform.ForceRenderTimerTick(); }
+            var image = f.CaptureRenderedFrame();
+            if (image == null) { erreurs++; rapport.AppendLine("ERREUR : capture vide " + nom); return; }
+            image.Save(Path.Combine(dossier, nom));
+            rapport.AppendLine("OK : " + nom);
+        }
+
         public static int Faire(string dossier, bool reel)
         {
             Directory.CreateDirectory(dossier);
@@ -127,6 +136,36 @@ namespace NettoyagePC.Nouveau
                     catch (Exception ex) { erreurs++; rapport.AppendLine("ERREUR : " + cle + " : " + ex); }
                 }
             }
+            // action en cours, puis terminée (lignes d'exemple, rien n'est lancé), et question de confirmation
+            try
+            {
+                f.ChangerTheme(true); f.Afficher("Accueil", false);
+                var lignes = new[]
+                {
+                    "=== Nettoyage PC - SIMULATION (rien n'est supprimé ni déplacé) ===", "",
+                    "=== Fichiers temporaires ===", "  Temporaires de Windows : 412 Mo libérables", "  Temporaires de ton compte : 1,2 Go libérables",
+                    "=== Caches des navigateurs ===", "  Edge : 318 Mo libérables", "  Chrome : 655 Mo libérables",
+                };
+                f.Moteur.Montrer("Nettoyage rapide (simulation)", lignes, 3, 7, false, true);
+                f.MontrerPanneauAction();
+                Capturer(f, dossier, "sombre-action-en-cours.png", rapport, ref erreurs);
+                var fin = new System.Collections.Generic.List<string>(lignes)
+                {
+                    "=== Corbeille ===", "  Corbeille : 96 Mo libérables", "", "=== Résumé ===",
+                    "TOTAL : 2,7 Go libérables", "Téléchargements de plus de 90 jours : 14 fichiers seraient rangés dans « _A_verifier »", "Aucun document personnel n'est touché.",
+                };
+                f.Moteur.Montrer("Nettoyage rapide (simulation)", fin, 7, 7, true, true);
+                Capturer(f, dossier, "sombre-action-finie.png", rapport, ref erreurs);
+                f.FermerPanneauAction();
+                f.Demander("Lancer l'optimisation complète ?", "Un point de restauration est créé d'abord. Puis : nettoyage, nettoyage profond de Windows, optimisation des disques, libération de la RAM, bilans d'optimisation et de sécurité.\n\nCela peut durer longtemps : évite d'éteindre le PC et enregistre ton travail.", "Oui, lancer", "Annuler", r => { });
+                Capturer(f, dossier, "sombre-question.png", rapport, ref erreurs);
+                f.ChangerTheme(false);
+                f.Demander("Lancer l'optimisation complète ?", "Un point de restauration est créé d'abord.\n\nCela peut durer longtemps : évite d'éteindre le PC et enregistre ton travail.", "Oui, lancer", "Annuler", r => { });
+                Capturer(f, dossier, "clair-question.png", rapport, ref erreurs);
+                f.ChangerTheme(true);
+            }
+            catch (Exception ex) { erreurs++; rapport.AppendLine("ERREUR : action / question : " + ex); }
+
             // petite fenêtre (portable 1366 x 768 avec la barre des tâches)
             try
             {
