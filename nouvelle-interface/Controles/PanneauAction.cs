@@ -19,6 +19,7 @@ namespace NettoyagePC.Nouveau
         private readonly BarreProgression barre = new BarreProgression();
         private readonly BoutonNoyau bArreter, bDetail, bFermer;
         private readonly ScrollViewer defilement;
+        private readonly Border cadreDetail;
         private readonly Border pointEtat;
         private static bool detailOuvert;
 
@@ -65,7 +66,8 @@ namespace NettoyagePC.Nouveau
                 Content = tDetail, MaxHeight = 220, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled, VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
                 Padding = new Thickness(10, 8), Background = Habillage.Pinceau(P.Sombre ? Color.FromRgb(5, 9, 17) : Color.FromRgb(244, 247, 250)),
             };
-            pile.Children.Add(new Border { Child = defilement, BorderBrush = Habillage.Pinceau(P.Bordure), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(3) });
+            cadreDetail = new Border { Child = defilement, BorderBrush = Habillage.Pinceau(P.Bordure), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(3) };
+            pile.Children.Add(cadreDetail);
             Child = pile;
 
             AttachedToVisualTree += (s, e) => { M.Change += Rafraichir; Rafraichir(); };
@@ -107,7 +109,7 @@ namespace NettoyagePC.Nouveau
             if (!enCours)
                 foreach (var l in M.Resume.Take(5))
                     resume.Children.Add(new TextBlock { Text = "•  " + l, FontFamily = Habillage.Corps, FontSize = 13, Foreground = Habillage.Pinceau(P.Texte), TextWrapping = TextWrapping.Wrap });
-            defilement.Parent.IsVisible = detailOuvert;
+            cadreDetail.IsVisible = detailOuvert;
             if (detailOuvert)
             {
                 // les 600 dernières lignes suffisent (le journal complet est enregistré par le moteur)
