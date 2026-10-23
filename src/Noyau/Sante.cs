@@ -25,6 +25,22 @@ namespace NettoyagePC
 
     internal static class Sante
     {
+        /// <summary>Résumé des indicateurs. niveau : 0 tout va bien, 1 à surveiller, 2 sérieux.</summary>
+        public static string Resume(List<IndicateurSante> indicateurs, out int niveau)
+        {
+            int pb = indicateurs.Count(i => i.Etat == "probleme"), at = indicateurs.Count(i => i.Etat == "attention");
+            niveau = pb > 0 ? 2 : at > 0 ? 1 : 0;
+            return pb > 0 ? Langue.F(pb == 1 ? "1 signe sérieux à traiter" : "{0} signes sérieux à traiter", pb) + (at > 0 ? Langue.F(", {0} à surveiller", at) : "")
+                : at > 0 ? Langue.F(at == 1 ? "Rien de grave : 1 point à surveiller" : "Rien de grave : {0} points à surveiller", at) : Langue.T("✔  Aucun signe de faiblesse : ton matériel est en bonne santé");
+        }
+
+        /// <summary>Indicateurs du plus grave au moins grave.</summary>
+        public static List<IndicateurSante> Ordonner(List<IndicateurSante> indicateurs)
+        {
+            var ordre = new Dictionary<string, int> { { "probleme", 0 }, { "attention", 1 }, { "ok", 2 }, { "inconnu", 3 } };
+            return indicateurs.OrderBy(x => ordre.ContainsKey(x.Etat) ? ordre[x.Etat] : 4).ToList();
+        }
+
         private static string FichierDisques { get { return Path.Combine(Chemins.Local, "sante-disques.json"); } }
         private static string FichierTemperatures { get { return Path.Combine(Chemins.Local, "sante-temperatures.json"); } }
 

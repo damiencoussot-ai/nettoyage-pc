@@ -30,6 +30,51 @@ namespace NettoyagePC
 
     internal static class Energie
     {
+        public static string Kwh(double wh) { return (wh / 1000).ToString(wh < 10000 ? "0.00" : "0.0", Appli.Fr) + " kWh"; }
+        public static string Euros(double wh) { double e = wh / 1000 * Prix; return e.ToString(e < 10 ? "0.00" : "0", Appli.Fr) + " €"; }
+
+        /// <summary>État de la mesure (faite par le gardien). actif : la mesure tourne.</summary>
+        public static string EtatMesure(out bool actif)
+        {
+            var reg = ReglagesGardien.Lire();
+            actif = Gardien.EnCours && reg.Energie;
+            return actif ? "● Mesure en cours (le gardien relève l'activité chaque minute)" : !reg.Actif || !Gardien.EnCours ? "Le gardien est arrêté : active-le pour mesurer la consommation." : "La mesure de consommation est désactivée dans les réglages du gardien.";
+        }
+
+        /// <summary>Consommation par application (Wh), de la plus gourmande à la moins gourmande.</summary>
+        public static List<KeyValuePair<string, double>> ParApplication(IEnumerable<JourEnergie> jours)
+        {
+            var parApp = new Dictionary<string, double>(StringComparer.OrdinalIgnoreCase);
+            foreach (var j in jours) foreach (var a in j.Apps) { double v; parApp.TryGetValue(a.Key, out v); parApp[a.Key] = v + a.Value; }
+            return parApp.OrderByDescending(a => a.Value).ToList();
+        }
+
+        /// <summary>Conseils pour payer moins, d'après les 30 derniers jours (déjà traduits, précédés de « • »).</summary>
+        public static List<string> Conseils(List<JourEnergie> mois)
+        {
+            var conseils = new List<string>();
+            double whMois = mois.Sum(j => j.Wh);
+            int nbJours = mois.Count(j => j.Minutes >= 30);
+            int minInactif = mois.Sum(j => j.MinutesInactif); double whInactif = mois.Sum(j => j.WhInactif);
+            if (nbJours >= 3 && minInactif / (double)Math.Max(1, nbJours) >= 60)
+                conseils.Add(Langue.F("•  Ton PC reste allumé {0} h par jour en moyenne sans que personne ne s'en serve. Une mise en veille automatique après 15 à 30 minutes économiserait environ {1} par an.",
+                    (minInactif / 60.0 / nbJours).ToString("0.#", Appli.Fr), Euros(whInactif / nbJours * 365 * 0.9)));
+            var jeu = ParApplication(mois).Where(a => a.Key != NomSysteme).FirstOrDefault();
+            if (jeu.Key != null && whMois > 0 && jeu.Value / whMois >= 0.25)
+                conseils.Add(Langue.F("•  « {0} » représente {1} % de la consommation. Si c'est un jeu : limiter les images par seconde à la fréquence de ton écran (et activer FreeSync / G-Sync) réduit nettement la consommation de la carte graphique, sans différence visible.",
+                    jeu.Key, (jeu.Value / whMois * 100).ToString("0")));
+            conseils.Add(Langue.T("•  Éteins (ou mets en veille) le PC la nuit : un PC de bureau allumé pour rien consomme autant qu'une ampoule halogène."));
+            conseils.Add(Langue.T("•  Le mode d'alimentation « Équilibré » consomme moins que « Performances élevées » sans ralentir l'usage courant (Accélérer > Optimisation)."));
+            return conseils;
+        }
+
+        /// <summary>Base de calcul affichée sous les chiffres.</summary>
+        public static string TexteModele(ModeleEnergie m)
+        {
+            return Langue.F("Base de calcul : processeur {0} ({1} W), carte graphique {2}, reste du PC {3} W, pertes de l'alimentation comprises. Écrans non comptés.",
+                m.Processeur == "" ? "?" : m.Processeur, m.Tdp, m.Tbp > 0 ? m.Carte + " (" + m.Tbp + " W)" : Langue.T("intégrée"), m.Base);
+        }
+
         public static string Fichier { get { return Path.Combine(Chemins.Local, "energie.json"); } }
         private static string FichierPrix { get { return Path.Combine(Chemins.Local, "energie-prix.txt"); } }
         public const string NomSysteme = "(Windows et PC allumé)";

@@ -38,6 +38,43 @@ namespace NettoyagePC
 
     internal static class Batterie
     {
+        /// <summary>Phrase d'état de la batterie. niveau : 0 inconnu, 1 très usée, 2 usée, 3 bonne santé.</summary>
+        public static string Resume(InfosBatterie r, out int niveau)
+        {
+            double s = r.Sante;
+            niveau = s < 0 ? 0 : s >= 80 ? 3 : s >= 60 ? 2 : 1;
+            if (!r.Presente) return "Aucune batterie détectée : c'est sans doute un PC fixe.";
+            return s < 0 ? "Batterie détectée, mais Windows n'indique pas sa capacité." : s >= 80 ? "✔ Batterie en bonne santé" : s >= 60 ? "Batterie usée, mais encore correcte" : "Batterie très usée : son remplacement est à prévoir";
+        }
+
+        private static string Heures(TimeSpan? t) { return t.HasValue ? ((int)t.Value.TotalHours) + " h " + t.Value.Minutes.ToString("00") : "—"; }
+
+        /// <summary>Détails chiffrés (capacités, cycles, autonomie, charge, modèle), déjà traduits.</summary>
+        public static List<string> Details(InfosBatterie r)
+        {
+            double s = r.Sante;
+            var l = new List<string>();
+            if (r.Origine > 0) l.Add(Langue.T("Capacité d'origine") + " : " + Format.Nombre(r.Origine) + " mWh");
+            if (r.Actuelle > 0) l.Add(Langue.T("Capacité actuelle (pleine charge)") + " : " + Format.Nombre(r.Actuelle) + " mWh" + (s >= 0 ? "  (" + Langue.T("usure") + " " + Math.Max(0, 100 - s).ToString("0") + " %)" : ""));
+            if (r.Cycles > 0) l.Add(Langue.T("Cycles de charge") + " : " + r.Cycles);
+            if (r.AutonomieActuelle.HasValue) l.Add(Langue.T("Autonomie estimée par Windows") + " : " + Heures(r.AutonomieActuelle) + (r.AutonomieOrigine.HasValue ? "  (" + Langue.T("neuve") + " : " + Heures(r.AutonomieOrigine) + ")" : ""));
+            if (r.Charge >= 0) l.Add(Langue.T("Charge actuelle") + " : " + r.Charge + " %" + (r.SurSecteur ? "  (" + Langue.T("sur secteur") + ")" : ""));
+            if (r.Fabricant != "" || r.NomChimie != "") l.Add(Langue.T("Batterie") + " : " + string.Join(" · ", new[] { r.Fabricant, Langue.T(r.NomChimie), r.Nom }.Where(x => !string.IsNullOrEmpty(x))));
+            return l;
+        }
+
+        /// <summary>Conseils pour faire durer la batterie (non traduits).</summary>
+        public static List<string> Conseils(InfosBatterie r)
+        {
+            double s = r.Sante;
+            var c = new List<string>();
+            if (s >= 0 && s < 60) c.Add("La batterie a perdu plus de 40 % de sa capacité : un remplacement par le fabricant (ou un réparateur) redonnera de l'autonomie.");
+            else if (s >= 0 && s < 80) c.Add("Une usure de 20 à 40 % est normale après deux ou trois ans d'utilisation.");
+            c.Add("Pour la faire durer : évite de la laisser au soleil ou dans la chaleur, et ne la laisse pas souvent se vider complètement.");
+            c.Add("Si ton portable reste branché la plupart du temps, active la limite de charge (souvent 80 %) dans l'application du fabricant (Lenovo Vantage, MyASUS, Dell Power Manager, HP Smart...).");
+            return c;
+        }
+
         public static InfosBatterie Lire()
         {
             var r = new InfosBatterie();

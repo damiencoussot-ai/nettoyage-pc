@@ -59,16 +59,14 @@ namespace NettoyagePC
 
         private void Afficher()
         {
-            int pb = indicateurs.Count(i => i.Etat == "probleme"), at = indicateurs.Count(i => i.Etat == "attention");
-            lblResume.Text = pb > 0 ? Langue.F(pb == 1 ? "1 signe sérieux à traiter" : "{0} signes sérieux à traiter", pb) + (at > 0 ? Langue.F(", {0} à surveiller", at) : "")
-                : at > 0 ? Langue.F(at == 1 ? "Rien de grave : 1 point à surveiller" : "Rien de grave : {0} points à surveiller", at) : "✔  Aucun signe de faiblesse : ton matériel est en bonne santé";
-            lblResume.RoleTexte = pb > 0 ? Role.Rouge : at > 0 ? Role.Orange : Role.Vert; lblResume.AppliquerTheme();
+            int niveau;
+            lblResume.Text = Sante.Resume(indicateurs, out niveau);
+            lblResume.RoleTexte = niveau == 2 ? Role.Rouge : niveau == 1 ? Role.Orange : Role.Vert; lblResume.AppliquerTheme();
             liste.SuspendLayout();
             foreach (Control c in liste.Controls.Cast<Control>().ToList()) c.Dispose();
             liste.Controls.Clear();
             int y = 0, w = Largeur();
-            var ordre = new Dictionary<string, int> { { "probleme", 0 }, { "attention", 1 }, { "ok", 2 }, { "inconnu", 3 } };
-            foreach (var i in indicateurs.OrderBy(x => ordre.ContainsKey(x.Etat) ? ordre[x.Etat] : 4))
+            foreach (var i in Sante.Ordonner(indicateurs))
             {
                 var ind = i;
                 bool courbe = i.Points.Count >= (i.Barres ? 1 : 2) && (!i.Barres || i.Points.Any(p => p.Item2 > 0));
