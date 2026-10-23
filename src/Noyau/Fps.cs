@@ -33,6 +33,9 @@ namespace NettoyagePC
         }
     }
 
+    /// <summary>Fenêtre ouverte qu'on peut mesurer (★ : jeu reconnu).</summary>
+    internal class CibleJeu { public string Processus = "", Libelle = ""; public bool Jeu; public override string ToString() { return Libelle; } }
+
     internal static class Fps
     {
         private const string Depot = "GameTechDev/PresentMon";
@@ -233,6 +236,78 @@ namespace NettoyagePC
         {
             try { Directory.CreateDirectory(Chemins.Local); File.WriteAllText(FichierHistorique, Json.Ecrire(l.OrderByDescending(m => m.Date).Take(300).Select(m => (object)m.VersJson()).ToArray())); }
             catch (Exception ex) { JournalDemarrage.Erreur("historique des FPS", ex); }
+        }
+
+        private static readonly HashSet<string> Ignorer = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        { "explorer", "ApplicationFrameHost", "TextInputHost", "SystemSettings", "ShellExperienceHost", "StartMenuExperienceHost", "SearchHost", "LockApp", "Taskmgr", "NettoyagePC", "steamwebhelper", "msedgewebview2" };
+
+        /// <summary>Fenêtres ouvertes (les jeux reconnus d'abord) : ce qu'on peut mesurer.</summary>
+        public static List<CibleJeu> FenetresOuvertes()
+        {
+            var l = new List<CibleJeu>();
+            HashSet<string> exesJeux;
+            try { exesJeux = new HashSet<string>(DetectionJeux.Lister().Where(j => j.Exe != "").Select(j => Path.GetFileName(j.Exe)), StringComparer.OrdinalIgnoreCase); } catch { exesJeux = new HashSet<string>(StringComparer.OrdinalIgnoreCase); }
+            int moi = Process.GetCurrentProcess().Id;
+            foreach (var p in Process.GetProcesses())
+            {
+                try
+                {
+                    if (p.Id == moi || p.MainWindowHandle == IntPtr.Zero || string.IsNullOrWhiteSpace(p.MainWindowTitle) || Ignorer.Contains(p.ProcessName)) continue;
+                    string chemin = ""; try { chemin = p.MainModule.FileName; } catch { }
+                    string exe = p.ProcessName + ".exe";
+                    bool jeu = exesJeux.Contains(exe) || Regex.IsMatch(chemin, @"steamapps\\common|Epic Games|XboxGames|Riot Games|Ubisoft Game Launcher\\games|EA Games|GOG Galaxy\\Games|Battle\.net", RegexOptions.IgnoreCase);
+                    if (l.Any(c => c.Processus.Equals(exe, StringComparison.OrdinalIgnoreCase))) continue;
+                    l.Add(new CibleJeu { Processus = exe, Jeu = jeu, Libelle = (jeu ? "★ " : "") + p.MainWindowTitle.Trim() + "  (" + exe + ")" });
+                }
+                catch { }
+                finally { p.Dispose(); }
+            }
+            return l.OrderByDescending(c => c.Jeu).ThenBy(c => c.Libelle).ToList();
+        }
+
+        /// <summary>
+        /// Mesure complète (bloquante, hors du fil de l'interface) : téléchargement vérifié de PresentMon s'il manque, autorisation
+        /// de Windows, mesure, analyse. etat : message à afficher ; debut : la mesure démarre (pour le compte à rebours).
+        /// </summary>
+        public static MesureFps Mesurer(CibleJeu c, int secondes, int delai, string libelle, Action<string> etat, Action debut, out string erreur)
+        {
+            erreur = null; MesureFps m = null;
+            bool telecharger = !OutilPresent;
+            try
+            {
+                string source = "-", empreinte, version;
+                if (telecharger) { etat("Téléchargement et vérification de PresentMon..."); source = Telecharger(out empreinte, out version); }
+                else empreinte = Moteur.Empreinte(Exe);
+                if (empreinte == null) throw new InvalidOperationException(Langue.T("PresentMon est illisible : réessaie."));
+                etat("Windows demande ton autorisation pour la mesure : clique sur « Oui ».");
+                debut();
+                int code = Elevation.CommandeAttendre(secondes + delai + 90, "mesurer-fps", source, empreinte, c.Processus, secondes.ToString(), delai.ToString());
+                if (telecharger && source != "-") try { Directory.Delete(Path.GetDirectoryName(source), true); } catch { }
+                if (code == -1) erreur = Langue.T("Mesure annulée : l'autorisation de Windows a été refusée.");
+                else if (code == 4) erreur = Langue.T("PresentMon n'a pas pu être vérifié comme version officielle : rien n'a été installé.");
+                else if (code == 5) erreur = Langue.T("Aucune image mesurée : le jeu était-il bien ouvert et au premier plan pendant la mesure ?");
+                else if (code != 0) erreur = Langue.F("La mesure n'a pas pu se faire (code {0}).", code);
+                else
+                {
+                    m = Analyser(Csv);
+                    if (m == null) erreur = Langue.T("Pas assez d'images mesurées : reste dans le jeu pendant toute la mesure.");
+                    else { m.Libelle = libelle; m.Jeu = c.Processus.Substring(0, c.Processus.Length - 4); }
+                }
+            }
+            catch (Exception ex) { erreur = Langue.T("Mesure impossible : ") + ex.Message; m = null; }
+            return m;
+        }
+
+        /// <summary>Comparaison avec la mesure précédente du même jeu. niveau : 0 pas de comparaison, 1 baisse, 2 gain, 3 égalité.</summary>
+        public static string Comparaison(List<MesureFps> historique, MesureFps m, out int niveau)
+        {
+            var avant = historique.Where(x => x != m && x.Jeu == m.Jeu && string.CompareOrdinal(x.Date, m.Date) < 0).OrderByDescending(x => x.Date).FirstOrDefault();
+            if (avant == null) { niveau = 0; return Langue.T("Fais une autre mesure après ton réglage pour voir la différence."); }
+            Func<double, double, string> pct = (a, b) => { double d = a > 0 ? (b - a) / a * 100 : 0; return (d >= 0 ? "+" : "") + d.ToString("0", Appli.Fr) + " %"; };
+            double gain = avant.Moyenne > 0 ? (m.Moyenne - avant.Moyenne) / avant.Moyenne : 0;
+            niveau = gain >= 0.03 ? 2 : gain <= -0.03 ? 1 : 3;
+            return Langue.F("Par rapport à « {0} » : {1} de FPS moyen, {2} sur les 1 % les plus lents, {3} sur les 0,1 %.", avant.Libelle, pct(avant.Moyenne, m.Moyenne), pct(avant.Bas1, m.Bas1), pct(avant.Bas01, m.Bas01))
+                + (Math.Abs(gain) < 0.03 ? "  " + Langue.T("(différence trop faible pour être sûre : refais la mesure au même endroit)") : "");
         }
     }
 }
