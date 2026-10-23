@@ -9,6 +9,11 @@ on:
     branches: [ interface-avalonia ]
   workflow_dispatch:
 
+# un seul envoi à la fois : le suivant attend (les branches de résultats ne se marchent pas dessus)
+concurrency:
+  group: nouvelle-interface
+  cancel-in-progress: false
+
 permissions:
   contents: write
 
@@ -87,13 +92,42 @@ jobs:
           name: NettoyagePC-5-apercu
           path: publie/NettoyagePC.exe
 
+      # Essais sur un vrai Windows, en lecture seule : le moteur de la version 4, compilé pour .NET 10, tourne-t-il ?
+      # (état du PC en JSON, analyse complète en simulation, vrai bilan de l'accueil et captures avec ces données)
+      - name: Essais sous Windows (lecture seule)
+        id: essais
+        if: steps.publication.outcome == 'success'
+        continue-on-error: true
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force essais-windows | Out-Null
+          $exe = (Resolve-Path publie\NettoyagePC.exe).Path
+          $global:echecs = 0
+          function Lancer($nom, $arguments, $delai, $attendu = 0) {
+            $chrono = [Diagnostics.Stopwatch]::StartNew()
+            $p = Start-Process -FilePath $exe -ArgumentList $arguments -RedirectStandardOutput "essais-windows\$nom.txt" -RedirectStandardError "essais-windows\$nom-erreurs.txt" -PassThru -NoNewWindow
+            $null = $p.Handle
+            if (-not $p.WaitForExit($delai * 1000)) { try { $p.Kill() } catch {} ; $code = 'délai dépassé' } else { $p.WaitForExit(); $code = $p.ExitCode }
+            if ("$code" -ne "$attendu") { $global:echecs++ }
+            "{0} : code {1} (attendu {2}), {3} ms" -f $nom, $code, $attendu, $chrono.ElapsedMilliseconds | Tee-Object -Append essais-windows\resume.txt
+          }
+          Lancer 'etat' '--etat' 180
+          Lancer 'verifier-cle' '--verifier-cle NPC-abc.def' 60 1
+          Lancer 'analyse' '--moteur --simulation --profond --disques --liberer-ram --optimiser --securite' 1500
+          Lancer 'captures' '--captures essais-windows\captures --reel' 600
+          Copy-Item essais-windows\captures\rapport.txt essais-windows\captures-rapport.txt -ErrorAction SilentlyContinue
+          $journal = Join-Path $env:LOCALAPPDATA 'NettoyagePC\demarrage.log'
+          if (Test-Path $journal) { Copy-Item $journal essais-windows\demarrage.log }
+          if ($global:echecs -gt 0) { "$global:echecs essai(s) en échec" | Tee-Object -Append essais-windows\resume.txt; exit 1 }
+
       - name: Résultats sur la branche captures-avalonia-windows
         if: always()
         shell: bash
         run: |
           mkdir -p /tmp/envoi
           cp publication.txt taille.txt /tmp/envoi/ 2>/dev/null || true
-          printf 'commit %s\npublication %s\n' "$GITHUB_SHA" "${{ steps.publication.outcome }}" > /tmp/envoi/etat.txt
+          cp -r essais-windows /tmp/envoi/ 2>/dev/null || true
+          printf 'commit %s\npublication %s\nessais %s\n' "$GITHUB_SHA" "${{ steps.publication.outcome }}" "${{ steps.essais.outcome }}" > /tmp/envoi/etat.txt
           cd /tmp/envoi
           git init -q
           git checkout -q -b captures-avalonia-windows

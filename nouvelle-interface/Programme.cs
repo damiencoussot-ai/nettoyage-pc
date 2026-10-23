@@ -20,10 +20,14 @@ namespace NettoyagePC.Nouveau
             RequestedThemeVariant = Habillage.P.Sombre ? ThemeVariant.Dark : ThemeVariant.Light;
         }
 
+        /// <summary>Source des données de l'accueil : le vrai PC sous Windows, l'exemple ailleurs (essais sous Linux).</summary>
+        public static ISourceBilan Source = OperatingSystem.IsWindows() ? new SourceBilanPc() : (ISourceBilan)new BilanExemple();
+        public static string Pseudo = "";
+
         public override void OnFrameworkInitializationCompleted()
         {
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime bureau)
-                bureau.MainWindow = new FenetrePrincipale(new BilanExemple());
+                bureau.MainWindow = new FenetrePrincipale(Source) { Pseudo = Pseudo };
             base.OnFrameworkInitializationCompleted();
         }
     }
@@ -34,9 +38,40 @@ namespace NettoyagePC.Nouveau
         public static int Main(string[] args)
         {
             int i = Array.IndexOf(args, "--captures");
-            if (i >= 0 && i + 1 < args.Length) return Captures.Faire(args[i + 1]);
+            // --captures DOSSIER [--reel] : avec --reel (sous Windows), l'accueil montre le vrai bilan du PC (lecture seule)
+            if (i >= 0 && i + 1 < args.Length) return Captures.Faire(args[i + 1], Array.IndexOf(args, "--reel") >= 0);
+
+            // même programme que la version 4 pour tout ce qui n'a pas de fenêtre : moteur (--moteur ...),
+            // commandes administrateur (--commande ...), état du PC en JSON (--etat)...
+            JournalDemarrage.Preparer();
+            Demarrage.AppliquerDossiersUtilisateur(args);
+            int? code = Demarrage.SansInterface(args);
+            if (code.HasValue) return code.Value;
+
+            JournalDemarrage.Noter("--- Démarrage de Nettoyage PC 5 (aperçu) : Windows " + Environment.OSVersion.Version + ", .NET " + Environment.Version + ", dossier " + Chemins.Ici);
+            // toujours avec les droits normaux : lancée en administrateur, l'application se relance par l'Explorateur
+            if (Appli.EstAdmin && Natif.EstWindows && Demarrage.RelancerSansAdmin()) return 0;
+            AppDomain.CurrentDomain.UnhandledException += (s, e) => JournalDemarrage.Erreur("fatale (version 5)", e.ExceptionObject as Exception);
+            try
+            {
+                var reglages = Parametres.Lire();
+                Langue.Choisir(reglages.Langue);
+                App.Pseudo = reglages.Pseudo ?? "";
+                if (reglages.Theme == "Clair" || (reglages.Theme == "Auto" && WindowsEnClair())) Habillage.P = Palette.ClairNoyau;
+            }
+            catch (Exception ex) { JournalDemarrage.Erreur("réglages (version 5)", ex); }
+            try { Licence.Charger(); } catch (Exception ex) { JournalDemarrage.Erreur("licence (version 5)", ex); }
             BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
+            JournalDemarrage.Noter("Fin normale (version 5).");
             return 0;
+        }
+
+        /// <summary>Thème des applications choisi dans Windows (Paramètres > Personnalisation > Couleurs).</summary>
+        private static bool WindowsEnClair()
+        {
+            if (!OperatingSystem.IsWindows()) return false;
+            try { return Convert.ToInt32(Microsoft.Win32.Registry.GetValue(@"HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize", "AppsUseLightTheme", 0) ?? 0) == 1; }
+            catch { return false; }
         }
 
         public static AppBuilder BuildAvaloniaApp()
@@ -48,14 +83,31 @@ namespace NettoyagePC.Nouveau
     /// <summary>Captures de la fenêtre dans les deux thèmes, sur l'accueil et une autre rubrique.</summary>
     public static class Captures
     {
-        public static int Faire(string dossier)
+        public static int Faire(string dossier, bool reel)
         {
             Directory.CreateDirectory(dossier);
             Habillage.Animations = false;   // états finaux, sans attendre les animations
-            AppBuilder.Configure<App>().UseSkia().UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false }).SetupWithoutStarting();
             int erreurs = 0;
             var rapport = new System.Text.StringBuilder();
-            var f = new FenetrePrincipale(new BilanExemple()) { Pseudo = "Damien" };
+            ISourceBilan source = new BilanExemple();
+            if (reel)
+            {
+                // vrai bilan, calculé une fois avant les captures (quelques secondes ; rien n'est modifié)
+                try
+                {
+                    JournalDemarrage.Preparer();
+                    var chrono = System.Diagnostics.Stopwatch.StartNew();
+                    var figee = new SourceFigee(new SourceBilanPc());
+                    rapport.AppendLine("Bilan réel : note " + figee.Bilan.Score + ", " + figee.Bilan.Points.Count + " points, en " + chrono.ElapsedMilliseconds + " ms");
+                    foreach (var p in figee.Bilan.Points) rapport.AppendLine("  [" + p.Etat + "] " + p.Texte + (p.Cible != null ? "  -> " + p.Cible : ""));
+                    rapport.AppendLine("  secteurs : " + string.Join(" / ", figee.Bilan.Secteurs));
+                    rapport.AppendLine("  mesures : processeur " + figee.Bilan.Processeur + " %, mémoire " + figee.Bilan.Memoire + " %, disque " + figee.Bilan.DisqueLibre + ", température " + figee.Bilan.Temperature);
+                    source = figee;
+                }
+                catch (Exception ex) { erreurs++; rapport.AppendLine("ERREUR : bilan réel : " + ex); }
+            }
+            AppBuilder.Configure<App>().UseSkia().UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false }).SetupWithoutStarting();
+            var f = new FenetrePrincipale(source) { Pseudo = "Damien" };
             f.Show();
             foreach (var sombre in new[] { true, false })
             {
@@ -89,5 +141,15 @@ namespace NettoyagePC.Nouveau
             Console.WriteLine(rapport.ToString());
             return erreurs == 0 ? 0 : 1;
         }
+    }
+
+    /// <summary>Bilan calculé une seule fois puis servi tel quel (captures avec les vraies données).</summary>
+    public sealed class SourceFigee : ISourceBilan
+    {
+        public readonly Bilan Bilan;
+        public SourceFigee(ISourceBilan source) { Bilan = source.Calculer(); }
+        public bool Immediat { get { return true; } }
+        public Bilan Calculer() { return Bilan; }
+        public Mesures Mesurer(bool avecTemperature) { return null; }
     }
 }

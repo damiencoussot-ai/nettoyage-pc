@@ -37,6 +37,58 @@ namespace NettoyagePC.Nouveau
         public bool Simulation = true;
         public string Pseudo = "";
 
+        // ---- bilan de l'accueil : calculé en arrière-plan, gardé entre deux visites de l'accueil
+        public Bilan Bilan { get; private set; }
+        public bool BilanEnCours { get; private set; }
+        /// <summary>Le bilan vient d'être (re)calculé (appelé sur le fil de l'interface).</summary>
+        public event Action<Bilan> BilanPret;
+
+        public void ActualiserBilan()
+        {
+            if (BilanEnCours) return;
+            if (Source.Immediat) { Bilan = Source.Calculer(); var h = BilanPret; if (h != null) h(Bilan); return; }
+            BilanEnCours = true;
+            System.Threading.Tasks.Task.Run(() =>
+            {
+                Bilan b = null;
+                try { b = Source.Calculer(); }
+                catch (Exception ex) { try { JournalDemarrage.Erreur("bilan (version 5)", ex); } catch { } }
+                Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                {
+                    BilanEnCours = false;
+                    if (b == null) { Statut("Le bilan n'a pas pu être calculé. Détails : journal de démarrage.", true); return; }
+                    Bilan = b;
+                    var h = BilanPret; if (h != null) h(b);
+                });
+            });
+        }
+
+        /// <summary>Texte de la barre d'état (alerte : en orange).</summary>
+        public void Statut(string texte, bool alerte = false)
+        {
+            if (statut == null) return;
+            statut.Text = texte;
+            statut.Foreground = Habillage.Pinceau(alerte ? Habillage.P.Orange : Habillage.P.Discret);
+        }
+
+        /// <summary>Bouton d'un point du bilan. Les rubriques arrivent une à une : en attendant, on dit ce qui va se passer.</summary>
+        public void Executer(string cible, string libelle)
+        {
+            if (string.IsNullOrEmpty(cible)) return;
+            int i = cible.IndexOf(':');
+            string type = i < 0 ? cible : cible.Substring(0, i), cle = i < 0 ? "" : cible.Substring(i + 1);
+            if (type == "page")
+            {
+                string rubrique = cle == "Demarrage" || cle == "Pilotes" || cle == "Potentiel" ? "Accelerer" : cle == "Materiel" ? "Outils" : cle;
+                if (Rubriques.Any(r => r.Cle == rubrique)) { Afficher(rubrique, true); return; }
+            }
+            if (type == "uri" && cle.StartsWith("windowsdefender:", StringComparison.OrdinalIgnoreCase))
+            {
+                try { System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(cle) { UseShellExecute = true }); return; } catch { }
+            }
+            Statut("« " + libelle + " » arrive dans la prochaine étape de la nouvelle interface ; la version 4 le fait déjà.", true);
+        }
+
         public FenetrePrincipale(ISourceBilan source)
         {
             Source = source;
@@ -204,7 +256,7 @@ namespace NettoyagePC.Nouveau
         {
             var P = Habillage.P;
             var g = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto"), Height = 44, Margin = new Thickness(18, 0, 14, 0) };
-            statut = new TextBlock { Text = Simulation ? "Premier lancement : le mode simulation est activé. Rien n'est modifié tant que tu ne passes pas en mode réel." : "Prêt.", FontFamily = Habillage.Corps, FontSize = 13, Foreground = Habillage.Pinceau(Simulation ? P.Orange : P.Discret), VerticalAlignment = VerticalAlignment.Center, TextTrimming = TextTrimming.CharacterEllipsis };
+            statut = new TextBlock { Text = Simulation ? "Mode simulation : rien n'est modifié tant que tu ne passes pas en mode réel." : "Prêt.", FontFamily = Habillage.Corps, FontSize = 13, Foreground = Habillage.Pinceau(Simulation ? P.Orange : P.Discret), VerticalAlignment = VerticalAlignment.Center, TextTrimming = TextTrimming.CharacterEllipsis };
             g.Children.Add(statut);
             var b = new BoutonNoyau("Afficher les détails", false, 160, 30) { TaillePolice = 13, VerticalAlignment = VerticalAlignment.Center };
             Grid.SetColumn(b, 1); g.Children.Add(b);

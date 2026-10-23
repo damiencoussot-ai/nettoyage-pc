@@ -14,10 +14,19 @@
     <InformationalVersion>5.0-apercu</InformationalVersion>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
-    <NoWarn>$(NoWarn);CS1591</NoWarn>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <!-- moteur de la version 4 : API propres à Windows (CA1416), WebRequest (SYSLIB0014), champs remplis par réflexion (CS0649) -->
+    <NoWarn>$(NoWarn);CS1591;CA1416;SYSLIB0014;CS0649;CS0168;CS0219;CS0414;CS0162</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <AvaloniaResource Include="Assets\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- moteur partagé avec la version 4 : les mêmes fichiers (nettoyage, analyses, licence, bilan...), sans copie -->
+    <Compile Include="..\src\Noyau\**\*.cs" Link="Moteur4\Noyau\%(RecursiveDir)%(Filename)%(Extension)" />
+    <Compile Include="..\src\Moteur\**\*.cs" Link="Moteur4\Moteur\%(RecursiveDir)%(Filename)%(Extension)" />
+    <!-- textes légaux intégrés au programme (mêmes noms de ressources que la version 4) -->
+    <EmbeddedResource Include="..\legal\*.txt" LogicalName="legal.%(Filename)%(Extension)" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="11.3.0" />
@@ -25,5 +34,12 @@
     <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.0" />
     <!-- rendu sans écran : captures automatiques de l'interface (essais et aperçus) -->
     <PackageReference Include="Avalonia.Headless" Version="11.3.0" />
+    <!-- pour le moteur : WMI, services, journaux d'événements, protection des données de licence -->
+    <PackageReference Include="System.Management" Version="10.0.0" />
+    <PackageReference Include="System.ServiceProcess.ServiceController" Version="10.0.0" />
+    <PackageReference Include="System.Diagnostics.EventLog" Version="10.0.0" />
+    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="10.0.0" />
+    <!-- dépendance d'Avalonia sous Linux : version corrigée (faille GHSA-xrw6-gwf8-vvr9, corrigée en 0.21.3) -->
+    <PackageReference Include="Tmds.DBus.Protocol" Version="0.21.3" />
   </ItemGroup>
 </Project>
