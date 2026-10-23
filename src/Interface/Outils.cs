@@ -1,4 +1,4 @@
-// Nettoyage PC - fenêtres d'outils : confidentialité, extensions des navigateurs, carte de l'espace disque,
+﻿// Nettoyage PC - fenêtres d'outils : confidentialité, extensions des navigateurs, carte de l'espace disque,
 // applications préinstallées inutiles, anciens pilotes
 using System;
 using System.Collections.Concurrent;
@@ -17,31 +17,9 @@ namespace NettoyagePC
     // ================================================================ Réglages de Windows (confidentialité)
     internal static class FenetreReglagesWindows
     {
-        private const string Cdm = @"HKCU\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager";
-        private static readonly string[] Suggestions = { "SubscribedContent-338388Enabled", "SubscribedContent-338389Enabled", "SubscribedContent-353694Enabled", "SubscribedContent-353696Enabled", "SystemPaneSuggestionsEnabled", "SoftLandingEnabled" };
-
-        private static int? Dw(string cle, string nom) { var v = Registre.Lire(cle, nom); try { return v == null ? (int?)null : Convert.ToInt32(v); } catch { return null; } }
-
         public static void Confidentialite(FenetrePrincipale f)
         {
-            var l = new List<ReglageJeu>
-            {
-                new ReglageJeu { Cle = "Pub", Libelle = "Pas d'identifiant de publicité", Gain = "Les applications ne peuvent plus te reconnaître pour te montrer des publicités ciblées.",
-                    Etat = () => Dw(@"HKCU\Software\Microsoft\Windows\CurrentVersion\AdvertisingInfo", "Enabled") == 0,
-                    Appliquer = () => Registre.EcrireSuivi(@"HKCU\Software\Microsoft\Windows\CurrentVersion\AdvertisingInfo", "Enabled", 0, RegistryValueKind.DWord, "Confidentialité : identifiant de publicité désactivé") },
-                new ReglageJeu { Cle = "Suggestions", Libelle = "Pas de suggestions ni de publicités dans Windows", Gain = "Plus d'applications « suggérées » dans le menu Démarrer, de conseils et d'offres dans Paramètres et sur l'écran de verrouillage.",
-                    Etat = () => Suggestions.All(v => Dw(Cdm, v) == 0),
-                    Appliquer = () => { bool r = false; foreach (var v in Suggestions) r |= Registre.EcrireSuivi(Cdm, v, 0, RegistryValueKind.DWord, "Confidentialité : suggestions de Windows (" + v + ")"); return r; } },
-                new ReglageJeu { Cle = "Experiences", Libelle = "Pas d'expériences personnalisées", Gain = "Microsoft n'utilise plus tes données de diagnostic pour personnaliser les conseils et les publicités.",
-                    Etat = () => Dw(@"HKCU\Software\Microsoft\Windows\CurrentVersion\Privacy", "TailoredExperiencesWithDiagnosticDataEnabled") == 0,
-                    Appliquer = () => Registre.EcrireSuivi(@"HKCU\Software\Microsoft\Windows\CurrentVersion\Privacy", "TailoredExperiencesWithDiagnosticDataEnabled", 0, RegistryValueKind.DWord, "Confidentialité : expériences personnalisées désactivées") },
-                new ReglageJeu { Cle = "Langues", Libelle = "Les sites web ne voient pas ta liste de langues", Gain = "Les sites ne peuvent plus lire la liste des langues installées sur ton PC (utilisée pour te pister).",
-                    Etat = () => Dw(@"HKCU\Control Panel\International\User Profile", "HttpAcceptLanguageOptOut") == 1,
-                    Appliquer = () => Registre.EcrireSuivi(@"HKCU\Control Panel\International\User Profile", "HttpAcceptLanguageOptOut", 1, RegistryValueKind.DWord, "Confidentialité : liste des langues masquée aux sites web") },
-                new ReglageJeu { Cle = "Bing", Libelle = "Recherche du menu Démarrer sans résultats Bing", Gain = "La recherche du menu Démarrer ne cherche plus sur Internet : plus rapide, et tes recherches restent sur ton PC. Effet à la prochaine ouverture de session.",
-                    Etat = () => Dw(@"HKCU\Software\Policies\Microsoft\Windows\Explorer", "DisableSearchBoxSuggestions") == 1,
-                    Appliquer = () => Registre.EcrireSuivi(@"HKCU\Software\Policies\Microsoft\Windows\Explorer", "DisableSearchBoxSuggestions", 1, RegistryValueKind.DWord, "Confidentialité : recherche Bing du menu Démarrer désactivée") }
-            };
+            var l = ReglagesWindows.Confidentialite();
             Afficher(f, "Confidentialité", "Réglages de ton compte Windows qui limitent la publicité et le pistage. Rien n'est désactivé côté sécurité : Windows Update, l'antivirus et le pare-feu ne sont pas touchés.", l);
         }
 
@@ -85,23 +63,8 @@ namespace NettoyagePC
     }
 
     // ================================================================ Extensions des navigateurs (lecture seule)
-    internal class Extension
-    {
-        public string Navigateur = "", Profil = "", Nom = "", Version = "", Id = "", Page = "";
-        public bool TousSites, Boutique;
-        public List<string> Risques = new List<string>();
-        public DateTime? Date;
-    }
-
     internal class FenetreExtensions : FenetreTheme
     {
-        private static readonly Dictionary<string, string> Sensibles = new Dictionary<string, string>
-        {
-            { "webRequest", "surveiller ta navigation" }, { "webRequestBlocking", "modifier ta navigation" }, { "cookies", "lire les cookies" }, { "history", "lire l'historique" },
-            { "debugger", "contrôler les pages" }, { "nativeMessaging", "parler à des programmes du PC" }, { "proxy", "changer la connexion" }, { "management", "gérer les autres extensions" },
-            { "clipboardRead", "lire le presse-papiers" }, { "downloads", "gérer les téléchargements" }, { "tabs", "voir tes onglets" }, { "scripting", "injecter du code dans les pages" }
-        };
-        private static readonly Regex TousLesSites = new Regex(@"^(<all_urls>|\*://\*/\*|https?://\*/\*)$");
         private readonly ListeSombre lv = new ListeSombre { MultiSelect = false, ShowItemToolTips = true, Location = new Point(20, 66), Size = new Size(944, 410), Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right };
         private readonly Etiquette info;
 
@@ -136,7 +99,7 @@ namespace NettoyagePC
         {
             System.Threading.Tasks.Task.Run(() =>
             {
-                List<Extension> l; try { l = Lister(); } catch (Exception ex) { JournalDemarrage.Erreur("extensions", ex); l = new List<Extension>(); }
+                List<Extension> l; try { l = ExtensionsNavigateurs.Lister(); } catch (Exception ex) { JournalDemarrage.Erreur("extensions", ex); l = new List<Extension>(); }
                 try { BeginInvoke(new Action(() => Afficher(l))); } catch { }
             });
         }
@@ -148,13 +111,7 @@ namespace NettoyagePC
             lv.BeginUpdate();
             foreach (var e in liste.Select(x =>
             {
-                var details = new List<string>();
-                if (!x.Boutique) details.Add("installée hors de la boutique officielle");
-                if (x.TousSites) details.Add("peut lire et modifier tous les sites");
-                if (x.Risques.Count > 0) details.Add("peut " + string.Join(", ", x.Risques));
-                int niveau = 2; string avis = "OK";
-                if (!x.Boutique || (x.TousSites && x.Risques.Count > 0)) { niveau = 0; avis = "À vérifier : " + string.Join(" ; ", details); }
-                else if (details.Count > 0) { niveau = 1; avis = "Accès étendu : " + string.Join(" ; ", details); }
+                int niveau; string avis = ExtensionsNavigateurs.Avis(x, out niveau);
                 return new { X = x, Niveau = niveau, Avis = avis };
             }).OrderBy(e => e.Niveau).ThenBy(e => e.X.Nom))
             {
@@ -169,102 +126,6 @@ namespace NettoyagePC
             info.AppliquerTheme();
         }
 
-        private static string NomLocal(string dossier, string brut, string defaut)
-        {
-            var m = Regex.Match(brut ?? "", "^__MSG_(.+)__$");
-            if (!m.Success) return brut ?? "";
-            foreach (var loc in new[] { "fr", defaut, "en", "en_US" })
-            {
-                if (string.IsNullOrEmpty(loc)) continue;
-                var j = Json.LireFichier(Path.Combine(dossier, "_locales", loc, "messages.json")) as Dictionary<string, object>;
-                if (j == null) continue;
-                foreach (var kv in j) if (kv.Key.Equals(m.Groups[1].Value, StringComparison.OrdinalIgnoreCase)) { string t = Json.Texte(kv.Value as Dictionary<string, object>, "message"); if (t != "") return t; }
-            }
-            return brut;
-        }
-
-        private static List<string> Chaines(object o)
-        {
-            var r = new List<string>();
-            var a = o as System.Collections.IEnumerable;
-            if (a == null || o is string) return r;
-            foreach (var x in a) if (x is string) r.Add((string)x);
-            return r;
-        }
-
-        public static List<Extension> Lister()
-        {
-            var res = new List<Extension>();
-            string la = Chemins.LocalAppData;
-            var navs = new[]
-            {
-                new[] { "Chrome", Path.Combine(la, @"Google\Chrome\User Data"), "https://chromewebstore.google.com/detail/{0}" },
-                new[] { "Edge", Path.Combine(la, @"Microsoft\Edge\User Data"), "https://microsoftedge.microsoft.com/addons/detail/{0}" },
-                new[] { "Brave", Path.Combine(la, @"BraveSoftware\Brave-Browser\User Data"), "https://chromewebstore.google.com/detail/{0}" },
-                new[] { "Vivaldi", Path.Combine(la, @"Vivaldi\User Data"), "https://chromewebstore.google.com/detail/{0}" }
-            };
-            foreach (var n in navs)
-            {
-                if (!Directory.Exists(n[1])) continue;
-                var noms = new Dictionary<string, string>();
-                try
-                {
-                    var ls = Json.LireFichier(Path.Combine(n[1], "Local State")) as Dictionary<string, object>;
-                    var cache = Json.Dict(Json.Dict(ls, "profile"), "info_cache");
-                    if (cache != null) foreach (var kv in cache) noms[kv.Key] = Json.Texte(kv.Value as Dictionary<string, object>, "name");
-                }
-                catch { }
-                foreach (var prof in Directory.GetDirectories(n[1]).Where(d => { string x = Path.GetFileName(d); return x == "Default" || x.StartsWith("Profile "); }))
-                {
-                    string nomProfil = Path.GetFileName(prof); string np; if (noms.TryGetValue(nomProfil, out np) && np != "") nomProfil = np;
-                    string dext = Path.Combine(prof, "Extensions");
-                    if (!Directory.Exists(dext)) continue;
-                    foreach (var ext in Directory.GetDirectories(dext).Where(d => Path.GetFileName(d) != "Temp"))
-                    {
-                        try
-                        {
-                            var ver = new DirectoryInfo(ext).GetDirectories().OrderByDescending(d => d.LastWriteTime).FirstOrDefault();
-                            if (ver == null) continue;
-                            var m = Json.LireFichier(Path.Combine(ver.FullName, "manifest.json")) as Dictionary<string, object>;
-                            if (m == null || m.ContainsKey("theme")) continue;
-                            var perms = Chaines(Json.Valeur(m, "permissions")).Concat(Chaines(Json.Valeur(m, "optional_permissions"))).Concat(Chaines(Json.Valeur(m, "host_permissions"))).ToList();
-                            foreach (var cs in Json.Objets(Json.Valeur(m, "content_scripts"))) perms.AddRange(Chaines(Json.Valeur(cs, "matches")));
-                            string id = Path.GetFileName(ext);
-                            res.Add(new Extension
-                            {
-                                Navigateur = n[0], Profil = nomProfil, Nom = NomLocal(ver.FullName, Json.Texte(m, "name"), Json.Texte(m, "default_locale")), Version = Json.Texte(m, "version"), Id = id,
-                                TousSites = perms.Any(p => TousLesSites.IsMatch(p)), Risques = perms.Where(p => Sensibles.ContainsKey(p)).Select(p => Sensibles[p]).Distinct().ToList(),
-                                Boutique = Regex.IsMatch(Json.Texte(m, "update_url"), @"clients2\.google\.com|edge\.microsoft\.com|microsoftedge"), Page = string.Format(n[2], id), Date = Directory.GetCreationTime(ext)
-                            });
-                        }
-                        catch { }
-                    }
-                }
-            }
-            // Firefox
-            string ff = Path.Combine(Chemins.AppData, @"Mozilla\Firefox\Profiles");
-            if (Directory.Exists(ff))
-                foreach (var prof in Directory.GetDirectories(ff))
-                {
-                    var j = Json.LireFichier(Path.Combine(prof, "extensions.json")) as Dictionary<string, object>;
-                    if (j == null) continue;
-                    foreach (var a in Json.Objets(Json.Valeur(j, "addons")))
-                    {
-                        if (Json.Texte(a, "type") != "extension" || Regex.IsMatch(Json.Texte(a, "location"), "^app-(builtin|system)")) continue;
-                        var up = Json.Dict(a, "userPermissions");
-                        var perms = Chaines(Json.Valeur(up, "permissions")).Concat(Chaines(Json.Valeur(up, "origins"))).ToList();
-                        DateTime? date = null; try { long ms = Json.Long(a, "installDate"); if (ms > 0) date = DateTimeOffset.FromUnixTimeMilliseconds(ms).LocalDateTime; } catch { }
-                        string id = Json.Texte(a, "id");
-                        res.Add(new Extension
-                        {
-                            Navigateur = "Firefox", Profil = Regex.Replace(Path.GetFileName(prof), @"^[^.]+\.", ""), Nom = Json.Texte(Json.Dict(a, "defaultLocale"), "name"), Version = Json.Texte(a, "version"), Id = id,
-                            TousSites = perms.Any(p => TousLesSites.IsMatch(p)), Risques = perms.Where(p => Sensibles.ContainsKey(p)).Select(p => Sensibles[p]).Distinct().ToList(),
-                            Boutique = Json.Long(a, "signedState") > 0, Page = "https://addons.mozilla.org/fr/firefox/addon/" + Uri.EscapeDataString(id) + "/", Date = date
-                        });
-                    }
-                }
-            return res;
-        }
     }
 
     // ================================================================ Carte de l'espace disque (rectangles proportionnels)
@@ -516,54 +377,8 @@ namespace NettoyagePC
     }
 
     // ================================================================ Applications préinstallées inutiles
-    internal class AppInutile { public string Motif, Libelle, Description; public bool Conseille; }
-
     internal class FenetreAppsInutiles : FenetreTheme
     {
-        // Applications publicitaires ou rarement utilisées, réinstallables depuis le Microsoft Store.
-        // (Jamais : Store, Paramètres, Photos, Calculatrice, Bloc-notes, Xbox, Sécurité, Assistance rapide, antivirus...)
-        private static readonly AppInutile[] Connues =
-        {
-            A("Microsoft.BingNews", "Actualités (Microsoft Start)", "Fil d'actualités avec publicités.", true),
-            A("Microsoft.BingWeather", "Météo", "Prévisions météo de Microsoft (garde-la si tu t'en sers).", false),
-            A("Microsoft.BingSearch", "Recherche Bing", "Application de recherche Bing.", true),
-            A("Microsoft.GetHelp", "Obtenir de l'aide", "Assistant d'aide de Microsoft.", true),
-            A("Microsoft.Getstarted", "Astuces", "Conseils de prise en main de Windows.", true),
-            A("Microsoft.MicrosoftSolitaireCollection", "Microsoft Solitaire Collection", "Jeux de cartes avec publicités (garde-la si tu y joues).", false),
-            A("Microsoft.People", "Contacts", "Ancienne application Contacts.", true),
-            A("Microsoft.WindowsFeedbackHub", "Hub de commentaires", "Pour envoyer des avis à Microsoft.", true),
-            A("Microsoft.MixedReality.Portal", "Portail de réalité mixte", "Pour les casques de réalité virtuelle Windows (abandonnés).", true),
-            A("Microsoft.SkypeApp", "Skype", "Service arrêté par Microsoft en 2025.", true),
-            A("Microsoft.Microsoft3DViewer", "Visionneuse 3D", "Affiche des modèles 3D.", true),
-            A("Microsoft.Print3D", "Print 3D", "Impression 3D.", true),
-            A("Microsoft.MSPaint", "Paint 3D", "Ancienne version 3D de Paint (Paint classique n'est pas touché).", true),
-            A("Microsoft.MicrosoftOfficeHub", "Microsoft 365 (Office)", "Lanceur et publicité pour l'abonnement Office (garde-le si tu l'utilises).", false),
-            A("Clipchamp.Clipchamp", "Clipchamp", "Montage vidéo en ligne.", true),
-            A("Microsoft.Todos", "Microsoft To Do", "Listes de tâches (garde-la si tu t'en sers).", false),
-            A("Microsoft.WindowsMaps", "Cartes", "Cartes de Microsoft.", true),
-            A("Microsoft.549981C3F5F10", "Cortana", "Ancien assistant vocal, arrêté par Microsoft.", true),
-            A("Microsoft.PowerAutomateDesktop", "Power Automate", "Automatisation pour les entreprises.", true),
-            A("Microsoft.ZuneVideo", "Films et TV", "Ancien lecteur vidéo (le Lecteur multimédia le remplace).", true),
-            A("Microsoft.Windows.DevHome", "Dev Home", "Outil pour les développeurs.", true),
-            A("Microsoft.Wallet", "Microsoft Pay", "Portefeuille de paiement abandonné.", true),
-            A("Microsoft.Messaging", "Messages", "Ancienne application de SMS.", true),
-            A("Microsoft.OneConnect", "Forfaits mobiles", "Achat de forfaits de données mobiles.", true),
-            A("Microsoft.WindowsCommunicationsApps", "Courrier et Calendrier", "Applications arrêtées par Microsoft (remplacées par le nouvel Outlook).", false),
-            A("MicrosoftTeams", "Microsoft Teams (personnel)", "Version gratuite de Teams (garde-la si tu t'en sers).", false),
-            A("MSTeams", "Microsoft Teams", "Garde-le si tu t'en sers pour le travail.", false),
-            A("Microsoft.OutlookForWindows", "Outlook (nouveau)", "Messagerie (garde-la si tu t'en sers).", false),
-            A("king.com.*", "Jeux King (Candy Crush...)", "Jeux préinstallés avec achats intégrés.", true),
-            A("Disney.*", "Disney+", "Application de vidéo par abonnement.", false),
-            A("Facebook.*", "Facebook / Instagram", "Réseaux sociaux préinstallés.", false),
-            A("BytedancePte.Ltd.TikTok", "TikTok", "Réseau social préinstallé.", false),
-            A("SpotifyAB.SpotifyMusic", "Spotify", "Musique (garde-la si tu t'en sers).", false),
-            A("AmazonVideo.PrimeVideo", "Prime Video", "Vidéo par abonnement.", false),
-            A("4DF9E0F8.Netflix", "Netflix", "Vidéo par abonnement.", false),
-            A("*.LinkedInforWindows", "LinkedIn", "Réseau professionnel préinstallé.", false),
-            A("*.Twitter", "X (Twitter)", "Réseau social préinstallé.", false)
-        };
-        private static AppInutile A(string m, string l, string d, bool c) { return new AppInutile { Motif = m, Libelle = l, Description = d, Conseille = c }; }
-
         private readonly FenetrePrincipale F;
         private readonly ListeSombre lv = new ListeSombre { CheckBoxes = true, MultiSelect = false, ShowItemToolTips = true, Location = new Point(20, 70), Size = new Size(744, 330), Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right };
         private readonly Etiquette info;
@@ -588,27 +403,11 @@ namespace NettoyagePC
             FormClosing += (s, e) => { if (travail) { e.Cancel = true; BoiteMessage.Info("Attends la fin de la désinstallation en cours."); } };
         }
 
-        private static bool Correspond(string motif, string nom)
-        {
-            string re = "^" + Regex.Escape(motif).Replace("\\*", ".*") + "$";
-            return Regex.IsMatch(nom, re, RegexOptions.IgnoreCase);
-        }
-
         private void Charger()
         {
             System.Threading.Tasks.Task.Run(() =>
             {
-                List<Tuple<Paquet, AppInutile>> l = new List<Tuple<Paquet, AppInutile>>();
-                try
-                {
-                    foreach (var p in Paquets.Lister(true))
-                    {
-                        if (p.Cadre || p.Systeme) continue;
-                        var a = Connues.FirstOrDefault(c => Correspond(c.Motif, p.Nom));
-                        if (a != null) l.Add(Tuple.Create(p, a));
-                    }
-                }
-                catch (Exception ex) { JournalDemarrage.Erreur("applications préinstallées", ex); }
+                List<Tuple<Paquet, AppInutile>> l = AppsInutiles.Trouver();
                 try { BeginInvoke(new Action(() => Afficher(l))); } catch { }
             });
         }
@@ -653,9 +452,8 @@ namespace NettoyagePC
                 {
                     string nom = c.Item2.Motif.Contains("*") ? c.Item1.NomAffiche : c.Item2.Libelle;
                     try { BeginInvoke(new Action(() => { info.Text = "Désinstallation de « " + nom + " »..."; info.RoleTexte = Role.AccentVif; info.AppliquerTheme(); })); } catch { }
-                    string r = Paquets.Retirer(c.Item1.NomComplet);
-                    if (r == "") { ok++; Historique.Ajouter("appx", "Application retirée : " + nom, new Dictionary<string, object> { { "Nom", c.Item1.Nom }, { "Libelle", nom }, { "Paquet", c.Item1.NomComplet } }); }
-                    else echecs.Add(nom + " : " + r);
+                    string r = AppsInutiles.Retirer(c.Item1, nom);
+                    if (r == "") ok++; else echecs.Add(nom + " : " + r);
                 }
                 try
                 {
