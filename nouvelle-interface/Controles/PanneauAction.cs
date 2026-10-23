@@ -10,7 +10,7 @@ using Avalonia.Media;
 
 namespace NettoyagePC.Nouveau
 {
-    public sealed class PanneauAction : Border
+    internal sealed class PanneauAction : Border
     {
         private readonly FenetrePrincipale F;
         private readonly ServiceMoteur M;

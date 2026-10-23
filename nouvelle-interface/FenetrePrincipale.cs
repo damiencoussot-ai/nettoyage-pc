@@ -72,8 +72,8 @@ namespace NettoyagePC.Nouveau
         }
 
         // ---- actions du moteur (catalogue partagé avec la version 4)
-        public readonly ServiceMoteur Moteur = new ServiceMoteur();
-        public readonly Dictionary<string, ActionMoteur> Actions = CatalogueActions.Creer();
+        internal readonly ServiceMoteur Moteur = new ServiceMoteur();
+        internal readonly Dictionary<string, ActionMoteur> Actions = CatalogueActions.Creer();
         private Dictionary<string, bool> disponible;
         private PanneauAction panneauAction;
         private bool panneauVisible;

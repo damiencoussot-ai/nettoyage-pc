@@ -11,7 +11,7 @@ using Avalonia.Threading;
 
 namespace NettoyagePC.Nouveau
 {
-    public sealed class ServiceMoteur
+    internal sealed class ServiceMoteur
     {
         private Process proc;
         private CanalSortie canal;
