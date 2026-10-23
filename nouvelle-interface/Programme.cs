@@ -241,6 +241,18 @@ namespace NettoyagePC.Nouveau
             }
             catch (Exception ex) { erreurs++; rapport.AppendLine("ERREUR : mises à jour : " + ex); }
 
+            // Premium (licence lue sur ce PC : sous Linux, aucune) et la fenêtre d'achat
+            try
+            {
+                f.ChangerTheme(true);
+                f.Afficher("Premium", false);
+                Capturer(f, dossier, "sombre-Premium-page.png", rapport, ref erreurs);
+                Achat5.Ouvrir(f);
+                Capturer(f, dossier, "sombre-achat.png", rapport, ref erreurs);
+                f.ViderCalques();
+            }
+            catch (Exception ex) { erreurs++; rapport.AppendLine("ERREUR : premium : " + ex); }
+
             // Réglages
             try
             {

@@ -52,7 +52,7 @@ namespace NettoyagePC.Nouveau
         {
             F = f;
             var P = Habillage.P;
-            Spacing = 16; Margin = new Thickness(28, 6, 28, 24);
+            Spacing = 16; Margin = new Thickness(0, 0, 12, 0);
             var carte = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto") };
             var s = new StackPanel { Spacing = 6 };
             s.Children.Add(new TextBlock { Text = "Nettoyage PC 5 (aperçu)", FontFamily = Habillage.Affichage, FontSize = 22, FontWeight = FontWeight.SemiBold, Foreground = Habillage.Pinceau(P.Texte) });

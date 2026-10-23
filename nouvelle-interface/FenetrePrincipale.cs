@@ -296,7 +296,7 @@ namespace NettoyagePC.Nouveau
             Rubriques.Add(new Rubrique { Cle = "Accelerer", Nom = "Accélérer", Sous = "Démarrage, jeux, pilotes et applications.", Page = () => PageAccelerer.Creer(this) });
             Rubriques.Add(new Rubrique { Cle = "Proteger", Nom = "Protéger", Sous = "Antivirus, bouclier anti-arnaque, sauvegarde et confidentialité.", Page = () => PageProteger.Creer(this) });
             Rubriques.Add(new Rubrique { Cle = "Outils", Nom = "Outils", Sous = "Matériel, plein potentiel, réseau et aide à distance.", Page = () => PageOutils.Creer(this) });
-            Rubriques.Add(new Rubrique { Cle = "Premium", Nom = "Premium", Sous = "Les outils des pros, débloqués d'un coup.", Page = () => PageAVenir.Premium() });
+            Rubriques.Add(new Rubrique { Cle = "Premium", Nom = "Premium", Sous = "Les outils des pros, débloqués d'un coup.", Page = () => new PagePremium5(this) });
             Rubriques.Add(new Rubrique { Cle = "MisesAJour", Nom = "Mises à jour", Sous = "Version installée et nouveautés.", EnBas = true, Page = () => RubriqueMisesAJour.Creer(this) });
             Rubriques.Add(new Rubrique { Cle = "Historique", Nom = "Historique", Sous = "Tout ce que Nettoyage PC a fait, et l'annulation.", EnBas = true, Page = () => new PageHistorique5(this) });
             Rubriques.Add(new Rubrique { Cle = "Reglages", Nom = "Réglages", Sous = "Apparence, langue, profil et informations.", EnBas = true, Page = () => PageReglages5.Creer(this) });

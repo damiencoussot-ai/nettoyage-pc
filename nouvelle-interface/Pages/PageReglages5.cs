@@ -118,7 +118,7 @@ namespace NettoyagePC.Nouveau
         }
 
         /// <summary>Textes légaux intégrés au programme, un onglet par document.</summary>
-        private static void Legal5(FenetrePrincipale f)
+        public static void Legal5(FenetrePrincipale f, string premiere = null)
         {
             var P = Habillage.P;
             var texte = new SelectableTextBlock { FontFamily = Habillage.Corps, FontSize = 13, LineHeight = 20, Foreground = Habillage.Pinceau(P.Texte), TextWrapping = TextWrapping.Wrap };
@@ -140,7 +140,7 @@ namespace NettoyagePC.Nouveau
                 string t = DocumentsLegaux.Texte(cle);
                 texte.Text = t == "" ? Langue.T("Texte introuvable.") : t;
             };
-            montrer(DocumentsLegaux.Liste[0].Key);
+            montrer(premiere != null && DocumentsLegaux.Liste.Any(kv => kv.Key == premiere) ? premiere : DocumentsLegaux.Liste[0].Key);
             f.Ouvrir("Informations légales", pile, 860);
         }
 
