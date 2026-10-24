@@ -102,11 +102,21 @@ namespace NettoyagePC
             try
             {
                 // on écarte ce qui est déjà traduit (une traduction réaffichée repasse par T), les nombres et les noms propres sans mot
-                var traduits = new HashSet<string>(phrases.Values);
-                foreach (var v in phrases.Values) traduits.Add(v.ToUpper(Culture));
-                Func<string, bool> garder = x => System.Text.RegularExpressions.Regex.IsMatch(x, "[A-Za-zÀ-ÿ]{3}") && !traduits.Contains(x)
-                    && !traduits.Contains(x.Replace("…", "...")) && !debuts.Any(d => d.Value.Length > 3 && x.StartsWith(d.Value, StringComparison.Ordinal))
-                    && !motifs.Any(m => m.Value.Length > 3 && !m.Value.StartsWith("$") && x.StartsWith(m.Value.Substring(0, Math.Max(4, m.Value.IndexOf('$') < 0 ? m.Value.Length : m.Value.IndexOf('$'))), StringComparison.Ordinal));
+                // (toutes les langues : les captures passent de l'anglais à l'espagnol)
+                var traduits = new HashSet<string>(StringComparer.Ordinal);
+                var debutsTraduits = new List<string>();
+                for (int i = 0; i + 2 < Table.Length; i += 3)
+                    for (int c = 1; c <= 2; c++) { traduits.Add(Table[i + c]); traduits.Add(Table[i + c].ToUpperInvariant()); }
+                for (int i = 0; i + 2 < Prefixes.Length; i += 3) for (int c = 1; c <= 2; c++) if (Prefixes[i + c].Length > 3) debutsTraduits.Add(Prefixes[i + c]);
+                for (int i = 0; i + 2 < Motifs.Length; i += 3)
+                    for (int c = 1; c <= 2; c++)
+                    {
+                        string m = Motifs[i + c]; int d = m.IndexOf('$');
+                        string debut = d < 0 ? m : m.Substring(0, d);
+                        if (debut.Length > 3) debutsTraduits.Add(debut);
+                    }
+                Func<string, bool> garder = x => Regex.IsMatch(x, "[A-Za-zÀ-ÿ]{3}") && !traduits.Contains(x) && !traduits.Contains(x.Replace("…", "..."))
+                    && !debutsTraduits.Any(d => x.StartsWith(d, StringComparison.Ordinal));
                 lock (Manquantes) System.IO.File.WriteAllLines(f, Manquantes.Where(garder).OrderBy(x => x));
             }
             catch { }

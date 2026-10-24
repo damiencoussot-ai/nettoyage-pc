@@ -2084,3 +2084,29 @@ Version 5.0 · aperçu	Version 5.0 · preview	Versión 5.0 · vista previa
 Le composant Windows Update est introuvable sur ce PC.	The Windows Update component can't be found on this PC.	No se encuentra el componente Windows Update en este PC.
 Terminé :	Done:	Terminado:
 DNS :	DNS:	DNS:
+# --- Questions des actions du moteur (traduites ligne par ligne)
+- Nettoyage rapide : chaque dimanche à 10h	- Quick cleanup: every Sunday at 10 am	- Limpieza rápida: cada domingo a las 10:00
+- Optimisation complète : toutes les 4 semaines, le dimanche à 11h	- Full optimization: every 4 weeks, on Sunday at 11 am	- Optimización completa: cada 4 semanas, el domingo a las 11:00
+- Surveillance des disques : chaque jour	- Disk monitoring: every day	- Vigilancia de los discos: cada día
+Activer l'entretien automatique ?	Turn on automatic maintenance?	¿Activar el mantenimiento automático?
+Activer le mode « Performances élevées » ?	Turn on "High performance" mode?	¿Activar el modo «Alto rendimiento»?
+Cela peut durer longtemps : évite d'éteindre le PC et enregistre ton travail.	This can take a long time: avoid turning off the PC and save your work.	Puede tardar mucho: evita apagar el PC y guarda tu trabajo.
+Il te proposera de redémarrer le PC pour tester les barrettes. Enregistre ton travail avant.	It will offer to restart the PC to test the memory modules. Save your work first.	Te propondrá reiniciar el PC para probar los módulos de memoria. Guarda tu trabajo antes.
+L'analyse du système de fichiers est en lecture seule mais peut durer plusieurs minutes par disque.	The file system scan is read-only but can take several minutes per disk.	El análisis del sistema de archivos es de solo lectura, pero puede tardar varios minutos por disco.
+Lancer l'optimisation complète ?	Run the full optimization?	¿Iniciar la optimización completa?
+Lancer le nettoyage rapide ?	Run the quick cleanup?	¿Iniciar la limpieza rápida?
+Mettre à jour toutes les applications ?	Update all apps?	¿Actualizar todas las aplicaciones?
+Ne déplace plus le dossier de l'application ensuite.	Don't move the app's folder afterwards.	No muevas la carpeta de la aplicación después.
+Optimiser et vérifier les disques ?	Optimize and check the disks?	¿Optimizar y comprobar los discos?
+Optimiser les disques maintenant ?	Optimize the disks now?	¿Optimizar los discos ahora?
+Ouvrir le Diagnostic de mémoire Windows ?	Open Windows Memory Diagnostic?	¿Abrir el Diagnóstico de memoria de Windows?
+Plus réactif, consommation un peu plus élevée (autonomie réduite sur portable). Réversible avec « Mode équilibré ».	More responsive, slightly higher power use (shorter battery life on laptops). Reversible with "Balanced mode".	Más ágil, consumo algo mayor (menos autonomía en portátiles). Reversible con «Modo equilibrado».
+Réparer Windows ?	Repair Windows?	¿Reparar Windows?
+SSD : ReTrim (rapide, jamais de défragmentation). Disques durs : défragmentation (peut être long).	SSD: ReTrim (fast, never defragmented). Hard drives: defragmentation (can take a while).	SSD: ReTrim (rápido, nunca se desfragmenta). Discos duros: desfragmentación (puede tardar).
+Temporaires et caches supprimés, corbeille vidée, téléchargements de plus de 90 jours rangés dans « _A_verifier ». Ferme tes navigateurs pour un meilleur résultat.	Temporary files and caches deleted, recycle bin emptied, downloads older than 90 days moved to "_A_verifier". Close your browsers for a better result.	Temporales y cachés eliminados, papelera vaciada, descargas de más de 90 días apartadas en «_A_verifier». Cierra los navegadores para un mejor resultado.
+Un point de restauration est créé d'abord. Puis : nettoyage, nettoyage profond de Windows, optimisation des disques, libération de la RAM, bilans d'optimisation et de sécurité.	A restore point is created first. Then: cleanup, deep Windows cleanup, disk optimization, freeing RAM, optimization and security check-ups.	Primero se crea un punto de restauración. Después: limpieza, limpieza profunda de Windows, optimización de los discos, liberación de la RAM, revisiones de optimización y de seguridad.
+Un point de restauration est créé, puis DISM et SFC vérifient et réparent les fichiers système (20 à 50 minutes). Évite d'éteindre le PC pendant l'opération.	A restore point is created, then DISM and SFC check and repair the system files (20 to 50 minutes). Avoid turning off the PC during the operation.	Se crea un punto de restauración y luego DISM y SFC comprueban y reparan los archivos del sistema (de 20 a 50 minutos). Evita apagar el PC durante la operación.
+winget, l'outil officiel de Microsoft, télécharge les nouvelles versions depuis les éditeurs. Ferme si possible les applications concernées. Cela peut durer longtemps.	winget, Microsoft's official tool, downloads the new versions from the publishers. Close the apps concerned if you can. This can take a long time.	winget, la herramienta oficial de Microsoft, descarga las nuevas versiones desde los editores. Cierra si puedes las aplicaciones afectadas. Puede tardar mucho.
+Un point de restauration est créé d'abord.	A restore point is created first.	Primero se crea un punto de restauración.
+Modifications réversibles : aucune pour l'instant	Reversible changes: none for now	Cambios reversibles: ninguno por ahora
+Modifications réversibles : {0} active(s)	Reversible changes: {0} active	Cambios reversibles: {0} activo(s)
