@@ -1,0 +1,152 @@
+Nettoyage PC complet - 24/10/2026 11:20 - SIMULATION (rien n'est supprimé ni déplacé) + OPTIMISATION + SÉCURITÉ + PROFOND + DISQUES + RAM
+  Windows Server 2025 Datacenter (build 26100, 64 bits) - PC fixe - 16 Go de RAM - Nettoyage PC 5.0
+
+=== Point de restauration ===
+  Un point de restauration serait créé avant les modifications (simulation : non créé).
+
+=== Windows : temporaires, rapports d'erreurs, caches graphiques ===
+  Temporaires utilisateur                              354,3 Mo
+  Cache des miniatures                                 1,0 Mo
+  Cache shaders DirectX                                80 Ko
+  Temporaires Windows                                  10 Ko
+  -> Total windows : 355,4 Mo libérables
+
+=== Navigateurs (cache uniquement) ===
+  Edge - ShaderCache                                   544 Ko
+  Edge (Default) - Code Cache                          0 Ko
+  -> Total navigateurs : 544 Ko libérables
+
+  (Cookies, mots de passe, historiques et favoris ne sont pas touchés.)
+
+=== Applications et outils de développement ===
+  Cache NuGet                                          240,5 Mo
+  -> Total applications : 240,5 Mo libérables
+
+  (Ces caches se reconstituent tout seuls au besoin.)
+
+=== Corbeille ===
+  -> Environ 0 Ko libérables
+
+=== Téléchargements de plus de 90 jours ===
+  -> 0 élément(s) seraient déplacés vers '_A_verifier' (0 Ko)
+
+=== Nettoyage profond de Windows ===
+  Cache de téléchargement Windows Update               21,1 Mo
+  Nettoyage du magasin de composants (DISM) : non exécuté en simulation.
+  Nettoyage de disque Windows : 20 catégories seraient nettoyées (anciennes mises à jour, anciens pilotes, journaux d'installation...).
+  -> Total profond mesurable : 21,1 Mo libérables (DISM : voir l'espace libre dans le résumé)
+
+=== Disques : santé, SSD, optimisation ===
+  Disque 0 : Virtual_Disk NVME Premium - SSD, 150,00 Go, bus NVMe
+    État : Healthy (OK)
+    température 50 °C, usure 0 %
+  Disque 1 : Microsoft NVMe Direct Disk v2 - SSD, 220,00 Go, bus NVMe
+    État : Healthy (OK)
+    température 72 °C, usure 0 %
+    ATTENTION : Disque Microsoft NVMe Direct Disk v2 : température élevée (72 °C). Vérifie la ventilation du boîtier.
+  TRIM Windows (NTFS) : activé
+
+  Volume C: 27,17 Go libres sur 149,89 Go (18 % libre) - disque SSD
+    SSD : un ReTrim serait lancé (il signale au SSD les blocs inutilisés ; aucune défragmentation).
+
+  Volume D: 219,61 Go libres sur 219,98 Go (100 % libre) - disque SSD
+    SSD : un ReTrim serait lancé (il signale au SSD les blocs inutilisés ; aucune défragmentation).
+
+  Optimisation automatique de Windows : désactivée (dernière exécution : 21/10/2026 16:00)
+    Elle est désactivée : réactive-la dans 'Défragmenter et optimiser les lecteurs'.
+
+  Dossiers racine les plus volumineux par volume (lecture seule, peut être long) :
+  Volume C:
+      60,14 Go  Program Files
+      27,84 Go  Program Files (x86)
+       7,13 Go  ProgramData
+       4,93 Go  Users
+       4,88 Go  hostedtoolcache
+       4,23 Go  ghcup
+       3,08 Go  rtools45
+       1,60 Go  Miniconda
+  Volume D:
+      279,3 Mo  a
+    (Le dossier Windows n'est pas analysé : il est géré par Windows.)
+
+  Conseils SSD : ne défragmente jamais un SSD (Nettoyage PC ne fait que le ReTrim) ; garde 10 à 20 % d'espace libre ;
+  mets à jour son firmware avec l'outil de son fabricant (Samsung Magician, Crucial Storage Executive, WD Dashboard...).
+
+=== Mémoire vive (RAM) ===
+  Barrettes installées : 2 sur 2 emplacement(s), total 16,00 Go
+  Capacité maximale prise en charge par la carte mère : 2,00 To
+    None / M0001                 1,00 Go  type inconnu DIMM    Microsoft Corporation None
+    None / M0002                15,00 Go  type inconnu DIMM    Microsoft Corporation None
+  Remarque : les barrettes n'ont pas toutes la même capacité (le double canal peut être partiel).
+
+  Utilisation actuelle : 3,29 Go utilisés sur 15,99 Go (21 %)
+    Disponible 12,70 Go (dont libre 6,67 Go et cache 6,03 Go) ; pages modifiées 431,2 Mo
+    Mémoire engagée 2,93 Go sur 18,87 Go possibles (RAM + fichier d'échange)
+
+  Applications qui utilisent le plus de mémoire :
+       1,13 Go  svchost (76 processus)
+      157,0 Mo  explorer
+      129,9 Mo  StartMenuExperienceHost
+      109,4 Mo  SearchHost
+       99,2 Mo  WmiPrvSE (3 processus)
+       89,8 Mo  MsMpEng
+       85,9 Mo  taskhostw (3 processus)
+       85,9 Mo  WaAppAgent
+       84,3 Mo  WindowsTerminal
+       71,1 Mo  dwm
+       69,5 Mo  WindowsAzureGuestAgent
+       52,4 Mo  Secure System
+
+  Erreurs matérielles Windows (WHEA) sur 30 jours : aucune
+  Aucun test mémoire de Windows enregistré : le bouton « Test des barrettes » permet de tester les barrettes.
+
+  Libération prévue (simulation, rien n'est exécuté) :
+    1. Réduction des working sets : les pages peu utilisées des processus quittent les barrettes.
+    2. Écriture sur disque de la liste des pages modifiées.
+    3. Purge du cache mémoire (liste standby) : environ 6,03 Go seraient rendus à la mémoire libre.
+
+=== Bilan d'optimisation ===
+  Allumé depuis : 0 jour(s) 0 h (dernier démarrage le 24/10/2026 11:10)
+  Programmes lancés au démarrage : 3
+    - AzureArcSetup
+    - SecurityHealth
+    - Service Fabric Local Cluster Manager
+  Mode d'alimentation : High performance
+  Assistant de stockage de Windows : activé
+  Mises à jour d'applications disponibles : 23
+
+  -> 1 conseil(s) d'optimisation :
+     - 23 application(s) peuvent être mises à jour : bouton « Mettre à jour les applications » (corrige aussi des failles de sécurité).
+
+=== Bilan de sécurité ===
+    ATTENTION : La protection en temps réel de Microsoft Defender est désactivée et aucun autre antivirus n'est déclaré : réactive-la dans Sécurité Windows > Protection contre les virus et menaces.
+  Pare-feu Windows : actif sur tous les profils
+  Contrôle de compte d'utilisateur (UAC) : actif
+  Démarrage sécurisé (Secure Boot) : désactivé (il protège contre les logiciels malveillants au démarrage ; il s'active dans le BIOS/UEFI).
+  Chiffrement BitLocker de C: : inactif (utile surtout sur un portable, en cas de vol).
+  Dernière mise à jour Windows installée : il y a 11 jour(s) (KB5127690)
+  Points de restauration : aucun (le bouton « Créer un point de restauration » en crée un).
+
+  -> 1 point(s) de sécurité à corriger (détails ci-dessus). Nettoyage PC ne modifie pas ces réglages à ta place.
+
+=== Rapports : disques, gros fichiers, doublons, programmes ===
+  Analyse en cours (cela peut prendre plusieurs minutes)...
+  -> 0 fichier(s) de 10 Mo et plus, 0 groupe(s) de doublons (0 Ko récupérables)
+
+=== Résumé ===
+  Windows               : 355,4 Mo
+  Navigateurs           : 544 Ko
+  Applications / outils : 240,5 Mo
+  Corbeille             : 0 Ko
+  Nettoyage profond     : 21,1 Mo (hors DISM)
+  Téléchargements       : 0 élément(s) à vérifier (0 Ko)
+  TOTAL libérables : 617,6 Mo
+  Optimisation          : 1 conseil(s)
+  Sécurité              : 1 point(s) à corriger
+    - La protection en temps réel de Microsoft Defender est désactivée et aucun autre antivirus n'est déclaré : réactive-la dans Sécurité Windows > Protection contre les virus et menaces.
+  Mémoire vive (RAM)    : 3,29 Go utilisés sur 15,99 Go (21 %) - libération non exécutée (simulation)
+  Disques               : 1 alerte(s)
+    - Disque Microsoft NVMe Direct Disk v2 : température élevée (72 °C). Vérifie la ventilation du boîtier.
+
+Journal : C:\Users\runneradmin\Documents\NettoyagePC\journal_2026-10-24_11-20.txt
+Rapport : C:\Users\runneradmin\Documents\NettoyagePC\rapport_2026-10-24_11-20.txt

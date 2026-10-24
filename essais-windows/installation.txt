@@ -1,0 +1,12 @@
+installateur 5.0 : 39.8 Mo
+version 4 : installateur code 0, programme 4.6
+entretien automatique (version 4) : code 0, tâche Nettoyage PC - complet (toutes les 4 semaines)
+version 5 : installateur code 0 en 11 s, programme 5.0-apercu+47f82d368eef35023311bfc6cedeb300747709cc (45.8 Mo)
+version précédente gardée : 4.6
+Applications installées : Nettoyage PC 5.0
+entretien automatique (version 5) : Nettoyage PC - complet (toutes les 4 semaines) -> C:\Program Files\Nettoyage PC\NettoyagePC.exe --moteur --tache complet
+auto-contrôle : code 0
+état du PC (programme installé) : code 0
+gardien sans Premium : s'arrête tout seul (code 0)
+fenêtre du programme installé : code 0 ; fenêtre ouverte : 1051 ms / bilan affiché : 1339 ms (note 59, 11 points)
+désinstallation : code 0, programme retiré, tâches retirées
