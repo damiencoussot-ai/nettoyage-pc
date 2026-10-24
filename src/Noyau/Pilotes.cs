@@ -82,7 +82,9 @@ namespace NettoyagePC
             var l = new List<MajWindows>();
             try
             {
-                dynamic session = Activator.CreateInstance(Type.GetTypeFromProgID("Microsoft.Update.Session"));
+                var type = Type.GetTypeFromProgID("Microsoft.Update.Session");
+                if (type == null) { erreur = Langue.T("Le composant Windows Update est introuvable sur ce PC."); return null; }
+                dynamic session = Activator.CreateInstance(type);
                 session.ClientApplicationID = "Nettoyage PC";
                 dynamic res = session.CreateUpdateSearcher().Search("IsInstalled=0 and IsHidden=0");
                 int n = res.Updates.Count;
