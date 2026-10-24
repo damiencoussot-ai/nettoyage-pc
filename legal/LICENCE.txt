@@ -1,5 +1,5 @@
 ﻿CONTRAT DE LICENCE D'UTILISATION DE NETTOYAGE PC
-Version du 19 octobre 2026 (s'applique à Nettoyage PC 4.2 et aux versions suivantes)
+Version du 24 octobre 2026 (s'applique à Nettoyage PC 4.2 et aux versions suivantes)
 
 Merci de lire ce contrat avant d'installer ou d'utiliser Nettoyage PC. En installant ou en utilisant le logiciel, vous acceptez ce contrat. Si vous ne l'acceptez pas, n'installez pas le logiciel (ou désinstallez-le).
 
@@ -45,8 +45,8 @@ Vous pouvez partager le programme d'installation officiel (tel que publié par l
 
 4.3 Étendue de la licence Premium. La clé vous donne le droit personnel et non exclusif d'utiliser Premium :
 - sur 3 ordinateurs au plus en même temps (le bouton « Retirer la licence de ce PC » libère une place pour un autre ordinateur) ;
-- pour toutes les versions 4 de Nettoyage PC (4.0, 4.1, 4.2... jusqu'à la dernière version 4), sans limite de durée.
-Une future version majeure (5.0 par exemple) pourra être proposée séparément ; vos versions 4 restent utilisables avec Premium, sans limite de durée.
+- pour toutes les versions 4 et 5 de Nettoyage PC (4.0, 4.1... 5.0, 5.1... jusqu'à la dernière version 5), sans limite de durée.
+Une future version majeure (6.0 par exemple) pourra être proposée séparément ; vos versions 4 et 5 restent utilisables avec Premium, sans limite de durée.
 Une clé offerte peut comporter une date de fin, indiquée lors de sa remise.
 
 4.4 Essai gratuit. Un essai gratuit de Premium de 7 jours peut être lancé une fois par ordinateur, sans paiement ni coordonnées. À la fin de l'essai, les outils Premium se verrouillent simplement ; rien n'est facturé et vos données ne sont pas effacées.

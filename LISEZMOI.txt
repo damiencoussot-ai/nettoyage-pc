@@ -1,9 +1,9 @@
-NETTOYAGE PC 4.6
+NETTOYAGE PC 5.0
 ================
 
 Installation
 ------------
-1. Double-clique sur « NettoyagePC-Setup-4.6.exe ».
+1. Double-clique sur « NettoyagePC-Setup-5.0.exe ».
 2. Windows peut afficher « Windows a protégé votre ordinateur » (SmartScreen) : clique sur
    « Informations complémentaires » puis « Exécuter quand même ». C'est normal pour un programme
    qui n'est pas signé par un éditeur connu.
@@ -13,12 +13,21 @@ Installation
    administrateur (fenêtre « Voulez-vous autoriser... », clique sur Oui) qu'au moment d'une action
    qui touche tout le PC (nettoyage profond, disques, réparation...), et seulement pour elle.
 
-Mise à jour depuis la version 3 : installe simplement la version 4.6 par-dessus (ou clique sur
-« Installer » dans la rubrique Mises à jour). L'historique, les réglages, les statistiques et
-l'entretien automatique sont conservés.
+Mise à jour depuis la version 4 (ou 3) : installe simplement la version 5.0 par-dessus (ou clique
+sur « Installer maintenant » dans la rubrique Mises à jour). L'historique, les réglages, les
+statistiques, l'entretien automatique et Premium sont conservés.
 
 Désinstaller : Paramètres > Applications > Applications installées > Nettoyage PC > Désinstaller.
 La désinstallation retire aussi l'entretien automatique (tâches planifiées).
+
+Nouveautés de la version 5.0
+----------------------------
+- Nouvelle interface, reconstruite de zéro : plus fluide et plus nette, en thème sombre ou clair,
+  avec les mêmes rubriques. Ctrl+K trouve n'importe quelle action en tapant quelques mots.
+- Plus rien à installer à côté : le programme n'a plus besoin du .NET Framework.
+- Même moteur que la version 4, avec les mêmes protections (simulation, point de restauration,
+  documents personnels jamais touchés).
+- Premium est valable pour les versions 4 et 5.
 
 Nouveautés de la version 4.6
 ----------------------------
@@ -179,18 +188,18 @@ visible ; le bouton « Plus d'options » montre le reste (il reste ouvert si tu 
 - RECHERCHE (Ctrl+K) : la barre « Que veux-tu faire ? » en haut trouve n'importe quelle action,
   page ou outil en tapant quelques lettres. Ctrl+1 à Ctrl+9 ouvrent les rubriques, F5 actualise
   l'Accueil.
-- MODE SIMULATION (case en haut à droite) : coche-la pour tester n'importe quelle action
-  sans rien modifier.
+- MODE SIMULATION (pastille en haut à droite) : clique dessus pour tester n'importe quelle action
+  sans rien modifier, et de nouveau pour revenir au mode réel.
 
 Premium
 -------
 Rubrique « Premium » du menu (9,99 € TTC une seule fois, sans abonnement, 3 PC, toutes les
-versions 4). Tout ce qui est décrit plus haut reste gratuit.
+versions 4 et 5). Tout ce qui est décrit plus haut reste gratuit.
 - « Essayer gratuitement 7 jours » : tout Premium débloqué, sans paiement ni adresse e-mail, une
   fois par PC. À la fin de l'essai, les outils se verrouillent simplement.
-- « Acheter » ouvre la page de paiement sécurisée de Lemon Squeezy, revendeur officiel (carte
-  bancaire, PayPal). La clé arrive par e-mail : colle-la dans « J'ai une clé ». Satisfait ou
-  remboursé pendant 14 jours : écris à l'éditeur (adresse dans les conditions de vente).
+- « Acheter » ouvre la page de paiement sécurisée (Stripe). Premium s'active tout seul après le
+  paiement, et la clé s'affiche pour tes autres PC (« J'ai une clé »). Satisfait ou remboursé
+  pendant 14 jours : écris à l'éditeur (adresse dans les conditions de vente).
 - Une clé fonctionne sur 3 PC. Pour la déplacer : Premium > Gérer la licence > retirer la licence
   de ce PC. Internet est nécessaire de temps en temps (au moins une fois tous les 45 jours).
 Les outils :

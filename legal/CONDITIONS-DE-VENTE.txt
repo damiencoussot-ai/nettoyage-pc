@@ -1,5 +1,5 @@
 ﻿CONDITIONS DE VENTE DE NETTOYAGE PC PREMIUM
-Version du 22 octobre 2026
+Version du 24 octobre 2026
 
 
 1. LES PARTIES
@@ -33,9 +33,9 @@ Nettoyage PC Premium est une licence logicielle qui débloque, dans Nettoyage PC
 - Kit de réinstallation (applications, pilotes, réseaux Wi-Fi) ;
 - Santé de la batterie des ordinateurs portables ;
 - Thèmes de couleur exclusifs.
-Les nouveaux outils Premium ajoutés dans les versions 4 sont inclus sans supplément.
+Les nouveaux outils Premium ajoutés dans les versions 4 et 5 sont inclus sans supplément.
 
-Durée et étendue : la licence est payée une seule fois. Elle est valable sans limite de durée pour toutes les versions 4 de Nettoyage PC, sur 3 ordinateurs au plus en même temps.
+Durée et étendue : la licence est payée une seule fois. Elle est valable sans limite de durée pour toutes les versions 4 et 5 de Nettoyage PC, sur 3 ordinateurs au plus en même temps.
 
 Configuration nécessaire et fonctionnement :
 - Windows 10 ou Windows 11, 64 bits (.NET Framework 4.8, déjà présent dans ces versions de Windows) ;

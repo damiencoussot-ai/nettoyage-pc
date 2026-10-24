@@ -86,7 +86,7 @@ namespace NettoyagePC
             faq.Text = string.Join("\n\n", new[]
             {
                 "Et si ça ne me convient pas ?  Essaie d'abord gratuitement 7 jours. Après l'achat, tu es satisfait ou remboursé pendant 14 jours, sans justification.",
-                Langue.F("Est-ce un abonnement ?  Non : tu payes {0} une seule fois, et Premium reste actif pour toutes les versions 4.", Boutique.Prix),
+                Langue.F("Est-ce un abonnement ?  Non : tu payes {0} une seule fois, et Premium reste actif pour toutes les versions 4 et 5.", Boutique.Prix),
                 Langue.F("Sur combien de PC ?  {0} en même temps. Avant de donner un PC, « Gérer la licence » libère sa place.", Boutique.NombrePc),
                 "Faut-il Internet ?  Pour activer la clé, puis une petite vérification par semaine. Sans Internet, Premium reste actif 45 jours.",
                 "Qu'est-ce qui reste gratuit ?  Tout le reste : nettoyage, sécurité, mises à jour, sauvegarde, jeux, aide à distance."
@@ -153,7 +153,7 @@ namespace NettoyagePC
             if (Licence.Premium && !Licence.EnEssai)
             {
                 pastille = "★  PREMIUM ACTIF"; titre = "Merci pour ton soutien !"; prix = false;
-                texte = (qui != "" ? Langue.F(Licence.Type == "offerte" ? "Licence de {0} (clé offerte)." : "Licence de {0}.", qui) + " " : "") + Langue.T("Tous les outils Premium sont débloqués sur ce PC, pour toutes les versions 4.");
+                texte = (qui != "" ? Langue.F(Licence.Type == "offerte" ? "Licence de {0} (clé offerte)." : "Licence de {0}.", qui) + " " : "") + Langue.T("Tous les outils Premium sont débloqués sur ce PC, pour toutes les versions 4 et 5.");
                 zones.Add(new Zone { Texte = "Gérer la licence", Style = 1, Clic = () => PageLicence.Gerer(F) });
             }
             else
@@ -242,7 +242,7 @@ namespace NettoyagePC
                 var r = new Rectangle(w - 260, 34, 232, 50);
                 Theme.Texte(g, Boutique.Prix, PolicePrix, r, blanc, TextFormatFlags.Right | TextFormatFlags.VerticalCenter | TextFormatFlags.SingleLine);
                 Theme.Texte(g, "TTC  ·  paiement unique, sans abonnement", Theme.Petit, new Rectangle(w - 300, 88, 272, 18), blancDoux, TextFormatFlags.Right | TextFormatFlags.SingleLine);
-                Theme.Texte(g, Langue.F("{0} PC  ·  toutes les versions 4", Boutique.NombrePc), Theme.Petit, new Rectangle(w - 300, 106, 272, 18), blancDoux, TextFormatFlags.Right | TextFormatFlags.SingleLine);
+                Theme.Texte(g, Langue.F("{0} PC  ·  toutes les versions 4 et 5", Boutique.NombrePc), Theme.Petit, new Rectangle(w - 300, 106, 272, 18), blancDoux, TextFormatFlags.Right | TextFormatFlags.SingleLine);
                 Theme.Texte(g, "Satisfait ou remboursé 14 jours", Theme.PetitGras, new Rectangle(w - 300, 128, 272, 18), blanc, TextFormatFlags.Right | TextFormatFlags.SingleLine);
             }
             foreach (var z in zones)
@@ -272,7 +272,7 @@ namespace NettoyagePC
     // ================================================================ Garanties (rangée de pastilles)
     internal class RangeeGaranties : Control, IThemable
     {
-        private static readonly string[] Elements = { "Paiement sécurisé (Stripe)", "Satisfait ou remboursé 14 jours", "Sans abonnement", "3 PC, toutes les versions 4", "Ni publicité, ni pistage" };
+        private static readonly string[] Elements = { "Paiement sécurisé (Stripe)", "Satisfait ou remboursé 14 jours", "Sans abonnement", "3 PC, toutes les versions 4 et 5", "Ni publicité, ni pistage" };
         private readonly List<Rectangle> rects = new List<Rectangle>();
 
         public RangeeGaranties()
@@ -483,7 +483,7 @@ namespace NettoyagePC
         internal FenetreAchat() : base("Nettoyage PC Premium", 680, 640)
         {
             Controls.Add(new Etiquette("Nettoyage PC Premium", Theme.Grand, Role.Texte, 24, 18));
-            Controls.Add(new Etiquette(Langue.F("{0} TTC une seule fois · sans abonnement · toutes les versions 4 · {1} PC", Boutique.Prix, Boutique.NombrePc), Theme.CarteTitre, Role.AccentVif, 26, 58) { MaximumSize = new Size(620, 0) });
+            Controls.Add(new Etiquette(Langue.F("{0} TTC une seule fois · sans abonnement · toutes les versions 4 et 5 · {1} PC", Boutique.Prix, Boutique.NombrePc), Theme.CarteTitre, Role.AccentVif, 26, 58) { MaximumSize = new Size(620, 0) });
             Controls.Add(new Etiquette(
                 "✦  Gardien en temps réel, avec nettoyage léger automatique quand le disque se remplit\n" +
                 "✦  « Pourquoi mon PC ralentit ? » : l'enquêteur qui trouve le coupable\n" +
