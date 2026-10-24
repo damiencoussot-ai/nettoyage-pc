@@ -66,7 +66,7 @@ namespace NettoyagePC.Nouveau
             mesures = new UniformGrid { Columns = 4, Margin = new Thickness(0, 14, 0, 0) };
             mesures.Children.Add(Tuile("PROCESSEUR", 0, out _));
             mesures.Children.Add(Tuile("MÉMOIRE VIVE", 1, out _));
-            mesures.Children.Add(Tuile(Langue.F("DISQUE {0}", Environment.GetEnvironmentVariable("SystemDrive") ?? "C:"), 2, out _));
+            mesures.Children.Add(Tuile(Langue.F("LIBRE SUR {0}", Environment.GetEnvironmentVariable("SystemDrive") ?? "C:"), 2, out _));
             tuileTemperature = Tuile("TEMPÉRATURE", 3, out tTitreTemperature);
             mesures.Children.Add(tuileTemperature);
             mesures.SizeChanged += (o, a) => Colonnes(a.NewSize.Width);
@@ -155,7 +155,8 @@ namespace NettoyagePC.Nouveau
             if (m == null) return;
             if (m.Processeur >= 0) valeurs[0].Text = Math.Round(m.Processeur) + " %";
             if (m.Memoire >= 0) valeurs[1].Text = Math.Round(m.Memoire) + " %";
-            if (m.DisqueLibre != "") valeurs[2].Text = m.DisqueLibre;
+            // « 27,60 Go libres » : la tuile (« LIBRE SUR C: ») ne garde que la taille, qui tient même pour un disque de plusieurs To
+            if (m.DisqueLibre != "") valeurs[2].Text = m.DisqueLibre.EndsWith(" libres", StringComparison.Ordinal) ? m.DisqueLibre.Substring(0, m.DisqueLibre.Length - 7) : m.DisqueLibre;
             if (m.Temperature > 0)
             {
                 valeurs[3].Text = Math.Round(m.Temperature) + " °C";
