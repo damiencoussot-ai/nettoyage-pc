@@ -14,7 +14,11 @@ namespace NettoyagePC
     internal static class Appli
     {
         public const string Nom = "Nettoyage PC";
+#if NET5_0_OR_GREATER
+        public static readonly string Version = "5.0";
+#else
         public static readonly string Version = "4.6";
+#endif
         public const string Depot = "damiencoussot-ai/nettoyage-pc";
 
         public static bool EstAdmin
