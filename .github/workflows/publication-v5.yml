@@ -1,0 +1,129 @@
+# Nettoyage PC 5 : fabrication et publication de la version 5.
+# Ne se lance QUE quand un tag « v5.x » est créé (jamais à un simple envoi de code) :
+# - tag « v5.0 » : version normale, proposée en mise à jour aux PC qui ont la version 4 ;
+# - tag « v5.0-beta1 » (ou -beta2...) : pré-version, que la version 4 installée ne propose pas
+#   (les mises à jour de la version 4 ignorent les pré-versions) et que le bouton « Télécharger » du site ne vise pas.
+# Une version qui échoue à un essai n'est jamais publiée.
+name: Publication version 5
+
+on:
+  push:
+    tags: [ 'v5.*' ]
+
+permissions:
+  contents: write
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Version
+        id: version
+        shell: pwsh
+        run: |
+          $v = (Select-String src\Noyau\Base.cs -Pattern 'Version = "([\d.]+)";\s*// version 5').Matches[0].Groups[1].Value
+          $m = [regex]::Match($env:GITHUB_REF_NAME, '^v(\d+(?:\.\d+){1,3})(-beta\d*)?$')
+          if (-not $m.Success -or $m.Groups[1].Value -ne $v) { throw "Le tag $env:GITHUB_REF_NAME ne correspond pas à la version $v du programme (Base.cs)." }
+          $beta = $m.Groups[2].Success
+          $p = $v.Split('.'); while ($p.Count -lt 4) { $p += '0' }
+          "version=$v" >> $env:GITHUB_OUTPUT
+          "version4=$($p -join '.')" >> $env:GITHUB_OUTPUT
+          "beta=$($beta.ToString().ToLower())" >> $env:GITHUB_OUTPUT
+          if (-not (Test-Path "NOTES-$v.txt")) { throw "NOTES-$v.txt manquant (texte de la publication)." }
+          Write-Host "Version $v (pré-version : $beta)"
+
+      - name: Textes légaux
+        shell: pwsh
+        run: |
+          foreach ($f in 'LICENCE', 'CONDITIONS-DE-VENTE', 'CONFIDENTIALITE', 'MENTIONS-LEGALES') { if (-not (Test-Path "legal\$f.txt")) { throw "legal\$f.txt manquant" } }
+          $reste = Select-String -Path legal\*.txt -Pattern '\[(PRÉNOM|ADRESSE|E-MAIL|NUMÉRO|NOM DU MÉDIATEUR)' -Encoding utf8
+          if ($reste) { Write-Warning ("Textes légaux : " + $reste.Count + " passage(s) entre crochets à compléter (voir GUIDE-EDITEUR.txt)") }
+
+      - name: Programme Windows en un seul fichier
+        shell: pwsh
+        run: |
+          dotnet publish nouvelle-interface/NettoyagePC.Nouveau.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true "-p:InformationalVersion=${{ steps.version.outputs.version }}" -p:IncludeSourceRevisionInInformationalVersion=false -o publie
+          if ($LASTEXITCODE -ne 0) { throw "Compilation en échec" }
+          "NettoyagePC.exe : {0:N1} Mo" -f ((Get-Item publie\NettoyagePC.exe).Length / 1MB)
+
+      - name: Auto-contrôle (fenêtre et pages, deux thèmes, deux langues)
+        shell: pwsh
+        run: |
+          $p = Start-Process publie\NettoyagePC.exe -ArgumentList '--autocontrole' -Wait -PassThru
+          Get-Content "$env:LOCALAPPDATA\NettoyagePC\demarrage.log" -ErrorAction SilentlyContinue | Select-Object -Last 20
+          if ($p.ExitCode -ne 0) { throw "Auto-contrôle en échec (code $($p.ExitCode))" }
+
+      - name: Moteur en simulation
+        shell: pwsh
+        run: |
+          $p = Start-Process publie\NettoyagePC.exe -ArgumentList '--moteur', '--simulation', '--sans-rapport' -Wait -PassThru -RedirectStandardOutput moteur.txt
+          Get-Content moteur.txt -Tail 25
+          if ($p.ExitCode -ne 0) { throw "Moteur en échec (code $($p.ExitCode))" }
+
+      - name: Installateur
+        shell: pwsh
+        run: |
+          $mk = 'C:\Program Files (x86)\NSIS\makensis.exe'
+          if (-not (Test-Path $mk)) { choco install nsis -y --no-progress | Out-Null }
+          Copy-Item publie\NettoyagePC.exe . -Force
+          & $mk /V2 /DV5 "/DVERSION=${{ steps.version.outputs.version }}" "/DVERSION4=${{ steps.version.outputs.version4 }}" installateur.nsi
+          if ($LASTEXITCODE -ne 0) { throw "makensis a échoué" }
+          $f = "NettoyagePC-Setup-${{ steps.version.outputs.version }}.exe"
+          $h = (Get-FileHash $f -Algorithm SHA256).Hash.ToUpper()
+          Set-Content "NettoyagePC-Setup-${{ steps.version.outputs.version }}.sha256" "$h  $f" -Encoding ascii
+          Write-Host "SHA256 : $h"
+          # copie au nom fixe (bouton « Télécharger » du site) : seulement pour une version normale
+          if ('${{ steps.version.outputs.beta }}' -ne 'true') { Copy-Item $f NettoyagePC-Setup.exe }
+
+      - name: Passage depuis la version 4 (installation silencieuse par-dessus la version publiée)
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          function Fermer() { Get-Process NettoyagePC -ErrorAction SilentlyContinue | Stop-Process -Force; Start-Sleep 2 }
+          $dossier = Join-Path $env:ProgramFiles 'Nettoyage PC'
+          $exe = Join-Path $dossier 'NettoyagePC.exe'
+          Invoke-WebRequest 'https://github.com/damiencoussot-ai/nettoyage-pc/releases/latest/download/NettoyagePC-Setup.exe' -OutFile setup4.exe
+          $p = Start-Process .\setup4.exe -ArgumentList '/S' -Wait -PassThru
+          Fermer
+          Write-Host ("Version publiée installée : {0}" -f (Get-Item $exe).VersionInfo.ProductVersion)
+          $p = Start-Process "NettoyagePC-Setup-${{ steps.version.outputs.version }}.exe" -ArgumentList '/S' -Wait -PassThru
+          Fermer
+          if ($p.ExitCode -ne 0) { throw "Installation silencieuse en échec (code $($p.ExitCode))" }
+          $v = (Get-Item $exe).VersionInfo.ProductVersion
+          if ($v -ne '${{ steps.version.outputs.version }}') { throw "Version installée inattendue : $v" }
+          foreach ($f in 'legal\LICENCE.txt', 'Desinstaller.exe') { if (-not (Test-Path (Join-Path $dossier $f))) { throw "Fichier absent après l'installation : $f" } }
+          $p = Start-Process $exe -ArgumentList '--autocontrole' -Wait -PassThru
+          if ($p.ExitCode -ne 0) { throw "Auto-contrôle du programme installé en échec" }
+          $g = Start-Process $exe -ArgumentList '--gardien' -PassThru
+          if (-not $g.WaitForExit(20000)) { $g | Stop-Process -Force; throw "Le gardien ne s'est pas arrêté sans Premium" }
+          $p = Start-Process (Join-Path $dossier 'Desinstaller.exe') -ArgumentList '/S' -Wait -PassThru
+          Start-Sleep 5
+          if (Test-Path $exe) { throw "Le programme est resté après la désinstallation" }
+          Write-Host "Passage 4 -> $v : installation, auto-contrôle, gardien et désinstallation corrects."
+
+      - name: Fichiers de la version
+        uses: actions/upload-artifact@v4
+        with:
+          name: NettoyagePC-${{ steps.version.outputs.version }}
+          path: |
+            NettoyagePC-Setup-*.exe
+            NettoyagePC-Setup-*.sha256
+
+      - name: Publication
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          target_commitish: ${{ github.sha }}
+          name: Nettoyage PC ${{ steps.version.outputs.version }}${{ steps.version.outputs.beta == 'true' && ' (bêta)' || '' }}
+          prerelease: ${{ steps.version.outputs.beta == 'true' }}
+          body_path: NOTES-${{ steps.version.outputs.version }}.txt
+          files: |
+            NettoyagePC-Setup-${{ steps.version.outputs.version }}.exe
+            NettoyagePC-Setup-${{ steps.version.outputs.version }}.sha256
+            NettoyagePC-Setup.exe

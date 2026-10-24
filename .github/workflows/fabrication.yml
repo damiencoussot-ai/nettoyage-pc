@@ -8,7 +8,7 @@ name: Fabrication
 on:
   push:
     branches: [ main, master ]
-    tags: [ 'v*' ]
+    tags: [ 'v4.*' ]   # les tags « v5.x » publient la version 5 (publication-v5.yml)
   pull_request:
   workflow_dispatch:
 
