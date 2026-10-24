@@ -1967,6 +1967,11 @@ namespace NettoyagePC
             "Recherche des fichiers…", "Searching for files…", "Buscando archivos…",
             "erreur inconnue", "unknown error", "error desconocido",
             "impossible de préparer l'action (canal de communication)", "could not prepare the action (communication channel)", "no se pudo preparar la acción (canal de comunicación)",
+            "Bonjour.", "Hello.", "Hola.",
+            "Bonsoir.", "Good evening.", "Buenas tardes.",
+            "Bonjour, {0}.", "Hello, {0}.", "Hola, {0}.",
+            "Bonsoir, {0}.", "Good evening, {0}.", "Buenas tardes, {0}.",
+            "Version 5.0 · aperçu", "Version 5.0 · preview", "Versión 5.0 · vista previa",
         };
         private static readonly string[] Prefixes =
         {

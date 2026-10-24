@@ -1,5 +1,8 @@
 ; ============================================================
 ;  Nettoyage PC - installateur Windows (NSIS)
+;  /DV5 : installateur de la version 5 (programme .NET 10 autonome, nouvelle interface). Même dossier, même
+;  programme NettoyagePC.exe, mêmes réglages et même historique : la version 4 en place est remplacée (et gardée
+;  dans « precedente » jusqu'à ce que la version 5 ait passé son contrôle de démarrage).
 ; ============================================================
 Unicode true
 SetCompressor /SOLID lzma
@@ -79,6 +82,7 @@ Function .onInit
         Abort
     ${EndIf}
     SetRegView 64
+!ifndef V5
     ; .NET Framework 4.8 (présent dans Windows 10 1903 et plus récent, et dans Windows 11)
     ReadRegDWORD $0 HKLM "SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full" "Release"
     ${If} $0 < 528040
@@ -86,6 +90,8 @@ Function .onInit
             ExecShell "open" "https://dotnet.microsoft.com/download/dotnet-framework/net48"
         Abort
     ${EndIf}
+!endif
+    ; (version 5 : le programme contient tout ce qu'il lui faut, rien à installer en plus)
 FunctionEnd
 
 ; Mise à jour silencieuse (/S, lancée depuis l'application) : Nettoyage PC est relancé à la fin, avec les droits normaux
@@ -217,7 +223,11 @@ Section "${NOM} (obligatoire)" SecPrincipal
     WriteRegStr HKLM "${CLE_DESINST}" "QuietUninstallString" '"$INSTDIR\Desinstaller.exe" /S'
     WriteRegDWORD HKLM "${CLE_DESINST}" "NoModify" 1
     WriteRegDWORD HKLM "${CLE_DESINST}" "NoRepair" 1
+!ifdef V5
+    WriteRegDWORD HKLM "${CLE_DESINST}" "EstimatedSize" 48000
+!else
     WriteRegDWORD HKLM "${CLE_DESINST}" "EstimatedSize" 1200
+!endif
 
     ; Si l'entretien automatique existait (version 3 ou 4), ses tâches sont recréées pour le nouveau programme
     nsExec::Exec '"$SYSDIR\schtasks.exe" /Query /TN "Nettoyage PC - hebdomadaire"'
