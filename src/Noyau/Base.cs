@@ -618,6 +618,8 @@ namespace NettoyagePC
         {
             bool fr = Langue.Code == "fr";
             var c = fr ? Appli.Fr : Langue.Culture;   // 27,60 Go en français, 27.60 GB en anglais
+            // au-delà de 1 To (disques de 2 To et plus) : « 1,14 To » plutôt que « 1 171,97 Go »
+            if (octets >= 1099511627776.0) return (octets / 1099511627776.0).ToString("N2", c) + (fr ? " To" : " TB");
             if (octets >= 1073741824.0) return (octets / 1073741824.0).ToString("N2", c) + (fr ? " Go" : " GB");
             if (octets >= 1048576.0) return (octets / 1048576.0).ToString("N1", c) + (fr ? " Mo" : " MB");
             return (octets / 1024.0).ToString("N0", c) + (fr ? " Ko" : " KB");
