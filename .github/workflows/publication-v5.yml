@@ -90,6 +90,8 @@ jobs:
 
       - name: Passage depuis la version 4 (installation silencieuse par-dessus la version publiée)
         shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           $ErrorActionPreference = 'Stop'
           function Noter($t) { Write-Host "::notice::$t" }
@@ -98,7 +100,11 @@ jobs:
             $dossier = Join-Path $env:ProgramFiles 'Nettoyage PC'
             $exe = Join-Path $dossier 'NettoyagePC.exe'
             $setup5 = (Resolve-Path "NettoyagePC-Setup-${{ steps.version.outputs.version }}.exe").Path
-            Invoke-WebRequest 'https://github.com/damiencoussot-ai/nettoyage-pc/releases/latest/download/NettoyagePC-Setup.exe' -OutFile setup4.exe
+            # dernière version 4 publiée (pas « latest » : une publication sans fichier ou une version 5 peut l'être)
+            $rel = Invoke-RestMethod "https://api.github.com/repos/$env:GITHUB_REPOSITORY/releases?per_page=30" -Headers @{ Authorization = "Bearer $env:GH_TOKEN" }
+            $a = $rel | Where-Object { -not $_.draft -and -not $_.prerelease } | ForEach-Object { $_.assets } | Where-Object { $_.name -match '^NettoyagePC-Setup-4[\d.]*\.exe$' } | Select-Object -First 1
+            if (-not $a) { throw 'Aucun installateur de la version 4 publié' }
+            Invoke-WebRequest $a.browser_download_url -OutFile setup4.exe
             $p = Start-Process (Resolve-Path .\setup4.exe).Path -ArgumentList '/S' -Wait -PassThru
             Fermer
             Noter ("Version publiée installée : {0} (code {1})" -f (Get-Item $exe).VersionInfo.ProductVersion, $p.ExitCode)

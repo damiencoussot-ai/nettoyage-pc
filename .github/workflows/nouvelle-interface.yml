@@ -169,6 +169,8 @@ jobs:
         id: installation
         if: steps.publication.outcome == 'success'
         continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
@@ -187,7 +189,11 @@ jobs:
           $exe = Join-Path $dossier 'NettoyagePC.exe'
 
           # 1. version 4 publiée
-          Invoke-WebRequest 'https://github.com/damiencoussot-ai/nettoyage-pc/releases/latest/download/NettoyagePC-Setup.exe' -OutFile setup4.exe
+          # dernière version 4 publiée (pas « latest » : une publication sans fichier ou une version 5 peut l'être)
+          $rel = Invoke-RestMethod "https://api.github.com/repos/$env:GITHUB_REPOSITORY/releases?per_page=30" -Headers @{ Authorization = "Bearer $env:GH_TOKEN" }
+          $a = $rel | Where-Object { -not $_.draft -and -not $_.prerelease } | ForEach-Object { $_.assets } | Where-Object { $_.name -match '^NettoyagePC-Setup-4[\d.]*\.exe$' } | Select-Object -First 1
+          if (-not $a) { throw 'Aucun installateur de la version 4 publié' }
+          Invoke-WebRequest $a.browser_download_url -OutFile setup4.exe
           $p = Start-Process .\setup4.exe -ArgumentList '/S' -Wait -PassThru
           Fermer
           Noter ("version 4 : installateur code {0}, programme {1}" -f $p.ExitCode, (Get-Item $exe).VersionInfo.ProductVersion)
