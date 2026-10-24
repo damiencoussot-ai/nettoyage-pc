@@ -2000,6 +2000,7 @@ namespace NettoyagePC
             "Un point de restauration est créé d'abord.", "A restore point is created first.", "Primero se crea un punto de restauración.",
             "Modifications réversibles : aucune pour l'instant", "Reversible changes: none for now", "Cambios reversibles: ninguno por ahora",
             "Modifications réversibles : {0} active(s)", "Reversible changes: {0} active", "Cambios reversibles: {0} activo(s)",
+            "LIBRE SUR {0}", "FREE ON {0}", "LIBRE EN {0}",
         };
         private static readonly string[] Prefixes =
         {
