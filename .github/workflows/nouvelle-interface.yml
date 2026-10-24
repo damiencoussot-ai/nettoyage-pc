@@ -42,6 +42,8 @@ jobs:
         shell: bash
         run: |
           set -o pipefail
+          # phrases affichées en anglais / espagnol sans traduction dans traductions.tsv (liste de contrôle)
+          export NP_TRADUCTIONS_MANQUANTES="$PWD/captures/traductions-manquantes.txt"
           dotnet sortie-avalonia/NettoyagePC.dll --captures captures 2>&1 | tee captures.txt
 
       - name: Résultats sur la branche captures-avalonia
@@ -123,6 +125,82 @@ jobs:
           if (Test-Path $journal) { Copy-Item $journal essais-windows\demarrage.log }
           if ($global:echecs -gt 0) { "$global:echecs essai(s) en échec" | Tee-Object -Append essais-windows\resume.txt; exit 1 }
 
+      # Passage de la version 4 à la version 5 sur un Windows vierge : installation de la dernière version 4 publiée,
+      # entretien automatique activé, puis installateur de la version 5 par-dessus (silencieux), contrôles, désinstallation.
+      # Rien n'est publié : l'installateur est seulement gardé comme artefact.
+      - name: Installateur de la version 5 et passage depuis la version 4
+        id: installation
+        if: steps.publication.outcome == 'success'
+        continue-on-error: true
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          New-Item -ItemType Directory -Force essais-windows | Out-Null
+          $log = 'essais-windows\installation.txt'
+          function Noter($t) { $t | Tee-Object -Append $log }
+          function Fermer() { Get-Process NettoyagePC -ErrorAction SilentlyContinue | Stop-Process -Force; Start-Sleep 2 }
+          $mk = 'C:\Program Files (x86)\NSIS\makensis.exe'
+          if (-not (Test-Path $mk)) { choco install nsis -y --no-progress | Out-Null }
+          Copy-Item publie\NettoyagePC.exe . -Force
+          & $mk /V2 /DV5 "/DVERSION=5.0" "/DVERSION4=5.0.0.0" installateur.nsi
+          if ($LASTEXITCODE -ne 0) { throw "makensis a échoué" }
+          $setup5 = (Resolve-Path 'NettoyagePC-Setup-5.0.exe').Path
+          Noter ("installateur 5.0 : {0:N1} Mo" -f ((Get-Item $setup5).Length / 1MB))
+          $dossier = Join-Path $env:ProgramFiles 'Nettoyage PC'
+          $exe = Join-Path $dossier 'NettoyagePC.exe'
+
+          # 1. version 4 publiée
+          Invoke-WebRequest 'https://github.com/damiencoussot-ai/nettoyage-pc/releases/latest/download/NettoyagePC-Setup.exe' -OutFile setup4.exe
+          $p = Start-Process .\setup4.exe -ArgumentList '/S' -Wait -PassThru
+          Fermer
+          Noter ("version 4 : installateur code {0}, programme {1}" -f $p.ExitCode, (Get-Item $exe).VersionInfo.ProductVersion)
+          $p = Start-Process $exe -ArgumentList '--moteur --planifier' -Wait -PassThru -WindowStyle Hidden
+          $tache = Get-ScheduledTask -TaskName 'Nettoyage PC*' -ErrorAction SilentlyContinue | Select-Object -First 1
+          Noter ("entretien automatique (version 4) : code {0}, tâche {1}" -f $p.ExitCode, $(if ($tache) { $tache.TaskName } else { 'absente' }))
+
+          # 2. version 5 par-dessus
+          $chrono = [Diagnostics.Stopwatch]::StartNew()
+          $p = Start-Process $setup5 -ArgumentList '/S' -Wait -PassThru
+          Fermer
+          $v = (Get-Item $exe).VersionInfo
+          Noter ("version 5 : installateur code {0} en {1} s, programme {2} ({3:N1} Mo)" -f $p.ExitCode, [int]$chrono.Elapsed.TotalSeconds, $v.ProductVersion, ((Get-Item $exe).Length / 1MB))
+          if ($p.ExitCode -ne 0) { throw "installation de la version 5 en échec" }
+          if (-not $v.ProductVersion.StartsWith('5')) { throw "le programme installé n'est pas la version 5" }
+          $prec = Join-Path $dossier 'precedente\NettoyagePC.exe'
+          Noter ("version précédente gardée : {0}" -f $(if (Test-Path $prec) { (Get-Item $prec).VersionInfo.ProductVersion } else { 'non' }))
+          foreach ($f in 'legal\LICENCE.txt', 'Desinstaller.exe', 'LISEZMOI.txt') { if (-not (Test-Path (Join-Path $dossier $f))) { throw "fichier absent après l'installation : $f" } }
+          $cle = Get-ItemProperty 'HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\NettoyagePC'
+          Noter ("Applications installées : {0} {1}" -f $cle.DisplayName, $cle.DisplayVersion)
+          $tache = Get-ScheduledTask -TaskName 'Nettoyage PC*' -ErrorAction SilentlyContinue | Select-Object -First 1
+          if ($tache) { Noter ("entretien automatique (version 5) : {0} -> {1} {2}" -f $tache.TaskName, $tache.Actions[0].Execute, $tache.Actions[0].Arguments) } else { Noter 'entretien automatique (version 5) : tâche absente' }
+
+          # 3. le programme installé fonctionne
+          $p = Start-Process $exe -ArgumentList '--autocontrole' -Wait -PassThru
+          Noter ("auto-contrôle : code {0}" -f $p.ExitCode)
+          if ($p.ExitCode -ne 0) { throw "auto-contrôle en échec" }
+          $p = Start-Process $exe -ArgumentList '--etat' -Wait -PassThru -RedirectStandardOutput essais-windows\etat-installe.txt
+          Noter ("état du PC (programme installé) : code {0}" -f $p.ExitCode)
+          $p = Start-Process $exe -ArgumentList '--gardien' -PassThru
+          if (-not $p.WaitForExit(20000)) { $p | Stop-Process -Force; throw "le gardien ne s'est pas arrêté sans Premium" }
+          Noter ("gardien sans Premium : s'arrête tout seul (code {0})" -f $p.ExitCode)
+          $p = Start-Process $exe -ArgumentList '--essai-demarrage essais-windows\demarrage-installe.txt' -Wait -PassThru
+          Noter ("fenêtre du programme installé : code {0} ; {1}" -f $p.ExitCode, ((Get-Content essais-windows\demarrage-installe.txt -ErrorAction SilentlyContinue) -join ' / '))
+
+          # 4. désinstallation
+          $p = Start-Process (Join-Path $dossier 'Desinstaller.exe') -ArgumentList '/S' -Wait -PassThru
+          Start-Sleep 5
+          $reste = Test-Path $exe
+          $tache = Get-ScheduledTask -TaskName 'Nettoyage PC*' -ErrorAction SilentlyContinue
+          Noter ("désinstallation : code {0}, programme {1}, tâches {2}" -f $p.ExitCode, $(if ($reste) { 'encore là' } else { 'retiré' }), $(if ($tache) { 'encore là' } else { 'retirées' }))
+          if ($reste) { throw "le programme est resté après la désinstallation" }
+
+      - name: Installateur de la version 5 (artefact)
+        if: steps.installation.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: NettoyagePC-Setup-5.0-apercu
+          path: NettoyagePC-Setup-5.0.exe
+
       - name: Résultats sur la branche captures-avalonia-windows
         if: always()
         shell: bash
@@ -130,7 +208,7 @@ jobs:
           mkdir -p /tmp/envoi
           cp publication.txt taille.txt /tmp/envoi/ 2>/dev/null || true
           cp -r essais-windows /tmp/envoi/ 2>/dev/null || true
-          printf 'commit %s\npublication %s\nessais %s\n' "$GITHUB_SHA" "${{ steps.publication.outcome }}" "${{ steps.essais.outcome }}" > /tmp/envoi/etat.txt
+          printf 'commit %s\npublication %s\nessais %s\ninstallation %s\n' "$GITHUB_SHA" "${{ steps.publication.outcome }}" "${{ steps.essais.outcome }}" "${{ steps.installation.outcome }}" > /tmp/envoi/etat.txt
           cd /tmp/envoi
           git init -q
           git checkout -q -b captures-avalonia-windows

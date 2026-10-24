@@ -165,7 +165,12 @@ namespace NettoyagePC.Nouveau
             else
             {
                 if (!Enregistrer(false)) return;
-                F.Demander("Activer le gardien", AvecVersion4, "Compris", null, r => { });
+                if (Installation5.Apercu) { F.Demander("Activer le gardien", AvecVersion4, "Compris", null, r => { }); return; }
+                string r = Gardien.Activer();
+                if (r != "") { F.Demander("Le gardien n'a pas pu être activé", Langue.T(r), "Compris", null, x => { }, true); return; }
+                R.Actif = true;
+                ActualiserEtat();
+                F.Demander("Gardien activé ✔", "Son icône apparaît près de l'horloge (parfois cachée derrière la petite flèche « ^ »). Il démarrera tout seul à chaque ouverture de session.", "Compris", null, x => { });
             }
         }
 
@@ -193,7 +198,17 @@ namespace NettoyagePC.Nouveau
             }
             try { r.Ecrire(); Gardien.Recharger(); } catch (Exception ex) { F.Demander("Réglages du gardien", ex.Message, "Compris", null, x => { }, true); return false; }
             F.Statut("Réglages du gardien enregistrés.");
-            if (prevenir && r.SauvegardeAuto && !r.Actif) F.Demander("Le gardien est arrêté", Langue.T("La sauvegarde automatique est faite par le gardien.") + "\n\n" + Langue.T(AvecVersion4), "Compris", null, x => { });
+            if (prevenir && r.SauvegardeAuto && !r.Actif)
+            {
+                if (Installation5.Apercu) F.Demander("Le gardien est arrêté", Langue.T("La sauvegarde automatique est faite par le gardien.") + "\n\n" + Langue.T(AvecVersion4), "Compris", null, x => { });
+                else F.Demander("Le gardien est arrêté", "La sauvegarde automatique est faite par le gardien, qui est arrêté. L'activer maintenant ?", "Activer", "Plus tard", oui =>
+                {
+                    if (!oui) return;
+                    string e = Gardien.Activer();
+                    if (e != "") F.Demander("Le gardien n'a pas pu être activé", Langue.T(e), "Compris", null, x => { }, true);
+                    else F.Statut("Gardien activé ✔");
+                });
+            }
             return true;
         }
     }

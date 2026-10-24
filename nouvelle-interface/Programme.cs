@@ -29,6 +29,8 @@ namespace NettoyagePC.Nouveau
 
         /// <summary>(essais) --essai-demarrage FICHIER : mesure l'ouverture de la fenêtre et l'arrivée du bilan, puis ferme.</summary>
         public static string FichierEssaiDemarrage;
+        /// <summary>Demande reçue au lancement (--page, --ouvrir, --action, --assistant), du gardien ou d'un raccourci.</summary>
+        internal static CommandeExterne CommandeInitiale = new CommandeExterne();
 
         public override void OnFrameworkInitializationCompleted()
         {
@@ -38,6 +40,12 @@ namespace NettoyagePC.Nouveau
                 if (ModeSimple) f.AppliquerModeSimple(true);
                 // premier lancement : « Faisons connaissance » (pseudo, mode simple ou complet)
                 if (!ProfilCree && FichierEssaiDemarrage == null) f.Opened += (s, e) => Bienvenue5.Ouvrir(f);
+                // demandes du gardien ou d'un raccourci : au lancement, puis transmises par un deuxième lancement
+                f.Opened += (s, e) =>
+                {
+                    if (!CommandeInitiale.Vide) f.TraiterCommande(CommandeInitiale, true);
+                    if (!Installation5.Apercu && FichierEssaiDemarrage == null) CommandeExterne.Ecouter(c => Dispatcher.UIThread.Post(() => f.TraiterCommande(c, false)));
+                };
                 bureau.MainWindow = f;
                 if (FichierEssaiDemarrage != null)
                 {
@@ -59,6 +67,8 @@ namespace NettoyagePC.Nouveau
 
     public static class Programme
     {
+        private static System.Threading.Mutex verrou;
+
         [STAThread]
         public static int Main(string[] args)
         {
@@ -72,14 +82,35 @@ namespace NettoyagePC.Nouveau
             Demarrage.AppliquerDossiersUtilisateur(args);
             int? code = Demarrage.SansInterface(args);
             if (code.HasValue) return code.Value;
-            // le gardien (zone de notification) reste celui de la version 4 installée : l'aperçu n'ouvre rien
-            if (args.Length > 0 && args[0] == "--gardien") { JournalDemarrage.Noter("Aperçu de la version 5 : le gardien reste celui de la version 4."); return 0; }
+            // gardien (icône près de l'horloge) : dans l'aperçu, c'est celui de la version 4 installée qui tourne
+            if (args.Length > 0 && args[0] == "--gardien")
+            {
+                if (Installation5.Apercu) { JournalDemarrage.Noter("Aperçu de la version 5 : le gardien reste celui de la version 4."); return 0; }
+                return GardienNatif.Executer();
+            }
+            // contrôle après installation (lancé par l'installateur) : fenêtre et pages construites sans rien afficher
+            if (args.Length > 0 && args[0] == "--autocontrole") return Captures.AutoControle();
+            App.CommandeInitiale = CommandeExterne.Lire(args);
 
             int ie = Array.IndexOf(args, "--essai-demarrage");
             if (ie >= 0 && ie + 1 < args.Length) App.FichierEssaiDemarrage = Path.GetFullPath(args[ie + 1]);
-            JournalDemarrage.Noter("--- Démarrage de Nettoyage PC 5 (aperçu) : Windows " + Environment.OSVersion.Version + ", .NET " + Environment.Version + ", dossier " + Chemins.Ici);
+            JournalDemarrage.Noter("--- Démarrage de Nettoyage PC " + Appli.Version + (Installation5.Apercu ? " (aperçu)" : "") + " : Windows " + Environment.OSVersion.Version + ", .NET " + Environment.Version + ", dossier " + Chemins.Ici);
             // toujours avec les droits normaux : lancée en administrateur, l'application se relance par l'Explorateur
             if (Appli.EstAdmin && Natif.EstWindows && App.FichierEssaiDemarrage == null && Demarrage.RelancerSansAdmin()) return 0;
+            // une seule fenêtre (programme installé ou portable) : un deuxième lancement ramène la fenêtre ouverte et lui
+            // transmet sa demande (page, outil...). L'aperçu, lui, ne partage rien avec la version 4 installée.
+            if (!Installation5.Apercu && App.FichierEssaiDemarrage == null)
+            {
+                bool nouveau;
+                verrou = new System.Threading.Mutex(true, @"Local\NettoyagePC-Interface", out nouveau);
+                if (!nouveau)
+                {
+                    // (relance demandée par l'application elle-même, après un changement de langue : on attend la fermeture)
+                    int attente = Array.IndexOf(args, "--relance") >= 0 ? 15000 : 1500;
+                    try { if (!verrou.WaitOne(attente)) { App.CommandeInitiale.Transmettre(); Demarrage.RamenerAutreFenetre(); return 0; } }
+                    catch (System.Threading.AbandonedMutexException) { }
+                }
+            }
             AppDomain.CurrentDomain.UnhandledException += (s, e) => JournalDemarrage.Erreur("fatale (version 5)", e.ExceptionObject as Exception);
             try
             {
@@ -122,6 +153,48 @@ namespace NettoyagePC.Nouveau
             image.Save(Path.Combine(dossier, nom));
             rapport.AppendLine("OK : " + nom);
         }
+
+        /// <summary>
+        /// Contrôle rapide après une installation (lancé par l'installateur) : crée la fenêtre et toutes les rubriques et
+        /// onglets, dans les deux thèmes, en français et en anglais, sans rien afficher ni modifier (bilan d'exemple).
+        /// Code 0 si tout va bien ; sinon l'installateur remet la version précédente.
+        /// </summary>
+        public static int AutoControle()
+        {
+            var garde = new System.Threading.Thread(() => { System.Threading.Thread.Sleep(120000); JournalDemarrage.Noter("Auto-contrôle (version 5) : délai dépassé."); Environment.Exit(3); }) { IsBackground = true };
+            garde.Start();
+            try
+            {
+                JournalDemarrage.Noter("--- Auto-contrôle de Nettoyage PC " + Appli.Version);
+                Habillage.Animations = false;
+                AppBuilder.Configure<App>().UseSkia().UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false }).SetupWithoutStarting();
+                try { Licence.Charger(); } catch { }
+                foreach (var code in new[] { "fr", "en" })
+                {
+                    Langue.Choisir(code);
+                    var f = new FenetrePrincipale(new BilanExemple()) { Pseudo = "" };
+                    f.Show();
+                    foreach (var sombre in new[] { true, false })
+                    {
+                        f.ChangerTheme(sombre);
+                        foreach (var r in f.Rubriques.ToList()) { f.Afficher(r.Cle, false); Pomper(); }
+                        // (sans les onglets qui lancent une recherche longue : Windows Update, analyse du matériel)
+                        foreach (var o in FenetrePrincipale.Onglets5.Where(x => x[1] != "Pilotes" && x[1] != "Potentiel"))
+                        {
+                            f.SousPage(o[0], o[1]); f.Afficher(o[0], false); Pomper();
+                        }
+                        if (f.CaptureRenderedFrame() == null) throw new InvalidOperationException("rendu de la fenêtre impossible");
+                    }
+                    f.Close();
+                }
+                Langue.Choisir("fr");
+                JournalDemarrage.Noter("Auto-contrôle (version 5) réussi.");
+                return 0;
+            }
+            catch (Exception ex) { JournalDemarrage.Erreur("auto-contrôle (version 5)", ex); return 1; }
+        }
+
+        private static void Pomper() { for (int k = 0; k < 3; k++) { Dispatcher.UIThread.RunJobs(); AvaloniaHeadlessPlatform.ForceRenderTimerTick(); } }
 
         public static int Faire(string dossier, bool reel)
         {
@@ -569,6 +642,19 @@ namespace NettoyagePC.Nouveau
                         g.Afficher(cle, false);
                         Capturer(g, dossier, code + "-" + cle + ".png", rapport, ref erreurs);
                     }
+                    // tous les onglets et rubriques sont affichés une fois (sans capture) pour la liste des phrases non traduites
+                    foreach (var o in FenetrePrincipale.Onglets5)
+                    {
+                        if (o[1] == "Reseau" || o[1] == "Potentiel") continue;
+                        g.SousPage(o[0], o[1]); g.Afficher(o[0], false);
+                        for (int k = 0; k < 4; k++) { Dispatcher.UIThread.RunJobs(); AvaloniaHeadlessPlatform.ForceRenderTimerTick(); }
+                    }
+                    foreach (var cle in new[] { "Historique", "Reglages" })
+                    {
+                        g.Afficher(cle, false);
+                        for (int k = 0; k < 4; k++) { Dispatcher.UIThread.RunJobs(); AvaloniaHeadlessPlatform.ForceRenderTimerTick(); }
+                    }
+                    Capturer(g, dossier, code + "-Reglages.png", rapport, ref erreurs);
                     Reseau5.Exemple = true;
                     g.SousPage("Outils", "Reseau"); g.Afficher("Outils", false);
                     Capturer(g, dossier, code + "-Outils-Reseau.png", rapport, ref erreurs);
@@ -580,6 +666,7 @@ namespace NettoyagePC.Nouveau
                 }
                 catch (Exception ex) { Reseau5.Exemple = false; erreurs++; rapport.AppendLine("ERREUR : captures en " + code + " : " + ex); }
             }
+            Langue.EcrireManquantes();
             Langue.Choisir("fr");
             rapport.AppendLine("Fin : " + erreurs + " erreur(s).");
             File.WriteAllText(Path.Combine(dossier, "rapport.txt"), rapport.ToString());

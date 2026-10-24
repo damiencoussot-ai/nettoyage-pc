@@ -24,6 +24,29 @@ namespace NettoyagePC.Nouveau
 
     public sealed class FenetrePrincipale : Window
     {
+        /// <summary>
+        /// En anglais et en espagnol, tout texte affiché (TextBlock, y compris celui des listes, cases et menus déroulants)
+        /// passe par la traduction : une phrase connue de la table est remplacée, le reste (noms de fichiers, chiffres) ne
+        /// bouge pas. En français, rien n'est fait.
+        /// </summary>
+        static FenetrePrincipale()
+        {
+            TextBlock.TextProperty.Changed.AddClassHandler<TextBlock>((tb, e) =>
+            {
+                var t = e.NewValue as string;
+                if (string.IsNullOrEmpty(t) || Langue.Code == "fr") return;
+                string r = Langue.T(t);
+                if (r != t) tb.Text = r;
+            });
+            TextBox.WatermarkProperty.Changed.AddClassHandler<TextBox>((tb, e) =>
+            {
+                var t = e.NewValue as string;
+                if (string.IsNullOrEmpty(t) || Langue.Code == "fr") return;
+                string r = Langue.T(t);
+                if (r != t) tb.Watermark = r;
+            });
+        }
+
         public readonly List<Rubrique> Rubriques = new List<Rubrique>();
         private readonly Dictionary<string, ElementMenu> menu = new Dictionary<string, ElementMenu>();
         private TransitioningContentControl contenu;
@@ -226,7 +249,7 @@ namespace NettoyagePC.Nouveau
                 return;
             }
             // aperçu : les tâches planifiées pointeraient vers ce fichier d'aperçu (qui peut être déplacé ou supprimé)
-            if (cle == "planifier" || cle == "deplanifier")
+            if (Installation5.Apercu && (cle == "planifier" || cle == "deplanifier"))
             {
                 Demander(a.Titre, "Dans cet aperçu de la version 5, l'entretien automatique se règle depuis la version 4 installée (Réglages > Entretien automatique) : les tâches de Windows doivent pointer vers le programme installé, pas vers ce fichier d'aperçu.", "Compris", null, r => { });
                 return;
@@ -266,6 +289,30 @@ namespace NettoyagePC.Nouveau
         }
 
         /// <summary>Bouton d'un point du bilan (ou de l'accueil) : action du moteur, rubrique, lien.</summary>
+        /// <summary>
+        /// Demande venue de l'extérieur (gardien, raccourci, assistant vocal) : page, outil, question à l'assistant, ou action
+        /// du moteur — une action est TOUJOURS proposée avec la question habituelle, jamais lancée directement.
+        /// </summary>
+        internal void TraiterCommande(CommandeExterne c, bool auDemarrage)
+        {
+            if (c == null || c.Vide) return;
+            try
+            {
+                if (WindowState == WindowState.Minimized) WindowState = WindowState.Normal;
+                Activate();
+                if (c.Page != null && (!ModeSimple || !auDemarrage)) Executer("page:" + c.Page, c.Page);
+                if (c.Ouvrir != null) OuvrirOutil(c.Ouvrir);
+                if (c.Action != null)
+                {
+                    ActionMoteur a;
+                    if (!Assistant.ActionsPermises.ContainsKey(c.Action) || !Actions.TryGetValue(c.Action, out a)) Statut(Langue.F("Action refusée ou inconnue : « {0} ».", c.Action), true);
+                    else LancerAction(c.Action, null, Langue.F("Une demande est arrivée de l'extérieur (raccourci ou assistant vocal) : « {0} ».", Langue.T(a.Titre)) + "\n\n" + Langue.T(a.Confirmer ?? "Lancer cette action maintenant ?"));
+                }
+                if (c.Question != null) Assistant5.Ouvrir(this, c.Question);
+            }
+            catch (Exception ex) { JournalDemarrage.Erreur("commande externe (version 5)", ex); }
+        }
+
         /// <summary>Ouvre un outil Premium par sa clé ; sans Premium, la fenêtre d'achat (essai gratuit possible).</summary>
         public bool OuvrirOutil(string cle)
         {
@@ -388,7 +435,7 @@ namespace NettoyagePC.Nouveau
             try { tete.Children.Add(new Image { Source = new Bitmap(AssetLoader.Open(new Uri("avares://NettoyagePC/Assets/logo.png"))), Width = 32, Height = 32, VerticalAlignment = VerticalAlignment.Center }); } catch { }
             var noms = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
             noms.Children.Add(new TextBlock { Text = "Nettoyage PC", FontFamily = Habillage.Affichage, FontSize = 17, FontWeight = FontWeight.SemiBold, Foreground = Brushes.White });
-            noms.Children.Add(new TextBlock { Text = "Version 5.0 · aperçu", FontFamily = Habillage.Corps, FontSize = 11, Foreground = Habillage.Pinceau(Color.FromRgb(138, 160, 180)) });
+            noms.Children.Add(new TextBlock { Text = Installation5.Apercu ? Langue.T("Version 5.0 · aperçu") : Langue.T("Version") + " " + Appli.Version, FontFamily = Habillage.Corps, FontSize = 11, Foreground = Habillage.Pinceau(Color.FromRgb(138, 160, 180)) });
             tete.Children.Add(noms);
             grille.Children.Add(tete);
             // menu principal et groupe du bas

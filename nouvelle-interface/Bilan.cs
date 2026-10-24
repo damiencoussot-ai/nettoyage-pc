@@ -71,8 +71,9 @@ namespace NettoyagePC.Nouveau
     {
         public static string Salut(string pseudo, DateTime maintenant)
         {
-            string s = maintenant.Hour >= 18 || maintenant.Hour < 5 ? "Bonsoir" : "Bonjour";
-            return string.IsNullOrEmpty(pseudo) ? s + "." : s + ", " + pseudo + ".";
+            bool soir = maintenant.Hour >= 18 || maintenant.Hour < 5;
+            if (string.IsNullOrEmpty(pseudo)) return Langue.T(soir ? "Bonsoir." : "Bonjour.");
+            return Langue.F(soir ? "Bonsoir, {0}." : "Bonjour, {0}.", pseudo);
         }
 
         public static string EtatCourt(Bilan b, out Avalonia.Media.Color couleur)

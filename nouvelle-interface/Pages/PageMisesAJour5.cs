@@ -2,6 +2,7 @@
 // version. Dans l'aperçu, l'installation passe par la version 4 (c'est elle qui est installée sur le PC).
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -29,7 +30,7 @@ namespace NettoyagePC.Nouveau
     {
         private readonly FenetrePrincipale F;
         private readonly TextBlock tEtat, tDetail;
-        private readonly BoutonNoyau bVerifier;
+        private readonly BoutonNoyau bVerifier, bInstaller;
         private readonly StackPanel notes = new StackPanel { Spacing = 14 };
         private static List<VersionPubliee> versions = new List<VersionPubliee>();
         private static string etat = "inconnu", erreur = "";
@@ -43,7 +44,7 @@ namespace NettoyagePC.Nouveau
             Spacing = 16; Margin = new Thickness(0, 0, 12, 0);
             var carte = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto") };
             var s = new StackPanel { Spacing = 6 };
-            s.Children.Add(new TextBlock { Text = "Nettoyage PC 5 (aperçu)", FontFamily = Habillage.Affichage, FontSize = 22, FontWeight = FontWeight.SemiBold, Foreground = Habillage.Pinceau(P.Texte) });
+            s.Children.Add(new TextBlock { Text = Langue.T(Installation5.Apercu ? "Nettoyage PC 5 (aperçu)" : "Nettoyage PC") + (Installation5.Apercu ? "" : " " + Appli.Version), FontFamily = Habillage.Affichage, FontSize = 22, FontWeight = FontWeight.SemiBold, Foreground = Habillage.Pinceau(P.Texte) });
             s.Children.Add(new TextBlock { Text = Langue.F("Moteur de la version {0}", Appli.Version), FontFamily = Habillage.Console, FontSize = 12, Foreground = Habillage.Pinceau(P.Discret) });
             tEtat = new TextBlock { FontFamily = Habillage.Affichage, FontSize = 16, FontWeight = FontWeight.SemiBold, Margin = new Thickness(0, 8, 0, 0), TextWrapping = TextWrapping.Wrap };
             tDetail = new TextBlock { FontFamily = Habillage.Corps, FontSize = 12.5, Foreground = Habillage.Pinceau(P.Discret), TextWrapping = TextWrapping.Wrap };
@@ -54,12 +55,53 @@ namespace NettoyagePC.Nouveau
             bVerifier.Clic += () => Verifier(true);
             var bGithub = new BoutonNoyau("Toutes les versions sur GitHub", false, 230, 32) { TaillePolice = 12.5 };
             bGithub.Clic += () => Programmes.Ouvrir("https://github.com/" + MisesAJour.Depot + "/releases");
-            boutons.Children.Add(bVerifier); boutons.Children.Add(bGithub);
+            // programme installé (pas l'aperçu) : la mise à jour s'installe d'ici, comme en version 4
+            bInstaller = new BoutonNoyau("Installer maintenant", true, 230, 38) { TaillePolice = 14, IsVisible = false };
+            bInstaller.Clic += Installer;
+            boutons.Children.Add(bInstaller); boutons.Children.Add(bVerifier); boutons.Children.Add(bGithub);
             Grid.SetColumn(boutons, 1); carte.Children.Add(boutons);
             Children.Add(new Border { Child = carte, Padding = new Thickness(22, 20), CornerRadius = new CornerRadius(3), Background = Habillage.Pinceau(P.Carte), BorderBrush = Habillage.Pinceau(P.Accent, 90), BorderThickness = new Thickness(1) });
             Children.Add(new TextBlock { Text = Langue.T("Nouveautés et historique des versions"), FontFamily = Habillage.Affichage, FontSize = 17, FontWeight = FontWeight.SemiBold, Foreground = Habillage.Pinceau(P.Texte), Margin = new Thickness(0, 6, 0, 0) });
             Children.Add(new Border { Child = notes, Padding = new Thickness(22, 18), CornerRadius = new CornerRadius(3), Background = Habillage.Pinceau(P.Carte), BorderBrush = Habillage.Pinceau(P.Bordure), BorderThickness = new Thickness(1) });
             Afficher();
+        }
+
+        private static bool installation;
+
+        /// <summary>
+        /// Téléchargement depuis la page officielle, contrôle de l'empreinte SHA256 (obligatoire), puis installation silencieuse
+        /// avec l'autorisation de Windows ; l'application se ferme et l'installateur la rouvre (moins d'une minute).
+        /// </summary>
+        private void Installer()
+        {
+            var v = versions.FirstOrDefault();
+            if (v == null || installation) return;
+            if (F.Moteur.EnCours) { F.Demander("Une action est en cours", "Attends qu'elle se termine avant de mettre à jour.", "Compris", null, r => { }); return; }
+            F.Demander(Langue.F("Installer Nettoyage PC {0} maintenant ?", v.Version), "L'application va se fermer puis se rouvrir toute seule (moins d'une minute). Ton historique et tes réglages sont conservés.", "Installer", "Plus tard", oui =>
+            {
+                if (!oui) return;
+                installation = true; Afficher();
+                F.Statut(Langue.F("Téléchargement de la version {0}…", v.Version));
+                string err = null, empreinte = null;
+                Task.Run(() =>
+                {
+                    string fichier;
+                    try { string h; fichier = MisesAJour.Telecharger(v, out h); empreinte = h; } catch (Exception ex) { err = ex.Message; return false; }
+                    // le gardien garde le programme ouvert : il se relancera avec la nouvelle version
+                    try { Gardien.Arreter(); } catch { }
+                    // seule une copie placée dans Program Files et revérifiée là-bas est lancée (autorisation de Windows)
+                    bool ok = Elevation.Commande(90, "installer-maj", fichier, empreinte);
+                    if (!ok) { err = Langue.T("l'autorisation de Windows a été refusée, ou le fichier n'a pas passé la vérification de sécurité."); try { Gardien.DemarrerSiBesoin(); } catch { } }
+                    try { File.Delete(fichier); Directory.Delete(Path.GetDirectoryName(fichier)); } catch { }
+                    return ok;
+                }).ContinueWith(t => Dispatcher.UIThread.Post(() =>
+                {
+                    if (t.Result) { F.Statut("Installation de la mise à jour…"); F.Close(); return; }
+                    installation = false; Afficher();
+                    F.Statut("Mise à jour non installée.", true);
+                    F.Demander("Mise à jour non installée", err ?? "", "Compris", null, r => { }, true);
+                }));
+            });
         }
 
         private void Verifier(bool manuel)
@@ -99,7 +141,9 @@ namespace NettoyagePC.Nouveau
             }
             string detail = dateVerif.HasValue ? Langue.T("Dernière vérification :") + " " + dateVerif.Value.ToString("dd/MM/yyyy HH:mm") + "   ·   " : "";
             detail += Langue.F("Source officielle : {0}", "github.com/" + MisesAJour.Depot);
-            if (etat == "disponible") detail += "\n" + Langue.T("Dans cet aperçu, la mise à jour s'installe depuis la version 4 de Nettoyage PC (bandeau « Installer maintenant » en haut de sa fenêtre).");
+            if (etat == "disponible" && Installation5.Apercu) detail += "\n" + Langue.T("Dans cet aperçu, la mise à jour s'installe depuis la version 4 de Nettoyage PC (bandeau « Installer maintenant » en haut de sa fenêtre).");
+            bInstaller.IsVisible = etat == "disponible" && !Installation5.Apercu;
+            bInstaller.IsEnabled = !installation;
             tDetail.Text = detail;
 
             notes.Children.Clear();
