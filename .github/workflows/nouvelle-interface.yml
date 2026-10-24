@@ -94,6 +94,43 @@ jobs:
           name: NettoyagePC-5-apercu
           path: publie/NettoyagePC.exe
 
+      # Programme chiffré pour un essai sur le PC de l'éditeur : seul l'environnement de travail de Claude a la clé privée.
+      # Le fichier poussé sur la branche « essai-v5-chiffre » est illisible sans elle : rien n'est publié en clair.
+      - name: Programme chiffré (essai sur le PC de l'éditeur)
+        if: steps.publication.outcome == 'success'
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -e
+          mkdir -p chiffre
+          cat > publique.pem <<'FIN'
+          -----BEGIN PUBLIC KEY-----
+          MIIBojANBgkqhkiG9w0BAQEFAAOCAY8AMIIBigKCAYEAwHjKQZ2wMTSSEbzg/Owb
+          hES3M/+yeYNsCdJe5n/0je7399XNDieFwOvSZMURhadhspp2G9YtYgFYx5wLfdnj
+          oGynmIVM7qCdCyM7pEOjKM7Xh7fHnqlWDmwxQG5P9iPKc6t8ZEtqQll9onEazDVB
+          vImOIQ4dTpZaX4IaQy1bXxz54tRmNgGQrqSjuPmTWfShvu9NHQJSON9aXWHof1Wy
+          T5gEBEMRoYbD85hDwaO0iLsn9btObQvDo/lvdv8PFKrL09MQM3mFBc5XU/rdUAFz
+          ysW1dOSw6rFD5x0blX2EAKuzr9aQi6TjbFFXKWYitSkIngYFfJny/KttLhCBnUrX
+          GokFf1A/vboI6WxO2a50FO3hu/Qpghuy+lWfuFa38Bgcb4GKsU45qstv+BYlOI4h
+          9JwtIsNSMBPHdsq9fHxoRhYyte1gtNu7kmNEc5TK1J44HA3AH6KbCnkWDSwMTU1n
+          Tz5FQcSLdqN51cn2KaIl1A2lvWBZvJSkV7w6OX6rsSPVAgMBAAE=
+          -----END PUBLIC KEY-----
+          FIN
+          openssl rand -hex 32 > cle.txt
+          openssl enc -aes-256-cbc -pbkdf2 -salt -in publie/NettoyagePC.exe -out chiffre/NettoyagePC.exe.chiffre -pass file:cle.txt
+          openssl pkeyutl -encrypt -pubin -inkey publique.pem -pkeyopt rsa_padding_mode:oaep -in cle.txt -out chiffre/cle.chiffree
+          rm -f cle.txt
+          sha256sum publie/NettoyagePC.exe | cut -d' ' -f1 > chiffre/empreinte.txt
+          echo "$GITHUB_SHA" > chiffre/commit.txt
+          cd chiffre
+          git init -q
+          git checkout -q -b essai-v5-chiffre
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -q -m "Programme chiffré de $GITHUB_SHA"
+          git push -q -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/$GITHUB_REPOSITORY.git" essai-v5-chiffre
+
       # Essais sur un vrai Windows, en lecture seule : le moteur de la version 4, compilé pour .NET 10, tourne-t-il ?
       # (état du PC en JSON, analyse complète en simulation, vrai bilan de l'accueil et captures avec ces données)
       - name: Essais sous Windows (lecture seule)
