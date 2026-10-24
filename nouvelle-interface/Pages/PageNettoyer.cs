@@ -90,7 +90,7 @@ namespace NettoyagePC.Nouveau
             parcourir.Clic += Parcourir;
             ligne.Children.Add(parcourir);
             ligne.Children.Add(Etiquette("Taille min. :"));
-            foreach (var s in new[] { "50 Mo", "100 Mo", "500 Mo", "1 Go" }) seuil.Items.Add(s);
+            foreach (var s in new[] { "50 Mo", "100 Mo", "500 Mo", "1 Go" }) seuil.Items.Add(Langue.T(s));
             seuil.SelectedIndex = 1;
             seuil.Margin = new Thickness(0, 0, 18, 6);
             ligne.Children.Add(seuil);
@@ -177,7 +177,7 @@ namespace NettoyagePC.Nouveau
                 Remplir();
                 long total = res.Sum(x => { try { return x.Length; } catch { return 0L; } });
                 info.Text = res.Count == 0 ? "Aucun fichier de cette taille dans ce dossier."
-                    : res.Count + " gros fichier(s) trouvé(s), " + Format.Taille(total) + " au total. Sélectionne-en pour les ouvrir ou les mettre à la corbeille (récupérables).";
+                    : Langue.F("{0} gros fichier(s) trouvé(s), {1} au total. Sélectionne-en pour les ouvrir ou les mettre à la corbeille (récupérables).", res.Count, Format.Taille(total));
             }));
         }
 
@@ -208,7 +208,7 @@ namespace NettoyagePC.Nouveau
             var choisis = Selection();
             if (choisis.Count == 0) return;
             long total = 0; foreach (var fi in choisis) { try { total += fi.Length; } catch { } }
-            F.Demander("Mettre " + choisis.Count + " fichier(s) à la corbeille (" + Format.Taille(total) + ") ?",
+            F.Demander(Langue.F("Mettre {0} fichier(s) à la corbeille ({1}) ?", choisis.Count, Format.Taille(total)),
                 "Tu pourras les récupérer depuis la corbeille tant qu'elle n'est pas vidée, ou depuis l'Historique de Nettoyage PC.", "Mettre à la corbeille", "Annuler", oui =>
             {
                 if (!oui) return;
@@ -222,7 +222,7 @@ namespace NettoyagePC.Nouveau
                 }
                 if (faits.Count > 0) Historique.Ajouter("corbeille", "Gros fichiers : " + faits.Count + " fichier(s) mis à la corbeille", new Dictionary<string, object> { { "Fichiers", faits.ToArray() } });
                 Remplir();
-                info.Text = ok + " fichier(s) mis à la corbeille (restaurables depuis l'Historique)." + (refus > 0 ? " " + refus + " ignoré(s) (fichiers système protégés, en cours d'utilisation, ou hors d'un disque local)." : "");
+                info.Text = Langue.F("{0} fichier(s) mis à la corbeille (restaurables depuis l'Historique).", ok) + (refus > 0 ? " " + Langue.F("{0} ignoré(s) (fichiers système protégés, en cours d'utilisation, ou hors d'un disque local).", refus) : "");
             }, true);
         }
     }

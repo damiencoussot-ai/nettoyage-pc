@@ -163,7 +163,7 @@ namespace NettoyagePC.Nouveau
             tuiles[3].Margin = new Thickness(0);
             Children.Add(g);
             Children.Add(graph);
-            tableau = new Tableau(false, false, new Colonne("Quoi", "2.6*"), new Colonne("Type", "1.3*"), new Colonne("Fois", "60", true, true, o => ((LigneAnalyse)o).Nombre), new Colonne("Dernière fois", "130", false, true));
+            tableau = new Tableau(false, false, new Colonne("Quoi", "2.6*"), new Colonne("Type", "1.3*"), new Colonne("Fois", "60", true, true, o => ((LigneAnalyse)o).Nombre), new Colonne("Dernière fois", "150", false, true));
             tableau.HauteurListe = 220;
             tableau.SelectionChangee += () => { var l = tableau.Selection as LigneAnalyse; if (l != null) tDetail.Text = l.Detail; };
             Children.Add(new Border { Child = tableau, BorderBrush = Habillage.Pinceau(P.Bordure), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(3), ClipToBounds = true });

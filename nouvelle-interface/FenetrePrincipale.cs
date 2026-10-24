@@ -67,7 +67,7 @@ namespace NettoyagePC.Nouveau
         public void Statut(string texte, bool alerte = false)
         {
             if (statut == null) return;
-            statut.Text = texte;
+            statut.Text = Langue.T(texte);
             statut.Foreground = Habillage.Pinceau(alerte ? Habillage.P.Orange : Habillage.P.Discret);
         }
 
@@ -135,7 +135,7 @@ namespace NettoyagePC.Nouveau
             {
                 var oo = o;
                 var r = Rubriques.FirstOrDefault(x => x.Cle == o[0]);
-                l.Add(new EntreeCommande { Titre = o[2], Detail = r != null ? r.Nom : "", Type = "Rubrique", Faire = () => { SousPage(oo[0], oo[1]); Afficher(oo[0], true); } });
+                l.Add(new EntreeCommande { Titre = Langue.T(o[2]), Detail = r != null ? r.Nom : "", Type = "Rubrique", Faire = () => { SousPage(oo[0], oo[1]); Afficher(oo[0], true); } });
             }
             // comme la version 4 : les actions qui ont besoin d'options (destination, mises à jour choisies...) ou de leur
             // propre fenêtre ne se lancent pas directement d'ici
@@ -317,7 +317,7 @@ namespace NettoyagePC.Nouveau
             if (type == "uri" && cle != "") { try { Programmes.Ouvrir(cle); return; } catch { } }
             // outils Premium (sans Premium : la fenêtre d'achat)
             if (type == "outil" && OuvrirOutil(cle)) return;
-            Statut("« " + libelle + " » arrive dans la prochaine étape de la nouvelle interface ; la version 4 le fait déjà.", true);
+            Statut(Langue.F("« {0} » arrive dans la prochaine étape de la nouvelle interface ; la version 4 le fait déjà.", Langue.T(libelle)), true);
         }
 
         public FenetrePrincipale(ISourceBilan source)
@@ -342,15 +342,15 @@ namespace NettoyagePC.Nouveau
 
         private void DefinirRubriques()
         {
-            Rubriques.Add(new Rubrique { Cle = "Accueil", Nom = "Accueil", Sous = "L'état de ton PC en un coup d'œil.", Page = () => new PageAccueil(this) });
-            Rubriques.Add(new Rubrique { Cle = "Nettoyer", Nom = "Nettoyer", Sous = "Libère de l'espace sans toucher à tes documents.", Page = () => PageNettoyer.Creer(this) });
-            Rubriques.Add(new Rubrique { Cle = "Accelerer", Nom = "Accélérer", Sous = "Démarrage, jeux, pilotes et applications.", Page = () => PageAccelerer.Creer(this) });
-            Rubriques.Add(new Rubrique { Cle = "Proteger", Nom = "Protéger", Sous = "Antivirus, bouclier anti-arnaque, sauvegarde et confidentialité.", Page = () => PageProteger.Creer(this) });
-            Rubriques.Add(new Rubrique { Cle = "Outils", Nom = "Outils", Sous = "Matériel, plein potentiel, réseau et aide à distance.", Page = () => PageOutils.Creer(this) });
-            Rubriques.Add(new Rubrique { Cle = "Premium", Nom = "Premium", Sous = "Les outils des pros, débloqués d'un coup.", Page = () => new PagePremium5(this) });
-            Rubriques.Add(new Rubrique { Cle = "MisesAJour", Nom = "Mises à jour", Sous = "Version installée et nouveautés.", EnBas = true, Page = () => RubriqueMisesAJour.Creer(this) });
-            Rubriques.Add(new Rubrique { Cle = "Historique", Nom = "Historique", Sous = "Tout ce que Nettoyage PC a fait, et l'annulation.", EnBas = true, Page = () => new PageHistorique5(this) });
-            Rubriques.Add(new Rubrique { Cle = "Reglages", Nom = "Réglages", Sous = "Apparence, langue, profil et informations.", EnBas = true, Page = () => PageReglages5.Creer(this) });
+            Rubriques.Add(new Rubrique { Cle = "Accueil", Nom = Langue.T("Accueil"), Sous = Langue.T("L'état de ton PC en un coup d'œil."), Page = () => new PageAccueil(this) });
+            Rubriques.Add(new Rubrique { Cle = "Nettoyer", Nom = Langue.T("Nettoyer"), Sous = Langue.T("Libère de l'espace sans toucher à tes documents."), Page = () => PageNettoyer.Creer(this) });
+            Rubriques.Add(new Rubrique { Cle = "Accelerer", Nom = Langue.T("Accélérer"), Sous = Langue.T("Démarrage, jeux, pilotes et applications."), Page = () => PageAccelerer.Creer(this) });
+            Rubriques.Add(new Rubrique { Cle = "Proteger", Nom = Langue.T("Protéger"), Sous = Langue.T("Antivirus, bouclier anti-arnaque, sauvegarde et confidentialité."), Page = () => PageProteger.Creer(this) });
+            Rubriques.Add(new Rubrique { Cle = "Outils", Nom = Langue.T("Outils"), Sous = Langue.T("Matériel, plein potentiel, réseau et aide à distance."), Page = () => PageOutils.Creer(this) });
+            Rubriques.Add(new Rubrique { Cle = "Premium", Nom = Langue.T("Premium"), Sous = Langue.T("Les outils des pros, débloqués d'un coup."), Page = () => new PagePremium5(this) });
+            Rubriques.Add(new Rubrique { Cle = "MisesAJour", Nom = Langue.T("Mises à jour"), Sous = Langue.T("Version installée et nouveautés."), EnBas = true, Page = () => RubriqueMisesAJour.Creer(this) });
+            Rubriques.Add(new Rubrique { Cle = "Historique", Nom = Langue.T("Historique"), Sous = Langue.T("Tout ce que Nettoyage PC a fait, et l'annulation."), EnBas = true, Page = () => new PageHistorique5(this) });
+            Rubriques.Add(new Rubrique { Cle = "Reglages", Nom = Langue.T("Réglages"), Sous = Langue.T("Apparence, langue, profil et informations."), EnBas = true, Page = () => PageReglages5.Creer(this) });
         }
 
         // ------------------------------------------------------------ construction (refaite à chaque changement de thème)

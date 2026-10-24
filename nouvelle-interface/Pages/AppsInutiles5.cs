@@ -86,7 +86,7 @@ namespace NettoyagePC.Nouveau
                     foreach (var c in choix)
                     {
                         string nom = Nom(c);
-                        Dispatcher.UIThread.Post(() => { info.Text = Langue.T("Désinstallation de") + " « " + nom + " »…"; info.Foreground = Habillage.Pinceau(Habillage.P.Accent); });
+                        Dispatcher.UIThread.Post(() => { info.Text = Langue.F("Désinstallation de « {0} »…", nom); info.Foreground = Habillage.Pinceau(Habillage.P.Accent); });
                         string r; try { r = AppsInutiles.Retirer(c.Item1, nom); } catch (Exception ex) { r = ex.Message; }
                         if (r == "") ok++; else echecs.Add(nom + " : " + r);
                     }

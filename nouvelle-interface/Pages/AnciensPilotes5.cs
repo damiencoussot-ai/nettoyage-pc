@@ -98,7 +98,7 @@ namespace NettoyagePC.Nouveau
             if (c.Count == 0) return;
             var args = new List<string>();
             foreach (var p in c) { args.Add("--pilote"); args.Add(p.Inf); }
-            string conf = "Retirer " + c.Count + " ancienne(s) version(s) de pilotes (" + Format.Taille(c.Sum(p => p.Taille)) + ") ?\n\nLa version la plus récente de chaque pilote est gardée, et Windows refuse de retirer un pilote encore utilisé. Un point de restauration n'est pas nécessaire : ces versions ne servent plus.";
+            string conf = Langue.F("Retirer {0} ancienne(s) version(s) de pilotes ({1}) ?", c.Count, Format.Taille(c.Sum(p => p.Taille))) + "\n\nLa version la plus récente de chaque pilote est gardée, et Windows refuse de retirer un pilote encore utilisé. Un point de restauration n'est pas nécessaire : ces versions ne servent plus.";
             fenetre.Fermer();
             F.LancerAction("pilotes", args, conf);
         }

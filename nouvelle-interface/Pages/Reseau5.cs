@@ -157,12 +157,12 @@ namespace NettoyagePC.Nouveau
         private void AfficherPing(ResultatPing box, ResultatPing net, CarteReseau c)
         {
             var P = Habillage.P;
-            if (box.Moyenne >= 0) tBox.Definir(box.Moyenne.ToString("0") + " ms", box.Perte > 0 ? box.Perte + " % de pertes" : box.Moyenne <= (c.Wifi ? 8 : 3) ? "Parfait" : "Un peu lent", box.Perte > 0 || box.Moyenne > (c.Wifi ? 8 : 3) ? P.Orange : P.Vert);
+            if (box.Moyenne >= 0) tBox.Definir(box.Moyenne.ToString("0") + " ms", box.Perte > 0 ? Langue.F("{0} % de pertes", box.Perte) : box.Moyenne <= (c.Wifi ? 8 : 3) ? "Parfait" : "Un peu lent", box.Perte > 0 || box.Moyenne > (c.Wifi ? 8 : 3) ? P.Orange : P.Vert);
             else tBox.Definir("—", "La box ne répond pas au ping");
             if (net.Moyenne >= 0)
             {
                 string q = net.Moyenne < 25 ? "Excellent pour jouer" : net.Moyenne < 50 ? "Bon" : net.Moyenne < 100 ? "Moyen" : "Élevé";
-                tPing.Definir(net.Moyenne.ToString("0") + " ms", Langue.T(q) + (net.Perte > 0 ? " · " + net.Perte + " % perdus" : ""), net.Moyenne < 50 && net.Perte == 0 ? P.Vert : P.Orange);
+                tPing.Definir(net.Moyenne.ToString("0") + " ms", Langue.T(q) + (net.Perte > 0 ? " · " + Langue.F("{0} % perdus", net.Perte) : ""), net.Moyenne < 50 && net.Perte == 0 ? P.Vert : P.Orange);
                 tGigue.Definir(net.Gigue.ToString("0") + " ms", net.Gigue < 5 ? "Très stable" : net.Gigue < 15 ? "Stable" : "Instable", net.Gigue < 15 ? P.Vert : P.Orange);
             }
             else { tPing.Definir("—", "Internet ne répond pas", P.Rouge); tGigue.Definir("—"); }
@@ -238,7 +238,8 @@ namespace NettoyagePC.Nouveau
             string texte;
             if (meilleur == null) texte = Langue.T("Aucun serveur n'a répondu : la connexion bloque peut-être les serveurs DNS publics.");
             else if (actuel != null && actuel.Temps >= 0 && (meilleur == actuel || actuel.Temps - meilleur.Temps < 5)) texte = Langue.T("✔ Ton serveur DNS actuel est déjà parmi les plus rapides : inutile de changer.");
-            else texte = meilleur.Nom + " " + Langue.T("est le plus rapide") + " (" + meilleur.Temps.ToString("0") + " ms" + (actuel != null && actuel.Temps >= 0 ? " " + Langue.T("contre") + " " + actuel.Temps.ToString("0") + " ms " + Langue.T("aujourd'hui") : "") + "). " + Langue.T("Sélectionne-le puis « Utiliser le serveur choisi ».");
+            else texte = (actuel != null && actuel.Temps >= 0 ? Langue.F("{0} est le plus rapide ({1} ms contre {2} ms aujourd'hui).", meilleur.Nom, meilleur.Temps.ToString("0"), actuel.Temps.ToString("0"))
+                : Langue.F("{0} est le plus rapide ({1} ms).", meilleur.Nom, meilleur.Temps.ToString("0"))) + " " + Langue.T("Sélectionne-le puis « Utiliser le serveur choisi ».");
             tDns.Text = texte; tDns.Foreground = Habillage.Pinceau(texte.StartsWith("✔") ? P.Vert : P.Discret);
             if (meilleur != null && meilleur.Ip1 != "") tableau.Selectionner(meilleur);
         }

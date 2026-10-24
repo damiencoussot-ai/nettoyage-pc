@@ -18,6 +18,9 @@ namespace NettoyagePC.Nouveau
         public Dialogue(string titre, string texte, string oui, string non, Action<bool> repondre, bool alerte = false)
         {
             this.repondre = repondre;
+            // textes traduits ici (les appelants passent le français, parfois déjà traduit : sans effet)
+            titre = Langue.T(titre); texte = string.IsNullOrEmpty(texte) ? texte : Langue.T(texte);
+            oui = Langue.T(oui); non = string.IsNullOrEmpty(non) ? non : Langue.T(non);
             var P = Habillage.P;
             Focusable = true;
             Background = Habillage.Pinceau(P.Sombre ? Color.FromRgb(0, 0, 0) : Color.FromRgb(10, 20, 30), P.Sombre ? 150 : 90);

@@ -60,7 +60,7 @@ namespace NettoyagePC.Nouveau
             cbCourbe.SelectionChanged += (s, e) => AfficherCourbe();
             zone.Children.Add(cbCourbe);
             Children.Add(zone);
-            tableau = new Tableau(false, false, new Colonne("Date", "100", false, true, o => ((Changement)o).Date), new Colonne("Ce qui a changé", "2.6*"), new Colonne("Type", "130"), new Colonne("Pourquoi c'est suspect", "2.4*"));
+            tableau = new Tableau(false, false, new Colonne("Date", "105", false, true, o => ((Changement)o).Date), new Colonne("Ce qui a changé", "2.6*"), new Colonne("Type", "130"), new Colonne("Pourquoi c'est suspect", "2.4*"));
             tableau.HauteurListe = 240;
             tableau.SelectionChangee += () => { var c = tableau.Selection as Changement; bCorriger.IsEnabled = c != null && c.Cible != ""; };
             tableau.DoubleClic += o => Corriger();
@@ -129,7 +129,7 @@ namespace NettoyagePC.Nouveau
             tableau.Remplir(l.Cast<object>(), o =>
             {
                 var c = (Changement)o;
-                return new[] { (c.Suspicion >= 2 ? "⚠ " : "") + c.Date.ToString("dd/MM/yyyy"), c.Titre, Langue.T(c.Type), c.Pourquoi };
+                return new[] { c.Date.ToString("dd/MM/yyyy"), (c.Suspicion >= 2 ? "⚠  " : "") + c.Titre, Langue.T(c.Type), c.Pourquoi };
             }, null, o => ((Changement)o).Suspicion == 0);
             int niveau; string detail;
             tVerdict.Text = Enqueteur.Verdict(res, depuis, Periode, out niveau, out detail);

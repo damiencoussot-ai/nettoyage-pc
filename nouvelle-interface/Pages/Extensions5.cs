@@ -71,7 +71,7 @@ namespace NettoyagePC.Nouveau
             if (x == null) { F.Statut("Sélectionne d'abord une extension dans la liste."); return; }
             var pages = new Dictionary<string, string[]> { { "Chrome", new[] { "chrome.exe", "chrome://extensions" } }, { "Edge", new[] { "msedge.exe", "edge://extensions" } }, { "Brave", new[] { "brave.exe", "brave://extensions" } }, { "Vivaldi", new[] { "vivaldi.exe", "vivaldi://extensions" } }, { "Firefox", new[] { "firefox.exe", "about:addons" } } };
             string[] p; if (!pages.TryGetValue(x.Navigateur, out p)) return;
-            try { Programmes.Ouvrir(p[0], p[1]); } catch { F.Demander("Ouvre " + x.Navigateur, Langue.T("puis va dans") + " " + p[1], "Compris", null, r => { }); }
+            try { Programmes.Ouvrir(p[0], p[1]); } catch { F.Demander(Langue.F("Ouvre {0}", x.Navigateur), Langue.F("puis va dans {0}", p[1]), "Compris", null, r => { }); }
         }
     }
 }

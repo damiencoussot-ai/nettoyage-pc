@@ -39,7 +39,7 @@ namespace NettoyagePC.Nouveau
             Grid.SetColumn(tTitre, 1); ligne1.Children.Add(tTitre);
             var boutons = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
             bDetail = new BoutonNoyau(detailOuvert ? "Masquer le détail" : "Voir le détail", false, 150, 30) { TaillePolice = 12.5 };
-            bDetail.Clic += () => { detailOuvert = !detailOuvert; bDetail.Texte = detailOuvert ? "Masquer le détail" : "Voir le détail"; bDetail.InvalidateVisual(); Rafraichir(); };
+            bDetail.Clic += () => { detailOuvert = !detailOuvert; bDetail.Changer(detailOuvert ? "Masquer le détail" : "Voir le détail"); Rafraichir(); };
             bArreter = new BoutonNoyau("Arrêter", false, 100, 30) { TaillePolice = 12.5 };
             bArreter.Clic += Arreter;
             bFermer = new BoutonNoyau("Fermer", true, 100, 30) { TaillePolice = 12.5 };

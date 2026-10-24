@@ -88,10 +88,10 @@ namespace NettoyagePC.Nouveau
         {
             int p = 0, a = 0;
             foreach (var x in b.Points) { if (x.Etat == EtatPoint.Probleme) p++; else if (x.Etat == EtatPoint.Attention) a++; }
-            const string fin = " Clique sur « Optimiser en 1 clic » pour tout faire d'un coup, ou choisis ci-dessous.";
-            if (p == 0 && a == 0) return "Rien à corriger pour l'instant. L'entretien automatique s'occupe du reste.";
-            if (p > 0) return (p == 1 ? "1 point à régler en priorité." : p + " points à régler en priorité.") + fin;
-            return (a == 1 ? "1 amélioration possible." : a + " améliorations possibles.") + fin;
+            string fin = " " + Langue.T("Clique sur « Optimiser en 1 clic » pour tout faire d'un coup, ou choisis ci-dessous.");
+            if (p == 0 && a == 0) return Langue.T("Rien à corriger pour l'instant. L'entretien automatique s'occupe du reste.");
+            if (p > 0) return (p == 1 ? Langue.T("1 point à régler en priorité.") : Langue.F("{0} points à régler en priorité.", p)) + fin;
+            return (a == 1 ? Langue.T("1 amélioration possible.") : Langue.F("{0} améliorations possibles.", a)) + fin;
         }
 
         public static string Niveau(int score) { return score >= 85 ? "en pleine forme" : score >= 55 ? "à améliorer" : "à soigner"; }

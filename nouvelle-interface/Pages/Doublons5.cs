@@ -56,7 +56,7 @@ namespace NettoyagePC.Nouveau
             };
             ligne.Children.Add(ou);
             ligne.Children.Add(Etiquette("Taille min. :"));
-            foreach (var t in new[] { "100 Ko", "1 Mo", "10 Mo", "100 Mo" }) seuil.Items.Add(t);
+            foreach (var t in new[] { "100 Ko", "1 Mo", "10 Mo", "100 Mo" }) seuil.Items.Add(Langue.T(t));
             seuil.SelectedIndex = 1; seuil.Margin = new Thickness(0, 0, 16, 6);
             ligne.Children.Add(seuil);
             bChercher = new BoutonNoyau("Rechercher les doublons", true, 210, 34) { TaillePolice = 13.5, Margin = new Thickness(0, 0, 0, 6) };
@@ -124,12 +124,12 @@ namespace NettoyagePC.Nouveau
             long s = new[] { 100L * 1024, 1048576L, 10L * 1048576, 100L * 1048576 }[Math.Max(0, seuil.SelectedIndex)];
             enCours = true; etat.Arret = false; etat.Fichiers = etat.Fait = etat.Total = 0; etat.Phase = "liste";
             groupes = new List<GroupeDoublons>(); AfficherGroupes();
-            bChercher.Texte = "Arrêter la recherche"; bChercher.InvalidateVisual(); bSuppr.IsEnabled = false;
+            bChercher.Changer("Arrêter la recherche"); bSuppr.IsEnabled = false;
             minuteur.Start();
             Task.Run(() => { try { return RechercheDoublons.Chercher(racines, s, etat); } catch { return null; } }).ContinueWith(t => Dispatcher.UIThread.Post(() =>
             {
                 enCours = false; minuteur.Stop();
-                bChercher.Texte = "Rechercher les doublons"; bChercher.IsEnabled = true; bChercher.InvalidateVisual();
+                bChercher.Changer("Rechercher les doublons"); bChercher.IsEnabled = true;
                 var res = t.Result;
                 if (res == null || etat.Arret) { Info(Langue.T("Recherche arrêtée.")); return; }
                 groupes = res;
@@ -212,7 +212,7 @@ namespace NettoyagePC.Nouveau
             }
             else { f.Supprimer = false; f.Raison = "Gardée (choisie par toi)"; }
             int n = g.Fichiers.Count(x => x.Supprimer);
-            g.Proposition = "Garder " + (g.Fichiers.Count - n) + ", mettre " + n + " copie(s) à la corbeille";
+            g.Proposition = Langue.F("Garder {0}, mettre {1} copie(s) à la corbeille", g.Fichiers.Count - n, n);
             if (n == 0) { g.Actif = false; g.Proposition = "Tout garder"; }
             Dispatcher.UIThread.Post(() => { tGroupes.Rafraichir(); Resume(); });
             return true;

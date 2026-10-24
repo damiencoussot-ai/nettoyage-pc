@@ -28,6 +28,7 @@ namespace NettoyagePC.Nouveau
         private readonly TextBox saisie = new TextBox { Watermark = "Ta question…", AcceptsReturn = false };
         private readonly BoutonNoyau bEnvoyer, bEffacer;
         private readonly Border guide, zoneConversation;
+        private readonly Grid bas;
         private readonly List<MessageAssistant> messages = new List<MessageAssistant>();
         private readonly StringBuilder enCours = new StringBuilder();
         private readonly DispatcherTimer rafraichir = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(90) };
@@ -104,7 +105,7 @@ namespace NettoyagePC.Nouveau
                 suggestions.Children.Add(b);
             }
             Children.Add(suggestions);
-            var bas = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto,Auto") };
+            bas = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto,Auto") };
             saisie.Watermark = Langue.T("Ta question…");
             saisie.KeyDown += (s, e) => { if (e.Key == Key.Enter) { e.Handled = true; Envoyer(); } };
             bas.Children.Add(saisie);
@@ -144,7 +145,7 @@ namespace NettoyagePC.Nouveau
         {
             pret = p;
             guide.IsVisible = !p;
-            zoneConversation.IsVisible = suggestions.IsVisible = propositions.IsVisible = p;
+            zoneConversation.IsVisible = suggestions.IsVisible = propositions.IsVisible = bas.IsVisible = p;
             saisie.IsEnabled = p; bEnvoyer.IsEnabled = p; bEffacer.IsEnabled = p;
             cbModele.IsVisible = p;
         }

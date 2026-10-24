@@ -39,7 +39,7 @@ namespace NettoyagePC.Nouveau
                     : CarteAction.A("Mode jeu", "Avant de jouer : performances maximales et mémoire vive libérée. Un clic pour revenir comme avant après ta partie.", "Activer le mode jeu", "modejeu", true),
                 CarteAction.A("Bilan d'optimisation", "Durée du démarrage, programmes au démarrage, mode d'alimentation, mises à jour disponibles : des conseils concrets, sans rien modifier.", "Lancer le bilan", "optim", true),
                 CarteAction.A("Mettre à jour les applications", "Met à jour tes logiciels avec winget, l'outil officiel de Microsoft. Corrige aussi des failles de sécurité.", "Mettre à jour", "majapps"),
-                CarteAction.A("Mode d'alimentation", (alim != "" ? "Mode actuel : " + alim + ". " : "") + (perf ? "Équilibré consomme moins (conseillé sur portable)." : "Performances élevées rend le PC plus réactif."),
+                CarteAction.A("Mode d'alimentation", (alim != "" ? Langue.F("Mode actuel : {0}.", Langue.T(alim)) + " " : "") + (perf ? "Équilibré consomme moins (conseillé sur portable)." : "Performances élevées rend le PC plus réactif."),
                     perf ? "Revenir en Équilibré" : "Passer en Performances", perf ? "equilibre" : "perf"),
                 CarteAction.A("Libérer la RAM", "Libère la mémoire vive inutilisée, idéal juste avant un jeu ou une application gourmande. Effet temporaire.", "Libérer", "ramlib").Plus(),
                 CarteAction.A("Infos mémoire vive", "Tes barrettes (capacité, type, vitesse), applications les plus gourmandes et erreurs matérielles.", "Afficher", "raminfo").Plus(),
@@ -115,7 +115,7 @@ namespace NettoyagePC.Nouveau
                 tableau.Remplir(l.Cast<object>(), o => { var el = (ElementDemarrage)o; return new[] { el.Nom, el.Actif ? "Activé" : "Désactivé", el.Lieu, el.Commande }; },
                     o => ((ElementDemarrage)o).Actif, o => !((ElementDemarrage)o).Actif);
                 int actifs = l.Count(x => x.Actif);
-                info.Text = l.Count == 0 ? "Aucun programme au démarrage." : actifs + " programme(s) se lancent avec Windows, " + (l.Count - actifs) + " désactivé(s).";
+                info.Text = l.Count == 0 ? "Aucun programme au démarrage." : Langue.F("{0} programme(s) se lancent avec Windows, {1} désactivé(s).", actifs, l.Count - actifs);
             }));
         }
 
@@ -128,19 +128,19 @@ namespace NettoyagePC.Nouveau
                 el.Actif = actif;
                 if (actif)
                 {
-                    F.Statut("« " + el.Nom + " » se lancera de nouveau au démarrage.");
+                    F.Statut(Langue.F("« {0} » se lancera de nouveau au démarrage.", el.Nom));
                     Historique.MarquerAnnulees(m => m.Type == "demarrage" && Registre.Normaliser(m.D("Appro")).Equals(el.Appro, StringComparison.OrdinalIgnoreCase) && m.D("NomAppro") == el.NomAppro);
                 }
                 else
                 {
-                    F.Statut("« " + el.Nom + " » ne se lancera plus au démarrage (recoche-le pour annuler).");
+                    F.Statut(Langue.F("« {0} » ne se lancera plus au démarrage (recoche-le pour annuler).", el.Nom));
                     Historique.Ajouter("demarrage", "Programme au démarrage désactivé : " + el.Nom, new Dictionary<string, object> { { "Appro", el.Appro }, { "NomAppro", el.NomAppro }, { "Nom", el.Nom } });
                 }
                 return true;
             }
             catch (Exception ex)
             {
-                F.Statut("Impossible de modifier « " + el.Nom + " » : " + ex.Message, true);
+                F.Statut(Langue.F("Impossible de modifier « {0} » :", el.Nom) + " " + ex.Message, true);
                 return false;
             }
         }
@@ -232,7 +232,7 @@ namespace NettoyagePC.Nouveau
         {
             var a = tableau.Selection as ProgrammeInstalle;
             if (a == null) { F.Statut("Sélectionne d'abord une application dans la liste."); return; }
-            F.Demander("Désinstaller « " + a.Nom + " » ?",
+            F.Demander(Langue.F("Désinstaller « {0} » ?", a.Nom),
                 "Le programme de désinstallation de l'application va s'ouvrir : suis ses étapes. Si tu as un doute sur ce programme, réponds « Annuler » et renseigne-toi d'abord.",
                 "Désinstaller", "Annuler", oui =>
                 {
@@ -241,7 +241,7 @@ namespace NettoyagePC.Nouveau
                     if (Regex.IsMatch(cmd, "msiexec", RegexOptions.IgnoreCase)) cmd = Regex.Replace(cmd, @"/I\s*\{", "/X{", RegexOptions.IgnoreCase);
                     // les désinstallateurs demandent eux-mêmes l'autorisation de Windows s'ils en ont besoin
                     Programmes.LancerCommande(cmd);
-                    F.Statut("Désinstallation de « " + a.Nom + " » lancée. Clique sur « Actualiser » quand elle est terminée.");
+                    F.Statut(Langue.F("Désinstallation de « {0} » lancée. Clique sur « Actualiser » quand elle est terminée.", a.Nom));
                 }, true);
         }
     }

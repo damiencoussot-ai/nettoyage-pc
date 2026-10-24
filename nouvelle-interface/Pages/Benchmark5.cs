@@ -30,7 +30,7 @@ namespace NettoyagePC.Nouveau
 
         public static void Ouvrir(FenetrePrincipale f)
         {
-            f.Ouvrir("Mesure des performances", new Benchmark5(f), 980);
+            f.Ouvrir("Mesure des performances", new Benchmark5(f), 1060);
         }
 
         private Benchmark5(FenetrePrincipale f)
@@ -65,8 +65,8 @@ namespace NettoyagePC.Nouveau
             tEtape = new TextBlock { Text = Langue.T("Ferme les jeux et les gros programmes pendant la mesure, pour un résultat juste."), FontFamily = Habillage.Corps, FontSize = 12.5, Foreground = Habillage.Pinceau(P.Discret), TextWrapping = TextWrapping.Wrap };
             Children.Add(tEtape);
             Children.Add(barre);
-            tableau = new Tableau(false, false, new Colonne("Date", "130", false, true), new Colonne("Note", "1.4*"), new Colonne("Processeur 1 cœur", "120", true, true), new Colonne("Tous les cœurs", "110", true, true),
-                new Colonne("Mémoire", "90", true, true), new Colonne("Disque lecture", "105", true, true), new Colonne("Disque écriture", "110", true, true), new Colonne("Accès 4 Ko", "90", true, true));
+            tableau = new Tableau(false, false, new Colonne("Date", "145", false, true), new Colonne("Note", "1.4*"), new Colonne("Processeur 1 cœur", "118", true, true), new Colonne("Tous les cœurs", "108", true, true),
+                new Colonne("Mémoire", "90", true, true), new Colonne("Disque lecture", "102", true, true), new Colonne("Disque écriture", "108", true, true), new Colonne("Accès 4 Ko", "86", true, true));
             tableau.HauteurListe = 260;
             Children.Add(new Border { Child = tableau, BorderBrush = Habillage.Pinceau(P.Bordure), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(3), ClipToBounds = true });
             tComparaison = new TextBlock { FontFamily = Habillage.Corps, FontSize = 13, LineHeight = 20, Foreground = Habillage.Pinceau(P.Texte), TextWrapping = TextWrapping.Wrap };

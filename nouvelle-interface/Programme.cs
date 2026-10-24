@@ -554,6 +554,33 @@ namespace NettoyagePC.Nouveau
                 if (image != null) { image.Save(Path.Combine(dossier, "petit-Accueil.png")); rapport.AppendLine("OK : petit-Accueil.png"); }
             }
             catch (Exception ex) { erreurs++; rapport.AppendLine("ERREUR : petite fenêtre : " + ex); }
+
+            // anglais et espagnol : une nouvelle fenêtre dans chaque langue (les textes sont posés à la construction)
+            foreach (var code in new[] { "en", "es" })
+            {
+                try
+                {
+                    Langue.Choisir(code);
+                    var g = new FenetrePrincipale(source) { Pseudo = "Damien" };
+                    g.Show();
+                    g.ChangerTheme(true);
+                    foreach (var cle in new[] { "Accueil", "Nettoyer", "Proteger", "Premium" })
+                    {
+                        g.Afficher(cle, false);
+                        Capturer(g, dossier, code + "-" + cle + ".png", rapport, ref erreurs);
+                    }
+                    Reseau5.Exemple = true;
+                    g.SousPage("Outils", "Reseau"); g.Afficher("Outils", false);
+                    Capturer(g, dossier, code + "-Outils-Reseau.png", rapport, ref erreurs);
+                    Reseau5.Exemple = false;
+                    g.Demander("Lancer l'optimisation complète ?", "Un point de restauration est créé d'abord.\n\nCela peut durer longtemps : évite d'éteindre le PC et enregistre ton travail.", "Oui, lancer", "Annuler", r => { });
+                    Capturer(g, dossier, code + "-question.png", rapport, ref erreurs);
+                    g.ViderCalques();
+                    g.Close();
+                }
+                catch (Exception ex) { Reseau5.Exemple = false; erreurs++; rapport.AppendLine("ERREUR : captures en " + code + " : " + ex); }
+            }
+            Langue.Choisir("fr");
             rapport.AppendLine("Fin : " + erreurs + " erreur(s).");
             File.WriteAllText(Path.Combine(dossier, "rapport.txt"), rapport.ToString());
             Console.WriteLine(rapport.ToString());

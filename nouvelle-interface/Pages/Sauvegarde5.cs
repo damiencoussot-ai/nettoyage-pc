@@ -215,7 +215,7 @@ namespace NettoyagePC.Nouveau
             var dest = Choisie;
             var liste = Dossiers.Where(d => cases[d[0]].IsChecked == true).ToList();
             if (dest == null || liste.Count == 0) { F.Statut("Choisis une destination et au moins un dossier."); return; }
-            string conf = "Sauvegarder " + string.Join(", ", liste.Select(d => Langue.T(d[1]))) + " vers " + dest.Chemin + " ?\n\nLes fichiers sont copiés, rien n'est supprimé de ton PC. Laisse la clé branchée jusqu'à la fin.";
+            string conf = Langue.F("Sauvegarder {0} vers {1} ?", string.Join(", ", liste.Select(d => Langue.T(d[1]))), dest.Chemin) + "\n\nLes fichiers sont copiés, rien n'est supprimé de ton PC. Laisse la clé branchée jusqu'à la fin.";
             F.LancerAction("sauvegarde", new[] { "--sauvegarde", "--seul", "--destination", dest.Chemin, "--dossiers", string.Join(",", liste.Select(d => d[0])) }, conf, () => { AfficherDerniere(); ActualiserDestinations(); });
         }
     }

@@ -172,7 +172,7 @@ namespace NettoyagePC.Nouveau
                     {
                         Titre = i.Unite == "par semaine" ? "par semaine, sur 3 mois" : i.Unite == "°C" ? "maximum du jour" : "évolution",
                         Points = i.Points, Barres = i.Barres, DepuisZero = i.Unite != "°C", Pente = i.Pente, PrevisionJusqua = i.PrevisionJusqua, Seuil = i.Seuil,
-                        Format = v => i.Unite == "%" ? v.ToString("0", Appli.Fr) + " %" : i.Unite == "°C" ? v.ToString("0", Appli.Fr) + " °C" : v.ToString("0", Appli.Fr),
+                        Format = v => i.Unite == "%" ? v.ToString("0", Appli.Fr) + " %" : i.Unite == "°C" ? v.ToString("0", Appli.Fr) + " °C" : v.ToString(v < 10 ? "0.#" : "0", Appli.Fr),
                         Height = 140, Margin = new Thickness(14, 0, 0, 0), VerticalAlignment = VerticalAlignment.Top,
                     };
                     Grid.SetColumn(courbe, 2); g.Children.Add(courbe);

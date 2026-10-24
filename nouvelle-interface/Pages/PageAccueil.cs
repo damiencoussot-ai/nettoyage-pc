@@ -66,7 +66,7 @@ namespace NettoyagePC.Nouveau
             mesures = new UniformGrid { Columns = 4, Margin = new Thickness(0, 14, 0, 0) };
             mesures.Children.Add(Tuile("PROCESSEUR", 0, out _));
             mesures.Children.Add(Tuile("MÉMOIRE VIVE", 1, out _));
-            mesures.Children.Add(Tuile("DISQUE " + (Environment.GetEnvironmentVariable("SystemDrive") ?? "C:"), 2, out _));
+            mesures.Children.Add(Tuile(Langue.F("DISQUE {0}", Environment.GetEnvironmentVariable("SystemDrive") ?? "C:"), 2, out _));
             tuileTemperature = Tuile("TEMPÉRATURE", 3, out tTitreTemperature);
             mesures.Children.Add(tuileTemperature);
             mesures.SizeChanged += (o, a) => Colonnes(a.NewSize.Width);
@@ -142,7 +142,7 @@ namespace NettoyagePC.Nouveau
                 Background = Habillage.Pinceau(P.Carte), BorderBrush = Habillage.Pinceau(P.Bordure), BorderThickness = new Thickness(1),
             };
             var s = new StackPanel { Spacing = 4 };
-            tTitre = new TextBlock { Text = titre, FontFamily = Habillage.Console, FontSize = 10.5, Foreground = Habillage.Pinceau(P.Discret) };
+            tTitre = new TextBlock { Text = Langue.T(titre), FontFamily = Habillage.Console, FontSize = 10.5, Foreground = Habillage.Pinceau(P.Discret) };
             s.Children.Add(tTitre);
             valeurs[index] = new TextBlock { Text = "…", FontFamily = Habillage.Affichage, FontSize = 18, Foreground = Habillage.Pinceau(P.Texte), TextTrimming = TextTrimming.CharacterEllipsis };
             s.Children.Add(valeurs[index]);
@@ -160,7 +160,7 @@ namespace NettoyagePC.Nouveau
             {
                 valeurs[3].Text = Math.Round(m.Temperature) + " °C";
                 valeurs[3].Foreground = Habillage.Pinceau(m.Temperature >= 90 ? Habillage.P.Rouge : m.Temperature >= 80 ? Habillage.P.Orange : Habillage.P.Texte);
-                if (!string.IsNullOrEmpty(m.TitreTemperature)) tTitreTemperature.Text = m.TitreTemperature;
+                if (!string.IsNullOrEmpty(m.TitreTemperature)) tTitreTemperature.Text = Langue.T(m.TitreTemperature);
             }
             bool temp = m.Temperature > 0 || valeurs[3].Text != "…";
             if (tuileTemperature.IsVisible != temp) { tuileTemperature.IsVisible = temp; Colonnes(mesures.Bounds.Width); }
@@ -189,7 +189,7 @@ namespace NettoyagePC.Nouveau
             foreach (var p in aFaire) liste.Children.Add(Ligne(p));
             if (bons.Count > 0)
             {
-                string t = aFaire.Count == 0 ? "Tout va bien : " + bons.Count + " points vérifiés." : bons.Count + " autres points vérifiés : tout va bien.";
+                string t = aFaire.Count == 0 ? Langue.F("Tout va bien : {0} points vérifiés.", bons.Count) : Langue.F("{0} autres points vérifiés : tout va bien.", bons.Count);
                 liste.Children.Add(Ligne(new PointBilan(EtatPoint.Ok, t, okVisibles ? "Masquer la liste" : "Voir la liste"), () => { okVisibles = !okVisibles; RemplirListe(); }));
                 if (okVisibles) foreach (var p in bons) liste.Children.Add(Ligne(p));
             }

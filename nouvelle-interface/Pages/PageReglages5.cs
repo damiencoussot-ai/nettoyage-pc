@@ -29,7 +29,7 @@ namespace NettoyagePC.Nouveau
             pile.Children.Add(Cartes.Grille(f, new[]
             {
                 CarteAction.Code("Mon profil", "Ton pseudo, affiché à l'accueil. Il reste sur ce PC : pas de compte, pas de mot de passe.", "Modifier mon profil", () => Profil5(f), true),
-                CarteAction.Code("Apparence", "Thème clair, sombre, ou automatique (suit le réglage de Windows). Le bouton soleil / lune en haut bascule aussi en un clic. Actuellement : " + libelleTheme + ".",
+                CarteAction.Code("Apparence", Langue.T("Thème clair, sombre, ou automatique (suit le réglage de Windows). Le bouton soleil / lune en haut bascule aussi en un clic.") + " " + Langue.F("Actuellement : {0}.", Langue.T(libelleTheme)),
                     theme == "Sombre" ? "Passer en clair" : theme == "Clair" ? "Passer en automatique" : "Passer en sombre", () => ChangerTheme(f, theme)),
                 entretien,
             }));
@@ -114,7 +114,7 @@ namespace NettoyagePC.Nouveau
                 f.Pseudo = p;
                 f.EnregistrerReglage(r => { r.Pseudo = p; r.ProfilCree = true; });
                 w.Fermer();
-                f.Statut(p == "" ? "Pseudo retiré." : "Pseudo enregistré : " + p + ".");
+                f.Statut(p == "" ? "Pseudo retiré." : Langue.F("Pseudo enregistré : {0}.", p));
                 f.Afficher(f.PageActive, false);
             };
         }
@@ -150,7 +150,7 @@ namespace NettoyagePC.Nouveau
         {
             string texte = "Nettoyage, optimisation, sécurité, disques et mémoire vive pour Windows 10 et 11.\n\nÉditeur : Damien\nPage officielle : https://github.com/" + MisesAJour.Depot +
                 "\nJournaux : " + Chemins.Donnees + "\n\nEngagements :\n- Tes documents, photos et vidéos ne sont jamais supprimés.\n- Un point de restauration est créé avant les opérations importantes.\n- Chaque modification peut être annulée (Historique).\n- Nettoyage PC ne tourne jamais en administrateur : Windows demande l'autorisation pour chaque action qui touche tout le PC.\n- Les mises à jour sont vérifiées (SHA256) avant installation.\n- Ni publicité, ni pistage, ni télémétrie.\n\nWindows et Microsoft Defender sont des marques de Microsoft Corporation. Nettoyage PC est un logiciel indépendant, non affilié à Microsoft.";
-            f.Demander("Nettoyage PC 5 (aperçu) — moteur " + Appli.Version, texte, "Fermer", null, r => { });
+            f.Demander(Langue.F("Nettoyage PC 5 (aperçu) — moteur {0}", Appli.Version), texte, "Fermer", null, r => { });
         }
 
         private static void CreerRaccourci(FenetrePrincipale f)

@@ -56,7 +56,7 @@ namespace NettoyagePC.Nouveau
             var bouton = new BoutonNoyau(c.Bouton, c.Principal, Math.Max(150, Math.Min(260, c.Bouton.Length * 8.2 + 44)), 36) { TaillePolice = 13.5, HorizontalAlignment = HorizontalAlignment.Left, Margin = new Thickness(0, 14, 0, 0) };
             bouton.Clic += () =>
             {
-                if (c.Faire != null) { try { c.Faire(); } catch (Exception ex) { JournalDemarrage.Erreur("carte " + c.Titre, ex); f.Statut("Une erreur s'est produite : " + ex.Message, true); } }
+                if (c.Faire != null) { try { c.Faire(); } catch (Exception ex) { JournalDemarrage.Erreur("carte " + c.Titre, ex); f.Statut(Langue.T("Une erreur s'est produite :") + " " + ex.Message, true); } }
                 else f.Executer(c.Cible, c.Bouton);
             };
             DockPanel.SetDock(bouton, Dock.Bottom);
@@ -90,7 +90,7 @@ namespace NettoyagePC.Nouveau
                 {
                     bool o = !grille.IsVisible;
                     grille.IsVisible = o;
-                    bascule.Texte = o ? "Moins d'options  ▴" : "Plus d'options  ▾"; bascule.InvalidateVisual();
+                    bascule.Changer(o ? "Moins d'options  ▴" : "Plus d'options  ▾");
                     f.OptionOuverte(clePlus, o);
                 };
                 pile.Children.Add(bascule);

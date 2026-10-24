@@ -151,13 +151,13 @@ namespace NettoyagePC.Nouveau
 
         private void Mesurer(string dossier)
         {
-            zone.Calcul = true; bAna.Texte = "Arrêter"; bAna.InvalidateVisual();
-            tChemin.Text = Langue.T("Analyse de") + " " + dossier + "…";
+            zone.Calcul = true; bAna.Changer("Arrêter");
+            tChemin.Text = Langue.F("Analyse de {0}…", dossier);
             arret = false; Interlocked.Exchange(ref fichiers, 0);
             zone.InvalidateVisual(); minuteur.Start();
             Task.Run(() => MesurerRec(dossier, 0)).ContinueWith(t => Dispatcher.UIThread.Post(() =>
             {
-                zone.Calcul = false; bAna.Texte = "Analyser"; bAna.InvalidateVisual();
+                zone.Calcul = false; bAna.Changer("Analyser");
                 if (arret) { tChemin.Text = Langue.T("Analyse arrêtée."); zone.InvalidateVisual(); return; }
                 Afficher(dossier);
             }));

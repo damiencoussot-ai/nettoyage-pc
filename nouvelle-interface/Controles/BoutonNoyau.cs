@@ -25,13 +25,13 @@ namespace NettoyagePC.Nouveau
 
         public BoutonNoyau(string texte, bool principal, double largeur, double hauteur)
         {
-            Texte = texte; Principal = principal; Height = hauteur;
+            Texte = Langue.T(texte); Principal = principal; Height = hauteur;
             if (largeur > 0) Width = largeur;   // sinon : largeur du texte (MeasureOverride)
             Focusable = true; Cursor = new Cursor(StandardCursorType.Hand);
         }
 
         /// <summary>Change le texte du bouton (sa largeur suit si elle est automatique).</summary>
-        public void Changer(string texte) { if (texte == Texte) return; Texte = texte; InvalidateMeasure(); InvalidateVisual(); }
+        public void Changer(string texte) { texte = Langue.T(texte); if (texte == Texte) return; Texte = texte; InvalidateMeasure(); InvalidateVisual(); }
 
         protected override Size MeasureOverride(Size disponible)
         {

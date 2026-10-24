@@ -98,7 +98,10 @@ namespace NettoyagePC.Nouveau
                 ctx.DrawLine(new Pen(Habillage.Pinceau(Habillage.Alpha(P.Rouge, 170)), 1.2, new DashStyle(new double[] { 4, 3 }, 0)), new Point(gauche, Y(Seuil.Value)), new Point(droite, Y(Seuil.Value)));
             if (Barres)
             {
-                double lb = Math.Max(2, (droite - gauche) / Math.Max(1, (t1 - t0).TotalDays) * 0.7);
+                // largeur : l'écart entre deux mesures (un jour, une semaine...), pour des barres bien visibles
+                double ecart = (droite - gauche) / Math.Max(1, (t1 - t0).TotalDays);
+                for (int i = 1; i < pts.Count; i++) { double e = X(pts[i].Item1) - X(pts[i - 1].Item1); if (e > 0.5 && (i == 1 || e < ecart)) ecart = e; }
+                double lb = Math.Max(2, Math.Min(ecart * 0.7, 40));
                 var br = Dessin.Degrade(true);
                 foreach (var pt in pts)
                 {
