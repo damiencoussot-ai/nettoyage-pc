@@ -145,6 +145,9 @@ namespace NettoyagePC.Nouveau
     /// <summary>Captures de la fenêtre dans les deux thèmes, sur l'accueil et une autre rubrique.</summary>
     public static class Captures
     {
+        /// <summary>(captures) question de l'optimisation complète, comme au vrai lancement.</summary>
+        private static string QuestionComplete() { return CatalogueActions.Creer()["complet"].Confirmer; }
+
         private static void Capturer(FenetrePrincipale f, string dossier, string nom, System.Text.StringBuilder rapport, ref int erreurs)
         {
             for (int k = 0; k < 6; k++) { Dispatcher.UIThread.RunJobs(); AvaloniaHeadlessPlatform.ForceRenderTimerTick(); }
@@ -609,10 +612,10 @@ namespace NettoyagePC.Nouveau
                 f.Moteur.Montrer("Nettoyage rapide (simulation)", fin, 7, 7, true, true);
                 Capturer(f, dossier, "sombre-action-finie.png", rapport, ref erreurs);
                 f.FermerPanneauAction();
-                f.Demander("Lancer l'optimisation complète ?", "Un point de restauration est créé d'abord. Puis : nettoyage, nettoyage profond de Windows, optimisation des disques, libération de la RAM, bilans d'optimisation et de sécurité.\n\nCela peut durer longtemps : évite d'éteindre le PC et enregistre ton travail.", "Oui, lancer", "Annuler", r => { });
+                f.DemanderConfirmation(QuestionComplete(), r => { });
                 Capturer(f, dossier, "sombre-question.png", rapport, ref erreurs);
                 f.ChangerTheme(false);
-                f.Demander("Lancer l'optimisation complète ?", "Un point de restauration est créé d'abord.\n\nCela peut durer longtemps : évite d'éteindre le PC et enregistre ton travail.", "Oui, lancer", "Annuler", r => { });
+                f.DemanderConfirmation(QuestionComplete(), r => { });
                 Capturer(f, dossier, "clair-question.png", rapport, ref erreurs);
                 f.ChangerTheme(true);
             }
@@ -659,7 +662,7 @@ namespace NettoyagePC.Nouveau
                     g.SousPage("Outils", "Reseau"); g.Afficher("Outils", false);
                     Capturer(g, dossier, code + "-Outils-Reseau.png", rapport, ref erreurs);
                     Reseau5.Exemple = false;
-                    g.Demander("Lancer l'optimisation complète ?", "Un point de restauration est créé d'abord.\n\nCela peut durer longtemps : évite d'éteindre le PC et enregistre ton travail.", "Oui, lancer", "Annuler", r => { });
+                    g.DemanderConfirmation(QuestionComplete(), r => { });
                     Capturer(g, dossier, code + "-question.png", rapport, ref erreurs);
                     g.ViderCalques();
                     g.Close();

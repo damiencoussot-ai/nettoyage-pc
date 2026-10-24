@@ -54,10 +54,10 @@ namespace NettoyagePC.Nouveau
 
         public Bilan Calculer()
         {
-            var b = new Bilan { Score = 72, Processeur = 9, Memoire = 41, Temperature = 46, DisqueLibre = "27,6 Go libres" };
+            var b = new Bilan { Score = 72, Processeur = 9, Memoire = 41, Temperature = 46, DisqueLibre = Format.Taille(27.6 * 1073741824.0) + " libres" };
             b.Secteurs = new double[] { 44, 100, 60, 100 };
-            b.Points.Add(new PointBilan(EtatPoint.Attention, "Disque C: 27,6 Go libres (11 %) : il commence à se remplir.", "Nettoyer", "action:standard"));
-            b.Points.Add(new PointBilan(EtatPoint.Attention, "1,03 Go récupérables tout de suite (corbeille et fichiers temporaires).", "Nettoyer", "action:standard"));
+            b.Points.Add(new PointBilan(EtatPoint.Attention, "Disque C: " + Format.Taille(27.6 * 1073741824.0) + " libres (11 %) : il commence à se remplir.", "Nettoyer", "action:standard"));
+            b.Points.Add(new PointBilan(EtatPoint.Attention, Format.Taille(1.03 * 1073741824.0) + " récupérables tout de suite (corbeille et fichiers temporaires).", "Nettoyer", "action:standard"));
             b.Points.Add(new PointBilan(EtatPoint.Attention, "Entretien automatique désactivé : ton PC ne se nettoie pas tout seul.", "Activer", "action:planifier"));
             b.Points.Add(new PointBilan(EtatPoint.Attention, "AnyDesk est ouvert : il permet de prendre la main sur ton PC.", "Vérifier", "code:bouclier"));
             b.Points.Add(new PointBilan(EtatPoint.Attention, "Aucun point de restauration : impossible de revenir en arrière en cas de problème.", "Créer", "action:point"));

@@ -26,19 +26,40 @@ namespace NettoyagePC.Nouveau
         public BoutonNoyau(string texte, bool principal, double largeur, double hauteur)
         {
             Texte = Langue.T(texte); Principal = principal; Height = hauteur;
+            largeurPrevue = largeur;
             if (largeur > 0) Width = largeur;   // sinon : largeur du texte (MeasureOverride)
             Focusable = true; Cursor = new Cursor(StandardCursorType.Hand);
         }
 
+        // largeur demandée : un minimum, élargi si le texte (traduit : souvent plus long en anglais ou en espagnol) ne tient pas
+        private readonly double largeurPrevue;
+
         /// <summary>Change le texte du bouton (sa largeur suit si elle est automatique).</summary>
-        public void Changer(string texte) { texte = Langue.T(texte); if (texte == Texte) return; Texte = texte; InvalidateMeasure(); InvalidateVisual(); }
+        public void Changer(string texte) { texte = Langue.T(texte); if (texte == Texte) return; Texte = texte; Ajuster(); InvalidateMeasure(); InvalidateVisual(); }
+
+        private double LargeurTexte()
+        {
+            var ft = new FormattedText(Texte ?? "", CultureInfo.CurrentCulture, FlowDirection.LeftToRight,
+                new Typeface(Habillage.Corps, FontStyle.Normal, Principal ? FontWeight.SemiBold : FontWeight.Normal), TaillePolice, Brushes.White);
+            return Math.Ceiling(ft.WidthIncludingTrailingWhitespace + 2 * Math.Max(18, Height * 0.5));
+        }
+
+        private void Ajuster()
+        {
+            if (largeurPrevue <= 0 || Icone != null) return;
+            try { Width = Math.Max(largeurPrevue, LargeurTexte()); } catch { }
+        }
+
+        protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
+        {
+            base.OnAttachedToVisualTree(e);
+            Ajuster();   // ici : la taille de police (réglée après le constructeur) est connue
+        }
 
         protected override Size MeasureOverride(Size disponible)
         {
             if (!double.IsNaN(Width) || Icone != null) return base.MeasureOverride(disponible);
-            var ft = new FormattedText(Texte ?? "", CultureInfo.CurrentCulture, FlowDirection.LeftToRight,
-                new Typeface(Habillage.Corps, FontStyle.Normal, Principal ? FontWeight.SemiBold : FontWeight.Normal), TaillePolice, Brushes.White);
-            return new Size(Math.Min(disponible.Width, ft.WidthIncludingTrailingWhitespace + 2 * Math.Max(18, Height * 0.5)), Height);
+            return new Size(Math.Min(disponible.Width, LargeurTexte()), Height);
         }
 
         protected override void OnPointerEntered(PointerEventArgs e)

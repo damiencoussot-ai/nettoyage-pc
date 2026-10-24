@@ -281,11 +281,17 @@ namespace NettoyagePC.Nouveau
             };
             string conf = confirmation ?? a.Confirmer;
             if (simulation || conf == null) { partir(); return; }
-            // texte de confirmation de la version 4 : première ligne = question, le reste = explication
-            conf = Langue.T(conf);
+            DemanderConfirmation(conf, oui => { if (oui) partir(); else Statut("Annulé : rien n'a été modifié."); });
+        }
+
+        /// <summary>Question d'une action du moteur (texte de la version 4 : première ligne = question, le reste = explication),
+        /// traduite d'un bloc AVANT d'être coupée (les traductions portent sur le texte entier).</summary>
+        public void DemanderConfirmation(string conf, Action<bool> reponse)
+        {
+            conf = Langue.T(conf ?? "");
             int coupe = conf.IndexOf("\n\n", StringComparison.Ordinal);
             string question = coupe > 0 ? conf.Substring(0, coupe) : conf, detail = coupe > 0 ? conf.Substring(coupe + 2) : "";
-            Demander(question, detail, "Oui, lancer", "Annuler", oui => { if (oui) partir(); else Statut("Annulé : rien n'a été modifié."); });
+            Demander(question, detail, "Oui, lancer", "Annuler", reponse);
         }
 
         /// <summary>Bouton d'un point du bilan (ou de l'accueil) : action du moteur, rubrique, lien.</summary>

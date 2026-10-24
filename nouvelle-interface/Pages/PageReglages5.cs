@@ -71,7 +71,7 @@ namespace NettoyagePC.Nouveau
             s.Children.Add(new TextBlock { Text = Langue.T("Langue de l'interface. Les journaux détaillés des actions restent en français."), FontFamily = Habillage.Corps, FontSize = 13, Foreground = Habillage.Pinceau(P.Discret), TextWrapping = TextWrapping.Wrap });
             var cb = new ComboBox { Width = 260, Margin = new Thickness(0, 6, 0, 0) };
             foreach (var l in Langue.Disponibles) cb.Items.Add(l.Value);
-            cb.SelectedIndex = Math.Max(0, Langue.Disponibles.FindIndex(l => l.Key == (r.Langue ?? "fr")));
+            cb.SelectedIndex = Math.Max(0, Langue.Disponibles.FindIndex(l => l.Key == Langue.Code));
             cb.SelectionChanged += (o, e) =>
             {
                 if (cb.SelectedIndex < 0) return;

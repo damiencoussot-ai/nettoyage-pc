@@ -101,8 +101,10 @@ namespace NettoyagePC.Nouveau
             else
             {
                 bTester.IsEnabled = !test; bComparer.IsEnabled = !comparaison;
-                tConnexion.Text = Langue.T(c.Wifi ? "Wi-Fi" : "Câble (Ethernet)") + " · " + c.Nom;
-                tDetail.Text = c.Description + "\n" + Langue.T("Box (passerelle) :") + " " + c.Passerelle + "   ·   DNS : " + (c.Dns.Count > 0 ? string.Join(", ", c.Dns) : Langue.T("aucun")) + " " + Langue.T(c.DnsAutomatique ? "(automatique)" : "(choisi manuellement)") +
+                string genre = Langue.T(c.Wifi ? "Wi-Fi" : "Câble (Ethernet)");
+                // nom de la carte (« Ethernet 2 », nom du Wi-Fi...) seulement s'il apporte quelque chose
+                tConnexion.Text = string.IsNullOrWhiteSpace(c.Nom) || genre.IndexOf(c.Nom.Trim(), StringComparison.OrdinalIgnoreCase) >= 0 ? genre : genre + " · " + c.Nom;
+                tDetail.Text = c.Description + "\n" + Langue.T("Box (passerelle) :") + " " + c.Passerelle + "   ·   " + Langue.T("DNS :") + " " + (c.Dns.Count > 0 ? string.Join(", ", c.Dns) : Langue.T("aucun")) + " " + Langue.T(c.DnsAutomatique ? "(automatique)" : "(choisi manuellement)") +
                     (cartes.Count > 1 ? "\n" + Langue.T("Autres connexions actives :") + " " + string.Join(", ", cartes.Skip(1).Select(x => x.Nom)) : "");
             }
             AfficherServeurs(null);
