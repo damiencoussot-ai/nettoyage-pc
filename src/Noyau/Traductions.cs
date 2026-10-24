@@ -1972,6 +1972,9 @@ namespace NettoyagePC
             "Bonjour, {0}.", "Hello, {0}.", "Hola, {0}.",
             "Bonsoir, {0}.", "Good evening, {0}.", "Buenas tardes, {0}.",
             "Version 5.0 · aperçu", "Version 5.0 · preview", "Versión 5.0 · vista previa",
+            "Le composant Windows Update est introuvable sur ce PC.", "The Windows Update component can't be found on this PC.", "No se encuentra el componente Windows Update en este PC.",
+            "Terminé :", "Done:", "Terminado:",
+            "DNS :", "DNS:", "DNS:",
         };
         private static readonly string[] Prefixes =
         {

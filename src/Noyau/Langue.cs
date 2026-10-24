@@ -99,7 +99,17 @@ namespace NettoyagePC
         {
             string f = Environment.GetEnvironmentVariable("NP_TRADUCTIONS_MANQUANTES");
             if (Manquantes == null || string.IsNullOrEmpty(f)) return;
-            try { lock (Manquantes) System.IO.File.WriteAllLines(f, Manquantes.OrderBy(x => x)); } catch { }
+            try
+            {
+                // on écarte ce qui est déjà traduit (une traduction réaffichée repasse par T), les nombres et les noms propres sans mot
+                var traduits = new HashSet<string>(phrases.Values);
+                foreach (var v in phrases.Values) traduits.Add(v.ToUpper(Culture));
+                Func<string, bool> garder = x => System.Text.RegularExpressions.Regex.IsMatch(x, "[A-Za-zÀ-ÿ]{3}") && !traduits.Contains(x)
+                    && !traduits.Contains(x.Replace("…", "...")) && !debuts.Any(d => d.Value.Length > 3 && x.StartsWith(d.Value, StringComparison.Ordinal))
+                    && !motifs.Any(m => m.Value.Length > 3 && !m.Value.StartsWith("$") && x.StartsWith(m.Value.Substring(0, Math.Max(4, m.Value.IndexOf('$') < 0 ? m.Value.Length : m.Value.IndexOf('$'))), StringComparison.Ordinal));
+                lock (Manquantes) System.IO.File.WriteAllLines(f, Manquantes.Where(garder).OrderBy(x => x));
+            }
+            catch { }
         }
     }
 }
