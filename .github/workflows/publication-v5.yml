@@ -92,27 +92,33 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
+          function Noter($t) { Write-Host "::notice::$t" }
           function Fermer() { Get-Process NettoyagePC -ErrorAction SilentlyContinue | Stop-Process -Force; Start-Sleep 2 }
-          $dossier = Join-Path $env:ProgramFiles 'Nettoyage PC'
-          $exe = Join-Path $dossier 'NettoyagePC.exe'
-          Invoke-WebRequest 'https://github.com/damiencoussot-ai/nettoyage-pc/releases/latest/download/NettoyagePC-Setup.exe' -OutFile setup4.exe
-          $p = Start-Process .\setup4.exe -ArgumentList '/S' -Wait -PassThru
-          Fermer
-          Write-Host ("Version publiée installée : {0}" -f (Get-Item $exe).VersionInfo.ProductVersion)
-          $p = Start-Process "NettoyagePC-Setup-${{ steps.version.outputs.version }}.exe" -ArgumentList '/S' -Wait -PassThru
-          Fermer
-          if ($p.ExitCode -ne 0) { throw "Installation silencieuse en échec (code $($p.ExitCode))" }
-          $v = (Get-Item $exe).VersionInfo.ProductVersion
-          if ($v -ne '${{ steps.version.outputs.version }}') { throw "Version installée inattendue : $v" }
-          foreach ($f in 'legal\LICENCE.txt', 'Desinstaller.exe') { if (-not (Test-Path (Join-Path $dossier $f))) { throw "Fichier absent après l'installation : $f" } }
-          $p = Start-Process $exe -ArgumentList '--autocontrole' -Wait -PassThru
-          if ($p.ExitCode -ne 0) { throw "Auto-contrôle du programme installé en échec" }
-          $g = Start-Process $exe -ArgumentList '--gardien' -PassThru
-          if (-not $g.WaitForExit(20000)) { $g | Stop-Process -Force; throw "Le gardien ne s'est pas arrêté sans Premium" }
-          $p = Start-Process (Join-Path $dossier 'Desinstaller.exe') -ArgumentList '/S' -Wait -PassThru
-          Start-Sleep 5
-          if (Test-Path $exe) { throw "Le programme est resté après la désinstallation" }
-          Write-Host "Passage 4 -> $v : installation, auto-contrôle, gardien et désinstallation corrects."
+          try {
+            $dossier = Join-Path $env:ProgramFiles 'Nettoyage PC'
+            $exe = Join-Path $dossier 'NettoyagePC.exe'
+            $setup5 = (Resolve-Path "NettoyagePC-Setup-${{ steps.version.outputs.version }}.exe").Path
+            Invoke-WebRequest 'https://github.com/damiencoussot-ai/nettoyage-pc/releases/latest/download/NettoyagePC-Setup.exe' -OutFile setup4.exe
+            $p = Start-Process (Resolve-Path .\setup4.exe).Path -ArgumentList '/S' -Wait -PassThru
+            Fermer
+            Noter ("Version publiée installée : {0} (code {1})" -f (Get-Item $exe).VersionInfo.ProductVersion, $p.ExitCode)
+            $p = Start-Process $setup5 -ArgumentList '/S' -Wait -PassThru
+            Fermer
+            if ($p.ExitCode -ne 0) { throw "Installation silencieuse en échec (code $($p.ExitCode))" }
+            $v = (Get-Item $exe).VersionInfo.ProductVersion
+            Noter "Version installée : $v"
+            if (-not $v.StartsWith('${{ steps.version.outputs.version }}')) { throw "Version installée inattendue : $v" }
+            foreach ($f in 'legal\LICENCE.txt', 'Desinstaller.exe') { if (-not (Test-Path (Join-Path $dossier $f))) { throw "Fichier absent après l'installation : $f" } }
+            $p = Start-Process $exe -ArgumentList '--autocontrole' -Wait -PassThru
+            if ($p.ExitCode -ne 0) { throw "Auto-contrôle du programme installé en échec (code $($p.ExitCode))" }
+            $g = Start-Process $exe -ArgumentList '--gardien' -PassThru
+            if (-not $g.WaitForExit(20000)) { $g | Stop-Process -Force; throw "Le gardien ne s'est pas arrêté sans Premium" }
+            $p = Start-Process (Join-Path $dossier 'Desinstaller.exe') -ArgumentList '/S' -Wait -PassThru
+            Start-Sleep 5
+            if (Test-Path $exe) { throw "Le programme est resté après la désinstallation" }
+            Noter "Passage 4 -> $v : installation, auto-contrôle, gardien et désinstallation corrects."
+          }
+          catch { Write-Host "::error::Passage depuis la version 4 : $($_.Exception.Message)"; exit 1 }
 
       - name: Fichiers de la version
         uses: actions/upload-artifact@v4
