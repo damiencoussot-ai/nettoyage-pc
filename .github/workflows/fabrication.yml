@@ -25,7 +25,7 @@ jobs:
         id: version
         shell: pwsh
         run: |
-          $v = (Select-String src\Noyau\Base.cs -Pattern 'Version = "([\d.]+)"').Matches[0].Groups[1].Value
+          $v = (Select-String src\Noyau\Base.cs -Pattern 'Version = "([\d.]+)";\s*// version 4').Matches[0].Groups[1].Value
           $p = $v.Split('.'); while ($p.Count -lt 4) { $p += '0' }
           "version=$v" >> $env:GITHUB_OUTPUT
           "version4=$($p -join '.')" >> $env:GITHUB_OUTPUT
