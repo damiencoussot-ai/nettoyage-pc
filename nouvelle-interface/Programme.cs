@@ -112,9 +112,11 @@ namespace NettoyagePC.Nouveau
                 }
             }
             AppDomain.CurrentDomain.UnhandledException += (s, e) => JournalDemarrage.Erreur("fatale (version 5)", e.ExceptionObject as Exception);
+            string couleur = "aurore";
             try
             {
                 var reglages = Parametres.Lire();
+                couleur = reglages.Accent ?? "aurore";
                 Langue.Choisir(reglages.Langue);
                 App.Pseudo = reglages.Pseudo ?? "";
                 App.ModeSimple = reglages.ModeSimple;
@@ -123,6 +125,8 @@ namespace NettoyagePC.Nouveau
             }
             catch (Exception ex) { JournalDemarrage.Erreur("réglages (version 5)", ex); }
             try { Licence.Charger(); } catch (Exception ex) { JournalDemarrage.Erreur("licence (version 5)", ex); }
+            // couleur de l'interface : celles autres que « Noyau » font partie de Premium (comme dans la version 4)
+            try { Habillage.ChoisirCouleur(Licence.Premium ? couleur : "aurore"); } catch (Exception ex) { JournalDemarrage.Erreur("couleur (version 5)", ex); }
             BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
             JournalDemarrage.Noter("Fin normale (version 5).");
             return 0;
@@ -549,6 +553,22 @@ namespace NettoyagePC.Nouveau
                 Capturer(f, dossier, "sombre-Reglages.png", rapport, ref erreurs);
             }
             catch (Exception ex) { erreurs++; rapport.AppendLine("ERREUR : réglages : " + ex); }
+
+            // Couleurs Premium de l'interface (appliquées sans être enregistrées)
+            try
+            {
+                Habillage.ChoisirCouleur("rubis");
+                f.ChangerTheme(true); f.Afficher("Accueil", false);
+                Capturer(f, dossier, "sombre-couleur-rubis.png", rapport, ref erreurs);
+                Habillage.ChoisirCouleur("emeraude");
+                f.ChangerTheme(false); f.Afficher("Reglages", false);
+                Capturer(f, dossier, "clair-couleur-emeraude.png", rapport, ref erreurs);
+                Habillage.ChoisirCouleur("amethyste");
+                f.ChangerTheme(true); f.Afficher("Premium", false);
+                Capturer(f, dossier, "sombre-couleur-amethyste.png", rapport, ref erreurs);
+            }
+            catch (Exception ex) { erreurs++; rapport.AppendLine("ERREUR : couleurs : " + ex); }
+            finally { Habillage.ChoisirCouleur("aurore"); f.ChangerTheme(true); }
 
             // Protéger, et le bouclier anti-arnaque avec deux logiciels d'exemple (rien n'est détecté ni fermé)
             try

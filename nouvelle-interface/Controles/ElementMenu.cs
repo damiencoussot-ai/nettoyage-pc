@@ -48,7 +48,7 @@ namespace NettoyagePC.Nouveau
 
         public override void Render(DrawingContext ctx)
         {
-            var A = Color.FromRgb(61, 245, 255);       // la barre reste sombre : accent lumineux dans les deux thèmes
+            var A = Habillage.P.AccentBarre;           // la barre reste sombre : accent lumineux dans les deux thèmes
             Color discret = Color.FromRgb(120, 142, 162), texte = Habillage.Melanger(Color.FromRgb(200, 216, 230), Colors.White, Math.Max(vActif, survol));
             var r = new Rect(12, 3, Bounds.Width - 24, Bounds.Height - 6);
             if (survol > 0.01 && vActif < 0.99) ctx.DrawRectangle(Habillage.Pinceau(Color.FromRgb(16, 28, 44), (int)(200 * survol * (1 - vActif))), null, new RoundedRect(r, 2));

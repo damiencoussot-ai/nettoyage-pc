@@ -183,7 +183,15 @@ namespace NettoyagePC.Nouveau
         protected override void OnKeyDown(Avalonia.Input.KeyEventArgs e)
         {
             base.OnKeyDown(e);
-            if (!e.Handled && e.Key == Avalonia.Input.Key.K && e.KeyModifiers.HasFlag(Avalonia.Input.KeyModifiers.Control)) { e.Handled = true; OuvrirPalette(); }
+            if (e.Handled) return;
+            bool ctrl = e.KeyModifiers.HasFlag(Avalonia.Input.KeyModifiers.Control);
+            if (ctrl && e.Key == Avalonia.Input.Key.K) { e.Handled = true; OuvrirPalette(); return; }
+            // comme la version 4 : Ctrl+1 à Ctrl+9 ouvrent les rubriques, F5 actualise l'accueil (pas quand une question est ouverte)
+            if (ModeSimple || calqueDialogue.IsVisible) return;
+            int n = e.Key >= Avalonia.Input.Key.D1 && e.Key <= Avalonia.Input.Key.D9 ? e.Key - Avalonia.Input.Key.D1
+                : e.Key >= Avalonia.Input.Key.NumPad1 && e.Key <= Avalonia.Input.Key.NumPad9 ? e.Key - Avalonia.Input.Key.NumPad1 : -1;
+            if (ctrl && n >= 0 && n < Rubriques.Count) { e.Handled = true; Afficher(Rubriques[n].Cle, true); return; }
+            if (e.Key == Avalonia.Input.Key.F5 && e.KeyModifiers == Avalonia.Input.KeyModifiers.None && PageActive == "Accueil") { e.Handled = true; ActualiserBilan(); }
         }
 
         /// <summary>Une fonction pas encore refaite dans la nouvelle interface : on le dit simplement.</summary>
@@ -433,7 +441,7 @@ namespace NettoyagePC.Nouveau
 
         private Control BarreDeMenu()
         {
-            var A = Color.FromRgb(61, 245, 255);
+            var A = Habillage.P.AccentBarre;
             var barre = new Border { Background = Habillage.Pinceau(Habillage.P.Barre), BorderBrush = Habillage.Pinceau(A, 46), BorderThickness = new Thickness(0, 0, 1, 0) };
             var grille = new Grid { RowDefinitions = new RowDefinitions("Auto,*,Auto") };
             // logo et nom
@@ -649,6 +657,18 @@ namespace NettoyagePC.Nouveau
                 if (p >= 1) positionLumiere.X = -lumiere.Width;
                 return p < 1;
             });
+        }
+
+        /// <summary>Couleur de l'interface (Réglages) : « Noyau » pour tous, les autres avec Premium.</summary>
+        public void ChangerCouleur(string cle)
+        {
+            CouleurInterface c = null;
+            foreach (var x in Habillage.Couleurs) if (x.Cle == cle) c = x;
+            if (c == null) return;
+            if (c.Premium && !Licence.Premium) { Achat5.Ouvrir(this); return; }
+            EnregistrerReglage(r => r.Accent = c.Cle);
+            Habillage.ChoisirCouleur(c.Cle);
+            Construire();
         }
 
         public void ChangerTheme(bool sombre)

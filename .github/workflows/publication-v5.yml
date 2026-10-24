@@ -1,14 +1,18 @@
 # Nettoyage PC 5 : fabrication et publication de la version 5.
-# Ne se lance QUE quand un tag « v5.x » est créé (jamais à un simple envoi de code) :
+# Se lance quand un tag « v5.x » est créé (jamais à un simple envoi de code sur main) :
 # - tag « v5.0 » : version normale, proposée en mise à jour aux PC qui ont la version 4 ;
 # - tag « v5.0-beta1 » (ou -beta2...) : pré-version, que la version 4 installée ne propose pas
 #   (les mises à jour de la version 4 ignorent les pré-versions) et que le bouton « Télécharger » du site ne vise pas.
+# - envoi sur la branche « fabrication-5 » : mêmes fabrication et essais, SANS publication (fichiers de la version
+#   pour une publication à la main par l'éditeur, transmis chiffrés : seul l'environnement de travail de Claude a la clé) ;
+# - si la publication a déjà été faite à la main sur GitHub, le tag ne republie rien (les essais tournent quand même).
 # Une version qui échoue à un essai n'est jamais publiée.
 name: Publication version 5
 
 on:
   push:
     tags: [ 'v5.*' ]
+    branches: [ fabrication-5 ]
 
 permissions:
   contents: write
@@ -28,9 +32,12 @@ jobs:
         shell: pwsh
         run: |
           $v = (Select-String src\Noyau\Base.cs -Pattern 'Version = "([\d.]+)";\s*// version 5').Matches[0].Groups[1].Value
-          $m = [regex]::Match($env:GITHUB_REF_NAME, '^v(\d+(?:\.\d+){1,3})(-beta\d*)?$')
-          if (-not $m.Success -or $m.Groups[1].Value -ne $v) { throw "Le tag $env:GITHUB_REF_NAME ne correspond pas à la version $v du programme (Base.cs)." }
-          $beta = $m.Groups[2].Success
+          $beta = $false
+          if ($env:GITHUB_REF_TYPE -eq 'tag') {
+            $m = [regex]::Match($env:GITHUB_REF_NAME, '^v(\d+(?:\.\d+){1,3})(-beta\d*)?$')
+            if (-not $m.Success -or $m.Groups[1].Value -ne $v) { throw "Le tag $env:GITHUB_REF_NAME ne correspond pas à la version $v du programme (Base.cs)." }
+            $beta = $m.Groups[2].Success
+          }
           $p = $v.Split('.'); while ($p.Count -lt 4) { $p += '0' }
           "version=$v" >> $env:GITHUB_OUTPUT
           "version4=$($p -join '.')" >> $env:GITHUB_OUTPUT
@@ -115,7 +122,58 @@ jobs:
             NettoyagePC-Setup-*.exe
             NettoyagePC-Setup-*.sha256
 
+      # Fichiers pour une publication à la main (branche fabrication-5) : chiffrés, rien n'est publié en clair
+      - name: Fichiers chiffrés pour l'éditeur
+        if: github.ref_type == 'branch'
+        shell: bash
+        run: |
+          set -e
+          v='${{ steps.version.outputs.version }}'
+          mkdir -p chiffre
+          cat > publique.pem <<'FIN'
+          -----BEGIN PUBLIC KEY-----
+          MIIBojANBgkqhkiG9w0BAQEFAAOCAY8AMIIBigKCAYEAwHjKQZ2wMTSSEbzg/Owb
+          hES3M/+yeYNsCdJe5n/0je7399XNDieFwOvSZMURhadhspp2G9YtYgFYx5wLfdnj
+          oGynmIVM7qCdCyM7pEOjKM7Xh7fHnqlWDmwxQG5P9iPKc6t8ZEtqQll9onEazDVB
+          vImOIQ4dTpZaX4IaQy1bXxz54tRmNgGQrqSjuPmTWfShvu9NHQJSON9aXWHof1Wy
+          T5gEBEMRoYbD85hDwaO0iLsn9btObQvDo/lvdv8PFKrL09MQM3mFBc5XU/rdUAFz
+          ysW1dOSw6rFD5x0blX2EAKuzr9aQi6TjbFFXKWYitSkIngYFfJny/KttLhCBnUrX
+          GokFf1A/vboI6WxO2a50FO3hu/Qpghuy+lWfuFa38Bgcb4GKsU45qstv+BYlOI4h
+          9JwtIsNSMBPHdsq9fHxoRhYyte1gtNu7kmNEc5TK1J44HA3AH6KbCnkWDSwMTU1n
+          Tz5FQcSLdqN51cn2KaIl1A2lvWBZvJSkV7w6OX6rsSPVAgMBAAE=
+          -----END PUBLIC KEY-----
+          FIN
+          openssl rand -hex 32 > cle.txt
+          openssl enc -aes-256-cbc -pbkdf2 -salt -in "NettoyagePC-Setup-$v.exe" -out chiffre/setup.chiffre -pass file:cle.txt
+          openssl pkeyutl -encrypt -pubin -inkey publique.pem -pkeyopt rsa_padding_mode:oaep -in cle.txt -out chiffre/cle.chiffree
+          rm -f cle.txt
+          cp "NettoyagePC-Setup-$v.sha256" chiffre/
+          echo "$v" > chiffre/version.txt
+          echo "$GITHUB_SHA" > chiffre/commit.txt
+          cd chiffre
+          git init -q
+          git checkout -q -b fabrication-5-chiffre
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -q -m "Version $v de $GITHUB_SHA"
+          git push -q -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/$GITHUB_REPOSITORY.git" fabrication-5-chiffre
+
+      - name: Déjà publiée à la main ?
+        id: existe
+        if: github.ref_type == 'tag'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release view $env:GITHUB_REF_NAME --repo $env:GITHUB_REPOSITORY *> $null
+          $oui = ($LASTEXITCODE -eq 0)
+          if ($oui) { Write-Host "La version $env:GITHUB_REF_NAME est déjà publiée (à la main) : rien n'est republié." }
+          "oui=$($oui.ToString().ToLower())" >> $env:GITHUB_OUTPUT
+          exit 0
+
       - name: Publication
+        if: github.ref_type == 'tag' && steps.existe.outputs.oui != 'true'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}

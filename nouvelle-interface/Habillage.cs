@@ -29,13 +29,51 @@ namespace NettoyagePC.Nouveau
             Rouge = Color.FromRgb(194, 40, 59), Vert = Color.FromRgb(10, 122, 82), SurAccent = Color.FromRgb(255, 255, 255), TexteBarre = Color.FromRgb(200, 216, 230),
         };
 
-        /// <summary>Accent lumineux de la barre de menu (toujours sombre).</summary>
-        public Color AccentBarre { get { return Color.FromRgb(61, 245, 255); } }
+        /// <summary>Accent lumineux de la barre de menu (toujours sombre) : suit la couleur de l'interface.</summary>
+        public Color AccentBarre = Color.FromRgb(61, 245, 255);
+    }
+
+    /// <summary>Couleur de l'interface : « Noyau » (cyan) d'origine, les autres font partie de Premium.
+    /// Mêmes clés que la version 4 (réglage « Accent » de parametres.json), donc la couleur choisie suit le passage 4 -> 5.</summary>
+    public sealed class CouleurInterface
+    {
+        public string Cle, Nom;
+        public bool Premium;
+        public Color Sombre1, Sombre2, Clair1, Clair2;   // dégradé en thème sombre (lumineux) et en thème clair (assez foncé pour du texte blanc)
     }
 
     public static class Habillage
     {
         public static Palette P = Palette.SombreNoyau;
+
+        private static Color C(int r, int g, int b) { return Color.FromRgb((byte)r, (byte)g, (byte)b); }
+
+        public static readonly CouleurInterface[] Couleurs =
+        {
+            new CouleurInterface { Cle = "aurore", Nom = "Noyau", Sombre1 = C(61, 245, 255), Sombre2 = C(48, 186, 255), Clair1 = C(0, 122, 158), Clair2 = C(0, 98, 168) },
+            new CouleurInterface { Cle = "ocean", Nom = "Océan", Premium = true, Sombre1 = C(56, 189, 248), Sombre2 = C(47, 148, 242), Clair1 = C(29, 78, 216), Clair2 = C(37, 99, 235) },
+            new CouleurInterface { Cle = "emeraude", Nom = "Émeraude", Premium = true, Sombre1 = C(52, 211, 153), Sombre2 = C(34, 183, 145), Clair1 = C(4, 120, 87), Clair2 = C(15, 118, 110) },
+            new CouleurInterface { Cle = "amethyste", Nom = "Améthyste", Premium = true, Sombre1 = C(192, 132, 252), Sombre2 = C(161, 99, 245), Clair1 = C(126, 34, 206), Clair2 = C(109, 40, 217) },
+            new CouleurInterface { Cle = "soleil", Nom = "Coucher de soleil", Premium = true, Sombre1 = C(251, 146, 60), Sombre2 = C(244, 113, 102), Clair1 = C(194, 65, 12), Clair2 = C(190, 24, 93) },
+            new CouleurInterface { Cle = "rubis", Nom = "Rubis", Premium = true, Sombre1 = C(251, 113, 133), Sombre2 = C(224, 70, 100), Clair1 = C(190, 18, 60), Clair2 = C(159, 18, 57) },
+        };
+
+        public static string CouleurActuelle { get; private set; } = "aurore";
+
+        /// <summary>Applique une couleur aux deux palettes (sombre et clair) ; l'interface doit ensuite être reconstruite.</summary>
+        public static void ChoisirCouleur(string cle)
+        {
+            CouleurInterface c = Couleurs[0];
+            foreach (var x in Couleurs) if (x.Cle == cle) c = x;
+            CouleurActuelle = c.Cle;
+            var s = Palette.SombreNoyau;
+            s.Accent = c.Sombre1; s.Accent2 = c.Sombre2;
+            s.SurAccent = TexteSur(Melanger(c.Sombre1, c.Sombre2, 0.5));
+            var l = Palette.ClairNoyau;
+            l.Accent = c.Clair1; l.Accent2 = c.Clair2;
+            l.SurAccent = Colors.White;
+            s.AccentBarre = l.AccentBarre = c.Sombre1;
+        }
 
         /// <summary>Animations autorisées (coupées pour les captures automatiques, ou si l'utilisateur le demande).</summary>
         public static bool Animations = true;

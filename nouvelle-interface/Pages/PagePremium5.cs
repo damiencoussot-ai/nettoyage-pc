@@ -58,7 +58,7 @@ namespace NettoyagePC.Nouveau
             foreach (var q in new[]
             {
                 new[] { "Et si ça ne me convient pas ?", "Essaie d'abord gratuitement 7 jours. Après l'achat, tu es satisfait ou remboursé pendant 14 jours, sans justification." },
-                new[] { "Est-ce un abonnement ?", Langue.F("Non : tu payes {0} une seule fois, et Premium reste actif pour toutes les versions 4.", Boutique.Prix) },
+                new[] { "Est-ce un abonnement ?", Langue.F("Non : tu payes {0} une seule fois, et Premium reste actif pour toutes les versions 4 et 5.", Boutique.Prix) },
                 new[] { "Sur combien de PC ?", Langue.F("{0} en même temps. Avant de donner un PC, « Gérer la licence » libère sa place.", Boutique.NombrePc) },
                 new[] { "Faut-il Internet ?", "Pour activer la clé, puis une petite vérification par semaine. Sans Internet, Premium reste actif 45 jours." },
                 new[] { "Qu'est-ce qui reste gratuit ?", "Tout le reste : nettoyage, sécurité, mises à jour, sauvegarde, jeux, aide à distance." },
@@ -107,7 +107,7 @@ namespace NettoyagePC.Nouveau
             if (Licence.Premium && !Licence.EnEssai)
             {
                 pastille = "★  PREMIUM ACTIF"; titre = "Merci pour ton soutien !";
-                texte = (qui != "" ? Langue.F(Licence.Type == "offerte" ? "Licence de {0} (clé offerte)." : "Licence de {0}.", qui) + " " : "") + Langue.T("Tous les outils Premium sont débloqués sur ce PC, pour toutes les versions 4.");
+                texte = (qui != "" ? Langue.F(Licence.Type == "offerte" ? "Licence de {0} (clé offerte)." : "Licence de {0}.", qui) + " " : "") + Langue.T("Tous les outils Premium sont débloqués sur ce PC, pour toutes les versions 4 et 5.");
                 var g = new BoutonNoyau("Gérer la licence", false, 0, 42) { TaillePolice = 14 };
                 g.Clic += GererLicence;
                 boutons.Add(g);
@@ -176,7 +176,7 @@ namespace NettoyagePC.Nouveau
         {
             var P = Habillage.P;
             var w = new WrapPanel { Orientation = Orientation.Horizontal };
-            foreach (var t in new[] { "Paiement sécurisé (Stripe)", "Satisfait ou remboursé 14 jours", "Sans abonnement", "3 PC, toutes les versions 4", "Ni publicité, ni pistage" })
+            foreach (var t in new[] { "Paiement sécurisé (Stripe)", "Satisfait ou remboursé 14 jours", "Sans abonnement", "3 PC, toutes les versions 4 et 5", "Ni publicité, ni pistage" })
                 w.Children.Add(new Border
                 {
                     Child = new TextBlock { Text = "✔  " + Langue.T(t), FontFamily = Habillage.Corps, FontSize = 12.5, Foreground = Habillage.Pinceau(P.Texte) },
@@ -289,7 +289,7 @@ namespace NettoyagePC.Nouveau
             F = f;
             var P = Habillage.P;
             Spacing = 12;
-            Children.Add(new TextBlock { Text = Langue.F("{0} TTC une seule fois · sans abonnement · toutes les versions 4 · {1} PC", Boutique.Prix, Boutique.NombrePc), FontFamily = Habillage.Affichage, FontSize = 15, FontWeight = FontWeight.SemiBold, Foreground = Habillage.Pinceau(P.Accent), TextWrapping = TextWrapping.Wrap });
+            Children.Add(new TextBlock { Text = Langue.F("{0} TTC une seule fois · sans abonnement · toutes les versions 4 et 5 · {1} PC", Boutique.Prix, Boutique.NombrePc), FontFamily = Habillage.Affichage, FontSize = 15, FontWeight = FontWeight.SemiBold, Foreground = Habillage.Pinceau(P.Accent), TextWrapping = TextWrapping.Wrap });
             Children.Add(new TextBlock
             {
                 Text = Langue.T("✦  Gardien en temps réel, avec nettoyage léger automatique quand le disque se remplit\n" +

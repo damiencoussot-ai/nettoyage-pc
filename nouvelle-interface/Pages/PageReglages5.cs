@@ -34,6 +34,7 @@ namespace NettoyagePC.Nouveau
                 entretien,
             }));
             pile.Children.Add(CarteLangue(f, r));
+            pile.Children.Add(CarteCouleur(f));
             pile.Children.Add(Cartes.Page(f, null, new[]
             {
                 CarteAction.Code("Mode simple", "Pour un débutant (un parent, par exemple) : un seul écran avec trois gros boutons, sans les options avancées.", "Activer le mode simple", () =>
@@ -93,6 +94,51 @@ namespace NettoyagePC.Nouveau
                 });
             };
             s.Children.Add(cb);
+            return new Border { Child = s, Padding = new Thickness(20, 18), CornerRadius = new CornerRadius(3), Background = Habillage.Pinceau(P.Carte), BorderBrush = Habillage.Pinceau(P.Bordure), BorderThickness = new Thickness(1), Margin = new Thickness(0, 0, 12, 0) };
+        }
+
+        /// <summary>Couleur de l'interface : « Noyau » pour tous, les cinq autres avec Premium (mêmes couleurs que la version 4).</summary>
+        private static Control CarteCouleur(FenetrePrincipale f)
+        {
+            var P = Habillage.P;
+            var s = new StackPanel { Spacing = 8 };
+            s.Children.Add(new TextBlock { Text = Langue.T("Couleur de l'interface"), FontFamily = Habillage.Affichage, FontSize = 16.5, FontWeight = FontWeight.SemiBold, Foreground = Habillage.Pinceau(P.Texte) });
+            s.Children.Add(new TextBlock { Text = Langue.T("Noyau (cyan) est la couleur d'origine. Océan, Émeraude, Améthyste, Coucher de soleil et Rubis font partie de Premium."), FontFamily = Habillage.Corps, FontSize = 13, Foreground = Habillage.Pinceau(P.Discret), TextWrapping = TextWrapping.Wrap });
+            var rangee = new WrapPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 8, 0, 0) };
+            foreach (var c in Habillage.Couleurs)
+            {
+                var couleur = c;
+                bool choisie = c.Cle == Habillage.CouleurActuelle, verrou = c.Premium && !Licence.Premium;
+                var pastille = new Border
+                {
+                    Width = 38, Height = 38, CornerRadius = new CornerRadius(19), HorizontalAlignment = HorizontalAlignment.Center,
+                    Background = new LinearGradientBrush
+                    {
+                        StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative), EndPoint = new RelativePoint(1, 1, RelativeUnit.Relative),
+                        GradientStops = { new GradientStop(P.Sombre ? c.Sombre1 : c.Clair1, 0), new GradientStop(P.Sombre ? c.Sombre2 : c.Clair2, 1) },
+                    },
+                    Opacity = verrou ? 0.55 : 1,
+                };
+                if (verrou)
+                    pastille.Child = new TextBlock { Text = "PRO", FontFamily = Habillage.Console, FontSize = 9.5, FontWeight = FontWeight.Bold, Foreground = Habillage.Pinceau(Colors.White), HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center };
+                var anneau = new Border
+                {
+                    Child = pastille, Padding = new Thickness(3), CornerRadius = new CornerRadius(23), HorizontalAlignment = HorizontalAlignment.Center,
+                    BorderThickness = new Thickness(2), BorderBrush = Habillage.Pinceau(choisie ? P.Texte : Colors.Transparent),
+                };
+                var element = new StackPanel { Spacing = 5, Width = 104, Margin = new Thickness(0, 0, 6, 6), Cursor = new Avalonia.Input.Cursor(Avalonia.Input.StandardCursorType.Hand), Background = Brushes.Transparent };
+                element.Children.Add(anneau);
+                element.Children.Add(new TextBlock { Text = Langue.T(c.Nom), FontFamily = Habillage.Corps, FontSize = 12, Foreground = Habillage.Pinceau(choisie ? P.Texte : P.Discret), FontWeight = choisie ? FontWeight.SemiBold : FontWeight.Normal, HorizontalAlignment = HorizontalAlignment.Center, TextAlignment = TextAlignment.Center, TextWrapping = TextWrapping.Wrap });
+                ToolTip.SetTip(element, Langue.T(c.Nom) + (verrou ? " (Premium)" : ""));
+                element.PointerReleased += (o, e) =>
+                {
+                    if (couleur.Cle == Habillage.CouleurActuelle) return;
+                    f.ChangerCouleur(couleur.Cle);
+                    if (f.PageActive == "Reglages") f.Afficher("Reglages", false);
+                };
+                rangee.Children.Add(element);
+            }
+            s.Children.Add(rangee);
             return new Border { Child = s, Padding = new Thickness(20, 18), CornerRadius = new CornerRadius(3), Background = Habillage.Pinceau(P.Carte), BorderBrush = Habillage.Pinceau(P.Bordure), BorderThickness = new Thickness(1), Margin = new Thickness(0, 0, 12, 0) };
         }
 
