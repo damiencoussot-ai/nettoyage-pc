@@ -617,9 +617,10 @@ namespace NettoyagePC
         public static string Taille(double octets)
         {
             bool fr = Langue.Code == "fr";
-            if (octets >= 1073741824.0) return (octets / 1073741824.0).ToString("N2", Appli.Fr) + (fr ? " Go" : " GB");
-            if (octets >= 1048576.0) return (octets / 1048576.0).ToString("N1", Appli.Fr) + (fr ? " Mo" : " MB");
-            return (octets / 1024.0).ToString("N0", Appli.Fr) + (fr ? " Ko" : " KB");
+            var c = fr ? Appli.Fr : Langue.Culture;   // 27,60 Go en français, 27.60 GB en anglais
+            if (octets >= 1073741824.0) return (octets / 1073741824.0).ToString("N2", c) + (fr ? " Go" : " GB");
+            if (octets >= 1048576.0) return (octets / 1048576.0).ToString("N1", c) + (fr ? " Mo" : " MB");
+            return (octets / 1024.0).ToString("N0", c) + (fr ? " Ko" : " KB");
         }
 
         public static string Nombre(double n, int decimales = 0) { return n.ToString("N" + decimales, Appli.Fr); }
