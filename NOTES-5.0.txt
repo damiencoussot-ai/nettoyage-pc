@@ -1,0 +1,14 @@
+Nettoyage PC 5.0
+
+- Nouvelle interface, reconstruite de zéro : plus fluide, plus nette sur les écrans haute résolution
+  et les grands écrans, en thème sombre ou clair. Les rubriques restent les mêmes (Accueil, Nettoyer,
+  Accélérer, Protéger, Outils, Premium), et Ctrl+K trouve n'importe quelle action en tapant quelques
+  mots.
+- Plus rien à installer à côté : le programme n'a plus besoin du .NET Framework.
+- Même moteur que la version 4, avec les mêmes protections : simulation possible avant chaque action,
+  point de restauration avant les changements importants, documents personnels jamais touchés.
+- Le passage depuis la version 4 garde tes réglages, ton historique, l'entretien automatique et
+  Premium.
+- Interface en français, en anglais et en espagnol.
+
+SHA256 de NettoyagePC-Setup-5.0.exe : voir le fichier NettoyagePC-Setup-5.0.sha256
