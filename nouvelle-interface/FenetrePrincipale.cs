@@ -479,6 +479,8 @@ namespace NettoyagePC.Nouveau
             var textes = new StackPanel();
             titre = new TextBlock { Text = "", FontFamily = Habillage.Affichage, FontSize = 26, FontWeight = FontWeight.SemiBold, Foreground = Habillage.Pinceau(P.Texte) };
             sousTitre = new TextBlock { Text = "", FontFamily = Habillage.Corps, FontSize = 13, Foreground = Habillage.Pinceau(P.Discret), TextTrimming = TextTrimming.CharacterEllipsis };
+            // texte complet au survol (une traduction plus longue peut être coupée par la recherche)
+            sousTitre.PropertyChanged += (o, e) => { if (e.Property == TextBlock.TextProperty) ToolTip.SetTip(sousTitre, string.IsNullOrEmpty(sousTitre.Text) ? null : sousTitre.Text); };
             textes.Children.Add(titre); textes.Children.Add(sousTitre);
             g.Children.Add(textes);
             var droite = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 12, VerticalAlignment = VerticalAlignment.Center };

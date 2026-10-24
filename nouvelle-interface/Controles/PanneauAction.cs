@@ -89,7 +89,7 @@ namespace NettoyagePC.Nouveau
         {
             var P = Habillage.P;
             bool enCours = M.EnCours && !M.Termine;
-            tTitre.Text = M.EnPreparation ? "Autorisation demandée à Windows : " + M.Titre
+            tTitre.Text = string.IsNullOrEmpty(M.Titre) ? "" : M.EnPreparation ? "Autorisation demandée à Windows : " + M.Titre
                 : enCours ? "En cours : " + M.Titre
                 : M.Arrete ? "Arrêtée : " + M.Titre : "Terminé : " + M.Titre;
             Color c = enCours ? P.Accent : M.Arrete ? P.Orange : P.Vert;
