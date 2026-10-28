@@ -144,8 +144,8 @@ Nouveautés de la version 4.0
 Compatibilité
 -------------
 Nettoyage PC s'adapte tout seul à la configuration du PC :
-- Windows 10 et Windows 11 (64 bits), éditions Famille, Pro, Éducation, Entreprise. Il utilise
-  .NET Framework 4.8, déjà présent dans Windows 10 (depuis la version 1903) et Windows 11.
+- Windows 10 et Windows 11 (64 bits), éditions Famille, Pro, Éducation, Entreprise. Rien d'autre à
+  installer : tout ce qu'il faut est inclus dans le programme.
 - PC portable ou fixe, machine virtuelle ; cartes graphiques NVIDIA, AMD et Intel ;
   SSD NVMe ou SATA, disques durs, RAID ; disque système sur une autre lettre que C:.
 - Compte administrateur ou compte standard : l'application tourne toujours avec les droits
