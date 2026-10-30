@@ -81,26 +81,7 @@ namespace NettoyagePC.Nouveau
             {
                 if (!oui) return;
                 installation = true; Afficher();
-                F.Statut(Langue.F("Téléchargement de la version {0}…", v.Version));
-                string err = null, empreinte = null;
-                Task.Run(() =>
-                {
-                    string fichier;
-                    try { string h; fichier = MisesAJour.Telecharger(v, out h); empreinte = h; } catch (Exception ex) { err = ex.Message; return false; }
-                    // le gardien garde le programme ouvert : il se relancera avec la nouvelle version
-                    try { Gardien.Arreter(); } catch { }
-                    // seule une copie placée dans Program Files et revérifiée là-bas est lancée (autorisation de Windows)
-                    bool ok = Elevation.Commande(90, "installer-maj", fichier, empreinte);
-                    if (!ok) { err = Langue.T("l'autorisation de Windows a été refusée, ou le fichier n'a pas passé la vérification de sécurité."); try { Gardien.DemarrerSiBesoin(); } catch { } }
-                    try { File.Delete(fichier); Directory.Delete(Path.GetDirectoryName(fichier)); } catch { }
-                    return ok;
-                }).ContinueWith(t => Dispatcher.UIThread.Post(() =>
-                {
-                    if (t.Result) { F.Statut("Installation de la mise à jour…"); F.Close(); return; }
-                    installation = false; Afficher();
-                    F.Statut("Mise à jour non installée.", true);
-                    F.Demander("Mise à jour non installée", err ?? "", "Compris", null, r => { }, true);
-                }));
+                MisesAJourAuto5.Installer(F, v, () => { installation = false; Afficher(); });
             });
         }
 

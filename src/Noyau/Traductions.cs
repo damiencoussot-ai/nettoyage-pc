@@ -2075,6 +2075,9 @@ namespace NettoyagePC
             "Gardien (Premium) : une fois par mois au plus, un rappel si le PC a besoin d'un petit entretien (espace à récupérer, disque qui se remplit, programmes au démarrage qui peuvent attendre).", "Guardian (Premium): once a month at most, a reminder if the PC needs a little maintenance (space to recover, disk filling up, startup programs that can wait).", "Guardián (Premium): una vez al mes como máximo, un aviso si el PC necesita un pequeño mantenimiento (espacio por recuperar, disco que se llena, programas al inicio que pueden esperar).",
             "Clique sur un programme pour lire le conseil en entier.", "Click a program to read the full advice.", "Haz clic en un programa para leer el consejo completo.",
             "impact", "impact", "impacto",
+            "À l'ouverture, Nettoyage PC propose directement la nouvelle version quand il y en a une (« Installer maintenant » ou « Plus tard »), et montre les nouveautés juste après une mise à jour.", "When it opens, Nettoyage PC now offers the new version right away when there is one (\"Install now\" or \"Later\"), and shows what's new just after an update.", "Al abrirse, Nettoyage PC propone directamente la nueva versión cuando la hay («Instalar ahora» o «Más tarde»), y muestra las novedades justo después de una actualización.",
+            "Nettoyage PC {0} est installé : voici les nouveautés", "Nettoyage PC {0} is installed: here's what's new", "Nettoyage PC {0} está instalado: estas son las novedades",
+            "L'application se ferme puis se rouvre toute seule (moins d'une minute). Ton historique, tes réglages et Premium sont conservés.", "The app closes and reopens by itself (less than a minute). Your history, settings and Premium are kept.", "La aplicación se cierra y se vuelve a abrir sola (menos de un minuto). Tu historial, tus ajustes y Premium se conservan.",
         };
         private static readonly string[] Prefixes =
         {

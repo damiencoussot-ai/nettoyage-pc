@@ -45,6 +45,8 @@ namespace NettoyagePC.Nouveau
                 {
                     if (!CommandeInitiale.Vide) f.TraiterCommande(CommandeInitiale, true);
                     if (!Installation5.Apercu && FichierEssaiDemarrage == null) CommandeExterne.Ecouter(c => Dispatcher.UIThread.Post(() => f.TraiterCommande(c, false)));
+                    // nouveautés après une mise à jour, puis recherche d'une nouvelle version (« Installer maintenant »)
+                    if (!Installation5.Apercu && FichierEssaiDemarrage == null) Dispatcher.UIThread.Post(() => MisesAJourAuto5.AuDemarrage(f, ProfilCree), DispatcherPriority.Background);
                 };
                 bureau.MainWindow = f;
                 if (FichierEssaiDemarrage != null)

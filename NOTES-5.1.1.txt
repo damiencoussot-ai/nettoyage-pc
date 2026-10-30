@@ -1,0 +1,11 @@
+Nettoyage PC 5.1.1
+
+- À l'ouverture, Nettoyage PC propose directement la nouvelle version quand il y en a une
+  (« Installer maintenant » ou « Plus tard »), puis vérifie de nouveau toutes les 6 heures si la
+  fenêtre reste ouverte.
+- Juste après une mise à jour, une fenêtre montre les nouveautés de la version installée.
+
+Comprend toutes les nouveautés de la 5.1 (démarrage plus rapide, nettoyage plus efficace,
+« Ce que tu as gagné », rappel mensuel du gardien, ouverture en mode réel).
+
+SHA256 de NettoyagePC-Setup-5.1.1.exe : voir le fichier NettoyagePC-Setup-5.1.1.sha256

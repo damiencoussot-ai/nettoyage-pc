@@ -10,7 +10,7 @@
     <AssemblyName>NettoyagePC</AssemblyName>
     <RootNamespace>NettoyagePC.Nouveau</RootNamespace>
     <ApplicationIcon>Assets\NettoyagePC.ico</ApplicationIcon>
-    <Version>5.1.0</Version>
+    <Version>5.1.1</Version>
     <InformationalVersion>5.0-apercu</InformationalVersion>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
