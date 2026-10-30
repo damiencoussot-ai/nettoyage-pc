@@ -80,7 +80,7 @@ namespace NettoyagePC.Nouveau
     {
         private readonly FenetrePrincipale F;
         private readonly Tableau tableau;
-        private readonly TextBlock info, resume;
+        private readonly TextBlock info, resume, detail;
         private readonly BoutonNoyau bAttendre;
         private List<ElementDemarrage> liste = new List<ElementDemarrage>();
         private bool enLecture;
@@ -107,9 +107,20 @@ namespace NettoyagePC.Nouveau
                 new Colonne("Impact", "80", false, false, o => -Conseil(o).Impact),
                 new Colonne("À faire", "135", false, false, o => -(int)Conseil(o).Choix),
                 new Colonne("Conseil", "3.4*"));
-            tableau.HauteurListe = 420;
+            tableau.HauteurListe = 400;
             tableau.CaseChangee = Changer;
+            // conseil complet du programme choisi (la colonne est souvent coupée)
+            detail = new TextBlock { Text = Langue.T("Clique sur un programme pour lire le conseil en entier."), FontFamily = Habillage.Corps, FontSize = 13, Foreground = Habillage.Pinceau(P.Discret), TextWrapping = TextWrapping.Wrap };
+            tableau.SelectionChangee += () =>
+            {
+                var el = tableau.Selection as ElementDemarrage;
+                if (el == null) return;
+                var c = ConseilsDemarrage.Pour(el.Nom, el.Commande);
+                detail.Text = el.Nom + " · " + Langue.T(c.TexteChoix) + " · " + Langue.T("impact") + " " + Langue.T(c.TexteImpact).ToLower(Langue.Culture) + " — " + Langue.T(c.Conseil);
+                detail.Foreground = Habillage.Pinceau(c.Choix == ChoixDemarrage.PeutAttendre ? Habillage.P.Accent : Habillage.P.Texte);
+            };
             Children.Add(new Border { Child = tableau, BorderBrush = Habillage.Pinceau(P.Bordure), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(3), ClipToBounds = true });
+            Children.Add(detail);
             info = new TextBlock { Text = "", FontFamily = Habillage.Corps, FontSize = 12.5, Foreground = Habillage.Pinceau(P.Discret), TextWrapping = TextWrapping.Wrap };
             var boutons = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 10 };
             var bActu = new BoutonNoyau("Actualiser", false, 110, 32) { TaillePolice = 13 };
