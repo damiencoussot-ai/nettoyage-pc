@@ -1,9 +1,9 @@
-NETTOYAGE PC 5.0
-================
+NETTOYAGE PC 5.0.1
+==================
 
 Installation
 ------------
-1. Double-clique sur « NettoyagePC-Setup-5.0.exe ».
+1. Double-clique sur « NettoyagePC-Setup-5.0.1.exe ».
 2. Windows peut afficher « Windows a protégé votre ordinateur » (SmartScreen) : clique sur
    « Informations complémentaires » puis « Exécuter quand même ». C'est normal pour un programme
    qui n'est pas signé par un éditeur connu.
@@ -13,12 +13,18 @@ Installation
    administrateur (fenêtre « Voulez-vous autoriser... », clique sur Oui) qu'au moment d'une action
    qui touche tout le PC (nettoyage profond, disques, réparation...), et seulement pour elle.
 
-Mise à jour depuis la version 4 (ou 3) : installe simplement la version 5.0 par-dessus (ou clique
+Mise à jour depuis la version 4 (ou 3) : installe simplement la version 5.0.1 par-dessus (ou clique
 sur « Installer maintenant » dans la rubrique Mises à jour). L'historique, les réglages, les
 statistiques, l'entretien automatique et Premium sont conservés.
 
 Désinstaller : Paramètres > Applications > Applications installées > Nettoyage PC > Désinstaller.
 La désinstallation retire aussi l'entretien automatique (tâches planifiées).
+
+Nouveautés de la version 5.0.1
+------------------------------
+- Nettoyage PC s'ouvre directement en mode réel, comme la version 4 : chaque action pose
+  toujours sa question avant de se lancer, et la pastille en haut passe en simulation pour
+  voir ce qui serait fait sans rien modifier.
 
 Nouveautés de la version 5.0
 ----------------------------

@@ -541,9 +541,9 @@ namespace NettoyagePC.Nouveau
                     f.ModeSimple = true; f.Simulation = false; f.ChangerTheme(sombre);
                     Capturer(f, dossier, (sombre ? "sombre" : "clair") + "-simple.png", rapport, ref erreurs);
                 }
-                f.ModeSimple = false; f.Simulation = true; f.ChangerTheme(true);
+                f.ModeSimple = false; f.Simulation = false; f.ChangerTheme(true);
             }
-            catch (Exception ex) { erreurs++; rapport.AppendLine("ERREUR : mode simple : " + ex); f.ModeSimple = false; f.Simulation = true; }
+            catch (Exception ex) { erreurs++; rapport.AppendLine("ERREUR : mode simple : " + ex); f.ModeSimple = false; f.Simulation = false; }
 
             // Réglages
             try

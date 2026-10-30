@@ -7,6 +7,12 @@ namespace NettoyagePC
     {
         public static readonly List<KeyValuePair<string, string[]>> Liste = new List<KeyValuePair<string, string[]>>
         {
+            N("5.0.1", "Nettoyage PC s'ouvre directement en mode réel, comme la version 4 : chaque action pose toujours sa question avant de se lancer, et la pastille en haut passe en simulation pour voir ce qui serait fait sans rien modifier.",
+                "Conditions de vente et LISEZMOI : le .NET Framework n'est plus nécessaire."),
+            N("5.0", "Nouvelle interface, reconstruite de zéro : plus fluide et plus nette, en thème sombre ou clair, avec les mêmes rubriques. Ctrl+K trouve n'importe quelle action, Ctrl+1 à Ctrl+9 ouvrent les rubriques.",
+                "Plus rien à installer à côté : le programme n'a plus besoin du .NET Framework.",
+                "Même moteur que la version 4, avec les mêmes protections : point de restauration avant les changements importants, documents personnels jamais touchés.",
+                "Premium est valable pour les versions 4 et 5, et ta couleur d'interface est gardée."),
             N("4.6", "Interface encore plus futuriste et fluide : un indicateur lumineux glisse dans le menu, une lumière parcourt l'en-tête quand tu changes de rubrique, l'anneau de l'accueil respire, et les boutons principaux s'illuminent au survol.",
                 "Plus simple : l'accueil montre d'abord ce qu'il y a à faire, et ce qui va bien tient sur une seule ligne. Au premier lancement, tu choisis entre le mode simple (trois gros boutons) et le mode complet.",
                 "Le briefing vocal est retiré : Nettoyage PC t'accueille toujours par ton pseudo, sans parler.",

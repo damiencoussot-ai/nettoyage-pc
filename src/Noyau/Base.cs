@@ -17,7 +17,7 @@ namespace NettoyagePC
 #if !NET5_0_OR_GREATER
         public static readonly string Version = "4.6";   // version 4 (lu par la fabrication : .github/workflows/fabrication.yml)
 #else
-        public static readonly string Version = "5.0";   // version 5
+        public static readonly string Version = "5.0.1";   // version 5
 #endif
         public const string Depot = "damiencoussot-ai/nettoyage-pc";
 

@@ -1,0 +1,11 @@
+Nettoyage PC 5.0.1
+
+- Nettoyage PC s'ouvre directement en mode réel, comme la version 4 : chaque action pose toujours
+  sa question avant de se lancer, et la pastille en haut passe en simulation pour voir ce qui
+  serait fait sans rien modifier.
+- Conditions de vente et LISEZMOI : le .NET Framework n'est plus nécessaire.
+
+Comprend toutes les nouveautés de la 5.0 (nouvelle interface, plus besoin du .NET Framework,
+Premium valable pour les versions 4 et 5).
+
+SHA256 de NettoyagePC-Setup-5.0.1.exe : voir le fichier NettoyagePC-Setup-5.0.1.sha256

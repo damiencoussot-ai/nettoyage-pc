@@ -57,7 +57,9 @@ namespace NettoyagePC.Nouveau
         private Panel ligneEntete;
         public string PageActive { get; private set; } = "Accueil";
         public readonly ISourceBilan Source;
-        public bool Simulation = true;
+        // mode réel dès l'ouverture (comme la version 4) : chaque action pose sa question avant de se lancer ;
+        // la pastille en haut passe en simulation pour voir ce qui serait fait sans rien modifier
+        public bool Simulation = false;
         public string Pseudo = "";
 
         // ---- bilan de l'accueil : calculé en arrière-plan, gardé entre deux visites de l'accueil
