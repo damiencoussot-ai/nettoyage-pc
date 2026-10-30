@@ -13,7 +13,7 @@ namespace NettoyagePC
     internal class ReglagesGardien
     {
         public bool Actif;
-        public bool Demarrage = true, Disque = true, NettoyageAuto = true, Antivirus = true, Memoire = true, Temperature = true, Arnaque = true, Sante = true, Energie = true;
+        public bool Demarrage = true, Disque = true, NettoyageAuto = true, Antivirus = true, Memoire = true, Temperature = true, Arnaque = true, Sante = true, Energie = true, RappelMensuel = true;
         public int SeuilDisque = 10;                      // % d'espace libre sur le disque de Windows
         public bool SauvegardeAuto;
         public string SauvegardeId = "", SauvegardeLibelle = "";
@@ -33,6 +33,7 @@ namespace NettoyagePC
                 r.Demarrage = Json.Bool(d, "Demarrage", true); r.Disque = Json.Bool(d, "Disque", true); r.NettoyageAuto = Json.Bool(d, "NettoyageAuto", true);
                 r.Antivirus = Json.Bool(d, "Antivirus", true); r.Memoire = Json.Bool(d, "Memoire", true); r.Temperature = Json.Bool(d, "Temperature", true);
                 r.Arnaque = Json.Bool(d, "Arnaque", true); r.Sante = Json.Bool(d, "Sante", true); r.Energie = Json.Bool(d, "Energie", true);
+                r.RappelMensuel = Json.Bool(d, "RappelMensuel", true);
                 long s = Json.Long(d, "SeuilDisque"); if (s >= 3 && s <= 30) r.SeuilDisque = (int)s;
                 r.SauvegardeAuto = Json.Bool(d, "SauvegardeAuto");
                 r.SauvegardeId = Json.Texte(d, "SauvegardeId"); r.SauvegardeLibelle = Json.Texte(d, "SauvegardeLibelle");
@@ -52,7 +53,7 @@ namespace NettoyagePC
                 File.WriteAllText(Fichier, Json.Ecrire(new Dictionary<string, object>
                 {
                     { "Actif", Actif }, { "Demarrage", Demarrage }, { "Disque", Disque }, { "NettoyageAuto", NettoyageAuto }, { "Antivirus", Antivirus },
-                    { "Memoire", Memoire }, { "Temperature", Temperature }, { "Arnaque", Arnaque }, { "Sante", Sante }, { "Energie", Energie }, { "SeuilDisque", SeuilDisque }, { "SauvegardeAuto", SauvegardeAuto },
+                    { "Memoire", Memoire }, { "Temperature", Temperature }, { "Arnaque", Arnaque }, { "Sante", Sante }, { "Energie", Energie }, { "RappelMensuel", RappelMensuel }, { "SeuilDisque", SeuilDisque }, { "SauvegardeAuto", SauvegardeAuto },
                     { "SauvegardeId", SauvegardeId }, { "SauvegardeLibelle", SauvegardeLibelle }, { "SauvegardeDossiers", SauvegardeDossiers.ToArray() }, { "SauvegardeJours", SauvegardeJours }
                 }));
             }

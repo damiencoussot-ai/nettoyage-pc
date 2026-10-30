@@ -286,6 +286,36 @@ namespace NettoyagePC.Nouveau
             }
             catch (Exception ex) { erreurs++; rapport.AppendLine("ERREUR : onglets d'Accélérer : " + ex); }
 
+            // programmes au démarrage d'exemple (conseils, impact, bouton « ceux qui peuvent attendre ») et résumé après nettoyage
+            try
+            {
+                Func<string, string, bool, ElementDemarrage> el = (nom, cmd, actif) => new ElementDemarrage { Nom = nom, Commande = cmd, Lieu = "Registre (ton compte)", Actif = actif };
+                PageDemarrage5.Exemple = new System.Collections.Generic.List<ElementDemarrage>
+                {
+                    el("Steam", @"""C:\Program Files (x86)\Steam\steam.exe"" -silent", true),
+                    el("Discord", @"C:\Users\Camille\AppData\Local\Discord\Update.exe --processStart Discord.exe", true),
+                    el("EpicGamesLauncher", @"""C:\Program Files (x86)\Epic Games\Launcher\Portal\Binaries\Win64\EpicGamesLauncher.exe"" -silent", true),
+                    el("Spotify", @"C:\Users\Camille\AppData\Roaming\Spotify\Spotify.exe /minimized", true),
+                    el("MicrosoftEdgeAutoLaunch_0A1B2C", @"""C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"" --no-startup-window", true),
+                    el("OneDrive", @"""C:\Program Files\Microsoft OneDrive\OneDrive.exe"" /background", true),
+                    el("SecurityHealth", @"%windir%\system32\SecurityHealthSystray.exe", true),
+                    el("RtkAudUService", @"""C:\Windows\System32\DriverStore\FileRepository\realtekservice.inf_amd64\RtkAudUService64.exe"" -background", true),
+                    el("Logi Options+", @"""C:\Program Files\LogiOptionsPlus\logioptionsplus_agent.exe"" /minimized", true),
+                    el("Updater de Pilote Gratuit", @"""C:\Program Files\PiloteGratuit\updater.exe"" /tray", false),
+                };
+                f.SousPage("Accelerer", "Demarrage");
+                f.Afficher("Accelerer", false);
+                for (int k = 0; k < 10; k++) { Dispatcher.UIThread.RunJobs(); System.Threading.Thread.Sleep(50); }
+                Capturer(f, dossier, "sombre-demarrage-conseils.png", rapport, ref erreurs);
+                PageDemarrage5.Exemple = null;
+                f.SousPage("Accelerer", "Optimisation");
+                Gains5.Exemple = new GainsNettoyage { Dernier = DateTime.Now, DernierOctets = (long)(2.7 * 1073741824.0), Total = (long)(18.4 * 1073741824.0), Nombre = 9 };
+                Gains5.Montrer(f, Gains5.Exemple, 72, 86, 4);
+                Capturer(f, dossier, "sombre-gains.png", rapport, ref erreurs);
+                f.ViderCalques(); Gains5.Exemple = null;
+            }
+            catch (Exception ex) { PageDemarrage5.Exemple = null; Gains5.Exemple = null; erreurs++; rapport.AppendLine("ERREUR : démarrage et gains : " + ex); }
+
             // Outils : matériel, aide à distance (plein potentiel : sous Windows seulement, l'analyse lit le matériel)
             try
             {

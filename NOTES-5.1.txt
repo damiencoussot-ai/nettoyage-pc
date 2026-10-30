@@ -1,0 +1,15 @@
+Nettoyage PC 5.1
+
+- Démarrage plus rapide : chaque programme lancé avec Windows a maintenant un impact estimé et un
+  conseil (à garder, selon ton usage, peut attendre). Un bouton désactive d'un coup ceux qui peuvent
+  attendre, après une question qui les liste. Rien n'est désinstallé, tout se réactive en un clic.
+- Nettoyage plus efficace : restes d'installation des pilotes AMD et NVIDIA (souvent plusieurs Go,
+  avec l'optimisation complète), cache et anciens journaux de Steam, anciens journaux d'Epic Games,
+  Discord PTB et Canary.
+- « Ce que tu as gagné » : après un nettoyage, l'espace libéré, la note du PC avant et après, et le
+  total libéré depuis le début.
+- Gardien (Premium) : une fois par mois au plus, un rappel si le PC a besoin d'un petit entretien.
+- Nettoyage PC s'ouvre directement en mode réel (comme la version 4) : chaque action pose toujours
+  sa question avant de se lancer.
+
+SHA256 de NettoyagePC-Setup-5.1.exe : voir le fichier NettoyagePC-Setup-5.1.sha256

@@ -18,7 +18,7 @@ namespace NettoyagePC.Nouveau
         private readonly ReglagesGardien R;
         private readonly TextBlock tEtat, tSauvegarde;
         private readonly BoutonNoyau bActiver;
-        private readonly CheckBox cDemarrage, cDisque, cNettoyage, cAntivirus, cMemoire, cChaleur, cArnaque, cSante, cEnergie, cSauvegarde;
+        private readonly CheckBox cDemarrage, cDisque, cNettoyage, cAntivirus, cMemoire, cChaleur, cArnaque, cSante, cEnergie, cRappel, cSauvegarde;
         private readonly ComboBox cbDest = new ComboBox { MinWidth = 380 }, cbFrequence = new ComboBox { Width = 240 };
         private readonly List<CheckBox> casesDossiers = new List<CheckBox>();
         private readonly List<string> racines = new List<string>();
@@ -53,6 +53,7 @@ namespace NettoyagePC.Nouveau
             cChaleur = Case("la carte graphique surchauffe (plus de 90 °C)", R.Temperature);
             cArnaque = Case("un logiciel de prise en main à distance s'ouvre (anti-arnaque)", R.Arnaque);
             cSante = Case("le matériel montre des signes de faiblesse (erreurs du disque, du processeur, arrêts brutaux)", R.Sante);
+            cRappel = Case("le PC a besoin d'un petit entretien (une fois par mois au plus : espace à récupérer, programmes au démarrage qui peuvent attendre)", R.RappelMensuel);
             cEnergie = Case("Estimer la consommation électrique du PC et de chaque application (Coût en électricité)", R.Energie);
             cEnergie.Margin = new Thickness(0, 6, 0, 0);
             cDisque.IsCheckedChanged += (s, e) => cNettoyage.IsEnabled = cDisque.IsChecked == true;
@@ -180,7 +181,7 @@ namespace NettoyagePC.Nouveau
             ReglagesGardien r;
             try { r = ReglagesGardien.Lire(); } catch { r = new ReglagesGardien(); }
             r.Demarrage = cDemarrage.IsChecked == true; r.Disque = cDisque.IsChecked == true; r.NettoyageAuto = cNettoyage.IsChecked == true; r.Antivirus = cAntivirus.IsChecked == true;
-            r.Memoire = cMemoire.IsChecked == true; r.Temperature = cChaleur.IsChecked == true; r.Arnaque = cArnaque.IsChecked == true; r.Sante = cSante.IsChecked == true; r.Energie = cEnergie.IsChecked == true;
+            r.Memoire = cMemoire.IsChecked == true; r.Temperature = cChaleur.IsChecked == true; r.Arnaque = cArnaque.IsChecked == true; r.Sante = cSante.IsChecked == true; r.Energie = cEnergie.IsChecked == true; r.RappelMensuel = cRappel.IsChecked == true;
             r.SauvegardeJours = cbFrequence.SelectedIndex == 1 ? 7 : 1;
             r.SauvegardeDossiers = casesDossiers.Where(c => c.IsChecked == true).Select(c => (string)c.Tag).ToList();
             r.SauvegardeAuto = cSauvegarde.IsChecked == true;

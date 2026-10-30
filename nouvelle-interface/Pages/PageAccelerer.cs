@@ -71,26 +71,46 @@ namespace NettoyagePC.Nouveau
         }
     }
 
-    /// <summary>Programmes lancés avec Windows : décocher = ne plus le lancer (rien n'est supprimé, recocher pour annuler).</summary>
+    /// <summary>
+    /// Programmes lancés avec Windows : décocher = ne plus le lancer (rien n'est supprimé, recocher pour annuler).
+    /// Chaque programme a un impact estimé et un conseil (à garder, selon ton usage, peut attendre) ; un bouton désactive
+    /// d'un coup ceux qui peuvent attendre, après une question qui les liste.
+    /// </summary>
     internal sealed class PageDemarrage5 : StackPanel
     {
         private readonly FenetrePrincipale F;
         private readonly Tableau tableau;
-        private readonly TextBlock info;
+        private readonly TextBlock info, resume;
+        private readonly BoutonNoyau bAttendre;
+        private List<ElementDemarrage> liste = new List<ElementDemarrage>();
         private bool enLecture;
+
+        /// <summary>(captures) liste d'exemple : rien n'est lu sur le PC.</summary>
+        public static List<ElementDemarrage> Exemple;
 
         public PageDemarrage5(FenetrePrincipale f)
         {
             F = f;
             var P = Habillage.P;
             Spacing = 12; Margin = new Thickness(0, 0, 12, 0);
+            // résumé et bouton « désactiver ceux qui peuvent attendre »
+            var carte = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto") };
+            resume = new TextBlock { Text = Langue.T("Lecture de la liste…"), FontFamily = Habillage.Corps, FontSize = 14.5, LineHeight = 21, Foreground = Habillage.Pinceau(P.Texte), TextWrapping = TextWrapping.Wrap, VerticalAlignment = VerticalAlignment.Center };
+            carte.Children.Add(resume);
+            bAttendre = new BoutonNoyau("Désactiver ceux qui peuvent attendre", true, 300, 38) { TaillePolice = 14, IsVisible = false, Margin = new Thickness(18, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center };
+            bAttendre.Clic += DesactiverCeuxQuiPeuventAttendre;
+            Grid.SetColumn(bAttendre, 1); carte.Children.Add(bAttendre);
+            Children.Add(new Border { Child = carte, Padding = new Thickness(18, 14), CornerRadius = new CornerRadius(3), Background = Habillage.Pinceau(P.Carte), BorderBrush = Habillage.Pinceau(P.Accent, 90), BorderThickness = new Thickness(1) });
             Children.Add(new TextBlock { Text = "Décoche un programme pour l'empêcher de se lancer avec Windows. Rien n'est supprimé : recoche-le pour le réactiver. Effet au prochain démarrage.", FontFamily = Habillage.Corps, FontSize = 13.5, Foreground = Habillage.Pinceau(P.Discret), TextWrapping = TextWrapping.Wrap });
             tableau = new Tableau(true, false,
-                new Colonne("Programme", "2*"), new Colonne("État", "100"), new Colonne("Emplacement", "1.4*"), new Colonne("Commande", "3*"));
-            tableau.HauteurListe = 460;
+                new Colonne("Programme", "1.5*"), new Colonne("État", "95"),
+                new Colonne("Impact", "80", false, false, o => -Conseil(o).Impact),
+                new Colonne("À faire", "135", false, false, o => -(int)Conseil(o).Choix),
+                new Colonne("Conseil", "3.4*"));
+            tableau.HauteurListe = 420;
             tableau.CaseChangee = Changer;
             Children.Add(new Border { Child = tableau, BorderBrush = Habillage.Pinceau(P.Bordure), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(3), ClipToBounds = true });
-            info = new TextBlock { Text = "Lecture de la liste…", FontFamily = Habillage.Corps, FontSize = 13, Foreground = Habillage.Pinceau(P.Discret) };
+            info = new TextBlock { Text = "", FontFamily = Habillage.Corps, FontSize = 12.5, Foreground = Habillage.Pinceau(P.Discret), TextWrapping = TextWrapping.Wrap };
             var boutons = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 10 };
             var bActu = new BoutonNoyau("Actualiser", false, 110, 32) { TaillePolice = 13 };
             bActu.Clic += Charger;
@@ -102,21 +122,56 @@ namespace NettoyagePC.Nouveau
             AttachedToVisualTree += (s, e) => Charger();
         }
 
+        private static ConseilDemarrage Conseil(object o) { var el = (ElementDemarrage)o; return ConseilsDemarrage.Pour(el.Nom, el.Commande); }
+
         /// <summary>Liste lue en arrière-plan (registre, dossiers de démarrage) : la page reste fluide.</summary>
         private void Charger()
         {
             if (enLecture) return;
             enLecture = true;
-            info.Text = "Lecture de la liste…";
-            Task.Run(() => { try { return ElementsDemarrage.Lister(); } catch { return new List<ElementDemarrage>(); } }).ContinueWith(t => Dispatcher.UIThread.Post(() =>
+            resume.Text = Langue.T("Lecture de la liste…");
+            Task.Run(() => { if (Exemple != null) return Exemple; try { return ElementsDemarrage.Lister(); } catch { return new List<ElementDemarrage>(); } }).ContinueWith(t => Dispatcher.UIThread.Post(() =>
             {
                 enLecture = false;
-                var l = t.Result.OrderBy(x => x.Nom, StringComparer.CurrentCultureIgnoreCase).ToList();
-                tableau.Remplir(l.Cast<object>(), o => { var el = (ElementDemarrage)o; return new[] { el.Nom, el.Actif ? "Activé" : "Désactivé", el.Lieu, el.Commande }; },
-                    o => ((ElementDemarrage)o).Actif, o => !((ElementDemarrage)o).Actif);
-                int actifs = l.Count(x => x.Actif);
-                info.Text = l.Count == 0 ? "Aucun programme au démarrage." : Langue.F("{0} programme(s) se lancent avec Windows, {1} désactivé(s).", actifs, l.Count - actifs);
+                // actifs d'abord, puis ceux qui peuvent attendre, puis par impact
+                liste = t.Result.OrderByDescending(x => x.Actif).ThenByDescending(x => (int)Conseil(x).Choix).ThenByDescending(x => Conseil(x).Impact)
+                    .ThenBy(x => x.Nom, StringComparer.CurrentCultureIgnoreCase).ToList();
+                Afficher();
             }));
+        }
+
+        private void Afficher()
+        {
+            tableau.Remplir(liste.Cast<object>(), o =>
+            {
+                var el = (ElementDemarrage)o; var c = Conseil(o);
+                return new[] { el.Nom, el.Actif ? "Activé" : "Désactivé", c.TexteImpact, c.TexteChoix, c.Conseil };
+            }, o => ((ElementDemarrage)o).Actif, o => !((ElementDemarrage)o).Actif);
+            resume.Text = ConseilsDemarrage.Resume(liste);
+            int n = ConseilsDemarrage.PeuventAttendre(liste).Count;
+            bAttendre.IsVisible = n > 0;
+            bAttendre.Changer(Langue.F("Désactiver ceux qui peuvent attendre ({0})", n));
+            int actifs = liste.Count(x => x.Actif);
+            info.Text = liste.Count == 0 ? "" : Langue.F("{0} programme(s) se lancent avec Windows, {1} désactivé(s).", actifs, liste.Count - actifs)
+                + " " + Langue.T("L'impact est une estimation d'après le type de programme ; l'Analyse du démarrage (Premium) mesure le temps exact.");
+        }
+
+        private void DesactiverCeuxQuiPeuventAttendre()
+        {
+            var cibles = ConseilsDemarrage.PeuventAttendre(liste);
+            if (cibles.Count == 0) return;
+            string noms = string.Join("\n", cibles.Select(e => "•  " + e.Nom));
+            F.Demander(Langue.F("Désactiver {0} programme(s) au démarrage ?", cibles.Count),
+                Langue.T("Ils ne se lanceront plus avec Windows. Rien n'est désinstallé : tu les ouvres toi-même quand tu en as besoin, et tu peux les recocher ici à tout moment.") + "\n\n" + noms,
+                "Désactiver", "Annuler", oui =>
+                {
+                    if (!oui) return;
+                    if (F.Simulation) { F.Statut(Langue.F("Simulation : {0} programme(s) seraient désactivés au démarrage, rien n'est modifié.", cibles.Count)); return; }
+                    int ok = 0;
+                    foreach (var el in cibles) if (Changer(el, false)) ok++;
+                    Afficher();
+                    F.Statut(Langue.F("{0} programme(s) ne se lanceront plus au démarrage (recoche-les pour annuler).", ok));
+                });
         }
 
         private bool Changer(object o, bool actif)

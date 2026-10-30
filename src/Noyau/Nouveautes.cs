@@ -7,6 +7,10 @@ namespace NettoyagePC
     {
         public static readonly List<KeyValuePair<string, string[]>> Liste = new List<KeyValuePair<string, string[]>>
         {
+            N("5.1", "Démarrage plus rapide : chaque programme lancé avec Windows a maintenant un impact estimé et un conseil (à garder, selon ton usage, peut attendre). Un bouton désactive d'un coup ceux qui peuvent attendre, après une question qui les liste. Rien n'est désinstallé.",
+                "Nettoyage plus efficace : restes d'installation des pilotes AMD et NVIDIA (souvent plusieurs Go, optimisation complète), cache et anciens journaux de Steam, anciens journaux d'Epic Games, Discord PTB et Canary.",
+                "« Ce que tu as gagné » : après un nettoyage, l'espace libéré, la note du PC avant et après, et le total libéré depuis le début.",
+                "Gardien (Premium) : une fois par mois au plus, un rappel si le PC a besoin d'un petit entretien (espace à récupérer, disque qui se remplit, programmes au démarrage qui peuvent attendre)."),
             N("5.0.1", "Nettoyage PC s'ouvre directement en mode réel, comme la version 4 : chaque action pose toujours sa question avant de se lancer, et la pastille en haut passe en simulation pour voir ce qui serait fait sans rien modifier.",
                 "Conditions de vente et LISEZMOI : le .NET Framework n'est plus nécessaire."),
             N("5.0", "Nouvelle interface, reconstruite de zéro : plus fluide et plus nette, en thème sombre ou clair, avec les mêmes rubriques. Ctrl+K trouve n'importe quelle action, Ctrl+1 à Ctrl+9 ouvrent les rubriques.",

@@ -1,9 +1,9 @@
-NETTOYAGE PC 5.0.1
-==================
+NETTOYAGE PC 5.1
+================
 
 Installation
 ------------
-1. Double-clique sur « NettoyagePC-Setup-5.0.1.exe ».
+1. Double-clique sur « NettoyagePC-Setup-5.1.exe ».
 2. Windows peut afficher « Windows a protégé votre ordinateur » (SmartScreen) : clique sur
    « Informations complémentaires » puis « Exécuter quand même ». C'est normal pour un programme
    qui n'est pas signé par un éditeur connu.
@@ -13,12 +13,23 @@ Installation
    administrateur (fenêtre « Voulez-vous autoriser... », clique sur Oui) qu'au moment d'une action
    qui touche tout le PC (nettoyage profond, disques, réparation...), et seulement pour elle.
 
-Mise à jour depuis la version 4 (ou 3) : installe simplement la version 5.0.1 par-dessus (ou clique
+Mise à jour depuis la version 4 (ou 3) : installe simplement la version 5.1 par-dessus (ou clique
 sur « Installer maintenant » dans la rubrique Mises à jour). L'historique, les réglages, les
 statistiques, l'entretien automatique et Premium sont conservés.
 
 Désinstaller : Paramètres > Applications > Applications installées > Nettoyage PC > Désinstaller.
 La désinstallation retire aussi l'entretien automatique (tâches planifiées).
+
+Nouveautés de la version 5.1
+----------------------------
+- Démarrage plus rapide : chaque programme lancé avec Windows a un impact estimé et un conseil
+  (à garder, selon ton usage, peut attendre). Un bouton désactive d'un coup ceux qui peuvent
+  attendre, après une question qui les liste. Rien n'est désinstallé.
+- Nettoyage plus efficace : restes d'installation des pilotes AMD et NVIDIA, cache et anciens
+  journaux de Steam, anciens journaux d'Epic Games, Discord PTB et Canary.
+- « Ce que tu as gagné » : après un nettoyage, l'espace libéré, la note du PC avant et après,
+  et le total libéré depuis le début.
+- Gardien (Premium) : un rappel par mois au plus si le PC a besoin d'un petit entretien.
 
 Nouveautés de la version 5.0.1
 ------------------------------

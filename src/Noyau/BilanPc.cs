@@ -13,7 +13,7 @@ namespace NettoyagePC
         public long Corbeille, Temp;
         public DateTime? DernierJournal, Demarre, PointDate, DatePiloteGpu;
         public bool Tache, MpPresent, MpTempsReel, PointConnu, RedemarrageAttente;
-        public int MpAge, NbDemarrage, RamPrevue, RamReelle;
+        public int MpAge, NbDemarrage, NbAttendre, RamPrevue, RamReelle;
         public List<string> Malades = new List<string>(), AutresAv = new List<string>(), PareFeuOff = new List<string>();
         public string NomGpu = "";
         public List<PointPotentiel> Potentiel = new List<PointPotentiel>();
@@ -39,7 +39,9 @@ namespace NettoyagePC
             ulong t, l; Natif.Memoire(out t, out l); d.RamTotal = t; d.RamLibre = l;
             var os = Wmi.Requete("SELECT LastBootUpTime FROM Win32_OperatingSystem").FirstOrDefault();
             if (os != null) d.Demarre = Wmi.Date(os, "LastBootUpTime");
-            d.NbDemarrage = ElementsDemarrage.Lister().Count(x => x.Actif);
+            var demarrage = ElementsDemarrage.Lister();
+            d.NbDemarrage = demarrage.Count(x => x.Actif);
+            try { d.NbAttendre = ConseilsDemarrage.PeuventAttendre(demarrage).Count; } catch { }
             d.Malades = DisquePhysique.Lister(false).Where(x => !x.EnBonneSante).Select(x => x.Nom).ToList();
             var mp = Wmi.Requete("SELECT RealTimeProtectionEnabled, AntivirusSignatureAge FROM MSFT_MpComputerStatus", @"root\Microsoft\Windows\Defender").FirstOrDefault();
             if (mp != null) { d.MpPresent = true; d.MpTempsReel = Wmi.Bool(mp, "RealTimeProtectionEnabled"); d.MpAge = (int)Wmi.Long(mp, "AntivirusSignatureAge"); }
@@ -103,7 +105,8 @@ namespace NettoyagePC
             {
                 Point("attention", "PC non redémarré depuis " + (DateTime.Now - d.Demarre.Value).TotalDays.ToString("0") + " jours : un redémarrage le rendra plus rapide.", "Redémarrer", "code:redemarrer");
             }
-            if (d.NbDemarrage >= 10) { Point("attention", d.NbDemarrage + " programmes se lancent au démarrage : Windows démarre plus lentement.", "Gérer", "page:Demarrage"); }
+            if (d.NbAttendre >= 3) { Point("attention", d.NbDemarrage + " programmes se lancent au démarrage, dont " + d.NbAttendre + " qui peuvent attendre : les désactiver accélère le démarrage.", "Gérer", "page:Demarrage"); }
+            else if (d.NbDemarrage >= 10) { Point("attention", d.NbDemarrage + " programmes se lancent au démarrage : Windows démarre plus lentement.", "Gérer", "page:Demarrage"); }
             else Point("ok", d.NbDemarrage + " programme(s) au démarrage.", "Gérer", "page:Demarrage");
             if (d.Malades.Count > 0) { Point("probleme", "Disque en mauvaise santé : " + string.Join(", ", d.Malades) + ". Sauvegarde tes données.", "Voir les disques", "page:Materiel"); }
             else Point("ok", "Disques en bonne santé.", "Détails", "page:Materiel");

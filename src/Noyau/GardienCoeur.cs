@@ -104,6 +104,7 @@ namespace NettoyagePC
                     if (R.Arnaque) VerifierAccesDistant();
                     if (R.Energie) { if (energie == null) energie = new Energie.Releveur(); energie.Mesurer(); }
                     if (R.Sante && n % 720 == 61) VerifierSante();
+                    if (R.RappelMensuel && n % 120 == 17) VerifierEntretienMensuel();
                     if (n % 360 == 5) Instantanes.PrendreSiBesoin();
                     if (chaleurANoter && n % 30 == 7) { chaleurANoter = false; Sante.EnregistrerTemperature(jourChaleur, chaleurMaxJour); }
                 }
@@ -227,6 +228,41 @@ namespace NettoyagePC
             long libre = d.AvailableFreeSpace;
             string titreD = Langue.F("Disque {0} presque plein", nom), texteD = Langue.F("Il ne reste que {0} ({1} %). Clique pour voir ce qui prend de la place et faire le ménage.", Format.Taille(libre), pct.ToString("0"));
             S.SurUi(() => Notifier(titreD, texteD, 1, () => OuvrirAppli("--page Disques")));
+        }
+
+        /// <summary>
+        /// Une fois par mois : si le PC a besoin d'un petit entretien (pas de nettoyage depuis un mois et de l'espace à
+        /// récupérer, disque qui se remplit, programmes au démarrage qui peuvent attendre), une seule notification le dit.
+        /// Rien n'est lancé : le clic ouvre l'accueil, où chaque action pose sa question.
+        /// </summary>
+        private void VerifierEntretienMensuel()
+        {
+            if (Date("rappelMensuel") == DateTime.MinValue) { Noter("rappelMensuel"); return; }   // premier passage : le mois commence
+            if (!Depuis("rappelMensuel", 24 * 30)) return;
+            Noter("rappelMensuel");
+            var raisons = new List<string>();
+            var g = Gains.Lire();
+            int jours = Gains.JoursDepuisDernier(g);
+            long recuperable = 0;
+            try { long n; recuperable = Natif.TailleCorbeille(out n) + TailleFichiers.Dossier(Path.GetTempPath()); } catch { }
+            if ((jours < 0 || jours >= 30) && recuperable >= 300L * 1048576)
+                raisons.Add(jours < 0 ? Langue.F("{0} récupérables", Format.Taille(recuperable)) : Langue.F("{0} récupérables, dernier nettoyage il y a {1} jours", Format.Taille(recuperable), jours));
+            try
+            {
+                var dq = new DriveInfo(Path.GetPathRoot(Chemins.Windows ?? "C:\\"));
+                double pct = dq.TotalSize > 0 ? 100.0 * dq.AvailableFreeSpace / dq.TotalSize : 100;
+                if (pct < 15) raisons.Add(Langue.F("disque {0} rempli à {1} %", dq.Name.TrimEnd('\\'), (100 - pct).ToString("0")));
+            }
+            catch { }
+            try
+            {
+                int attendre = ConseilsDemarrage.PeuventAttendre(ElementsDemarrage.Lister()).Count;
+                if (attendre >= 3) raisons.Add(Langue.F("{0} programmes au démarrage peuvent attendre", attendre));
+            }
+            catch { }
+            if (raisons.Count == 0) return;
+            string texte = Langue.T("Ce mois-ci :") + " " + string.Join(" ; ", raisons) + ". " + Langue.T("Clique pour voir le bilan : chaque action te demande ton accord avant de se lancer.");
+            S.SurUi(() => Notifier("Petit entretien du mois", texte, 0, () => OuvrirAppli("--page Accueil")));
         }
 
         private void VerifierAntivirus()

@@ -271,12 +271,15 @@ namespace NettoyagePC.Nouveau
             {
                 MontrerPanneauAction();
                 Statut((simulation ? "Simulation : " : "En cours : ") + a.Titre + "…");
+                int noteAvant = Bilan != null ? Bilan.Score : -1;
+                DateTime debut = DateTime.Now;
                 Action fini = null;
                 fini = () =>
                 {
                     Moteur.Fini -= fini;
                     Statut((Moteur.Arrete ? "Arrêtée : " : "Terminé : ") + Moteur.Titre + " (" + DateTime.Now.ToString("HH:mm") + ")");
                     if (apres != null) { try { apres(); } catch (Exception ex) { JournalDemarrage.Erreur("après l'action (version 5)", ex); } }
+                    if (!simulation && !Moteur.Arrete && (cle == "standard" || cle == "complet")) ResumerGains(noteAvant, debut);
                     if (!simulation) ActualiserBilan();
                     if (cle == "planifier" || cle == "deplanifier") { PageReglages5.EntretienActif = null; if (PageActive == "Reglages") Afficher("Reglages", false); }
                 };
@@ -292,6 +295,30 @@ namespace NettoyagePC.Nouveau
             string conf = confirmation ?? a.Confirmer;
             if (simulation || conf == null) { partir(); return; }
             DemanderConfirmation(conf, oui => { if (oui) partir(); else Statut("Annulé : rien n'a été modifié."); });
+        }
+
+        /// <summary>« Ce que tu as gagné » après un nettoyage réel : attend le nouveau bilan pour la note après.</summary>
+        private void ResumerGains(int noteAvant, DateTime debut)
+        {
+            Action<Bilan> pret = null;
+            pret = b =>
+            {
+                BilanPret -= pret;
+                System.Threading.Tasks.Task.Run(() =>
+                {
+                    var g = Gains5.Exemple ?? Gains.Lire();
+                    int attendre = 0;
+                    try { attendre = ConseilsDemarrage.PeuventAttendre(ElementsDemarrage.Lister()).Count; } catch { }
+                    return Tuple.Create(g, attendre);
+                }).ContinueWith(t => Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                {
+                    var g = t.Result.Item1;
+                    // seulement si le moteur a bien noté ce nettoyage (statistiques.csv) pendant cette action
+                    if (Gains5.Exemple == null && (!g.Dernier.HasValue || g.Dernier.Value < debut.AddMinutes(-1))) return;
+                    try { Gains5.Montrer(this, g, noteAvant, b != null ? b.Score : -1, t.Result.Item2); } catch (Exception ex) { JournalDemarrage.Erreur("résumé des gains (version 5)", ex); }
+                }));
+            };
+            BilanPret += pret;
         }
 
         /// <summary>Question d'une action du moteur (texte de la version 4 : première ligne = question, le reste = explication),

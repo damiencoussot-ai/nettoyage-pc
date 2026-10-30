@@ -183,7 +183,7 @@ namespace NettoyagePC
         private void Nettoyer()
         {
             string la = Chemins.LocalAppData, ad = Chemins.AppData, pd = Env("ProgramData"), win = Chemins.Windows;
-            var ouvertes = new[] { "chrome", "msedge", "brave", "firefox", "opera", "vivaldi", "discord", "slack", "Teams", "Code" }
+            var ouvertes = new[] { "chrome", "msedge", "brave", "firefox", "opera", "vivaldi", "discord", "slack", "Teams", "Code", "steam", "EpicGamesLauncher" }
                 .Where(n => { try { return Process.GetProcessesByName(n).Length > 0; } catch { return false; } }).ToList();
             if (ouvertes.Count > 0)
             {
@@ -220,6 +220,11 @@ namespace NettoyagePC
                 AjouterCible("Windows", "Mini-dumps de plantage", Path.Combine(win, "Minidump"), 0);
                 AjouterCible("Windows", "Dump mémoire complet", win, 0, false, "MEMORY.DMP");
                 AjouterCible("Windows", "Journaux CBS de plus de 30 jours", Path.Combine(win, @"Logs\CBS"), 30, false, "*.log");
+                // programmes d'installation des pilotes déjà décompressés par AMD et NVIDIA (souvent plusieurs Go) : ils ne servent plus
+                // une fois le pilote installé (le prochain pilote se télécharge en entier de toute façon)
+                string racine = Path.GetPathRoot(win);
+                AjouterCible("Windows", "Restes d'installation des pilotes AMD (C:\\AMD)", Path.Combine(racine, "AMD"), 7, true);
+                AjouterCible("Windows", "Restes d'installation des pilotes NVIDIA", Path.Combine(racine, @"NVIDIA\DisplayDriver"), 7, true);
             }
             else Ecrire("  (Temporaires système, mini-dumps et anciens journaux ignorés : choisis le nettoyage COMPLET pour les inclure)");
             totalWindows = TraiterCibles("Windows");
@@ -272,6 +277,8 @@ namespace NettoyagePC
             {
                 new { Nom = "Teams (classique)", Racine = Path.Combine(ad, @"Microsoft\Teams"), Sous = new[] { "Cache", "Code Cache", "GPUCache", "tmp" } },
                 new { Nom = "Discord", Racine = Path.Combine(ad, "discord"), Sous = new[] { "Cache", "Code Cache", "GPUCache" } },
+                new { Nom = "Discord PTB", Racine = Path.Combine(ad, "discordptb"), Sous = new[] { "Cache", "Code Cache", "GPUCache" } },
+                new { Nom = "Discord Canary", Racine = Path.Combine(ad, "discordcanary"), Sous = new[] { "Cache", "Code Cache", "GPUCache" } },
                 new { Nom = "Slack", Racine = Path.Combine(ad, "Slack"), Sous = new[] { "Cache", "Code Cache", "GPUCache", @"Service Worker\CacheStorage" } },
                 new { Nom = "Visual Studio Code", Racine = Path.Combine(ad, "Code"), Sous = new[] { "Cache", "CachedData", "Code Cache", "GPUCache", "logs" } }
             })
@@ -291,6 +298,16 @@ namespace NettoyagePC
             AjouterCible("Applications", "Epic Games - cache web", Path.Combine(la, @"EpicGamesLauncher\Saved\webcache"), 0);
             AjouterCible("Applications", "Epic Games - cache web 4430", Path.Combine(la, @"EpicGamesLauncher\Saved\webcache_4430"), 0);
             AjouterCible("Applications", "Epic Games - cache web 4147", Path.Combine(la, @"EpicGamesLauncher\Saved\webcache_4147"), 0);
+            AjouterCible("Applications", "Epic Games - journaux de plus de 7 jours", Path.Combine(la, @"EpicGamesLauncher\Saved\Logs"), 7);
+            // Steam (dossier d'installation) : cache web, journaux anciens, rapports de plantage. Jamais les jeux ni leurs sauvegardes.
+            string steam = "";
+            try { steam = (Registre.Texte(@"HKCU\Software\Valve\Steam", "SteamPath") ?? "").Replace('/', '\\'); } catch { }
+            if (steam != "" && Directory.Exists(steam))
+            {
+                AjouterCible("Applications", "Steam - cache des pages", Path.Combine(steam, @"appcache\httpcache"), 0);
+                AjouterCible("Applications", "Steam - journaux de plus de 7 jours", Path.Combine(steam, "logs"), 7);
+                AjouterCible("Applications", "Steam - rapports de plantage", Path.Combine(steam, "dumps"), 0);
+            }
             if (Admin) AjouterCible("Applications", "Battle.net - cache", Path.Combine(pd, @"Battle.net\Agent\data\cache"), 0);
             AjouterCible("Applications", "Zoom - journaux", Path.Combine(ad, @"Zoom\logs"), 7);
             AjouterCible("Applications", "Adobe - cache média", Path.Combine(ad, @"Adobe\Common\Media Cache Files"), 30);
