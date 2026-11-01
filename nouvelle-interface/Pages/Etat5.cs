@@ -42,6 +42,7 @@ namespace NettoyagePC.Nouveau
         private static List<EtatFonction> AvecMode(FenetrePrincipale f)
         {
             var l = new List<EtatFonction>();
+            if (Exemple != null) { dernier = Exemple; dateDernier = DateTime.Now; }
             if (dernier == null) return l;
             l.Add(new EtatFonction { Id = "mode", Nom = f.Simulation ? "Mode simulation" : "Mode réel", Groupe = EtatFonctions.Application, Actif = !f.Simulation,
                 Detail = Langue.T(f.Simulation ? "Rien n'est modifié : chaque action montre ce qu'elle ferait." : "Chaque action te demande ton accord avant de se lancer.") });
