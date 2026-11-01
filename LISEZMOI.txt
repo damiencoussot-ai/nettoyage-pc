@@ -1,9 +1,9 @@
-NETTOYAGE PC 5.1.1
-==================
+NETTOYAGE PC 5.2
+================
 
 Installation
 ------------
-1. Double-clique sur « NettoyagePC-Setup-5.1.1.exe ».
+1. Double-clique sur « NettoyagePC-Setup-5.2.exe ».
 2. Windows peut afficher « Windows a protégé votre ordinateur » (SmartScreen) : clique sur
    « Informations complémentaires » puis « Exécuter quand même ». C'est normal pour un programme
    qui n'est pas signé par un éditeur connu.
@@ -13,12 +13,21 @@ Installation
    administrateur (fenêtre « Voulez-vous autoriser... », clique sur Oui) qu'au moment d'une action
    qui touche tout le PC (nettoyage profond, disques, réparation...), et seulement pour elle.
 
-Mise à jour depuis la version 4 (ou 3) : installe simplement la version 5.1.1 par-dessus (ou clique
+Mise à jour depuis la version 4 (ou 3) : installe simplement la version 5.2 par-dessus (ou clique
 sur « Installer maintenant » dans la rubrique Mises à jour). L'historique, les réglages, les
 statistiques, l'entretien automatique et Premium sont conservés.
 
 Désinstaller : Paramètres > Applications > Applications installées > Nettoyage PC > Désinstaller.
 La désinstallation retire aussi l'entretien automatique (tâches planifiées).
+
+Nouveautés de la version 5.2 (outils Premium)
+---------------------------------------------
+- Mode jeu automatique : quand un jeu se lance, le PC passe en mode performances et OneDrive
+  peut se mettre en pause ; quand le jeu se ferme, tout revient comme avant.
+- Mises à jour automatiques des applications : chaque mercredi, par winget, sauf celles exclues.
+- Photos en double et presque identiques : la meilleure est gardée, les autres à la Corbeille.
+- Bulletin mensuel du PC : une page à garder, imprimer ou envoyer à un proche.
+- Surveillance du réseau : alerte pour un appareil inconnu sur la box, applications connectées.
 
 Nouveautés de la version 5.1.1
 ------------------------------

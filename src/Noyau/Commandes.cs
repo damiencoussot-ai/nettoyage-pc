@@ -18,7 +18,7 @@ namespace NettoyagePC
         public string Page, Ouvrir, Action, Question;
         public bool Vide { get { return Page == null && Ouvrir == null && Action == null && Question == null; } }
 
-        public static readonly string[] Outils = { "gardien", "bouclier", "assistant", "enqueteur", "sante", "energie", "fps" };
+        public static readonly string[] Outils = { "gardien", "bouclier", "assistant", "enqueteur", "sante", "energie", "fps", "modejeu", "majapps", "photos", "bulletin", "reseau" };
         private const string NomSignal = @"Local\NettoyagePC-Commande";
         private static string Fichier { get { return Path.Combine(Chemins.Local, "commande.json"); } }
 

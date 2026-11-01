@@ -442,6 +442,72 @@ namespace NettoyagePC.Nouveau
             }
             catch (Exception ex) { Batterie5.Exemple = null; Sante5.Exemple = null; Energie5.Exemple = null; Gardien5.Exemple = null; Enqueteur5.Exemple = null; Benchmark5.Exemple = null; Assistant5.Essai = false; erreurs++; rapport.AppendLine("ERREUR : outils Premium : " + ex); }
 
+            // outils Premium de la 5.2, avec des données d'exemple (rien n'est lu ni modifié)
+            try
+            {
+                Gardien5.Exemple = new ReglagesGardien { Actif = true };
+                var maintenant = new DateTime(2026, 10, 30, 21, 40, 0);
+                ModeJeu5.Exemple = new System.Collections.Generic.List<SessionJeu>
+                {
+                    new SessionJeu { Jeu = "Cyberpunk 2077", Debut = maintenant.AddHours(-2.3), Fin = maintenant, Performances = true, OneDrive = true },
+                    new SessionJeu { Jeu = "Counter-Strike 2", Debut = maintenant.AddDays(-1).AddHours(-1.1), Fin = maintenant.AddDays(-1), Performances = true, OneDrive = true },
+                    new SessionJeu { Jeu = "Fortnite", Debut = maintenant.AddDays(-2).AddMinutes(-48), Fin = maintenant.AddDays(-2), Performances = true },
+                };
+                ModeJeu5.Ouvrir(f);
+                Capturer(f, dossier, "sombre-modejeu.png", rapport, ref erreurs);
+                f.ViderCalques(); ModeJeu5.Exemple = null;
+
+                MajApps5.Exemple = new System.Collections.Generic.List<AppAMettreAJour>
+                {
+                    new AppAMettreAJour { Nom = "Google Chrome", Id = "Google.Chrome", Version = "141.0.7390.66", Disponible = "142.0.7444.60" },
+                    new AppAMettreAJour { Nom = "Discord", Id = "Discord.Discord", Version = "1.0.9208", Disponible = "1.0.9265" },
+                    new AppAMettreAJour { Nom = "VLC media player", Id = "VideoLAN.VLC", Version = "3.0.20", Disponible = "3.0.21" },
+                    new AppAMettreAJour { Nom = "7-Zip 24.08 (x64)", Id = "7zip.7zip", Version = "24.08", Disponible = "25.01" },
+                    new AppAMettreAJour { Nom = "OBS Studio", Id = "OBSProject.OBSStudio", Version = "31.1.2", Disponible = "32.0.1", Exclue = true },
+                };
+                MajApps5.Ouvrir(f);
+                for (int k = 0; k < 10; k++) { Dispatcher.UIThread.RunJobs(); System.Threading.Thread.Sleep(30); }
+                Capturer(f, dossier, "sombre-majapps.png", rapport, ref erreurs);
+                f.ViderCalques(); MajApps5.Exemple = null;
+
+                Func<string, int, int, long, int, PhotoSimilaire> ph = (nom, w, h, o, jours) => new PhotoSimilaire { Chemin = @"C:\Users\Camille\Pictures\Vacances 2026\" + nom, Largeur = w, Hauteur = h, Taille = o, Modif = maintenant.AddDays(-jours) };
+                var g1 = new GroupePhotos { Photos = { ph("IMG_2041.jpg", 4032, 3024, 3900000, 90), ph("IMG_2041 (1).jpg", 4032, 3024, 3900000, 60), ph("IMG_2041-whatsapp.jpg", 1600, 1200, 310000, 59) }, Identiques = false };
+                var g2 = new GroupePhotos { Photos = { ph("IMG_2052.jpg", 4032, 3024, 4100000, 88), ph("IMG_2053.jpg", 4032, 3024, 4050000, 88), ph("IMG_2054.jpg", 4032, 3024, 4080000, 88) } };
+                var g3 = new GroupePhotos { Photos = { ph("plage.png", 1920, 1440, 5200000, 80), ph("plage - copie.png", 1920, 1440, 5200000, 30) }, Identiques = true };
+                foreach (var g in new[] { g1, g2, g3 }) PhotosSimilaires.Proposer(g);
+                Photos5.Exemple = new System.Collections.Generic.List<GroupePhotos> { g1, g2, g3 };
+                Photos5.Ouvrir(f);
+                Capturer(f, dossier, "sombre-photos.png", rapport, ref erreurs);
+                f.ViderCalques(); Photos5.Exemple = null;
+
+                Bulletin5.Exemple = new System.Collections.Generic.List<string> { "octobre 2026", "septembre 2026", "août 2026" };
+                Bulletin5.Ouvrir(f);
+                Capturer(f, dossier, "sombre-bulletin.png", rapport, ref erreurs);
+                f.ViderCalques(); Bulletin5.Exemple = null;
+
+                ReseauPremium5.ExempleAppareils = new System.Collections.Generic.List<AppareilReseau>
+                {
+                    new AppareilReseau { Ip = "192.168.1.254", Mac = "A4:3E:51:0C:22:10", Nom = "livebox", Box = true, Connu = true, Premier = maintenant.AddDays(-40) },
+                    new AppareilReseau { Ip = "192.168.1.20", Mac = "D8:BB:C1:5A:90:E2", Nom = "PC-CAMILLE", CePc = true, Connu = true, Premier = maintenant.AddDays(-40) },
+                    new AppareilReseau { Ip = "192.168.1.31", Mac = "F2:6C:3A:91:7B:04", Surnom = "Téléphone de Camille", Connu = true, Premier = maintenant.AddDays(-38) },
+                    new AppareilReseau { Ip = "192.168.1.42", Mac = "7C:2E:BD:11:4F:9A", Nom = "Chromecast", Connu = true, Premier = maintenant.AddDays(-20) },
+                    new AppareilReseau { Ip = "192.168.1.57", Mac = "3A:91:0F:C4:68:B2", Connu = false, Premier = maintenant.AddMinutes(-12) },
+                };
+                ReseauPremium5.ExempleApps = new System.Collections.Generic.List<AppConnectee>
+                {
+                    new AppConnectee { Processus = "chrome", Connexions = 23, Adresses = { "142.250.75.238", "151.101.1.140", "104.18.32.7" } },
+                    new AppConnectee { Processus = "Discord", Connexions = 6, Adresses = { "162.159.135.234", "162.159.130.233" } },
+                    new AppConnectee { Processus = "steam", Connexions = 4, Adresses = { "23.33.67.12", "155.133.252.38" } },
+                    new AppConnectee { Processus = "OneDrive", Connexions = 2, Adresses = { "13.107.42.12" } },
+                };
+                ReseauPremium5.Ouvrir(f);
+                for (int k = 0; k < 10; k++) { Dispatcher.UIThread.RunJobs(); System.Threading.Thread.Sleep(30); }
+                Capturer(f, dossier, "sombre-reseau-premium.png", rapport, ref erreurs);
+                f.ViderCalques(); ReseauPremium5.ExempleAppareils = null; ReseauPremium5.ExempleApps = null;
+                Gardien5.Exemple = null;
+            }
+            catch (Exception ex) { ModeJeu5.Exemple = null; MajApps5.Exemple = null; Photos5.Exemple = null; Bulletin5.Exemple = null; ReseauPremium5.ExempleAppareils = null; ReseauPremium5.ExempleApps = null; Gardien5.Exemple = null; erreurs++; rapport.AppendLine("ERREUR : outils Premium 5.2 : " + ex); }
+
             // analyses des plantages et du démarrage avec des résultats d'exemple (rien n'est lancé)
             try
             {

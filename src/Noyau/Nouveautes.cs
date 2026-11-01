@@ -7,6 +7,11 @@ namespace NettoyagePC
     {
         public static readonly List<KeyValuePair<string, string[]>> Liste = new List<KeyValuePair<string, string[]>>
         {
+            N("5.2", "Mode jeu automatique (Premium) : quand un jeu se lance, le PC passe en mode performances et OneDrive peut se mettre en pause ; quand le jeu se ferme, tout revient comme avant.",
+                "Mises à jour automatiques des applications (Premium) : chaque mercredi, winget met à jour tes applications, sauf celles que tu exclues.",
+                "Photos en double et presque identiques (Premium) : rafales, copies redimensionnées, photos retouchées. La meilleure est gardée, les autres vont à la Corbeille si tu le confirmes.",
+                "Bulletin mensuel du PC (Premium) : note, espace gagné, démarrage, températures et santé du matériel, sur une page à garder ou à imprimer.",
+                "Surveillance du réseau (Premium) : alerte quand un appareil inconnu se connecte à ta box, et liste des applications connectées à Internet."),
             N("5.1.1", "À l'ouverture, Nettoyage PC propose directement la nouvelle version quand il y en a une (« Installer maintenant » ou « Plus tard »), et montre les nouveautés juste après une mise à jour."),
             N("5.1", "Démarrage plus rapide : chaque programme lancé avec Windows a maintenant un impact estimé et un conseil (à garder, selon ton usage, peut attendre). Un bouton désactive d'un coup ceux qui peuvent attendre, après une question qui les liste. Rien n'est désinstallé.",
                 "Nettoyage plus efficace : restes d'installation des pilotes AMD et NVIDIA (souvent plusieurs Go, optimisation complète), cache et anciens journaux de Steam, anciens journaux d'Epic Games, Discord PTB et Canary.",

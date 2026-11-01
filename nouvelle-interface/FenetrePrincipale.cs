@@ -164,14 +164,16 @@ namespace NettoyagePC.Nouveau
             }
             // comme la version 4 : les actions qui ont besoin d'options (destination, mises à jour choisies...) ou de leur
             // propre fenêtre ne se lancent pas directement d'ici
-            var exclues = new HashSet<string> { "sauvegarde", "majwin", "finmodejeu", "analyselite", "deplanifier", "pilotes", "santedisques", "demarrage", "kit", "plantages" };
+            var exclues = new HashSet<string> { "sauvegarde", "majwin", "finmodejeu", "analyselite", "deplanifier", "pilotes", "santedisques", "demarrage", "kit", "plantages", "planifierapps", "deplanifierapps" };
             foreach (var a in Actions.Values.Where(x => !exclues.Contains(x.Cle)))
             {
                 var aa = a;
                 l.Add(new EntreeCommande { Titre = a.Titre, Detail = Simulation && a.Simu ? Langue.T("en simulation : rien n'est modifié") : a.SansAdmin ? "" : Langue.T("demande l'autorisation de Windows"), Type = "Action", Faire = () => LancerAction(aa.Cle) });
             }
             foreach (var o in new[] { new[] { "plantages", "Analyse des plantages" }, new[] { "demarrage", "Analyse du démarrage" }, new[] { "enqueteur", "Pourquoi mon PC ralentit ?" }, new[] { "sante", "Santé prédictive" },
-                new[] { "fps", "Preuve en FPS" }, new[] { "energie", "Coût en électricité" }, new[] { "gardien", "Gardien en temps réel" }, new[] { "assistant", "Assistant local" }, new[] { "benchmark", "Mesure des performances" }, new[] { "batterie", "Santé de la batterie" } })
+                new[] { "fps", "Preuve en FPS" }, new[] { "energie", "Coût en électricité" }, new[] { "gardien", "Gardien en temps réel" }, new[] { "assistant", "Assistant local" }, new[] { "benchmark", "Mesure des performances" }, new[] { "batterie", "Santé de la batterie" },
+                new[] { "modejeu", "Mode jeu automatique" }, new[] { "majapps", "Mises à jour automatiques des applications" }, new[] { "photos", "Photos en double et presque identiques" },
+                new[] { "bulletin", "Bulletin mensuel du PC" }, new[] { "reseau", "Surveillance du réseau" } })
             {
                 string cle = o[0];
                 l.Add(new EntreeCommande { Titre = Langue.T(o[1]), Detail = Licence.Premium ? Langue.T("Premium") : Langue.T("Premium (essai gratuit 7 jours)"), Type = "Outil", Faire = () => OuvrirOutil(cle) });
@@ -259,7 +261,7 @@ namespace NettoyagePC.Nouveau
                 return;
             }
             // aperçu : les tâches planifiées pointeraient vers ce fichier d'aperçu (qui peut être déplacé ou supprimé)
-            if (Installation5.Apercu && (cle == "planifier" || cle == "deplanifier"))
+            if (Installation5.Apercu && (cle == "planifier" || cle == "deplanifier" || cle == "planifierapps" || cle == "deplanifierapps"))
             {
                 Demander(a.Titre, "Dans cet aperçu de la version 5, l'entretien automatique se règle depuis la version 4 installée (Réglages > Entretien automatique) : les tâches de Windows doivent pointer vers le programme installé, pas vers ce fichier d'aperçu.", "Compris", null, r => { });
                 return;
@@ -365,6 +367,8 @@ namespace NettoyagePC.Nouveau
                 { "gardien", () => Gardien5.Ouvrir(this) }, { "sauvegardeauto", () => Gardien5.Ouvrir(this) }, { "enqueteur", () => Enqueteur5.Ouvrir(this) },
                 { "fps", () => Fps5.Ouvrir(this) }, { "plantages", () => Plantages5.Ouvrir(this) }, { "demarrage", () => Demarrage5.Ouvrir(this) },
                 { "assistant", () => Assistant5.Ouvrir(this) }, { "benchmark", () => Benchmark5.Ouvrir(this) },
+                { "modejeu", () => ModeJeu5.Ouvrir(this) }, { "majapps", () => MajApps5.Ouvrir(this) }, { "photos", () => Photos5.Ouvrir(this) },
+                { "bulletin", () => Bulletin5.Ouvrir(this) }, { "reseau", () => ReseauPremium5.Ouvrir(this) },
             };
             // le bouclier anti-arnaque est gratuit
             if (cle == "bouclier") { Bouclier5.Ouvrir(this); return true; }

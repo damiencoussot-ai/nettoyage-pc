@@ -1,0 +1,16 @@
+Nettoyage PC 5.2
+
+Cinq nouveaux outils Premium :
+- Mode jeu automatique : quand un jeu se lance (Steam, Epic, Xbox, Riot...), le PC passe en mode
+  « Performances élevées » et OneDrive peut se mettre en pause ; quand le jeu se ferme, tout revient
+  comme avant, tout seul.
+- Mises à jour automatiques des applications : chaque mercredi à 19h, winget (l'outil officiel de
+  Microsoft) met à jour tes applications, sauf celles que tu exclues.
+- Photos en double et presque identiques : rafales, copies redimensionnées, photos retouchées. La
+  meilleure est gardée, les autres vont à la Corbeille si tu le confirmes.
+- Bulletin mensuel du PC : note, espace gagné, démarrage, températures et santé du matériel, sur une
+  page à garder, imprimer ou envoyer à un proche.
+- Surveillance du réseau : alerte quand un appareil inconnu se connecte à ta box, et liste des
+  applications connectées à Internet en ce moment.
+
+SHA256 de NettoyagePC-Setup-5.2.exe : voir le fichier NettoyagePC-Setup-5.2.sha256

@@ -55,6 +55,8 @@ namespace NettoyagePC
             act("compat", "Compatibilité de ce PC", "--compat", false, true, null, null);
             act("planifier", "Planification", "--planifier", false, false, "Activer l'entretien automatique ?\n\n- Nettoyage rapide : chaque dimanche à 10h\n- Optimisation complète : toutes les 4 semaines, le dimanche à 11h\n- Surveillance des disques : chaque jour\n\nNe déplace plus le dossier de l'application ensuite.", null);
             act("deplanifier", "Suppression de la planification", "--deplanifier", false, false, null, null);
+            act("planifierapps", "Mises à jour automatiques des applications", "--planifier-apps", false, false, "Activer les mises à jour automatiques des applications ?\n\nChaque mercredi à 19h, winget (l'outil officiel de Microsoft) met à jour tes applications, sauf celles que tu as exclues. Si le PC est éteint, elles se font dès qu'il est allumé.", "winget");
+            act("deplanifierapps", "Arrêt des mises à jour automatiques des applications", "--deplanifier-apps", false, false, null, null);
             act("optim", "Bilan d'optimisation", "--optimiser --seul", false, false, null, null);
             act("perf", "Mode performances", "--mode-alim Performances --seul", true, false, "Activer le mode « Performances élevées » ?\n\nPlus réactif, consommation un peu plus élevée (autonomie réduite sur portable). Réversible avec « Mode équilibré ».", null);
             act("equilibre", "Mode équilibré", "--mode-alim Equilibre --seul", true, false, null, null);

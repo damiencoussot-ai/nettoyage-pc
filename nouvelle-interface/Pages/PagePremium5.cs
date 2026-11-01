@@ -47,6 +47,11 @@ namespace NettoyagePC.Nouveau
                 Outil("Analyse du démarrage", "Combien de temps met ton PC à démarrer, et qui le ralentit : le pilote, le service ou le programme précis, sur les 90 derniers jours.", "Analyser", null, () => Demarrage5.Ouvrir(F)),
                 Outil("Mesure des performances", "Processeur, mémoire vive et disque mesurés en chiffres. Compare avant / après un réglage (EXPO, pilote, nettoyage) pour voir le vrai gain.", "Mesurer", null, () => Benchmark5.Ouvrir(F)),
                 Outil("Kit de réinstallation", "Avant de réinstaller Windows ou de changer de PC : tes applications (réinstallées d'un coup), tes pilotes et tes réseaux Wi-Fi, avec un script qui remet tout en place.", "Préparer le kit", "kit"),
+                Outil("Mode jeu automatique", "Quand un jeu se lance, le PC passe en mode performances et OneDrive se met en pause. Quand le jeu se ferme, tout revient comme avant, tout seul.", "Régler", null, () => ModeJeu5.Ouvrir(F)),
+                Outil("Mises à jour automatiques", "Chaque semaine, tes applications se mettent à jour par winget, l'outil officiel de Microsoft (souvent des correctifs de sécurité). Tu choisis celles à exclure.", "Régler", null, () => MajApps5.Ouvrir(F)),
+                Outil("Photos en double", "Rafales, copies redimensionnées, photos un peu retouchées : Nettoyage PC garde la meilleure et propose les autres pour la Corbeille.", "Rechercher", null, () => Photos5.Ouvrir(F)),
+                Outil("Bulletin mensuel du PC", "Chaque mois, une page claire : note, espace gagné, démarrage, températures, santé du matériel. À garder, imprimer ou envoyer à un proche.", "Voir", null, () => Bulletin5.Ouvrir(F)),
+                Outil("Surveillance du réseau", "Alerte quand un appareil inconnu se connecte à ta box, et liste des applications connectées à Internet en ce moment.", "Surveiller", null, () => ReseauPremium5.Ouvrir(F)),
                 Outil("Santé de la batterie", "Pour les portables : usure de la batterie, nombre de cycles, autonomie réelle comparée à celle d'origine, et conseils pour la faire durer.", "Vérifier", null, () => Batterie5.Ouvrir(F)),
             };
             Children.Add(Titre(Langue.F("{0} outils de pro, débloqués d'un coup", outils.Count)));

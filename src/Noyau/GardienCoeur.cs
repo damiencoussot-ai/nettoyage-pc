@@ -105,6 +105,9 @@ namespace NettoyagePC
                     if (R.Energie) { if (energie == null) energie = new Energie.Releveur(); energie.Mesurer(); }
                     if (R.Sante && n % 720 == 61) VerifierSante();
                     if (R.RappelMensuel && n % 120 == 17) VerifierEntretienMensuel();
+                    if (R.ModeJeuAuto || ModeJeuAuto.Actif) VerifierModeJeu();
+                    if (R.Bulletin && n % 120 == 47) VerifierBulletin();
+                    if (R.NouveauxAppareils && n % 30 == 23) VerifierAppareils();
                     if (n % 360 == 5) Instantanes.PrendreSiBesoin();
                     if (chaleurANoter && n % 30 == 7) { chaleurANoter = false; Sante.EnregistrerTemperature(jourChaleur, chaleurMaxJour); }
                 }
@@ -263,6 +266,58 @@ namespace NettoyagePC
             if (raisons.Count == 0) return;
             string texte = Langue.T("Ce mois-ci :") + " " + string.Join(" ; ", raisons) + ". " + Langue.T("Clique pour voir le bilan : chaque action te demande ton accord avant de se lancer.");
             S.SurUi(() => Notifier("Petit entretien du mois", texte, 0, () => OuvrirAppli("--page Accueil")));
+        }
+
+        // ------------------------------------------------------------ Mode jeu automatique
+        private int sansJeu;
+
+        private void VerifierModeJeu()
+        {
+            string jeu = R.ModeJeuAuto ? ModeJeuAuto.JeuEnCours() : null;
+            if (jeu != null)
+            {
+                sansJeu = 0;
+                if (ModeJeuAuto.Actif) return;
+                string fait = ModeJeuAuto.Demarrer(jeu, R.PauseOneDrive);
+                string texte = fait != "" ? Langue.F("Pour « {0} » : {1}. Tout revient comme avant quand tu fermes le jeu.", jeu, fait)
+                    : Langue.F("Pour « {0} ». Ton PC est déjà en mode performances : rien à changer. Tout revient comme avant quand tu fermes le jeu.", jeu);
+                S.SurUi(() => Notifier("Mode jeu activé", texte, 0, () => OuvrirAppli("--ouvrir modejeu")));
+                return;
+            }
+            if (!ModeJeuAuto.Actif) return;
+            // le jeu doit être fermé depuis 2 minutes (chargements, changement de fenêtre)
+            if (R.ModeJeuAuto && ++sansJeu < 2) return;
+            sansJeu = 0;
+            var s = ModeJeuAuto.Terminer();
+            if (s != null && s.Duree.TotalMinutes >= 1)
+                S.SurUi(() => Notifier("Mode jeu terminé", Langue.F("{0} de jeu sur « {1} ». Ton PC est revenu comme avant.", ModeJeuAuto.TexteDuree(s.Duree), s.Jeu), 0, null));
+        }
+
+        // ------------------------------------------------------------ Bulletin mensuel
+        private void VerifierBulletin()
+        {
+            // les premiers jours du mois : le bulletin du mois précédent, une seule fois
+            var precedent = DateTime.Now.AddMonths(-1);
+            precedent = new DateTime(precedent.Year, precedent.Month, 1);
+            if (File.Exists(Bulletin.Fichier(precedent))) return;
+            if (Date("bulletin") != DateTime.MinValue && Date("bulletin") >= new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1)) return;
+            Noter("bulletin");
+            string f;
+            try { f = Bulletin.Creer(precedent); } catch (Exception ex) { JournalDemarrage.Erreur("bulletin mensuel", ex); return; }
+            string mois = precedent.ToString("MMMM", Langue.Culture);
+            S.SurUi(() => Notifier(Langue.F("Ton bulletin de {0} est prêt", mois), "Note du PC, espace gagné, démarrage, températures et santé du mois. Clique pour l'ouvrir (il est aussi dans Documents\\NettoyagePC\\Bulletins).", 0, () => Programmes.Ouvrir(f)));
+        }
+
+        // ------------------------------------------------------------ Nouveaux appareils sur le réseau
+        private void VerifierAppareils()
+        {
+            List<AppareilReseau> tous, nouveaux;
+            try { nouveaux = SurveillanceReseau.MettreAJour(out tous); } catch { return; }
+            if (nouveaux.Count == 0) return;
+            string noms = string.Join(", ", nouveaux.Take(3).Select(a => a.Libelle + " (" + a.Ip + ")")) + (nouveaux.Count > 3 ? "..." : "");
+            string titre = nouveaux.Count == 1 ? Langue.T("Nouvel appareil sur ton réseau") : Langue.F("{0} nouveaux appareils sur ton réseau", nouveaux.Count);
+            string texte = Langue.F("{0}. Si tu ne le reconnais pas (téléphone d'un invité, objet connecté...), change le mot de passe du Wi-Fi de ta box. Clique pour voir la liste.", noms);
+            S.SurUi(() => Notifier(titre, texte, 1, () => OuvrirAppli("--ouvrir reseau")));
         }
 
         private void VerifierAntivirus()

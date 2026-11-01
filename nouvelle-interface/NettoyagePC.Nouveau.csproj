@@ -10,7 +10,7 @@
     <AssemblyName>NettoyagePC</AssemblyName>
     <RootNamespace>NettoyagePC.Nouveau</RootNamespace>
     <ApplicationIcon>Assets\NettoyagePC.ico</ApplicationIcon>
-    <Version>5.1.1</Version>
+    <Version>5.2.0</Version>
     <InformationalVersion>5.0-apercu</InformationalVersion>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
@@ -39,6 +39,7 @@
     <PackageReference Include="Avalonia.Headless" Version="11.3.0" />
     <!-- pour le moteur : WMI, services, journaux d'événements, compteurs de performance, protection des données de licence -->
     <PackageReference Include="System.Management" Version="10.0.0" />
+    <PackageReference Include="System.Drawing.Common" Version="10.0.0" />
     <PackageReference Include="System.ServiceProcess.ServiceController" Version="10.0.0" />
     <PackageReference Include="System.Diagnostics.EventLog" Version="10.0.0" />
     <PackageReference Include="System.Diagnostics.PerformanceCounter" Version="10.0.0" />

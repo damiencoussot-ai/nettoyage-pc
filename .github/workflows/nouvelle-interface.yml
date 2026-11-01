@@ -181,9 +181,9 @@ jobs:
           $mk = 'C:\Program Files (x86)\NSIS\makensis.exe'
           if (-not (Test-Path $mk)) { choco install nsis -y --no-progress | Out-Null }
           Copy-Item publie\NettoyagePC.exe . -Force
-          & $mk /V2 /DV5 "/DVERSION=5.1.1" "/DVERSION4=5.1.1.0" installateur.nsi
+          & $mk /V2 /DV5 "/DVERSION=5.2" "/DVERSION4=5.2.0.0" installateur.nsi
           if ($LASTEXITCODE -ne 0) { throw "makensis a échoué" }
-          $setup5 = (Resolve-Path 'NettoyagePC-Setup-5.1.1.exe').Path
+          $setup5 = (Resolve-Path 'NettoyagePC-Setup-5.2.exe').Path
           Noter ("installateur 5.0 : {0:N1} Mo" -f ((Get-Item $setup5).Length / 1MB))
           $dossier = Join-Path $env:ProgramFiles 'Nettoyage PC'
           $exe = Join-Path $dossier 'NettoyagePC.exe'
@@ -241,8 +241,8 @@ jobs:
         if: steps.installation.outcome == 'success'
         uses: actions/upload-artifact@v4
         with:
-          name: NettoyagePC-Setup-5.1.1-apercu
-          path: NettoyagePC-Setup-5.1.1.exe
+          name: NettoyagePC-Setup-5.2-apercu
+          path: NettoyagePC-Setup-5.2.exe
 
       - name: Résultats sur la branche captures-avalonia-windows
         if: always()

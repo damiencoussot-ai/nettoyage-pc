@@ -214,7 +214,7 @@ namespace NettoyagePC
             if (O.Deplanifier)
             {
                 int supprimees = 0;
-                foreach (var nom in new[] { TacheHebdo, TacheComplet, TacheAncienne, TacheSurveillance })
+                foreach (var nom in new[] { TacheHebdo, TacheComplet, TacheAncienne, TacheSurveillance, MajAppsAuto.Tache })
                 {
                     if (!TacheExiste(nom)) continue;
                     int c; Programmes.Executer(schtasks, "/Delete /TN \"" + nom + "\" /F", 30000, null, out c);
@@ -247,6 +247,30 @@ namespace NettoyagePC
                 Ecrire("  Si le PC est éteint à l'heure prévue, elles s'exécutent dès qu'il est allumé.");
             }
             else Ecrire("Opération impossible : le Planificateur de tâches a refusé une tâche.");
+        }
+
+        /// <summary>Mises à jour automatiques des applications (Premium) : une tâche par semaine, ou sa suppression.</summary>
+        private void PlanificationApps()
+        {
+            if (!Admin) { Ecrire("Opération impossible : il faut l'autorisation administrateur."); return; }
+            string schtasks = Path.Combine(Chemins.Systeme32, "schtasks.exe");
+            if (O.DeplanifierApps)
+            {
+                if (!TacheExiste(MajAppsAuto.Tache)) { Ecrire("Les mises à jour automatiques des applications n'étaient pas activées."); return; }
+                int c; Programmes.Executer(schtasks, "/Delete /TN \"" + MajAppsAuto.Tache + "\" /F", 30000, null, out c);
+                Ecrire(c == 0 ? "Mises à jour automatiques des applications désactivées." : "Opération impossible : le Planificateur de tâches a refusé la suppression.");
+                return;
+            }
+            if (!Chemins.EstInstalle) { Ecrire("Opération impossible : les mises à jour automatiques ne peuvent être activées que si Nettoyage PC est installé (dossier Program Files)."); return; }
+            string utilisateur = WindowsIdentity.GetCurrent().Name;
+            bool ok = CreerTache(MajAppsAuto.Tache, "--tache applications", "Mises à jour des applications par winget, sauf celles exclues dans Nettoyage PC (Premium).",
+                "<CalendarTrigger><StartBoundary>2026-01-07T19:00:00</StartBoundary><ScheduleByWeek><WeeksInterval>1</WeeksInterval><DaysOfWeek><Wednesday /></DaysOfWeek></ScheduleByWeek></CalendarTrigger>", "PT3H", utilisateur);
+            if (ok)
+            {
+                Ecrire("Mises à jour automatiques des applications activées : chaque mercredi à 19h00.");
+                Ecrire("  Si le PC est éteint à cette heure-là, elles se font dès qu'il est allumé.");
+            }
+            else Ecrire("Opération impossible : le Planificateur de tâches a refusé la tâche.");
         }
 
         private bool CreerTache(string nom, string arguments, string description, string declencheurs, string duree, string utilisateur)

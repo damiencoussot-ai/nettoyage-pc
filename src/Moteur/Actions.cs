@@ -306,6 +306,11 @@ namespace NettoyagePC
                 Ecrire("  -> Mise à jour des applications terminée.");
                 Ecrire("  (Certaines applications, comme les jeux ou les logiciels sous licence, se mettent à jour elles-mêmes et ne sont pas gérées par winget.)");
                 resumeAutres.Add("Applications mises à jour (winget)");
+                if (O.TacheApps)
+                {
+                    try { Directory.CreateDirectory(Chemins.Local); File.WriteAllText(MajAppsAuto.FichierDerniere, DateTime.Now.ToString("o")); } catch { }
+                    Notification.Afficher(Langue.T("Nettoyage PC : applications mises à jour"), Langue.T("Tes applications ont été mises à jour par winget, l'outil officiel de Microsoft (sauf celles que tu as exclues)."));
+                }
             }
             Ecrire();
         }

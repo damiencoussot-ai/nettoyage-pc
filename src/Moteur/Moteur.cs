@@ -12,7 +12,7 @@ namespace NettoyagePC
     internal class OptionsMoteur
     {
         public bool Simulation, Profond, Disques, DisquesSeuls, Verifier, LibererRam, RamSeule, TesterRam, SansRapport, RapportSeul;
-        public bool Planifier, Deplanifier, PointRestauration, Optimiser, MajApps, Securite, Antivirus, Reparer, Seul, Compat;
+        public bool Planifier, Deplanifier, PlanifierApps, DeplanifierApps, TacheApps, PointRestauration, Optimiser, MajApps, Securite, Antivirus, Reparer, Seul, Compat;
         public bool Notifier, Surveillance, Sauvegarde, ModeJeu, FinModeJeu, MajWindows, Progression, AnciensPilotes, SanteDisques, AnalyseDemarrage, Kit, Wifi;
         public bool Plantages, Leger, Incrementale;
         public int JoursTelechargements = 90, JoursTemp = 2, SeuilMo = 10;
@@ -40,6 +40,8 @@ namespace NettoyagePC
                     case "--rapport-seul": o.RapportSeul = true; break;
                     case "--planifier": o.Planifier = true; break;
                     case "--deplanifier": o.Deplanifier = true; break;
+                    case "--planifier-apps": o.PlanifierApps = true; break;
+                    case "--deplanifier-apps": o.DeplanifierApps = true; break;
                     case "--point-restauration": o.PointRestauration = true; break;
                     case "--optimiser": o.Optimiser = true; break;
                     case "--maj-apps": o.MajApps = true; break;
@@ -78,6 +80,7 @@ namespace NettoyagePC
                             case "hebdo": o.SansRapport = true; o.Notifier = true; break;
                             case "complet": o.Profond = true; o.Disques = true; o.Securite = true; o.Notifier = true; break;
                             case "surveillance": o.Surveillance = true; break;
+                            case "applications": o.MajApps = true; o.Seul = true; o.SansRapport = true; o.TacheApps = true; break;
                         }
                         break;
                 }
@@ -207,6 +210,13 @@ namespace NettoyagePC
             if (Natif.Build < 10240 && Natif.EstWindows) { Ecrire("Nettoyage PC est conçu pour Windows 10 et Windows 11. Ce système est trop ancien : opération annulée par sécurité."); return; }
             if (O.TesterRam) { TesterRam(); return; }
             if (O.Planifier || O.Deplanifier) { Planification(); return; }
+            if (O.PlanifierApps || O.DeplanifierApps) { PlanificationApps(); return; }
+            if (O.TacheApps)
+            {
+                // tâche Premium : ne fait rien si Premium n'est plus actif sur ce PC
+                try { Licence.Charger(); } catch { }
+                if (!Licence.Premium) { Ecrire("Mises à jour automatiques des applications : Premium n'est plus actif sur ce PC, rien n'est fait."); return; }
+            }
 
             bool besoinAdmin = O.Profond || faireDisques || O.LibererRam || fairePoint || O.ModeAlim != "" || O.MajApps || faireSecurite || O.Reparer || O.Optimiser || O.ModeJeu || O.MajWindows || O.AnciensPilotes;
             if (besoinAdmin && !Admin)
