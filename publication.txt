@@ -1,0 +1,6 @@
+  Determining projects to restore...
+  Restored D:\a\nettoyage-pc\nettoyage-pc\nouvelle-interface\NettoyagePC.Nouveau.csproj (in 18.63 sec).
+D:\a\nettoyage-pc\nettoyage-pc\src\Noyau\Fps.cs(132,25): warning SYSLIB0057: 'X509Certificate.CreateFromSignedFile(string)' is obsolete: 'Loading certificate data through the constructor or Import is obsolete. Use X509CertificateLoader instead to load certificates.' (https://aka.ms/dotnet-warnings/SYSLIB0057) [D:\a\nettoyage-pc\nettoyage-pc\nouvelle-interface\NettoyagePC.Nouveau.csproj]
+D:\a\nettoyage-pc\nettoyage-pc\src\Noyau\Benchmark.cs(107,36): warning SYSLIB0021: 'SHA256Managed' is obsolete: 'Derived cryptographic types are obsolete. Use the Create method on the base type instead.' (https://aka.ms/dotnet-warnings/SYSLIB0021) [D:\a\nettoyage-pc\nettoyage-pc\nouvelle-interface\NettoyagePC.Nouveau.csproj]
+  NettoyagePC.Nouveau -> D:\a\nettoyage-pc\nettoyage-pc\nouvelle-interface\bin\Release\net10.0\win-x64\NettoyagePC.dll
+  NettoyagePC.Nouveau -> D:\a\nettoyage-pc\nettoyage-pc\publie\

@@ -1,0 +1,13 @@
+{
+    "application": "Nettoyage PC",
+    "version": "5.4",
+    "date": "2026-11-01 19:06",
+    "premium": false,
+    "disqueLibreGo": 25.7,
+    "disqueTotalGo": 150,
+    "disqueLibrePct": 17,
+    "ramPct": 21,
+    "allumeDepuisJours": 0,
+    "antivirusTempsReel": false,
+    "priseEnMainADistance": []
+}

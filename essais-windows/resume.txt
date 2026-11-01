@@ -1,0 +1,6 @@
+etat : code 0 (attendu 0), 479 ms
+verifier-cle : code 1 (attendu 1), 153 ms
+analyse : code 0 (attendu 0), 449088 ms
+captures : code 0 (attendu 0), 23985 ms
+demarrage : code 0 (attendu 0), 3280 ms
+demarrage2 : code 0 (attendu 0), 3155 ms

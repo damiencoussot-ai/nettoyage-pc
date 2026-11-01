@@ -1,0 +1,2 @@
+fenêtre ouverte : 841 ms
+bilan affiché : 1187 ms (note 52, 11 points)
