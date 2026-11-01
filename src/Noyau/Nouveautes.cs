@@ -7,6 +7,9 @@ namespace NettoyagePC
     {
         public static readonly List<KeyValuePair<string, string[]>> Liste = new List<KeyValuePair<string, string[]>>
         {
+            N("5.2.1", "Programmes au démarrage : un message clair quand certains demandent les droits d'administrateur, au lieu de les compter comme désactivés.",
+                "Mises à jour : la recherche se lance toute seule à l'ouverture de la page. Les applications exclues des mises à jour automatiques restent bien visibles dans la liste.",
+                "La désinstallation retire aussi la tâche des mises à jour automatiques des applications. Historique avec des dates plus lisibles, et petites corrections."),
             N("5.2", "Mode jeu automatique (Premium) : quand un jeu se lance, le PC passe en mode performances et OneDrive peut se mettre en pause ; quand le jeu se ferme, tout revient comme avant.",
                 "Mises à jour automatiques des applications (Premium) : chaque mercredi, winget met à jour tes applications, sauf celles que tu exclues.",
                 "Photos en double et presque identiques (Premium) : rafales, copies redimensionnées, photos retouchées. La meilleure est gardée, les autres vont à la Corbeille si tu le confirmes.",

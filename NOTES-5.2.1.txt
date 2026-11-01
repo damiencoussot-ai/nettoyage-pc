@@ -1,0 +1,14 @@
+Nettoyage PC 5.2.1
+
+Corrections et finitions de la 5.2 :
+- Programmes au démarrage : quand certains concernent tous les comptes et demandent les droits
+  d'administrateur, un message clair le dit au lieu de les compter comme désactivés.
+- Mises à jour : la recherche se lance toute seule à l'ouverture de la page.
+- Mises à jour automatiques des applications (Premium) : les applications exclues restent bien
+  visibles dans la liste, et « Ne plus planifier » ne retire plus cette tâche par erreur.
+- La désinstallation retire aussi la tâche des mises à jour automatiques des applications.
+- Historique avec des dates lisibles, bulletin mensuel annoncé avec le nom du mois, textes plus clairs.
+
+Comprend toutes les nouveautés de la 5.2 (cinq nouveaux outils Premium).
+
+SHA256 de NettoyagePC-Setup-5.2.1.exe : voir le fichier NettoyagePC-Setup-5.2.1.sha256
