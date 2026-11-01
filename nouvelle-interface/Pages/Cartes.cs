@@ -63,7 +63,19 @@ namespace NettoyagePC.Nouveau
             d.Children.Add(bouton);
             var s = new StackPanel { Spacing = 6 };
             if (c.Principal) s.Children.Add(new Border { Height = 2, Width = 36, HorizontalAlignment = HorizontalAlignment.Left, Background = Habillage.DegradeAccent(), Margin = new Thickness(0, 0, 0, 4) });
-            s.Children.Add(new TextBlock { Text = Langue.T(c.Titre), FontFamily = Habillage.Affichage, FontSize = 16.5, FontWeight = FontWeight.SemiBold, Foreground = Habillage.Pinceau(P.Texte), TextWrapping = TextWrapping.Wrap });
+            var titre = new TextBlock { Text = Langue.T(c.Titre), FontFamily = Habillage.Affichage, FontSize = 16.5, FontWeight = FontWeight.SemiBold, Foreground = Habillage.Pinceau(P.Texte), TextWrapping = TextWrapping.Wrap };
+            // étoile des favoris (affichés sur l'accueil) pour les cartes d'outils
+            var favori = Favoris5.ParTitre(c.Titre);
+            if (favori != null)
+            {
+                var ligne = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto") };
+                ligne.Children.Add(titre);
+                var etoile = Favoris5.Etoile(f, favori.Id);
+                etoile.Margin = new Thickness(8, -4, -8, 0);
+                Grid.SetColumn(etoile, 1); ligne.Children.Add(etoile);
+                s.Children.Add(ligne);
+            }
+            else s.Children.Add(titre);
             s.Children.Add(new TextBlock { Text = Langue.T(c.Texte), FontFamily = Habillage.Corps, FontSize = 13, LineHeight = 19, Foreground = Habillage.Pinceau(P.Discret), TextWrapping = TextWrapping.Wrap });
             d.Children.Add(s);
             b.Child = d;

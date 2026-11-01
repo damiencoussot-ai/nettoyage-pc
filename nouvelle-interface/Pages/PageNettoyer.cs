@@ -39,7 +39,7 @@ namespace NettoyagePC.Nouveau
             }, "Nettoyage");
         }
 
-        private static void OuvrirAVerifier(FenetrePrincipale f)
+        internal static void OuvrirAVerifier(FenetrePrincipale f)
         {
             string d = Path.Combine(Chemins.Telechargements, "_A_verifier");
             if (Directory.Exists(d)) Programmes.Ouvrir(d);

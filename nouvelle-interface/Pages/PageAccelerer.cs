@@ -48,7 +48,7 @@ namespace NettoyagePC.Nouveau
         }
 
         /// <summary>Mode d'alimentation actif (lu dans le registre, sans rien modifier).</summary>
-        private static string ModeAlimentation()
+        internal static string ModeAlimentation()
         {
             try
             {

@@ -317,6 +317,14 @@ namespace NettoyagePC.Nouveau
                 f.ViderCalques(); Gains5.Exemple = null;
             }
             catch (Exception ex) { PageDemarrage5.Exemple = null; Gains5.Exemple = null; erreurs++; rapport.AppendLine("ERREUR : démarrage et gains : " + ex); }
+            try
+            {
+                Favoris5.Choisir(f);
+                for (int k = 0; k < 6; k++) { Dispatcher.UIThread.RunJobs(); System.Threading.Thread.Sleep(50); }
+                Capturer(f, dossier, "sombre-favoris.png", rapport, ref erreurs);
+                f.ViderCalques();
+            }
+            catch (Exception ex) { erreurs++; rapport.AppendLine("ERREUR : favoris : " + ex); }
 
             // Outils : matériel, aide à distance (plein potentiel : sous Windows seulement, l'analyse lit le matériel)
             try

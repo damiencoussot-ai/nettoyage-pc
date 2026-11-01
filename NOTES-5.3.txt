@@ -1,0 +1,12 @@
+Nettoyage PC 5.3
+
+Favoris :
+- Choisis tes outils préférés, gratuits et Premium : ils s'affichent en haut de l'accueil, toujours
+  sous les yeux, et se lancent en un clic.
+- Une étoile ☆ sur chaque outil l'ajoute ou le retire des favoris.
+- « Choisir mes favoris » montre tous les outils par rubrique et permet de les ranger dans l'ordre
+  que tu veux (jusqu'à 12). Aussi dans « Que veux-tu faire ? » (Ctrl+K).
+
+Comprend les corrections de la 5.2.1 et les cinq outils Premium de la 5.2.
+
+SHA256 de NettoyagePC-Setup-5.3.exe : voir le fichier NettoyagePC-Setup-5.3.sha256

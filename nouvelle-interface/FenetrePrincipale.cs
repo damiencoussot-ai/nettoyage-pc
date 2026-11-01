@@ -178,6 +178,7 @@ namespace NettoyagePC.Nouveau
                 string cle = o[0];
                 l.Add(new EntreeCommande { Titre = Langue.T(o[1]), Detail = Licence.Premium ? Langue.T("Premium") : Langue.T("Premium (essai gratuit 7 jours)"), Type = "Outil", Faire = () => OuvrirOutil(cle) });
             }
+            l.Add(new EntreeCommande { Titre = Langue.T("Choisir mes favoris"), Detail = Langue.T("Les outils affichés sur l'accueil"), Type = "Action", Faire = () => Favoris5.Choisir(this) });
             l.Add(new EntreeCommande { Titre = Langue.T("Bouclier anti-arnaque"), Detail = Langue.T("Faux technicien ? Logiciels de prise en main à distance"), Type = "Action", Faire = () => Bouclier5.Ouvrir(this) });
             l.Add(new EntreeCommande { Titre = Langue.T(Habillage.P.Sombre ? "Thème clair" : "Thème sombre"), Detail = Langue.T("Apparence"), Type = "Action", Faire = () => { ChangerTheme(!Habillage.P.Sombre); EnregistrerReglage(r => r.Theme = Habillage.P.Sombre ? "Sombre" : "Clair"); } });
             foreach (var e in l) e.Cle = PaletteCommandes.Normaliser(e.Titre + " " + e.Detail);
