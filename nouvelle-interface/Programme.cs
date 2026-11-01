@@ -319,12 +319,35 @@ namespace NettoyagePC.Nouveau
             catch (Exception ex) { PageDemarrage5.Exemple = null; Gains5.Exemple = null; erreurs++; rapport.AppendLine("ERREUR : démarrage et gains : " + ex); }
             try
             {
+                Etat5.Exemple = new System.Collections.Generic.List<EtatFonction>
+                {
+                    new EtatFonction { Id = "premium", Nom = "Premium", Groupe = EtatFonctions.Application, Actif = true, Detail = "Actif sur ce PC, pour les versions 4 et 5." },
+                    new EtatFonction { Id = "entretien", Nom = "Entretien automatique", Groupe = EtatFonctions.Automatique, Actif = true, Detail = "Nettoyage rapide chaque dimanche, optimisation complète toutes les 4 semaines, surveillance des disques." },
+                    new EtatFonction { Id = "verifmaj", Nom = "Recherche des nouvelles versions", Groupe = EtatFonctions.Automatique, Actif = true, Detail = "À l'ouverture, puis toutes les 6 heures si la fenêtre reste ouverte." },
+                    new EtatFonction { Id = "gardien", Nom = "Gardien en temps réel", Groupe = EtatFonctions.Automatique, Actif = true, Premium = true, Detail = "Veille en continu : démarrage, disque, antivirus, mémoire, chauffe.", Probleme = Langue.T("Activé, mais il ne tourne pas en ce moment."), Reparation = "gardien-demarrer" },
+                    new EtatFonction { Id = "sauvegardeauto", Nom = "Sauvegarde automatique", Groupe = EtatFonctions.Automatique, Actif = true, Premium = true, Detail = Langue.F("Dernière sauvegarde : {0}.", DateTime.Now.AddDays(-1).ToString("dd/MM/yyyy") + " 18:42") },
+                    new EtatFonction { Id = "modejeuauto", Nom = "Mode jeu automatique", Groupe = EtatFonctions.Automatique, Actif = true, Premium = true, Detail = "Se lance tout seul avec tes jeux." },
+                    new EtatFonction { Id = "majappsauto", Nom = "Mises à jour automatiques des applications", Groupe = EtatFonctions.Automatique, Actif = false, Premium = true, Detail = "Désactivées." },
+                    new EtatFonction { Id = "bulletin", Nom = "Bulletin mensuel du PC", Groupe = EtatFonctions.Automatique, Actif = true, Premium = true, Detail = Langue.F("Dernier bulletin : {0}.", "01/11/2026") },
+                    new EtatFonction { Id = "appareils", Nom = "Surveillance du réseau", Groupe = EtatFonctions.Automatique, Actif = true, Premium = true, Detail = "Alerte quand un appareil inconnu se connecte à ta box." },
+                    new EtatFonction { Id = "donnees", Nom = "Dossier de Nettoyage PC", Groupe = EtatFonctions.Application, Actif = true, Detail = @"C:\Users\Camille\Documents\NettoyagePC" },
+                    new EtatFonction { Id = "reglages", Nom = "Fichier des réglages", Groupe = EtatFonctions.Application, Actif = true, Detail = "Lu sans problème." },
+                    new EtatFonction { Id = "erreurs", Nom = "Erreurs récentes", Groupe = EtatFonctions.Application, Actif = true, Detail = "Aucune erreur ces 7 derniers jours." },
+                };
+                Etat5.Ouvrir(f);
+                for (int k = 0; k < 6; k++) { Dispatcher.UIThread.RunJobs(); System.Threading.Thread.Sleep(50); }
+                Capturer(f, dossier, "sombre-etat.png", rapport, ref erreurs);
+                f.ViderCalques();
+                f.Afficher("Accueil", false);
+                for (int k = 0; k < 10; k++) { Dispatcher.UIThread.RunJobs(); System.Threading.Thread.Sleep(50); }
+                Capturer(f, dossier, "sombre-Accueil-etat.png", rapport, ref erreurs);
+                Etat5.Exemple = null;
                 Favoris5.Choisir(f);
                 for (int k = 0; k < 6; k++) { Dispatcher.UIThread.RunJobs(); System.Threading.Thread.Sleep(50); }
                 Capturer(f, dossier, "sombre-favoris.png", rapport, ref erreurs);
                 f.ViderCalques();
             }
-            catch (Exception ex) { erreurs++; rapport.AppendLine("ERREUR : favoris : " + ex); }
+            catch (Exception ex) { Etat5.Exemple = null; erreurs++; rapport.AppendLine("ERREUR : favoris et état : " + ex); }
 
             // Outils : matériel, aide à distance (plein potentiel : sous Windows seulement, l'analyse lit le matériel)
             try

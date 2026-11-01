@@ -1,0 +1,15 @@
+Nettoyage PC 5.4
+
+Ce qui est activé, et est-ce que ça fonctionne :
+- Sur l'accueil, une pastille par fonction : entretien automatique, recherche des nouvelles
+  versions, gardien, sauvegarde automatique, mode jeu automatique, mises à jour automatiques
+  des applications, bulletin mensuel, surveillance du réseau, Premium et mode réel / simulation.
+  Vert = activée, gris = désactivée, orange = à vérifier.
+- « Vérifier le fonctionnement » détaille chaque fonction et contrôle qu'elle est vraiment en
+  place : gardien lancé et relancé à chaque session, tâches planifiées présentes, mode jeu oublié,
+  winget disponible, dossier de Nettoyage PC accessible, réglages lisibles, erreurs récentes.
+- Quand quelque chose cloche, la correction est proposée (relancer le gardien, réactiver
+  l'entretien...). Rien n'est modifié sans ton clic.
+- Aussi dans « Que veux-tu faire ? » (Ctrl+K).
+
+SHA256 de NettoyagePC-Setup-5.4.exe : voir le fichier NettoyagePC-Setup-5.4.sha256

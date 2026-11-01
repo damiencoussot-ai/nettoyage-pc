@@ -7,6 +7,8 @@ namespace NettoyagePC
     {
         public static readonly List<KeyValuePair<string, string[]>> Liste = new List<KeyValuePair<string, string[]>>
         {
+            N("5.4", "« Ce qui est activé » sur l'accueil : entretien automatique, gardien, sauvegarde, mode jeu et mises à jour automatiques, Premium, en un coup d'œil (vert = activé, gris = désactivé, orange = à vérifier).",
+                "« Vérifier le fonctionnement » : Nettoyage PC contrôle que chaque fonction activée est bien en place (gardien lancé, tâches planifiées présentes, dossier et réglages lisibles, erreurs récentes) et propose la correction, toujours sur ton clic."),
             N("5.3", "Favoris : choisis tes outils préférés, gratuits et Premium, et retrouve-les en haut de l'accueil pour les lancer en un clic. L'étoile ☆ sur chaque outil l'ajoute ou le retire, et « Choisir mes favoris » permet de les ranger dans l'ordre que tu veux."),
             N("5.2.1", "Programmes au démarrage : un message clair quand certains demandent les droits d'administrateur, au lieu de les compter comme désactivés.",
                 "Mises à jour : la recherche se lance toute seule à l'ouverture de la page. Les applications exclues des mises à jour automatiques restent bien visibles dans la liste.",

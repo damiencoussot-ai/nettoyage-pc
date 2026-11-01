@@ -78,6 +78,9 @@ namespace NettoyagePC.Nouveau
             // ---- favoris choisis (outils gratuits et Premium), lancés en un clic
             Children.Add(Favoris5.Bande(f));
 
+            // ---- ce qui est activé (entretien, gardien, mises à jour automatiques...) et si tout fonctionne
+            Children.Add(Etat5.Bande(f));
+
             // ---- liste des améliorations
             var titre = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto"), Margin = new Thickness(12, 0, 0, -6) };
             tTitreListe = new TextBlock { Text = "Améliorations proposées", FontFamily = Habillage.Console, FontSize = 12, Foreground = Habillage.Pinceau(P.Discret), VerticalAlignment = VerticalAlignment.Center };

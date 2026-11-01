@@ -1,9 +1,9 @@
-NETTOYAGE PC 5.3
+NETTOYAGE PC 5.4
 ================
 
 Installation
 ------------
-1. Double-clique sur « NettoyagePC-Setup-5.3.exe ».
+1. Double-clique sur « NettoyagePC-Setup-5.4.exe ».
 2. Windows peut afficher « Windows a protégé votre ordinateur » (SmartScreen) : clique sur
    « Informations complémentaires » puis « Exécuter quand même ». C'est normal pour un programme
    qui n'est pas signé par un éditeur connu.
@@ -19,6 +19,13 @@ statistiques, l'entretien automatique et Premium sont conservés.
 
 Désinstaller : Paramètres > Applications > Applications installées > Nettoyage PC > Désinstaller.
 La désinstallation retire aussi l'entretien automatique (tâches planifiées).
+
+Nouveautés de la version 5.4
+----------------------------
+- « Ce qui est activé » sur l'accueil : chaque fonction automatique en un coup d'œil
+  (vert = activée, gris = désactivée, orange = à vérifier).
+- « Vérifier le fonctionnement » : contrôle que tout ce qui est activé fonctionne vraiment,
+  et propose la correction (toujours sur ton clic).
 
 Nouveautés de la version 5.3
 ----------------------------
