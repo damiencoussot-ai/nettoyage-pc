@@ -39,7 +39,7 @@ namespace NettoyagePC.Nouveau
             Children.Add(Titre("Comment veux-tu utiliser Nettoyage PC ?"));
             var choix = new Avalonia.Controls.Primitives.UniformGrid { Columns = 2 };
             carteSimple = Carte("Simple", "Trois gros boutons : Nettoyer, Vérifier, Appeler à l'aide. Idéal pour débuter ou pour un proche.", () => Choisir(true));
-            carteComplet = Carte("Complet", "Toutes les rubriques et les options : nettoyage, accélération, sécurité, outils. En simulation au début : rien n'est modifié.", () => Choisir(false));
+            carteComplet = Carte("Complet", "Toutes les rubriques et les options : nettoyage, accélération, sécurité, outils. Chaque action te demande ton accord avant de se lancer.", () => Choisir(false));
             choix.Children.Add(carteSimple); choix.Children.Add(carteComplet);
             Children.Add(choix);
             var boutons = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 10, Margin = new Thickness(0, 10, 0, 0) };

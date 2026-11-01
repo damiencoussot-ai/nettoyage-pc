@@ -38,11 +38,15 @@ namespace NettoyagePC
             erreur = null;
             string winget = InfosPc.Winget();
             if (winget == null) { erreur = Langue.T("winget (Gestionnaire de package Windows) est introuvable. Installe « App Installer » depuis le Microsoft Store."); return null; }
-            var l = Tableau(Programmes.Executer(winget, "upgrade --include-pinned --accept-source-agreements --disable-interactivity", 180000, Encoding.UTF8))
+            var l = Tableau(Programmes.Executer(winget, "upgrade --accept-source-agreements --disable-interactivity", 180000, Encoding.UTF8))
                 .Where(c => c.Length >= 4 && IdValide(c[1])).Select(c => new AppAMettreAJour { Nom = c[0], Id = c[1], Version = c[2], Disponible = c[3] }).ToList();
-            var epinglees = new HashSet<string>(Tableau(Programmes.Executer(winget, "pin list --accept-source-agreements --disable-interactivity", 60000, Encoding.UTF8))
-                .Where(c => c.Length >= 2).Select(c => c[1]), StringComparer.OrdinalIgnoreCase);
-            foreach (var a in l) a.Exclue = epinglees.Contains(a.Id);
+            // applications exclues (épinglées) : winget upgrade ne les montre pas, on les ajoute depuis « winget pin list »
+            foreach (var c in Tableau(Programmes.Executer(winget, "pin list --accept-source-agreements --disable-interactivity", 60000, Encoding.UTF8)).Where(c => c.Length >= 3 && IdValide(c[1])))
+            {
+                var a = l.FirstOrDefault(x => x.Id.Equals(c[1], StringComparison.OrdinalIgnoreCase));
+                if (a != null) a.Exclue = true;
+                else l.Add(new AppAMettreAJour { Nom = c[0], Id = c[1], Version = c[2], Disponible = "—", Exclue = true });
+            }
             return l;
         }
 

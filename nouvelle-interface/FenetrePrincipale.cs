@@ -321,6 +321,10 @@ namespace NettoyagePC.Nouveau
                 }));
             };
             BilanPret += pret;
+            // si le bilan échoue, l'abonnement ne doit pas rester (un résumé surgirait plus tard, hors de propos)
+            var garde = new Avalonia.Threading.DispatcherTimer { Interval = TimeSpan.FromMinutes(3) };
+            garde.Tick += (o, e) => { garde.Stop(); BilanPret -= pret; };
+            garde.Start();
         }
 
         /// <summary>Question d'une action du moteur (texte de la version 4 : première ligne = question, le reste = explication),

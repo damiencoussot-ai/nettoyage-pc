@@ -36,9 +36,9 @@ namespace NettoyagePC.Nouveau
             {
                 modeJeu
                     ? CarteAction.A("Mode jeu (actif)", "Le mode jeu est en cours : performances maximales. Termine-le après ta partie pour revenir comme avant.", "Terminer le mode jeu", "finmodejeu", true)
-                    : CarteAction.A("Mode jeu", "Avant de jouer : performances maximales et mémoire vive libérée. Un clic pour revenir comme avant après ta partie.", "Activer le mode jeu", "modejeu", true),
+                    : CarteAction.A("Mode jeu", "Avant de jouer : performances maximales et mémoire vive libérée. Un clic pour revenir comme avant après ta partie. Avec Premium, le mode jeu automatique le fait tout seul à chaque jeu.", "Activer le mode jeu", "modejeu", true),
                 CarteAction.A("Bilan d'optimisation", "Durée du démarrage, programmes au démarrage, mode d'alimentation, mises à jour disponibles : des conseils concrets, sans rien modifier.", "Lancer le bilan", "optim", true),
-                CarteAction.A("Mettre à jour les applications", "Met à jour tes logiciels avec winget, l'outil officiel de Microsoft. Corrige aussi des failles de sécurité.", "Mettre à jour", "majapps"),
+                CarteAction.A("Mettre à jour les applications", "Met à jour tes logiciels avec winget, l'outil officiel de Microsoft. Corrige aussi des failles de sécurité. Avec Premium, c'est automatique chaque semaine.", "Mettre à jour", "majapps"),
                 CarteAction.A("Mode d'alimentation", (alim != "" ? Langue.F("Mode actuel : {0}.", Langue.T(alim)) + " " : "") + (perf ? "Équilibré consomme moins (conseillé sur portable)." : "Performances élevées rend le PC plus réactif."),
                     perf ? "Revenir en Équilibré" : "Passer en Performances", perf ? "equilibre" : "perf"),
                 CarteAction.A("Libérer la RAM", "Libère la mémoire vive inutilisée, idéal juste avant un jeu ou une application gourmande. Effet temporaire.", "Libérer", "ramlib").Plus(),
@@ -181,7 +181,8 @@ namespace NettoyagePC.Nouveau
                     int ok = 0;
                     foreach (var el in cibles) if (Changer(el, false)) ok++;
                     Afficher();
-                    F.Statut(Langue.F("{0} programme(s) ne se lanceront plus au démarrage (recoche-les pour annuler).", ok));
+                    if (ok == cibles.Count) F.Statut(Langue.F("{0} programme(s) ne se lanceront plus au démarrage (recoche-les pour annuler).", ok));
+                    else F.Statut(Langue.F("{0} programme(s) désactivé(s), {1} n'ont pas pu l'être : ils concernent tous les comptes et demandent les droits d'administrateur (Gestionnaire des tâches, onglet Démarrage).", ok, cibles.Count - ok), true);
                 });
         }
 

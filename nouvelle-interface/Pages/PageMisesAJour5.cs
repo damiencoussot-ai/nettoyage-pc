@@ -64,6 +64,8 @@ namespace NettoyagePC.Nouveau
             Children.Add(new TextBlock { Text = Langue.T("Nouveautés et historique des versions"), FontFamily = Habillage.Affichage, FontSize = 17, FontWeight = FontWeight.SemiBold, Foreground = Habillage.Pinceau(P.Texte), Margin = new Thickness(0, 6, 0, 0) });
             Children.Add(new Border { Child = notes, Padding = new Thickness(22, 18), CornerRadius = new CornerRadius(3), Background = Habillage.Pinceau(P.Carte), BorderBrush = Habillage.Pinceau(P.Bordure), BorderThickness = new Thickness(1) });
             Afficher();
+            // recherche dès l'ouverture de la page (une fois par session), sauf dans les captures
+            if (etat == "inconnu" && !F.Source.Immediat) AttachedToVisualTree += (o, e) => { if (etat == "inconnu") Verifier(false); };
         }
 
         private static bool installation;

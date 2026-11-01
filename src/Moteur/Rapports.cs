@@ -214,7 +214,7 @@ namespace NettoyagePC
             if (O.Deplanifier)
             {
                 int supprimees = 0;
-                foreach (var nom in new[] { TacheHebdo, TacheComplet, TacheAncienne, TacheSurveillance, MajAppsAuto.Tache })
+                foreach (var nom in O.DeplanifierApps ? new[] { TacheHebdo, TacheComplet, TacheAncienne, TacheSurveillance, MajAppsAuto.Tache } : new[] { TacheHebdo, TacheComplet, TacheAncienne, TacheSurveillance })
                 {
                     if (!TacheExiste(nom)) continue;
                     int c; Programmes.Executer(schtasks, "/Delete /TN \"" + nom + "\" /F", 30000, null, out c);

@@ -33,7 +33,7 @@ namespace NettoyagePC.Nouveau
             Children.Add(graph);
             tModifs = new TextBlock { Text = "Modifications réversibles", FontFamily = Habillage.Affichage, FontSize = 17, FontWeight = FontWeight.SemiBold, Foreground = Habillage.Pinceau(P.Texte), Margin = new Thickness(0, 6, 0, 0) };
             Children.Add(tModifs);
-            tableau = new Tableau(false, true, new Colonne("Date", "140", false, true), new Colonne("Modification", "*"), new Colonne("État", "110"));
+            tableau = new Tableau(false, true, new Colonne("Date", "140", false, true, o => ((Modif)o).Date), new Colonne("Modification", "*"), new Colonne("État", "110"));
             tableau.HauteurListe = 360;
             tableau.SelectionChangee += () => bAnnuler.IsEnabled = tableau.Selections.Cast<Modif>().Any(m => !m.Annule);
             Children.Add(new Border { Child = tableau, BorderBrush = Habillage.Pinceau(P.Bordure), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(3), ClipToBounds = true });
@@ -96,7 +96,7 @@ namespace NettoyagePC.Nouveau
                 graph.Stats = t.Result.Item1; graph.Scores = t.Result.Item2; graph.InvalidateVisual();
                 var liste = t.Result.Item3;
                 int actives = liste.Count(m => !m.Annule);
-                tableau.Remplir(Enumerable.Reverse(liste).Cast<object>(), o => { var m = (Modif)o; return new[] { m.Date, Langue.T(m.Titre), m.Annule ? "Annulée" : "Active" }; }, null, o => ((Modif)o).Annule);
+                tableau.Remplir(Enumerable.Reverse(liste).Cast<object>(), o => { var m = (Modif)o; DateTime dm; string date = DateTime.TryParseExact(m.Date, "yyyy-MM-dd HH:mm", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out dm) ? dm.ToString("dd/MM/yyyy HH:mm") : m.Date; return new[] { date, Langue.T(m.Titre), m.Annule ? "Annulée" : "Active" }; }, null, o => ((Modif)o).Annule);
                 bTout.IsEnabled = actives > 0;
                 tModifs.Text = liste.Count == 0 ? Langue.T("Modifications réversibles : aucune pour l'instant") : Langue.F("Modifications réversibles : {0} active(s)", actives);
             }));

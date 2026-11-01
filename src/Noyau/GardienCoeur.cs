@@ -304,8 +304,8 @@ namespace NettoyagePC
             Noter("bulletin");
             string f;
             try { f = Bulletin.Creer(precedent); } catch (Exception ex) { JournalDemarrage.Erreur("bulletin mensuel", ex); return; }
-            string mois = precedent.ToString("MMMM", Langue.Culture);
-            S.SurUi(() => Notifier(Langue.F("Ton bulletin de {0} est prêt", mois), "Note du PC, espace gagné, démarrage, températures et santé du mois. Clique pour l'ouvrir (il est aussi dans Documents\\NettoyagePC\\Bulletins).", 0, () => Programmes.Ouvrir(f)));
+            string mois = precedent.ToString("MMMM yyyy", Langue.Culture);
+            S.SurUi(() => Notifier(Langue.F("Ton bulletin mensuel est prêt ({0})", mois), "Note du PC, espace gagné, démarrage, températures et santé du mois. Clique pour l'ouvrir (il est aussi dans Documents\\NettoyagePC\\Bulletins).", 0, () => Programmes.Ouvrir(f)));
         }
 
         // ------------------------------------------------------------ Nouveaux appareils sur le réseau

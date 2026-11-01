@@ -263,7 +263,7 @@ Section "Uninstall"
     SetShellVarContext all
     ; Retire l'entretien automatique (tâches planifiées de Nettoyage PC)
     IfFileExists "$INSTDIR\NettoyagePC.exe" 0 +3
-        nsExec::ExecToLog '"$INSTDIR\NettoyagePC.exe" --moteur --deplanifier'
+        nsExec::ExecToLog '"$INSTDIR\NettoyagePC.exe" --moteur --deplanifier --deplanifier-apps'
         Pop $0
     nsExec::ExecToLog '"$SYSDIR\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -ExecutionPolicy Bypass -Command "Get-ScheduledTask -TaskName ''Nettoyage PC*'' -ErrorAction SilentlyContinue | Unregister-ScheduledTask -Confirm:$$false"'
     Pop $0
