@@ -208,7 +208,7 @@ mark.a-completer { background: var(--orange); color: var(--sur-accent); padding:
       <a href="#securite">Sécurité</a>
       <a href="#questions">Questions</a>
     </nav>
-    <a class="bouton principal" href="https://github.com/damiencoussot-ai/nettoyage-pc/releases/latest/download/NettoyagePC-Setup.exe">Télécharger</a>
+    <a class="bouton principal" href="https://github.com/damiencoussot-ai/nettoyage-pc/releases/latest" data-telecharger>Télécharger</a>
   </div>
 </header>
 
@@ -219,11 +219,11 @@ mark.a-completer { background: var(--orange); color: var(--sur-accent); padding:
       <h1>Un PC propre, rapide et protégé, <em>sans rien casser</em>.</h1>
       <p class="chapo">Nettoyage PC fait le ménage, accélère le démarrage et surveille la sécurité de votre ordinateur. Chaque action est expliquée, réversible, et rien ne se fait sans votre accord.</p>
       <div class="actions">
-        <a class="bouton principal" href="https://github.com/damiencoussot-ai/nettoyage-pc/releases/latest/download/NettoyagePC-Setup.exe">Télécharger gratuitement <small>42 Mo</small></a>
+        <a class="bouton principal" href="https://github.com/damiencoussot-ai/nettoyage-pc/releases/latest" data-telecharger>Télécharger gratuitement <small>42 Mo</small></a>
         <a class="bouton" href="#premium">Premium · 9,99 € une fois</a>
       </div>
       <div class="fiche">
-        <span>Version 5.2</span><span>Windows 10 et 11, 64 bits</span><span>Français · English · Español</span><span>Sans publicité ni pistage</span>
+        <span id="version">Version 5.2.1</span><span>Windows 10 et 11, 64 bits</span><span>Français · English · Español</span><span>Sans publicité ni pistage</span>
       </div>
     </div>
 
@@ -453,6 +453,22 @@ mark.a-completer { background: var(--orange); color: var(--sur-accent); padding:
     }
   });
   maj();
+})();
+// bouton « Télécharger » : l'installateur de la dernière version (sinon, la page de la dernière version)
+(function () {
+  var x = new XMLHttpRequest();
+  x.open('GET', 'https://api.github.com/repos/damiencoussot-ai/nettoyage-pc/releases/latest');
+  x.onload = function () {
+    try {
+      var r = JSON.parse(x.responseText), a = (r.assets || []).filter(function (f) { return /^NettoyagePC-Setup(-[\d.]+)?\.exe$/.test(f.name); })[0];
+      if (!a) return;
+      var liens = document.querySelectorAll('[data-telecharger]');
+      for (var i = 0; i < liens.length; i++) liens[i].href = a.browser_download_url;
+      var m = /^v?([\d.]+)$/.exec(r.tag_name || ''), v = document.getElementById('version');
+      if (m && v) v.textContent = 'Version ' + m[1];
+    } catch (e) { }
+  };
+  x.send();
 })();
 </script>
 
