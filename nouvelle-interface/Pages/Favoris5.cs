@@ -264,7 +264,7 @@ namespace NettoyagePC.Nouveau
             Action surChange = () => Avalonia.Threading.Dispatcher.UIThread.Post(remplir);
             // les bulles « activé » suivent l'état des fonctions et les actions (mode jeu, alimentation)
             Action<Bilan> surBilan = x => surChange();
-            bloc.AttachedToVisualTree += (s, e) => { Change += surChange; Licence.Change += surChange; Etat5.Pret += surChange; f.BilanPret += surBilan; };
+            bloc.AttachedToVisualTree += (s, e) => { Change += surChange; Licence.Change += surChange; Etat5.Pret += surChange; f.BilanPret += surBilan; Etat5.ActualiserSiAncien(f); };
             bloc.DetachedFromVisualTree += (s, e) => { Change -= surChange; Licence.Change -= surChange; Etat5.Pret -= surChange; f.BilanPret -= surBilan; };
             return bloc;
         }
@@ -295,6 +295,8 @@ namespace NettoyagePC.Nouveau
                 bulle.Children.Add(new Border { Width = 8, Height = 8, CornerRadius = new CornerRadius(4), Background = Habillage.Pinceau(c), BoxShadow = BoxShadows.Parse("0 0 6 0 " + c.ToString()), VerticalAlignment = VerticalAlignment.Center });
                 bulle.Children.Add(new TextBlock { Text = Langue.T(etat == 1 ? "activé" : "à vérifier"), FontFamily = Habillage.Console, FontSize = 10, Foreground = Habillage.Pinceau(c), VerticalAlignment = VerticalAlignment.Center });
                 if (detail != "") ToolTip.SetTip(bulle, detail);
+                // orange : un clic sur la bulle ouvre le détail et la correction (et pas l'outil)
+                if (etat == 2) { bulle.Background = Brushes.Transparent; bulle.Cursor = new Cursor(StandardCursorType.Hand); bulle.PointerReleased += (s, a) => { a.Handled = true; Etat5.Ouvrir(f); }; }
                 Grid.SetColumn(bulle, 1); ligne.Children.Add(bulle);
             }
             g.Children.Add(ligne);

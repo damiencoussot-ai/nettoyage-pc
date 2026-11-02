@@ -4,7 +4,9 @@ Nettoyage PC 5.4.1
   marche : gardien, sauvegarde automatique, mode jeu (et mode jeu automatique), mises à jour
   automatiques des applications, bulletin mensuel, surveillance du réseau, performances élevées.
 - La bulle passe en orange « à vérifier » si la fonction est activée mais ne marche pas bien
-  (par exemple un gardien arrêté) : le détail et la correction sont dans « Vérifier le fonctionnement ».
+  (par exemple un gardien arrêté) : un clic sur la bulle montre le détail et la correction.
+- L'accueil est allégé : la bande « Ce qui est activé » est retirée (les bulles des favoris la
+  remplacent). Le détail reste dans « Que veux-tu faire ? » (Ctrl+K) > « Ce qui est activé ».
 
 Comprend toutes les nouveautés de la 5.4 (ce qui est activé, vérification du fonctionnement).
 

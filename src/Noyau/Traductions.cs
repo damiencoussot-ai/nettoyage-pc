@@ -2365,6 +2365,7 @@ namespace NettoyagePC
             "Le mode jeu est en cours : clique pour le terminer.", "Game mode is on: click to turn it off.", "El modo juego está activo: haz clic para terminarlo.",
             "Performances élevées activées.", "High performance is on.", "Alto rendimiento activado.",
             "Favoris : une petite bulle verte « activé » sur les outils qui sont en marche (gardien, sauvegarde, mode jeu, mises à jour automatiques, bulletin, surveillance du réseau, performances élevées), orange s'il y a quelque chose à vérifier.", "Favorites: a small green \"on\" bubble on the tools that are running (guardian, backup, game mode, automatic updates, report, network monitoring, high performance), orange if something needs checking.", "Favoritos: una pequeña burbuja verde «activado» en las herramientas en marcha (guardián, copia de seguridad, modo juego, actualizaciones automáticas, boletín, vigilancia de la red, alto rendimiento), naranja si hay algo que revisar.",
+            "Accueil allégé : la bande « Ce qui est activé » est retirée, les bulles des favoris la remplacent. Le détail reste dans « Que veux-tu faire ? » (Ctrl+K).", "Lighter home page: the \"What's turned on\" strip is gone, replaced by the bubbles on favorites. The details are still in \"What do you want to do?\" (Ctrl+K).", "Inicio más ligero: se quita la franja «Lo que está activado», las burbujas de los favoritos la sustituyen. El detalle sigue en «¿Qué quieres hacer?» (Ctrl+K).",
         };
         private static readonly string[] Prefixes =
         {

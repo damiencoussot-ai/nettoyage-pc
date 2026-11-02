@@ -7,7 +7,8 @@ namespace NettoyagePC
     {
         public static readonly List<KeyValuePair<string, string[]>> Liste = new List<KeyValuePair<string, string[]>>
         {
-            N("5.4.1", "Favoris : une petite bulle verte « activé » sur les outils qui sont en marche (gardien, sauvegarde, mode jeu, mises à jour automatiques, bulletin, surveillance du réseau, performances élevées), orange s'il y a quelque chose à vérifier."),
+            N("5.4.1", "Favoris : une petite bulle verte « activé » sur les outils qui sont en marche (gardien, sauvegarde, mode jeu, mises à jour automatiques, bulletin, surveillance du réseau, performances élevées), orange s'il y a quelque chose à vérifier.",
+                "Accueil allégé : la bande « Ce qui est activé » est retirée, les bulles des favoris la remplacent. Le détail reste dans « Que veux-tu faire ? » (Ctrl+K)."),
             N("5.4", "« Ce qui est activé » sur l'accueil : entretien automatique, gardien, sauvegarde, mode jeu et mises à jour automatiques, Premium, en un coup d'œil (vert = activé, gris = désactivé, orange = à vérifier).",
                 "« Vérifier le fonctionnement » : Nettoyage PC contrôle que chaque fonction activée est bien en place (gardien lancé, tâches planifiées présentes, dossier et réglages lisibles, erreurs récentes) et propose la correction, toujours sur ton clic."),
             N("5.3", "Favoris : choisis tes outils préférés, gratuits et Premium, et retrouve-les en haut de l'accueil pour les lancer en un clic. L'étoile ☆ sur chaque outil l'ajoute ou le retire, et « Choisir mes favoris » permet de les ranger dans l'ordre que tu veux."),

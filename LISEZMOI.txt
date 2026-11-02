@@ -24,6 +24,7 @@ Nouveautés de la version 5.4.1
 ------------------------------
 - Favoris : une petite bulle verte « activé » sur les outils en marche, orange s'il y a
   quelque chose à vérifier.
+- Accueil allégé : la bande « Ce qui est activé » est retirée (détail dans Ctrl+K).
 
 Nouveautés de la version 5.4
 ----------------------------
