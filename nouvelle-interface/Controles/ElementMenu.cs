@@ -80,9 +80,12 @@ namespace NettoyagePC.Nouveau
                 ctx.DrawText(num, new Point(24, (Bounds.Height - num.Height) / 2));
                 x = 54;
             }
-            var nom = new FormattedText(Nom.ToUpper(CultureInfo.GetCultureInfo("fr-FR")), CultureInfo.CurrentCulture, FlowDirection.LeftToRight,
-                new Typeface(Habillage.Affichage, FontStyle.Normal, actif || hud ? (actif ? FontWeight.Bold : FontWeight.SemiBold) : FontWeight.Normal), Numero > 0 ? 14 : 12,
-                Habillage.Pinceau(Numero > 0 || hud ? texte : Habillage.Melanger(discret, Colors.White, Math.Max(vActif, survol * 0.6))));
+            // HUD : le groupe du bas (Mises à jour, Historique, Réglages) en minuscules, plus discret
+            bool basHud = hud && Numero == 0;
+            var nom = new FormattedText(basHud ? Nom : Nom.ToUpper(CultureInfo.GetCultureInfo("fr-FR")), CultureInfo.CurrentCulture, FlowDirection.LeftToRight,
+                basHud ? new Typeface(Habillage.Corps, FontStyle.Normal, actif ? FontWeight.SemiBold : FontWeight.Normal)
+                       : new Typeface(Habillage.Affichage, FontStyle.Normal, actif || hud ? (actif ? FontWeight.Bold : FontWeight.SemiBold) : FontWeight.Normal), basHud ? 13 : Numero > 0 ? 14 : 12,
+                Habillage.Pinceau(basHud && !actif ? Habillage.Melanger(Color.FromRgb(134, 169, 183), Colors.White, survol) : Numero > 0 || hud ? texte : Habillage.Melanger(discret, Colors.White, Math.Max(vActif, survol * 0.6))));
             ctx.DrawText(nom, new Point(x, (Bounds.Height - nom.Height) / 2));
             if (Pastille != "")
             {

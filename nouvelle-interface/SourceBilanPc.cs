@@ -28,7 +28,7 @@ namespace NettoyagePC.Nouveau
                 b.Points.Add(new PointBilan(etat, Langue.T(p.Texte), p.Bouton == null ? null : Langue.T(p.Bouton), p.Cible));
             }
             var m = Mesurer(true);
-            if (m != null) { b.Processeur = m.Processeur; b.Memoire = m.Memoire; b.Temperature = m.Temperature; b.DisqueLibre = m.DisqueLibre; }
+            if (m != null) { b.Processeur = m.Processeur; b.Memoire = m.Memoire; b.Temperature = m.Temperature; b.DisqueLibre = m.DisqueLibre; b.DisquePourcentLibre = m.DisquePourcentLibre; }
             try { FichierSur.AjouterLigne(Chemins.Fichier("scores.csv"), DateTime.Now.ToString("yyyy-MM-dd HH:mm") + ";" + b.Score); } catch { }
             return b;
         }
@@ -49,7 +49,7 @@ namespace NettoyagePC.Nouveau
             try
             {
                 var dq = new DriveInfo(Environment.GetEnvironmentVariable("SystemDrive") ?? Path.GetPathRoot(Chemins.Windows));
-                if (dq.IsReady && dq.TotalSize > 0) m.DisqueLibre = Format.Taille(dq.AvailableFreeSpace) + " libres";
+                if (dq.IsReady && dq.TotalSize > 0) { m.DisqueLibre = Format.Taille(dq.AvailableFreeSpace) + " libres"; m.DisquePourcentLibre = 100.0 * dq.AvailableFreeSpace / dq.TotalSize; }
             }
             catch { }
             if (avecTemperature)

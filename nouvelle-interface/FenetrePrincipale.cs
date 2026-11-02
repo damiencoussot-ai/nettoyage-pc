@@ -92,7 +92,7 @@ namespace NettoyagePC.Nouveau
         public void Statut(string texte, bool alerte = false)
         {
             if (statut == null) return;
-            statut.Text = Langue.T(texte);
+            statut.Text = Habillage.Hud ? Langue.T(texte).TrimEnd('.').ToUpper(Langue.Culture) : Langue.T(texte);
             statut.Foreground = Habillage.Pinceau(alerte ? Habillage.P.Orange : Habillage.P.Discret);
         }
 
@@ -492,12 +492,14 @@ namespace NettoyagePC.Nouveau
             var noms = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
             noms.Children.Add(new TextBlock { Text = Habillage.Hud ? "NETTOYAGE PC" : "Nettoyage PC", FontFamily = Habillage.Affichage, FontSize = 17, FontWeight = Habillage.Hud ? FontWeight.Bold : FontWeight.SemiBold, Foreground = Brushes.White });
             string version = Installation5.Apercu ? Langue.T("Version 5.0 · aperçu") : Langue.T("Version") + " " + Appli.Version;
+            if (Habillage.Hud && !Installation5.Apercu) version = "v" + Appli.Version + " · " + Langue.T("SYSTÈME EN LIGNE");
             noms.Children.Add(new TextBlock { Text = Habillage.Hud ? version.ToUpper(Langue.Culture) : version, FontFamily = Habillage.Hud ? Habillage.Console : Habillage.Corps, FontSize = Habillage.Hud ? 10.5 : 11, Foreground = Habillage.Pinceau(Habillage.Hud ? Color.FromRgb(111, 168, 188) : Color.FromRgb(138, 160, 180)) });
             tete.Children.Add(noms);
             grille.Children.Add(tete);
             // menu principal et groupe du bas
             var haut = new StackPanel { Spacing = 2 };
             var bas = new StackPanel { Spacing = 1, Margin = new Thickness(0, 0, 0, 16) };
+            if (Habillage.Hud) bas.Children.Add(new TextBlock { Text = "// " + Langue.T("SYSTÈME"), FontFamily = Habillage.Console, FontSize = 10.5, Foreground = Habillage.Pinceau(Color.FromRgb(79, 127, 146)), Margin = new Thickness(31, 0, 0, 6) });
             menu.Clear();
             int n = 0;
             foreach (var r in Rubriques)
@@ -533,7 +535,16 @@ namespace NettoyagePC.Nouveau
             sousTitre = new TextBlock { Text = "", FontFamily = Habillage.Corps, FontSize = 13, Foreground = Habillage.Pinceau(P.Discret), TextTrimming = TextTrimming.CharacterEllipsis };
             // texte complet au survol (une traduction plus longue peut être coupée par la recherche)
             sousTitre.PropertyChanged += (o, e) => { if (e.Property == TextBlock.TextProperty) ToolTip.SetTip(sousTitre, string.IsNullOrEmpty(sousTitre.Text) ? null : sousTitre.Text); };
-            textes.Children.Add(new StackPanel { Orientation = Orientation.Horizontal, Children = { numeroRubrique, titre } }); textes.Children.Add(sousTitre);
+            if (Habillage.Hud)
+            {
+                numeroRubrique.Margin = new Thickness(0, 6, 0, 0); numeroRubrique.FontSize = 10.5; numeroRubrique.LetterSpacing = 1.5;
+                numeroRubrique.Foreground = Habillage.Pinceau(P.Accent, 190);
+                titre.FontSize = 24;
+                textes.Children.Add(numeroRubrique); textes.Children.Add(titre);
+                sousTitre.IsVisible = false;
+                textes.Children.Add(sousTitre);
+            }
+            else { textes.Children.Add(titre); textes.Children.Add(sousTitre); }
             g.Children.Add(textes);
             var droite = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 12, VerticalAlignment = VerticalAlignment.Center };
             var recherche = new Cadre5
@@ -615,6 +626,7 @@ namespace NettoyagePC.Nouveau
         private Control BarreEtat()
         {
             var P = Habillage.P;
+            if (Habillage.Hud) return BarreEtatHud();
             var g = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto"), Height = 44, Margin = new Thickness(18, 0, 14, 0) };
             statut = new TextBlock { Text = Simulation ? "Mode simulation : rien n'est modifié tant que tu ne passes pas en mode réel." : "Prêt.", FontFamily = Habillage.Hud ? Habillage.Console : Habillage.Corps, FontSize = Habillage.Hud ? 12 : 13, Foreground = Habillage.Pinceau(Simulation ? P.Orange : P.Discret), VerticalAlignment = VerticalAlignment.Center, TextTrimming = TextTrimming.CharacterEllipsis };
             g.Children.Add(statut);
@@ -631,6 +643,53 @@ namespace NettoyagePC.Nouveau
             Grid.SetColumn(b, 1); g.Children.Add(b);
             return new Border { Background = Habillage.Pinceau(P.Sombre ? (Habillage.Hud ? Color.FromRgb(4, 9, 14) : Color.FromRgb(8, 13, 24)) : Color.FromRgb(246, 249, 251)), BorderBrush = Habillage.Pinceau(Habillage.Hud && P.Sombre ? Habillage.Alpha(P.Accent, 36) : P.Bordure), BorderThickness = new Thickness(0, 1, 0, 0), Child = g };
         }
+
+        /// <summary>HUD : « ● PRÊT », le matériel du PC, et « DÉTAILS ▸ », en petites capitales.</summary>
+        private Control BarreEtatHud()
+        {
+            var P = Habillage.P;
+            var g = new Grid { ColumnDefinitions = new ColumnDefinitions("Auto,*,Auto,Auto"), Height = 36, Margin = new Thickness(24, 0, 14, 0) };
+            var point = new Border { Width = 7, Height = 7, CornerRadius = new CornerRadius(4), Background = Habillage.Pinceau(Simulation ? P.Orange : P.Vert), VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 10, 0) };
+            g.Children.Add(point);
+            statut = new TextBlock { FontFamily = Habillage.Console, FontSize = 11, LetterSpacing = 1, Foreground = Habillage.Pinceau(Simulation ? P.Orange : P.Discret), VerticalAlignment = VerticalAlignment.Center, TextTrimming = TextTrimming.CharacterEllipsis };
+            Grid.SetColumn(statut, 1); g.Children.Add(statut);
+            Statut(Simulation ? "Mode simulation : rien n'est modifié tant que tu ne passes pas en mode réel." : "Prêt.", Simulation);
+            var materiel = new TextBlock { Text = MaterielCourt ?? "", FontFamily = Habillage.Console, FontSize = 11, LetterSpacing = 1, Foreground = Habillage.Pinceau(P.Discret), VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(16, 0, 16, 0) };
+            Grid.SetColumn(materiel, 2); g.Children.Add(materiel);
+            if (MaterielCourt == null)
+            {
+                MaterielCourt = "";
+                if (Source.Immediat) { MaterielCourt = "RYZEN 7 7800X3D · RX 7900 XTX"; materiel.Text = MaterielCourt; }
+                else System.Threading.Tasks.Task.Run(() =>
+                {
+                    string m = "";
+                    try
+                    {
+                        Func<string, string> court = x => System.Text.RegularExpressions.Regex.Replace(x ?? "", @"\((R|TM|tm)\)|\b(AMD|Intel|NVIDIA|Radeon|GeForce|Core|Processor|CPU|Graphics)\b|\d+-Core|@.*$", "").Trim();
+                        string cpu = System.Text.RegularExpressions.Regex.Replace(court(InfosPc.Processeur()), @"\s+", " ");
+                        var carte = InfosPc.CarteGraphiquePrincipale();
+                        string gpu = carte == null ? "" : System.Text.RegularExpressions.Regex.Replace(court(carte.Nom), @"\s+", " ");
+                        m = string.Join(" · ", new[] { cpu, gpu }.Where(x => x != "")).ToUpperInvariant();
+                    }
+                    catch { }
+                    Avalonia.Threading.Dispatcher.UIThread.Post(() => { MaterielCourt = m; materiel.Text = m; });
+                });
+            }
+            var b = new BoutonNoyau("Détails ▸", false, 0, 26) { TaillePolice = 11, Capitales = true, VerticalAlignment = VerticalAlignment.Center };
+            b.Clic += () =>
+            {
+                if (Moteur.Lignes.Count > 0 || Moteur.EnCours) { MontrerPanneauAction(); return; }
+                Demander("Aucune action depuis l'ouverture", "Le détail de chaque nettoyage et de chaque bilan est enregistré dans Documents\\NettoyagePC (gardé 60 jours).", "Ouvrir le dossier", "Fermer", oui =>
+                {
+                    if (oui) { try { Chemins.CreerDonnees(); Programmes.Ouvrir(Chemins.Donnees); } catch { } }
+                });
+            };
+            Grid.SetColumn(b, 3); g.Children.Add(b);
+            return new Border { Background = Habillage.Pinceau(P.Sombre ? Color.FromRgb(4, 9, 14) : Color.FromRgb(246, 249, 251)), BorderBrush = Habillage.Pinceau(P.Accent, P.Sombre ? 36 : 60), BorderThickness = new Thickness(0, 1, 0, 0), Child = g };
+        }
+
+        /// <summary>Processeur et carte graphique, en court (« RYZEN 7 7800X3D · RX 7900 XTX ») ; lu une fois.</summary>
+        private static string MaterielCourt;
 
         // ------------------------------------------------------------ navigation
         /// <summary>Mode simple (débutants) : un seul écran, actions réelles avec question avant chacune (comme la version 4).</summary>
@@ -661,7 +720,7 @@ namespace NettoyagePC.Nouveau
             sousTitre.Text = r.Sous;
             string nom = Habillage.Hud ? r.Nom.ToUpper(Langue.Culture) : r.Nom;
             int rang = Rubriques.Where(x => !x.EnBas).ToList().IndexOf(r);
-            if (numeroRubrique != null) numeroRubrique.Text = rang >= 0 ? (rang + 1).ToString("00") + " //" : "//";
+            if (numeroRubrique != null) numeroRubrique.Text = Langue.T("MODULE") + " " + (rang >= 0 ? (rang + 1).ToString("00") : "00") + " // " + Langue.T(Module(r.Cle)).ToUpper(Langue.Culture);
             if (anime && change && Habillage.Animations) { Decoder(nom); Balayer(); } else titre.Text = nom;
             contenu.Content = new ScrollViewer { Content = r.Page(), HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled, VerticalScrollBarVisibility = ScrollBarVisibility.Auto };
             PlacerIndicateur(anime);
@@ -679,6 +738,21 @@ namespace NettoyagePC.Nouveau
             if (!anime || premiere || !Habillage.Animations) { positionIndicateur.Y = cible; return; }
             double depart = positionIndicateur.Y; long t0 = Horloge.Maintenant;
             Horloge.Lancer(t => { double p = Math.Min(1, (t - t0) / 260.0); positionIndicateur.Y = depart + (cible - depart) * Habillage.Douce(p); return p < 1; });
+        }
+
+        /// <summary>HUD : nom du module affiché au-dessus du titre.</summary>
+        private static string Module(string cle)
+        {
+            switch (cle)
+            {
+                case "Accueil": return "Tableau de bord";
+                case "Nettoyer": return "Espace disque";
+                case "Accelerer": return "Performances";
+                case "Proteger": return "Sécurité";
+                case "Outils": return "Diagnostic";
+                case "Premium": return "Outils pro";
+                default: return "Système";
+            }
         }
 
         private static readonly Random hasard = new Random();

@@ -25,6 +25,7 @@ namespace NettoyagePC.Nouveau
         public List<PointBilan> Points = new List<PointBilan>();
         public double Processeur = -1, Memoire = -1, Temperature = -1;
         public string DisqueLibre = "";
+        public double DisquePourcentLibre = -1;
         public string NomDisque = "C:";
         public DateTime Date = DateTime.Now;
     }
@@ -34,6 +35,7 @@ namespace NettoyagePC.Nouveau
     {
         public double Processeur = -1, Memoire = -1, Temperature = -1;
         public string DisqueLibre = "", TitreTemperature = "TEMPÉRATURE";
+        public double DisquePourcentLibre = -1;
     }
 
     public interface ISourceBilan
@@ -54,7 +56,7 @@ namespace NettoyagePC.Nouveau
 
         public Bilan Calculer()
         {
-            var b = new Bilan { Score = 72, Processeur = 9, Memoire = 41, Temperature = 46, DisqueLibre = Format.Taille(27.6 * 1073741824.0) + " libres" };
+            var b = new Bilan { Score = 72, Processeur = 9, Memoire = 41, Temperature = 46, DisqueLibre = Format.Taille(27.6 * 1073741824.0) + " libres", DisquePourcentLibre = 11 };
             b.Secteurs = new double[] { 44, 100, 60, 100 };
             b.Points.Add(new PointBilan(EtatPoint.Attention, "Disque C: " + Format.Taille(27.6 * 1073741824.0) + " libres (11 %) : il commence à se remplir.", "Nettoyer", "action:standard"));
             b.Points.Add(new PointBilan(EtatPoint.Attention, Format.Taille(1.03 * 1073741824.0) + " récupérables tout de suite (corbeille et fichiers temporaires).", "Nettoyer", "action:standard"));

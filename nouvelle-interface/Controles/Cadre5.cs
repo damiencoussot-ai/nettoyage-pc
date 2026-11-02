@@ -21,6 +21,8 @@ namespace NettoyagePC.Nouveau
         public CornerRadius CornerRadius { get { return rayon; } set { rayon = value; InvalidateVisual(); } }
         /// <summary>Taille de la coupe des coins en style HUD (0 : angles droits).</summary>
         public double Coupe = 14;
+        /// <summary>HUD : seulement le coin haut droit coupé (tuiles de l'accès rapide).</summary>
+        public bool UnCoin;
         /// <summary>Trait de couleur de 2 px en haut (tuiles de mesure du HUD).</summary>
         public Color? TraitHaut { get { return traitHaut; } set { traitHaut = value; InvalidateVisual(); } }
 
@@ -32,7 +34,7 @@ namespace NettoyagePC.Nouveau
             var crayon = bordure != null && e > 0 ? new Pen(bordure, e) : null;
             if (Habillage.Hud)
             {
-                var forme = Habillage.Chanfrein(r.Deflate(e / 2), Coupe);
+                var forme = Habillage.Chanfrein(r.Deflate(e / 2), Coupe, !UnCoin);
                 ctx.DrawGeometry(fond, crayon, forme);
                 if (traitHaut.HasValue) ctx.DrawRectangle(Habillage.Pinceau(traitHaut.Value), null, new Rect(0, 0, Math.Max(0, r.Width - Coupe), 2));
             }

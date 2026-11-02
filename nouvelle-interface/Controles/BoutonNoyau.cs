@@ -14,6 +14,8 @@ namespace NettoyagePC.Nouveau
         public string Texte;
         public bool Principal;
         public double TaillePolice = 14;
+        /// <summary>Style HUD : texte en capitales, police d'affichage (boutons des alertes, « Analyser »).</summary>
+        public bool Capitales;
         /// <summary>Icône dessinée à la place du texte : "soleil" ou "lune" (pas d'emoji : même rendu partout).</summary>
         public string Icone;
         public event Action Clic;
@@ -43,9 +45,9 @@ namespace NettoyagePC.Nouveau
             return Math.Ceiling(ft.WidthIncludingTrailingWhitespace + 2 * Math.Max(18, Height * 0.5));
         }
 
-        private bool Hud5 { get { return Habillage.Hud && Principal; } }
+        private bool Hud5 { get { return Habillage.Hud && (Principal || Capitales); } }
         private string TexteAffiche { get { return Hud5 ? (Texte ?? "").ToUpper(CultureInfo.CurrentCulture) : (Texte ?? ""); } }
-        private Typeface Police { get { return Hud5 ? new Typeface(Habillage.Affichage, FontStyle.Normal, FontWeight.Bold) : new Typeface(Habillage.Corps, FontStyle.Normal, Principal ? FontWeight.SemiBold : FontWeight.Normal); } }
+        private Typeface Police { get { return Hud5 ? new Typeface(Habillage.Affichage, FontStyle.Normal, Principal ? FontWeight.Bold : FontWeight.SemiBold) : new Typeface(Habillage.Corps, FontStyle.Normal, Principal ? FontWeight.SemiBold : FontWeight.Normal); } }
 
         private void Ajuster()
         {
@@ -166,7 +168,7 @@ namespace NettoyagePC.Nouveau
                 var fond = appui ? Habillage.Melanger(P.CarteSurvol, P.Fond, 0.4) : Habillage.Melanger(P.Carte, P.CarteSurvol, survol);
                 var bord = Habillage.Melanger(P.Bordure, P.Accent, survol * 0.8);
                 dessiner(Habillage.Pinceau(hud ? Habillage.Alpha(fond, P.Sombre ? 200 : 255) : fond), new Pen(Habillage.Pinceau(hud && P.Sombre ? Habillage.Melanger(Habillage.Alpha(P.Accent, 110), P.Accent, survol) : bord), 1));
-                texte = P.Texte;
+                texte = Habillage.Hud && Capitales && Bounds.Height <= 34 ? P.Accent : P.Texte;
             }
             if (Icone != null)
             {

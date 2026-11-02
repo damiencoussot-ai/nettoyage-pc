@@ -237,11 +237,21 @@ namespace NettoyagePC.Nouveau
             {
                 var P = Habillage.P;
                 bloc.Children.Clear();
-                var titre = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto") };
-                titre.Children.Add(new TextBlock { Text = "★  " + Langue.T("Mes favoris"), FontFamily = Habillage.Console, FontSize = 12, Foreground = Habillage.Pinceau(P.Discret), VerticalAlignment = VerticalAlignment.Center });
+                var titre = new Grid { ColumnDefinitions = new ColumnDefinitions("Auto,*,Auto") };
+                // HUD : « ★ ACCÈS RAPIDE » et un trait qui s'efface ; classique : « ★ Mes favoris »
+                titre.Children.Add(new TextBlock
+                {
+                    Text = "★  " + (Habillage.Hud ? Langue.T("Accès rapide").ToUpper(Langue.Culture) : Langue.T("Mes favoris")), FontFamily = Habillage.Console, FontSize = Habillage.Hud ? 11 : 12,
+                    LetterSpacing = Habillage.Hud ? 1.5 : 0, Foreground = Habillage.Hud ? Habillage.Pinceau(P.Accent, 200) : Habillage.Pinceau(P.Discret), VerticalAlignment = VerticalAlignment.Center,
+                });
+                if (Habillage.Hud)
+                {
+                    var trait = new Border { Height = 1, Margin = new Thickness(12, 0, 12, 0), VerticalAlignment = VerticalAlignment.Center, Background = PageAccueil.Trait(P.Accent) };
+                    Grid.SetColumn(trait, 1); titre.Children.Add(trait);
+                }
                 var choisir = new BoutonNoyau("Choisir mes favoris", false, 170, 28) { TaillePolice = 12 };
                 choisir.Clic += () => Choisir(f);
-                Grid.SetColumn(choisir, 1); titre.Children.Add(choisir);
+                Grid.SetColumn(choisir, 2); titre.Children.Add(choisir);
                 bloc.Children.Add(titre);
                 var l = Liste().Select(Par).Where(o => o != null).ToList();
                 if (l.Count == 0)
@@ -275,7 +285,7 @@ namespace NettoyagePC.Nouveau
             bool verrou = o.Premium && !Licence.Premium;
             var b = new Cadre5
             {
-                Coupe = 12, Width = 214, Height = 70, Margin = new Thickness(0, 0, 10, 10), Padding = new Thickness(14, 9, 10, 9), CornerRadius = new CornerRadius(3),
+                Coupe = 12, UnCoin = true, Width = 214, Height = 66, Margin = new Thickness(0, 0, 10, 10), Padding = new Thickness(14, 9, 10, 9), CornerRadius = new CornerRadius(3),
                 Background = Habillage.Pinceau(P.Carte), BorderBrush = Habillage.Pinceau(P.Bordure), BorderThickness = new Thickness(1),
                 Cursor = new Cursor(StandardCursorType.Hand),
             };

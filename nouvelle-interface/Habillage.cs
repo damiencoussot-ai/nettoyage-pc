@@ -129,7 +129,7 @@ namespace NettoyagePC.Nouveau
         public static FontFamily Console { get { return Hud ? consoleHud : consoleClassique; } }
 
         /// <summary>Contour à coins coupés du HUD (haut droit et bas gauche) ; c = taille de la coupe.</summary>
-        public static Geometry Chanfrein(Rect r, double c)
+        public static Geometry Chanfrein(Rect r, double c, bool basGauche = true)
         {
             c = Math.Max(0, Math.Min(c, Math.Min(r.Width, r.Height) / 2));
             var g = new StreamGeometry();
@@ -139,8 +139,8 @@ namespace NettoyagePC.Nouveau
                 x.LineTo(new Point(r.Right - c, r.Top));
                 x.LineTo(new Point(r.Right, r.Top + c));
                 x.LineTo(new Point(r.Right, r.Bottom));
-                x.LineTo(new Point(r.Left + c, r.Bottom));
-                x.LineTo(new Point(r.Left, r.Bottom - c));
+                if (basGauche) { x.LineTo(new Point(r.Left + c, r.Bottom)); x.LineTo(new Point(r.Left, r.Bottom - c)); }
+                else x.LineTo(new Point(r.Left, r.Bottom));
                 x.EndFigure(true);
             }
             return g;
