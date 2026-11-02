@@ -286,7 +286,7 @@ namespace NettoyagePC.Nouveau
             if (verrou) haut.Children.Add(new TextBlock { Text = Langue.T("essai gratuit"), FontFamily = Habillage.Console, FontSize = 10, Foreground = Habillage.Pinceau(P.Discret) });
             ligne.Children.Add(haut);
             // petite bulle : verte = activé, orange = à vérifier
-            string detail;
+            string detail = "";
             int etat = verrou ? 0 : Etat(o, out detail);
             if (etat > 0)
             {
