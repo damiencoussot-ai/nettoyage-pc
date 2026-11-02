@@ -1,0 +1,11 @@
+Nettoyage PC 5.4.1
+
+- Favoris : une petite bulle verte « activé » s'affiche sur les tuiles des outils qui sont en
+  marche : gardien, sauvegarde automatique, mode jeu (et mode jeu automatique), mises à jour
+  automatiques des applications, bulletin mensuel, surveillance du réseau, performances élevées.
+- La bulle passe en orange « à vérifier » si la fonction est activée mais ne marche pas bien
+  (par exemple un gardien arrêté) : le détail et la correction sont dans « Vérifier le fonctionnement ».
+
+Comprend toutes les nouveautés de la 5.4 (ce qui est activé, vérification du fonctionnement).
+
+SHA256 de NettoyagePC-Setup-5.4.1.exe : voir le fichier NettoyagePC-Setup-5.4.1.sha256

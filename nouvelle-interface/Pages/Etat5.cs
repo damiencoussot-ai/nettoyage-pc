@@ -21,7 +21,14 @@ namespace NettoyagePC.Nouveau
         private static List<EtatFonction> dernier;
         private static DateTime dateDernier;
         private static bool enCours;
-        private static event Action Pret;
+        internal static event Action Pret;
+
+        /// <summary>Dernier état relevé d'une fonction (null si inconnu ou pas encore relevé).</summary>
+        public static EtatFonction Etat(string id)
+        {
+            var l = Exemple ?? dernier;
+            return l == null ? null : l.FirstOrDefault(e => e.Id == id);
+        }
 
         /// <summary>Relevé en arrière-plan (au plus un à la fois) ; « Pret » prévient les affichages.</summary>
         public static void Actualiser(FenetrePrincipale f)

@@ -338,16 +338,17 @@ namespace NettoyagePC.Nouveau
                 for (int k = 0; k < 6; k++) { Dispatcher.UIThread.RunJobs(); System.Threading.Thread.Sleep(50); }
                 Capturer(f, dossier, "sombre-etat.png", rapport, ref erreurs);
                 f.ViderCalques();
+                Favoris5.Exemple = new System.Collections.Generic.List<string> { "rapide", "modejeuauto", "gardien", "sauvegardeauto", "secu", "majappsauto" };
                 f.Afficher("Accueil", false);
                 for (int k = 0; k < 10; k++) { Dispatcher.UIThread.RunJobs(); System.Threading.Thread.Sleep(50); }
                 Capturer(f, dossier, "sombre-Accueil-etat.png", rapport, ref erreurs);
-                Etat5.Exemple = null;
+                Etat5.Exemple = null; Favoris5.Exemple = null;
                 Favoris5.Choisir(f);
                 for (int k = 0; k < 6; k++) { Dispatcher.UIThread.RunJobs(); System.Threading.Thread.Sleep(50); }
                 Capturer(f, dossier, "sombre-favoris.png", rapport, ref erreurs);
                 f.ViderCalques();
             }
-            catch (Exception ex) { Etat5.Exemple = null; erreurs++; rapport.AppendLine("ERREUR : favoris et état : " + ex); }
+            catch (Exception ex) { Etat5.Exemple = null; Favoris5.Exemple = null; erreurs++; rapport.AppendLine("ERREUR : favoris et état : " + ex); }
 
             // Outils : matériel, aide à distance (plein potentiel : sous Windows seulement, l'analyse lit le matériel)
             try

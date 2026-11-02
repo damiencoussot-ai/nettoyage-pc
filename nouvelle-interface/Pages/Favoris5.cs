@@ -98,14 +98,56 @@ namespace NettoyagePC.Nouveau
             O("batterie", "Premium", "Santé de la batterie", "Usure, cycles et autonomie réelle.", Outil("batterie"), true),
         };
 
+        /// <summary>Favori qui correspond à une fonction qu'on active (gardien, mode jeu...) → clé de son état.</summary>
+        private static readonly Dictionary<string, string> Etats = new Dictionary<string, string>
+        {
+            { "gardien", "gardien" }, { "sauvegardeauto", "sauvegardeauto" }, { "modejeuauto", "modejeuauto" }, { "majappsauto", "majappsauto" },
+            { "bulletin", "bulletin" }, { "surveillance", "appareils" },
+        };
+
+        /// <summary>État affiché sur la tuile : 1 = activé, 2 = à vérifier, 0 = rien à montrer (désactivé ou simple action).</summary>
+        public static int Etat(OutilFavori o, out string detail)
+        {
+            detail = "";
+            try
+            {
+                // lus en direct : changent dès que l'action est faite
+                if (o.Id == "modejeu")
+                {
+                    if (!File.Exists(Chemins.Fichier("modejeu.json"))) return 0;
+                    detail = Langue.T("Le mode jeu est en cours : clique pour le terminer.");
+                    return 1;
+                }
+                if (o.Id == "alim")
+                {
+                    if (PageAccelerer.ModeAlimentation() != "Performances élevées") return 0;
+                    detail = Langue.T("Performances élevées activées.");
+                    return 1;
+                }
+                string cle;
+                if (!Etats.TryGetValue(o.Id, out cle)) return 0;
+                var e = Etat5.Etat(cle);
+                if (e == null) return 0;
+                if (!e.Ok) { detail = e.Probleme; return 2; }
+                if (!e.Actif) return 0;
+                detail = Langue.T(e.Detail);
+                return 1;
+            }
+            catch { return 0; }
+        }
+
         public static OutilFavori Par(string id) { return Catalogue.FirstOrDefault(o => o.Id == id); }
 
         /// <summary>Outil désigné par le titre d'une carte (null si cette carte ne peut pas être un favori).</summary>
         public static OutilFavori ParTitre(string titre) { return Catalogue.FirstOrDefault(o => o.Titre == titre || o.Alias.Contains(titre)); }
 
         /// <summary>Favoris dans l'ordre choisi.</summary>
+        /// <summary>(captures) favoris d'exemple : rien n'est lu ni écrit.</summary>
+        public static List<string> Exemple;
+
         public static List<string> Liste()
         {
+            if (Exemple != null) return Exemple.ToList();
             if (courants == null)
             {
                 string brut = null;
@@ -220,8 +262,10 @@ namespace NettoyagePC.Nouveau
             };
             remplir();
             Action surChange = () => Avalonia.Threading.Dispatcher.UIThread.Post(remplir);
-            bloc.AttachedToVisualTree += (s, e) => { Change += surChange; Licence.Change += surChange; };
-            bloc.DetachedFromVisualTree += (s, e) => { Change -= surChange; Licence.Change -= surChange; };
+            // les bulles « activé » suivent l'état des fonctions et les actions (mode jeu, alimentation)
+            Action<Bilan> surBilan = x => surChange();
+            bloc.AttachedToVisualTree += (s, e) => { Change += surChange; Licence.Change += surChange; Etat5.Pret += surChange; f.BilanPret += surBilan; };
+            bloc.DetachedFromVisualTree += (s, e) => { Change -= surChange; Licence.Change -= surChange; Etat5.Pret -= surChange; f.BilanPret -= surBilan; };
             return bloc;
         }
 
@@ -236,10 +280,24 @@ namespace NettoyagePC.Nouveau
                 Cursor = new Cursor(StandardCursorType.Hand),
             };
             var g = new Grid { RowDefinitions = new RowDefinitions("Auto,*") };
+            var ligne = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto") };
             var haut = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
             haut.Children.Add(new TextBlock { Text = NomRubrique(f, o.Rubrique).ToUpper(Langue.Culture), FontFamily = Habillage.Console, FontSize = 10, Foreground = Habillage.Pinceau(o.Premium ? P.Orange : P.Accent) });
             if (verrou) haut.Children.Add(new TextBlock { Text = Langue.T("essai gratuit"), FontFamily = Habillage.Console, FontSize = 10, Foreground = Habillage.Pinceau(P.Discret) });
-            g.Children.Add(haut);
+            ligne.Children.Add(haut);
+            // petite bulle : verte = activé, orange = à vérifier
+            string detail;
+            int etat = verrou ? 0 : Etat(o, out detail);
+            if (etat > 0)
+            {
+                var c = etat == 1 ? P.Vert : P.Orange;
+                var bulle = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 5, VerticalAlignment = VerticalAlignment.Center };
+                bulle.Children.Add(new Border { Width = 8, Height = 8, CornerRadius = new CornerRadius(4), Background = Habillage.Pinceau(c), BoxShadow = BoxShadows.Parse("0 0 6 0 " + c.ToString()), VerticalAlignment = VerticalAlignment.Center });
+                bulle.Children.Add(new TextBlock { Text = Langue.T(etat == 1 ? "activé" : "à vérifier"), FontFamily = Habillage.Console, FontSize = 10, Foreground = Habillage.Pinceau(c), VerticalAlignment = VerticalAlignment.Center });
+                if (detail != "") ToolTip.SetTip(bulle, detail);
+                Grid.SetColumn(bulle, 1); ligne.Children.Add(bulle);
+            }
+            g.Children.Add(ligne);
             var nom = new TextBlock { Text = Langue.T(o.Titre), FontFamily = Habillage.Affichage, FontSize = 14.5, FontWeight = FontWeight.SemiBold, Foreground = Habillage.Pinceau(P.Texte), TextWrapping = TextWrapping.Wrap, MaxLines = 2, TextTrimming = TextTrimming.CharacterEllipsis, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 3, 0, 0) };
             Grid.SetRow(nom, 1); g.Children.Add(nom);
             b.Child = g;
