@@ -7,6 +7,8 @@ namespace NettoyagePC
     {
         public static readonly List<KeyValuePair<string, string[]>> Liste = new List<KeyValuePair<string, string[]>>
         {
+            N("5.5", "Nouveau look « HUD » et nouveau logo : interface plus futuriste (grille holographique, coins coupés, nouvelles polices), mêmes outils au même endroit.",
+                "À la première ouverture, une fenêtre explique ce qui change ; l'ancien look reste disponible dans Réglages, « Style de l'interface »."),
             N("5.4.1", "Favoris : une petite bulle verte « activé » sur les outils qui sont en marche (gardien, sauvegarde, mode jeu, mises à jour automatiques, bulletin, surveillance du réseau, performances élevées), orange s'il y a quelque chose à vérifier.",
                 "Accueil allégé : la bande « Ce qui est activé » est retirée, les bulles des favoris la remplacent. Le détail reste dans « Que veux-tu faire ? » (Ctrl+K)."),
             N("5.4", "« Ce qui est activé » sur l'accueil : entretien automatique, gardien, sauvegarde, mode jeu et mises à jour automatiques, Premium, en un coup d'œil (vert = activé, gris = désactivé, orange = à vérifier).",

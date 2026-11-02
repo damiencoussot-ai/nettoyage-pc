@@ -273,9 +273,9 @@ namespace NettoyagePC.Nouveau
         {
             var P = Habillage.P;
             bool verrou = o.Premium && !Licence.Premium;
-            var b = new Border
+            var b = new Cadre5
             {
-                Width = 214, Height = 70, Margin = new Thickness(0, 0, 10, 10), Padding = new Thickness(14, 9, 10, 9), CornerRadius = new CornerRadius(3),
+                Coupe = 12, Width = 214, Height = 70, Margin = new Thickness(0, 0, 10, 10), Padding = new Thickness(14, 9, 10, 9), CornerRadius = new CornerRadius(3),
                 Background = Habillage.Pinceau(P.Carte), BorderBrush = Habillage.Pinceau(P.Bordure), BorderThickness = new Thickness(1),
                 Cursor = new Cursor(StandardCursorType.Hand),
             };

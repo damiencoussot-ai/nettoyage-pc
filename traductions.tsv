@@ -2479,3 +2479,24 @@ Le mode jeu est en cours : clique pour le terminer.	Game mode is on: click to tu
 Performances élevées activées.	High performance is on.	Alto rendimiento activado.
 Favoris : une petite bulle verte « activé » sur les outils qui sont en marche (gardien, sauvegarde, mode jeu, mises à jour automatiques, bulletin, surveillance du réseau, performances élevées), orange s'il y a quelque chose à vérifier.	Favorites: a small green "on" bubble on the tools that are running (guardian, backup, game mode, automatic updates, report, network monitoring, high performance), orange if something needs checking.	Favoritos: una pequeña burbuja verde «activado» en las herramientas en marcha (guardián, copia de seguridad, modo juego, actualizaciones automáticas, boletín, vigilancia de la red, alto rendimiento), naranja si hay algo que revisar.
 Accueil allégé : la bande « Ce qui est activé » est retirée, les bulles des favoris la remplacent. Le détail reste dans « Que veux-tu faire ? » (Ctrl+K).	Lighter home page: the "What's turned on" strip is gone, replaced by the bubbles on favorites. The details are still in "What do you want to do?" (Ctrl+K).	Inicio más ligero: se quita la franja «Lo que está activado», las burbujas de los favoritos la sustituyen. El detalle sigue en «¿Qué quieres hacer?» (Ctrl+K).
+Nouveau look « HUD » et nouveau logo : interface plus futuriste (grille holographique, coins coupés, nouvelles polices), mêmes outils au même endroit.	New "HUD" look and new logo: a more futuristic interface (holographic grid, cut corners, new fonts), same tools in the same place.	Nuevo aspecto «HUD» y nuevo logotipo: interfaz más futurista (cuadrícula holográfica, esquinas cortadas, nuevas fuentes), las mismas herramientas en el mismo sitio.
+À la première ouverture, une fenêtre explique ce qui change ; l'ancien look reste disponible dans Réglages, « Style de l'interface ».	On first launch, a window explains what changes; the old look is still available in Settings, "Interface style".	Al abrir por primera vez, una ventana explica lo que cambia; el aspecto anterior sigue disponible en Ajustes, «Estilo de la interfaz».
+Style de l'interface	Interface style	Estilo de la interfaz
+HUD : le look futuriste, depuis la version 5.5. Classique : l'apparence d'avant. Tes outils, tes favoris et tes réglages restent les mêmes.	HUD: the futuristic look, since version 5.5. Classic: the previous look. Your tools, favorites and settings stay the same.	HUD: el aspecto futurista, desde la versión 5.5. Clásico: el aspecto anterior. Tus herramientas, favoritos y ajustes siguen siendo los mismos.
+HUD	HUD	HUD
+Classique	Classic	Clásico
+Passer au style classique	Switch to the classic style	Cambiar al estilo clásico
+Passer au style HUD	Switch to the HUD style	Cambiar al estilo HUD
+NOUVEAU · VERSION {0}	NEW · VERSION {0}	NUEVO · VERSIÓN {0}
+Nettoyage PC change de look et de logo	Nettoyage PC has a new look and logo	Nettoyage PC cambia de aspecto y de logotipo
+Tout ce que tu utilisais est toujours là, au même endroit : rien n'a été supprimé et tes réglages sont gardés.	Everything you used is still there, in the same place: nothing was removed and your settings are kept.	Todo lo que usabas sigue ahí, en el mismo sitio: no se ha eliminado nada y tus ajustes se conservan.
+Les rubriques n'ont pas bougé	The sections haven't moved	Las secciones no se han movido
+Nettoyer, Accélérer, Protéger, Outils et Premium sont toujours à gauche, dans le même ordre.	Clean, Speed up, Protect, Tools and Premium are still on the left, in the same order.	Limpiar, Acelerar, Proteger, Herramientas y Premium siguen a la izquierda, en el mismo orden.
+Tes favoris et tes réglages sont gardés	Your favorites and settings are kept	Tus favoritos y ajustes se conservan
+Tes favoris sont sur l'accueil, avec leur bulle verte quand ils sont activés.	Your favorites are on the home page, with their green bubble when they're on.	Tus favoritos están en el inicio, con su burbuja verde cuando están activados.
+Tu ne trouves pas un outil ?	Can't find a tool?	¿No encuentras una herramienta?
+Appuie sur Ctrl+K et tape son nom : il s'ouvre directement.	Press Ctrl+K and type its name: it opens right away.	Pulsa Ctrl+K y escribe su nombre: se abre directamente.
+Revenir à l'ancien look	Go back to the old look	Volver al aspecto anterior
+Apparence classique remise. Le nouveau look reste disponible dans Réglages, « Style de l'interface ».	Classic look restored. The new look is still available in Settings, "Interface style".	Aspecto clásico restaurado. El nuevo aspecto sigue disponible en Ajustes, «Estilo de la interfaz».
+Tu pourras changer d'avis à tout moment : Réglages, « Style de l'interface ».	You can change your mind at any time: Settings, "Interface style".	Puedes cambiar de opinión en cualquier momento: Ajustes, «Estilo de la interfaz».
+Nouveau look, mêmes outils	New look, same tools	Nuevo aspecto, mismas herramientas

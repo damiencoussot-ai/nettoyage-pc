@@ -47,9 +47,9 @@ namespace NettoyagePC.Nouveau
         public static Control Carte(FenetrePrincipale f, CarteAction c)
         {
             var P = Habillage.P;
-            var b = new Border
+            var b = new Cadre5
             {
-                Margin = new Thickness(0, 0, 12, 12), Padding = new Thickness(20, 18, 20, 18), CornerRadius = new CornerRadius(3),
+                Margin = new Thickness(0, 0, 12, 12), Padding = new Thickness(20, 18, 20, 18), CornerRadius = new CornerRadius(3), Coupe = 16,
                 Background = Habillage.Pinceau(P.Carte), BorderBrush = Habillage.Pinceau(c.Principal ? Habillage.Alpha(P.Accent, 110) : P.Bordure), BorderThickness = new Thickness(1),
             };
             var d = new DockPanel { LastChildFill = true };

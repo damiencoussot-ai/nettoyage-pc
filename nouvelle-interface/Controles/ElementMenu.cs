@@ -51,8 +51,23 @@ namespace NettoyagePC.Nouveau
             var A = Habillage.P.AccentBarre;           // la barre reste sombre : accent lumineux dans les deux thèmes
             Color discret = Color.FromRgb(120, 142, 162), texte = Habillage.Melanger(Color.FromRgb(200, 216, 230), Colors.White, Math.Max(vActif, survol));
             var r = new Rect(12, 3, Bounds.Width - 24, Bounds.Height - 6);
-            if (survol > 0.01 && vActif < 0.99) ctx.DrawRectangle(Habillage.Pinceau(Color.FromRgb(16, 28, 44), (int)(200 * survol * (1 - vActif))), null, new RoundedRect(r, 2));
-            if (vActif > 0.01)
+            bool hud = Habillage.Hud;
+            if (hud)
+            {
+                // HUD : la rubrique active est un bloc cyan lumineux à coins coupés, texte sombre dessus
+                var forme = Habillage.Chanfrein(r, Numero > 0 ? 11 : 8);
+                if (survol > 0.01 && vActif < 0.99) ctx.DrawGeometry(Habillage.Pinceau(A, (int)(26 * survol * (1 - vActif))), new Pen(Habillage.Pinceau(A, (int)(70 * survol * (1 - vActif))), 1), forme);
+                if (vActif > 0.01)
+                {
+                    ctx.DrawGeometry(null, new Pen(Habillage.Pinceau(A, (int)(45 * vActif)), 8), forme);
+                    ctx.DrawGeometry(Habillage.Pinceau(A, (int)(255 * vActif)), null, forme);
+                }
+                var sombre = Color.FromRgb(4, 7, 12);
+                texte = Habillage.Melanger(Habillage.Melanger(Color.FromRgb(169, 199, 211), Colors.White, survol), sombre, vActif);
+                discret = Habillage.Melanger(Color.FromRgb(79, 127, 146), sombre, vActif);
+            }
+            if (!hud && survol > 0.01 && vActif < 0.99) ctx.DrawRectangle(Habillage.Pinceau(Color.FromRgb(16, 28, 44), (int)(200 * survol * (1 - vActif))), null, new RoundedRect(r, 2));
+            if (!hud && vActif > 0.01)
             {
                 double dx = (1 - vActif) * 10;
                 var ra = new Rect(r.X - dx, r.Y, r.Width, r.Height);
@@ -61,19 +76,22 @@ namespace NettoyagePC.Nouveau
             double x = 26;
             if (Numero > 0)
             {
-                var num = new FormattedText(Numero.ToString("00"), CultureInfo.InvariantCulture, FlowDirection.LeftToRight, new Typeface(Habillage.Console), 11, Habillage.Pinceau(Habillage.Melanger(discret, A, vActif)));
+                var num = new FormattedText(Numero.ToString("00"), CultureInfo.InvariantCulture, FlowDirection.LeftToRight, new Typeface(Habillage.Console), 11, Habillage.Pinceau(hud ? discret : Habillage.Melanger(discret, A, vActif)));
                 ctx.DrawText(num, new Point(24, (Bounds.Height - num.Height) / 2));
                 x = 54;
             }
             var nom = new FormattedText(Nom.ToUpper(CultureInfo.GetCultureInfo("fr-FR")), CultureInfo.CurrentCulture, FlowDirection.LeftToRight,
-                new Typeface(Habillage.Affichage, FontStyle.Normal, actif ? FontWeight.SemiBold : FontWeight.Normal), Numero > 0 ? 14 : 12, Habillage.Pinceau(Numero > 0 ? texte : Habillage.Melanger(discret, Colors.White, Math.Max(vActif, survol * 0.6))));
+                new Typeface(Habillage.Affichage, FontStyle.Normal, actif || hud ? (actif ? FontWeight.Bold : FontWeight.SemiBold) : FontWeight.Normal), Numero > 0 ? 14 : 12,
+                Habillage.Pinceau(Numero > 0 || hud ? texte : Habillage.Melanger(discret, Colors.White, Math.Max(vActif, survol * 0.6))));
             ctx.DrawText(nom, new Point(x, (Bounds.Height - nom.Height) / 2));
             if (Pastille != "")
             {
-                var p = new FormattedText(Pastille, CultureInfo.CurrentCulture, FlowDirection.LeftToRight, new Typeface(Habillage.Corps, FontStyle.Normal, FontWeight.Bold), 11, Habillage.Pinceau(Color.FromRgb(4, 18, 26)));
+                var p = new FormattedText(Pastille, CultureInfo.CurrentCulture, FlowDirection.LeftToRight, new Typeface(hud ? Habillage.Console : Habillage.Corps, FontStyle.Normal, FontWeight.Bold), hud ? 10 : 11,
+                    Habillage.Pinceau(hud ? (actif ? A : Color.FromRgb(205, 184, 255)) : Color.FromRgb(4, 18, 26)));
                 double lp = Math.Max(26, p.Width + 12);
                 var rp = new Rect(Bounds.Width - 22 - lp, (Bounds.Height - 20) / 2, lp, 20);
-                ctx.DrawRectangle(Habillage.Pinceau(A), null, new RoundedRect(rp, 2));
+                if (hud && !actif) ctx.DrawRectangle(Habillage.Pinceau(Color.FromRgb(183, 156, 255), 30), new Pen(Habillage.Pinceau(Color.FromRgb(183, 156, 255)), 1), new RoundedRect(rp.Deflate(0.5), 0));
+                else ctx.DrawRectangle(Habillage.Pinceau(hud ? Color.FromRgb(4, 7, 12) : A), null, new RoundedRect(rp, 2));
                 ctx.DrawText(p, new Point(rp.X + (lp - p.Width) / 2, rp.Y + (20 - p.Height) / 2));
             }
             if (IsFocused) ctx.DrawRectangle(null, new Pen(Habillage.Pinceau(A, 150), 1, new DashStyle(new double[] { 2, 2 }, 0)), new RoundedRect(r.Deflate(2), 2));

@@ -29,6 +29,32 @@ namespace NettoyagePC.Nouveau
             Rouge = Color.FromRgb(194, 40, 59), Vert = Color.FromRgb(10, 122, 82), SurAccent = Color.FromRgb(255, 255, 255), TexteBarre = Color.FromRgb(200, 216, 230),
         };
 
+        /// <summary>Style HUD (version 5.5) : noir profond, cyan franc, violet du logo.</summary>
+        public static readonly Palette SombreHud = new Palette
+        {
+            Sombre = true,
+            Fond = Color.FromRgb(4, 7, 12), Carte = Color.FromRgb(6, 15, 23), CarteSurvol = Color.FromRgb(10, 24, 36), Barre = Color.FromRgb(4, 10, 16),
+            Bordure = Color.FromRgb(18, 54, 66), Texte = Color.FromRgb(227, 246, 255), Discret = Color.FromRgb(127, 163, 181),
+            Accent = Color.FromRgb(0, 229, 255), Accent2 = Color.FromRgb(0, 196, 255), Orange = Color.FromRgb(255, 181, 71),
+            Rouge = Color.FromRgb(255, 122, 138), Vert = Color.FromRgb(61, 255, 162), SurAccent = Color.FromRgb(4, 7, 12), TexteBarre = Color.FromRgb(169, 199, 211),
+        };
+
+        public static readonly Palette ClairHud = new Palette
+        {
+            Sombre = false,
+            Fond = Color.FromRgb(236, 242, 246), Carte = Color.FromRgb(255, 255, 255), CarteSurvol = Color.FromRgb(244, 249, 252), Barre = Color.FromRgb(4, 10, 16),
+            Bordure = Color.FromRgb(190, 212, 224), Texte = Color.FromRgb(8, 22, 32), Discret = Color.FromRgb(70, 96, 112),
+            Accent = Color.FromRgb(0, 122, 150), Accent2 = Color.FromRgb(0, 104, 140), Orange = Color.FromRgb(168, 95, 0),
+            Rouge = Color.FromRgb(194, 40, 59), Vert = Color.FromRgb(10, 122, 82), SurAccent = Color.FromRgb(255, 255, 255), TexteBarre = Color.FromRgb(169, 199, 211),
+        };
+
+        /// <summary>Palette du style actuel (HUD ou classique).</summary>
+        public static Palette Pour(bool sombre)
+        {
+            if (Habillage.Hud) return sombre ? SombreHud : ClairHud;
+            return sombre ? SombreNoyau : ClairNoyau;
+        }
+
         /// <summary>Accent lumineux de la barre de menu (toujours sombre) : suit la couleur de l'interface.</summary>
         public Color AccentBarre = Color.FromRgb(61, 245, 255);
     }
@@ -44,7 +70,7 @@ namespace NettoyagePC.Nouveau
 
     public static class Habillage
     {
-        public static Palette P = Palette.SombreNoyau;
+        public static Palette P = Palette.SombreHud;
 
         private static Color C(int r, int g, int b) { return Color.FromRgb((byte)r, (byte)g, (byte)b); }
 
@@ -66,21 +92,59 @@ namespace NettoyagePC.Nouveau
             CouleurInterface c = Couleurs[0];
             foreach (var x in Couleurs) if (x.Cle == cle) c = x;
             CouleurActuelle = c.Cle;
-            var s = Palette.SombreNoyau;
-            s.Accent = c.Sombre1; s.Accent2 = c.Sombre2;
-            s.SurAccent = TexteSur(Melanger(c.Sombre1, c.Sombre2, 0.5));
-            var l = Palette.ClairNoyau;
-            l.Accent = c.Clair1; l.Accent2 = c.Clair2;
-            l.SurAccent = Colors.White;
-            s.AccentBarre = l.AccentBarre = c.Sombre1;
+            foreach (var s in new[] { Palette.SombreNoyau, Palette.SombreHud })
+            {
+                // le style HUD garde son cyan franc pour la couleur « Noyau »
+                bool hudNoyau = s == Palette.SombreHud && c.Cle == "aurore";
+                s.Accent = hudNoyau ? C(0, 229, 255) : c.Sombre1; s.Accent2 = hudNoyau ? C(0, 196, 255) : c.Sombre2;
+                s.SurAccent = TexteSur(Melanger(s.Accent, s.Accent2, 0.5));
+                s.AccentBarre = s.Accent;
+            }
+            foreach (var l in new[] { Palette.ClairNoyau, Palette.ClairHud })
+            {
+                l.Accent = c.Clair1; l.Accent2 = c.Clair2;
+                l.SurAccent = Colors.White;
+                l.AccentBarre = l == Palette.ClairHud ? Palette.SombreHud.Accent : c.Sombre1;
+            }
         }
 
         /// <summary>Animations autorisées (coupées pour les captures automatiques, ou si l'utilisateur le demande).</summary>
         public static bool Animations = true;
 
-        public static readonly FontFamily Affichage = new FontFamily("Bahnschrift, Segoe UI, DejaVu Sans, sans-serif");
-        public static readonly FontFamily Corps = new FontFamily("Segoe UI, DejaVu Sans, sans-serif");
-        public static readonly FontFamily Console = new FontFamily("Cascadia Mono, Consolas, DejaVu Sans Mono, monospace");
+        /// <summary>Style HUD (par défaut depuis la 5.5) ; faux = l'apparence classique d'avant.</summary>
+        public static bool Hud = true;
+
+        private const string Polices = "avares://NettoyagePC/Assets/Polices#";
+        private static readonly FontFamily affichageClassique = new FontFamily("Bahnschrift, Segoe UI, DejaVu Sans, sans-serif");
+        private static readonly FontFamily corpsClassique = new FontFamily("Segoe UI, DejaVu Sans, sans-serif");
+        private static readonly FontFamily consoleClassique = new FontFamily("Cascadia Mono, Consolas, DejaVu Sans Mono, monospace");
+        // polices du HUD intégrées au programme (licence libre SIL OFL, fichiers dans Assets/Polices) ; les symboles
+        // qu'elles n'ont pas (★, ✔, ⚠...) viennent des polices de Windows
+        private static readonly FontFamily affichageHud = new FontFamily(Polices + "Chakra Petch, Bahnschrift, Segoe UI, DejaVu Sans, sans-serif");
+        private static readonly FontFamily corpsHud = new FontFamily(Polices + "IBM Plex Sans, Segoe UI, DejaVu Sans, sans-serif");
+        private static readonly FontFamily consoleHud = new FontFamily(Polices + "JetBrains Mono, Cascadia Mono, Consolas, DejaVu Sans Mono, monospace");
+
+        public static FontFamily Affichage { get { return Hud ? affichageHud : affichageClassique; } }
+        public static FontFamily Corps { get { return Hud ? corpsHud : corpsClassique; } }
+        public static FontFamily Console { get { return Hud ? consoleHud : consoleClassique; } }
+
+        /// <summary>Contour à coins coupés du HUD (haut droit et bas gauche) ; c = taille de la coupe.</summary>
+        public static Geometry Chanfrein(Rect r, double c)
+        {
+            c = Math.Max(0, Math.Min(c, Math.Min(r.Width, r.Height) / 2));
+            var g = new StreamGeometry();
+            using (var x = g.Open())
+            {
+                x.BeginFigure(new Point(r.Left, r.Top), true);
+                x.LineTo(new Point(r.Right - c, r.Top));
+                x.LineTo(new Point(r.Right, r.Top + c));
+                x.LineTo(new Point(r.Right, r.Bottom));
+                x.LineTo(new Point(r.Left + c, r.Bottom));
+                x.LineTo(new Point(r.Left, r.Bottom - c));
+                x.EndFigure(true);
+            }
+            return g;
+        }
 
         public static Color Alpha(Color c, int a) { return Color.FromArgb((byte)Math.Max(0, Math.Min(255, a)), c.R, c.G, c.B); }
         public static IBrush Pinceau(Color c) { return new SolidColorBrush(c); }

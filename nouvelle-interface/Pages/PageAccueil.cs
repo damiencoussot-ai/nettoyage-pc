@@ -22,7 +22,7 @@ namespace NettoyagePC.Nouveau
         private readonly UniformGrid mesures;
         private readonly TextBlock[] valeurs = new TextBlock[4];
         private readonly TextBlock tTitreTemperature;
-        private readonly Border tuileTemperature;
+        private readonly Cadre5 tuileTemperature;
         private readonly BoutonNoyau bActualiser;
         private readonly DispatcherTimer minuteur = new DispatcherTimer { Interval = TimeSpan.FromSeconds(2) };
         private Bilan bilan;
@@ -47,7 +47,9 @@ namespace NettoyagePC.Nouveau
                 coins[k] = new StackPanel { HorizontalAlignment = places[k].Item1, VerticalAlignment = places[k].Item2, Margin = new Thickness(6) };
                 zoneAnneau.Children.Add(coins[k]);
             }
-            haut.Children.Add(zoneAnneau);
+            // HUD : l'anneau dans un panneau à coins coupés
+            if (Habillage.Hud) haut.Children.Add(new Cadre5 { Child = zoneAnneau, Coupe = 22, Background = Habillage.Pinceau(P.Carte, P.Sombre ? 225 : 255), BorderBrush = Habillage.Pinceau(P.Accent, 60), BorderThickness = new Thickness(1) });
+            else haut.Children.Add(zoneAnneau);
 
             var texte = new StackPanel { Spacing = 6, Margin = new Thickness(18, 22, 0, 0), MaxWidth = 720, HorizontalAlignment = HorizontalAlignment.Stretch };
             texte.Children.Add(new TextBlock { Text = Textes.Salut(f.Pseudo, DateTime.Now), FontFamily = Habillage.Affichage, FontSize = 28, Foreground = Habillage.Pinceau(P.Texte) });
@@ -136,11 +138,12 @@ namespace NettoyagePC.Nouveau
             anneau.Montrer(b);
         }
 
-        private Border Tuile(string titre, int index, out TextBlock tTitre)
+        private Cadre5 Tuile(string titre, int index, out TextBlock tTitre)
         {
             var P = Habillage.P;
-            var b = new Border
+            var b = new Cadre5
             {
+                Coupe = 10, TraitHaut = Habillage.Hud ? (index == 2 ? P.Rouge : index == 3 ? P.Vert : P.Accent) : (Color?)null,
                 MinWidth = 120, Height = 64, Margin = new Thickness(0, 0, 8, 8), Padding = new Thickness(12, 8), CornerRadius = new CornerRadius(3),
                 Background = Habillage.Pinceau(P.Carte), BorderBrush = Habillage.Pinceau(P.Bordure), BorderThickness = new Thickness(1),
             };
@@ -216,7 +219,7 @@ namespace NettoyagePC.Nouveau
                 else if (p.Cible != null) b.Clic += () => F.Executer(p.Cible, p.Bouton);
                 Grid.SetColumn(b, 2); g.Children.Add(b);
             }
-            return new Border { Background = Habillage.Pinceau(P.Carte), BorderBrush = Habillage.Pinceau(P.Bordure), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(3), Child = g };
+            return new Cadre5 { Coupe = 10, Background = Habillage.Pinceau(P.Carte), BorderBrush = Habillage.Pinceau(Habillage.Hud && p.Etat != EtatPoint.Ok ? Habillage.Alpha(c, 70) : P.Bordure), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(3), Child = g };
         }
     }
 }

@@ -17,7 +17,7 @@ namespace NettoyagePC
 #if !NET5_0_OR_GREATER
         public static readonly string Version = "4.6";   // version 4 (lu par la fabrication : .github/workflows/fabrication.yml)
 #else
-        public static readonly string Version = "5.4.1";   // version 5
+        public static readonly string Version = "5.5";   // version 5
 #endif
         public const string Depot = "damiencoussot-ai/nettoyage-pc";
 
@@ -566,6 +566,8 @@ namespace NettoyagePC
         public bool ModeSimple;
         public string Accent = "aurore";   // couleur de l'interface (les autres qu'« aurore » font partie de Premium)
         public string OptionsOuvertes = "";   // pages dont « Plus d'options » est ouvert (clés séparées par des virgules)
+        public string Style = "hud";   // version 5 : « hud » (depuis la 5.5) ou « classique » (l'apparence d'avant)
+        public bool AnnonceHudVue;     // version 5 : annonce du nouveau look déjà montrée
         public string Favoris;   // outils favoris de l'accueil (version 5), dans l'ordre ; null = jamais choisis (favoris proposés)
         // Profil : pseudo affiché à l'accueil. Tout reste sur ce PC.
         public string Pseudo = "";
@@ -589,6 +591,8 @@ namespace NettoyagePC
                 p.ModeSimple = Json.Bool(d, "ModeSimple");
                 string a = Json.Texte(d, "Accent"); if (System.Text.RegularExpressions.Regex.IsMatch(a, "^[a-z]{2,20}$")) p.Accent = a;
                 string o = Json.Texte(d, "OptionsOuvertes"); if (System.Text.RegularExpressions.Regex.IsMatch(o, "^[A-Za-z,]{0,300}$")) p.OptionsOuvertes = o;
+                string st = Json.Texte(d, "Style"); if (st == "hud" || st == "classique") p.Style = st;
+                p.AnnonceHudVue = Json.Bool(d, "AnnonceHudVue");
                 if (d.ContainsKey("Favoris")) { string fv = Json.Texte(d, "Favoris"); p.Favoris = System.Text.RegularExpressions.Regex.IsMatch(fv, "^[a-z0-9,]{0,600}$") ? fv : ""; }
                 p.Pseudo = Profil.Nettoyer(Json.Texte(d, "Pseudo"));
                 p.ProfilCree = Json.Bool(d, "ProfilCree");
@@ -604,6 +608,7 @@ namespace NettoyagePC
                 var d = new Dictionary<string, object> { { "VerifAuto", VerifAuto }, { "DerniereVersionLancee", DerniereVersionLancee }, { "Theme", Theme }, { "Langue", Langue }, { "NouveautesVues", NouveautesVues }, { "ModeSimple", ModeSimple }, { "Accent", Accent }, { "OptionsOuvertes", OptionsOuvertes },
                     { "Pseudo", Pseudo }, { "ProfilCree", ProfilCree } };
                 if (Favoris != null) d["Favoris"] = Favoris;
+                d["Style"] = Style; d["AnnonceHudVue"] = AnnonceHudVue;
                 FichierSur.EcrireInterface(Fichier, Json.Ecrire(d));
             }
             catch { }

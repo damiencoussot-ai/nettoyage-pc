@@ -20,7 +20,9 @@ namespace NettoyagePC.Nouveau
         public static void AuDemarrage(FenetrePrincipale f, bool profilCree)
         {
             bool nouveautes = false;
-            try { nouveautes = profilCree && MontrerNouveautes(f); } catch (Exception ex) { JournalDemarrage.Erreur("nouveautés (version 5)", ex); }
+            // 5.5 : annonce du nouveau look (une fois), à la place des nouveautés habituelles
+            try { nouveautes = Annonce5.SiBesoin(f, profilCree); } catch (Exception ex) { JournalDemarrage.Erreur("annonce du nouveau look (version 5)", ex); }
+            try { if (!nouveautes) nouveautes = profilCree && MontrerNouveautes(f); } catch (Exception ex) { JournalDemarrage.Erreur("nouveautés (version 5)", ex); }
             Parametres p;
             try { p = Parametres.Lire(); } catch { p = new Parametres(); }
             if (!p.VerifAuto) return;

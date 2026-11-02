@@ -1,0 +1,16 @@
+Nettoyage PC 5.5 : nouveau look et nouveau logo
+
+Nettoyage PC change d'apparence, pas de fonctionnement :
+- Style « HUD » plus futuriste : grille holographique en fond, cartes et boutons à coins coupés,
+  rubrique active en surbrillance cyan, nouvelles polices (Chakra Petch, IBM Plex Sans, JetBrains Mono).
+- Nouveau logo : un hexagone cyan avec une étincelle violette (icône du programme, du Bureau et du menu Démarrer).
+- Rien n'a bougé : les rubriques (Nettoyer, Accélérer, Protéger, Outils, Premium) sont au même endroit,
+  dans le même ordre. Tes favoris, tes réglages, ton historique et Premium sont gardés.
+
+Pour que personne ne soit perdu :
+- À la première ouverture après la mise à jour, une fenêtre « Nouveau look, mêmes outils » explique
+  ce qui change et rappelle que Ctrl+K retrouve n'importe quel outil par son nom.
+- Tu préfères l'apparence d'avant ? « Revenir à l'ancien look » dans cette fenêtre, ou à tout moment
+  dans Réglages, « Style de l'interface ».
+
+SHA256 de NettoyagePC-Setup-5.5.exe : voir le fichier NettoyagePC-Setup-5.5.sha256

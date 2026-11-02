@@ -39,10 +39,13 @@ namespace NettoyagePC.Nouveau
 
         private double LargeurTexte()
         {
-            var ft = new FormattedText(Texte ?? "", CultureInfo.CurrentCulture, FlowDirection.LeftToRight,
-                new Typeface(Habillage.Corps, FontStyle.Normal, Principal ? FontWeight.SemiBold : FontWeight.Normal), TaillePolice, Brushes.White);
+            var ft = new FormattedText(TexteAffiche, CultureInfo.CurrentCulture, FlowDirection.LeftToRight, Police, TaillePolice, Brushes.White);
             return Math.Ceiling(ft.WidthIncludingTrailingWhitespace + 2 * Math.Max(18, Height * 0.5));
         }
+
+        private bool Hud5 { get { return Habillage.Hud && Principal; } }
+        private string TexteAffiche { get { return Hud5 ? (Texte ?? "").ToUpper(CultureInfo.CurrentCulture) : (Texte ?? ""); } }
+        private Typeface Police { get { return Hud5 ? new Typeface(Habillage.Affichage, FontStyle.Normal, FontWeight.Bold) : new Typeface(Habillage.Corps, FontStyle.Normal, Principal ? FontWeight.SemiBold : FontWeight.Normal); } }
 
         private void Ajuster()
         {
@@ -114,11 +117,15 @@ namespace NettoyagePC.Nouveau
             var P = Habillage.P;
             var r = new Rect(Bounds.Size).Deflate(0.5);
             double rayon = Math.Min(10, Bounds.Height / 2 - 1);
-            var forme = new RoundedRect(r, rayon);
+            // HUD : coins coupés ; classique : coins arrondis
+            bool hud = Habillage.Hud;
+            var arrondi = new RoundedRect(r, rayon);
+            var forme = hud ? Habillage.Chanfrein(r, Math.Min(12, Bounds.Height * 0.3)) : null;
+            Action<IBrush, IPen> dessiner = (b, c) => { if (hud) ctx.DrawGeometry(b, c, forme); else ctx.DrawRectangle(b, c, arrondi); };
             Color texte;
             if (!IsEffectivelyEnabled)
             {
-                ctx.DrawRectangle(Habillage.Pinceau(P.Bordure), null, forme);
+                dessiner(Habillage.Pinceau(P.Bordure), null);
                 texte = P.Discret;
             }
             else if (Principal)
@@ -126,12 +133,22 @@ namespace NettoyagePC.Nouveau
                 Color c1 = P.Accent, c2 = P.Accent2;
                 if (appui) { c1 = Habillage.Melanger(c1, Colors.Black, 0.15); c2 = Habillage.Melanger(c2, Colors.Black, 0.15); }
                 else if (survol > 0) { c1 = Habillage.Melanger(c1, Colors.White, 0.18 * survol); c2 = Habillage.Melanger(c2, Colors.White, 0.18 * survol); }
-                var fond = new LinearGradientBrush
+                IBrush fond = new LinearGradientBrush
                 {
                     StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative), EndPoint = new RelativePoint(1, 0, RelativeUnit.Relative),
                     GradientStops = { new GradientStop(c1, 0), new GradientStop(c2, 1) },
                 };
-                ctx.DrawRectangle(fond, null, forme);
+                if (Habillage.Hud)
+                {
+                    // HUD : aplat lumineux et halo autour (deux contours translucides)
+                    fond = Habillage.Pinceau(c1);
+                    if (P.Sombre)
+                    {
+                        ctx.DrawGeometry(null, new Pen(Habillage.Pinceau(c1, (int)(40 + 50 * survol)), 7), forme);
+                        ctx.DrawGeometry(null, new Pen(Habillage.Pinceau(c1, (int)(70 + 60 * survol)), 3), forme);
+                    }
+                }
+                dessiner(fond, null);
                 if (reflet >= 0)
                 {
                     double bande = Math.Max(36, Bounds.Height * 1.5), x = -bande + Habillage.Douce(reflet) * (Bounds.Width + 2 * bande);
@@ -140,7 +157,7 @@ namespace NettoyagePC.Nouveau
                         StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative), EndPoint = new RelativePoint(1, 0.3, RelativeUnit.Relative),
                         GradientStops = { new GradientStop(Habillage.Alpha(Colors.White, 0), 0), new GradientStop(Habillage.Alpha(Colors.White, P.Sombre ? 110 : 90), 0.5), new GradientStop(Habillage.Alpha(Colors.White, 0), 1) },
                     };
-                    using (ctx.PushClip(forme)) ctx.DrawRectangle(lumiere, null, new Rect(x - bande / 2, 0, bande, Bounds.Height));
+                    using (hud ? ctx.PushGeometryClip(forme) : ctx.PushClip(arrondi)) ctx.DrawRectangle(lumiere, null, new Rect(x - bande / 2, 0, bande, Bounds.Height));
                 }
                 texte = Habillage.TexteSur(Habillage.Melanger(c1, c2, 0.5));
             }
@@ -148,7 +165,7 @@ namespace NettoyagePC.Nouveau
             {
                 var fond = appui ? Habillage.Melanger(P.CarteSurvol, P.Fond, 0.4) : Habillage.Melanger(P.Carte, P.CarteSurvol, survol);
                 var bord = Habillage.Melanger(P.Bordure, P.Accent, survol * 0.8);
-                ctx.DrawRectangle(Habillage.Pinceau(fond), new Pen(Habillage.Pinceau(bord), 1), forme);
+                dessiner(Habillage.Pinceau(hud ? Habillage.Alpha(fond, P.Sombre ? 200 : 255) : fond), new Pen(Habillage.Pinceau(hud && P.Sombre ? Habillage.Melanger(Habillage.Alpha(P.Accent, 110), P.Accent, survol) : bord), 1));
                 texte = P.Texte;
             }
             if (Icone != null)
@@ -173,8 +190,7 @@ namespace NettoyagePC.Nouveau
                 if (IsFocused) ctx.DrawRectangle(null, new Pen(Habillage.Pinceau(P.Accent, 160), 1, new DashStyle(new double[] { 2, 2 }, 0)), new RoundedRect(r.Deflate(3), Math.Max(1, rayon - 2)));
                 return;
             }
-            var ft = new FormattedText(Texte ?? "", CultureInfo.CurrentCulture, FlowDirection.LeftToRight,
-                new Typeface(Habillage.Corps, FontStyle.Normal, Principal ? FontWeight.SemiBold : FontWeight.Normal), TaillePolice, Habillage.Pinceau(texte))
+            var ft = new FormattedText(TexteAffiche, CultureInfo.CurrentCulture, FlowDirection.LeftToRight, Police, TaillePolice, Habillage.Pinceau(texte))
             { MaxTextWidth = Math.Max(10, Bounds.Width - 16), Trimming = TextTrimming.CharacterEllipsis, MaxLineCount = 1 };
             ctx.DrawText(ft, new Point((Bounds.Width - ft.Width) / 2, (Bounds.Height - ft.Height) / 2));
             if (IsFocused) ctx.DrawRectangle(null, new Pen(Habillage.Pinceau(P.Accent, 160), 1, new DashStyle(new double[] { 2, 2 }, 0)), new RoundedRect(r.Deflate(3), Math.Max(1, rayon - 2)));

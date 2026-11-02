@@ -22,7 +22,7 @@ namespace NettoyagePC.Nouveau
             Background = Habillage.Pinceau(P.Sombre ? Color.FromRgb(0, 0, 0) : Color.FromRgb(10, 20, 30), P.Sombre ? 150 : 90);
             var carte = new Border
             {
-                MaxWidth = largeur, Margin = new Thickness(28), CornerRadius = new CornerRadius(4),
+                MaxWidth = largeur, Margin = new Thickness(28), CornerRadius = new CornerRadius(Habillage.Hud ? 0 : 4),
                 HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center,
                 Background = Habillage.Pinceau(P.Sombre ? Color.FromRgb(9, 17, 31) : Color.FromRgb(250, 252, 253)),
                 BorderBrush = Habillage.Pinceau(P.Accent, 120), BorderThickness = new Thickness(1),

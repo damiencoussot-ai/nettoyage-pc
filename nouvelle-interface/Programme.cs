@@ -123,7 +123,8 @@ namespace NettoyagePC.Nouveau
                 App.Pseudo = reglages.Pseudo ?? "";
                 App.ModeSimple = reglages.ModeSimple;
                 App.ProfilCree = reglages.ProfilCree || !string.IsNullOrEmpty(reglages.Pseudo);
-                if (reglages.Theme == "Clair" || (reglages.Theme == "Auto" && WindowsEnClair())) Habillage.P = Palette.ClairNoyau;
+                Habillage.Hud = reglages.Style != "classique";
+                Habillage.P = Palette.Pour(!(reglages.Theme == "Clair" || (reglages.Theme == "Auto" && WindowsEnClair())));
             }
             catch (Exception ex) { JournalDemarrage.Erreur("réglages (version 5)", ex); }
             try { Licence.Charger(); } catch (Exception ex) { JournalDemarrage.Erreur("licence (version 5)", ex); }
@@ -231,6 +232,15 @@ namespace NettoyagePC.Nouveau
             AppBuilder.Configure<App>().UseSkia().UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false }).SetupWithoutStarting();
             var f = new FenetrePrincipale(source) { Pseudo = "Damien" };
             f.Show();
+            // style classique (l'apparence d'avant la 5.5), pour comparer
+            try
+            {
+                Habillage.Hud = false; f.ChangerTheme(true); f.Afficher("Accueil", false);
+                for (int k = 0; k < 6; k++) { Dispatcher.UIThread.RunJobs(); AvaloniaHeadlessPlatform.ForceRenderTimerTick(); }
+                Capturer(f, dossier, "classique-Accueil.png", rapport, ref erreurs);
+            }
+            catch (Exception ex) { erreurs++; rapport.AppendLine("ERREUR : style classique : " + ex); }
+            finally { Habillage.Hud = true; }
             foreach (var sombre in new[] { true, false })
             {
                 f.ChangerTheme(sombre);
@@ -319,6 +329,10 @@ namespace NettoyagePC.Nouveau
             catch (Exception ex) { PageDemarrage5.Exemple = null; Gains5.Exemple = null; erreurs++; rapport.AppendLine("ERREUR : démarrage et gains : " + ex); }
             try
             {
+                Annonce5.Ouvrir(f);
+                for (int k = 0; k < 6; k++) { Dispatcher.UIThread.RunJobs(); System.Threading.Thread.Sleep(50); }
+                Capturer(f, dossier, "sombre-annonce.png", rapport, ref erreurs);
+                f.ViderCalques();
                 Etat5.Exemple = new System.Collections.Generic.List<EtatFonction>
                 {
                     new EtatFonction { Id = "premium", Nom = "Premium", Groupe = EtatFonctions.Application, Actif = true, Detail = "Actif sur ce PC, pour les versions 4 et 5." },
