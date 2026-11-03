@@ -1,0 +1,13 @@
+Nettoyage PC 5.5.1 : l'accueil HUD au complet
+
+- Panneau « INTÉGRITÉ.SYS » : anneau segmenté et lumineux, « INDICE » et niveau au centre,
+  stockage, sécurité et mémoire dans les coins.
+- « > ANALYSE TERMINÉE · heure », puis l'état du PC et le nombre de points détectés.
+- Tuiles CPU, mémoire vive, disque et température avec une jauge sous chaque mesure.
+- « ★ ACCÈS RAPIDE » (tes favoris) et « ⚠ ALERTES » numérotées A-01, A-02...
+- En haut : le nom du module (« MODULE 01 // TABLEAU DE BORD »). En bas : « ● PRÊT », ton
+  processeur et ta carte graphique, « DÉTAILS ▸ ».
+
+Comprend tout le nouveau look de la 5.5 (logo, annonce, style classique dans les Réglages).
+
+SHA256 de NettoyagePC-Setup-5.5.1.exe : voir le fichier NettoyagePC-Setup-5.5.1.sha256

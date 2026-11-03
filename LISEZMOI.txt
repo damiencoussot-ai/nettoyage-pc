@@ -1,9 +1,9 @@
-NETTOYAGE PC 5.5
+NETTOYAGE PC 5.5.1
 ================
 
 Installation
 ------------
-1. Double-clique sur « NettoyagePC-Setup-5.5.exe ».
+1. Double-clique sur « NettoyagePC-Setup-5.5.1.exe ».
 2. Windows peut afficher « Windows a protégé votre ordinateur » (SmartScreen) : clique sur
    « Informations complémentaires » puis « Exécuter quand même ». C'est normal pour un programme
    qui n'est pas signé par un éditeur connu.
@@ -19,6 +19,11 @@ statistiques, l'entretien automatique et Premium sont conservés.
 
 Désinstaller : Paramètres > Applications > Applications installées > Nettoyage PC > Désinstaller.
 La désinstallation retire aussi l'entretien automatique (tâches planifiées).
+
+Nouveautés de la version 5.5.1
+------------------------------
+- Accueil HUD complet : anneau segmenté, jauges sous chaque mesure, « Accès rapide »,
+  alertes numérotées, processeur et carte graphique dans la barre du bas.
 
 Nouveautés de la version 5.5
 ----------------------------

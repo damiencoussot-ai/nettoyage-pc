@@ -7,6 +7,8 @@ namespace NettoyagePC
     {
         public static readonly List<KeyValuePair<string, string[]>> Liste = new List<KeyValuePair<string, string[]>>
         {
+            N("5.5.1", "Accueil HUD complet : panneau « INTÉGRITÉ.SYS » avec anneau segmenté, analyse à l'heure près, jauges sous chaque mesure, « Accès rapide » et alertes numérotées (A-01, A-02...).",
+                "Barre du bas avec ton processeur et ta carte graphique, et le nom du module en haut de chaque rubrique."),
             N("5.5", "Nouveau look « HUD » et nouveau logo : interface plus futuriste (grille holographique, coins coupés, nouvelles polices), mêmes outils au même endroit.",
                 "À la première ouverture, une fenêtre explique ce qui change ; l'ancien look reste disponible dans Réglages, « Style de l'interface »."),
             N("5.4.1", "Favoris : une petite bulle verte « activé » sur les outils qui sont en marche (gardien, sauvegarde, mode jeu, mises à jour automatiques, bulletin, surveillance du réseau, performances élevées), orange s'il y a quelque chose à vérifier.",

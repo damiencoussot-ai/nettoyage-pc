@@ -2405,6 +2405,8 @@ namespace NettoyagePC
             "SYSTÈME", "SYSTEM", "SISTEMA",
             "Détails ▸", "Details ▸", "Detalles ▸",
             "CPU", "CPU", "CPU",
+            "Accueil HUD complet : panneau « INTÉGRITÉ.SYS » avec anneau segmenté, analyse à l'heure près, jauges sous chaque mesure, « Accès rapide » et alertes numérotées (A-01, A-02...).", "Full HUD home page: \"INTEGRITY.SYS\" panel with a segmented ring, scan time, gauges under each reading, \"Quick access\" and numbered alerts (A-01, A-02...).", "Inicio HUD completo: panel «INTEGRIDAD.SYS» con anillo segmentado, hora del análisis, indicadores bajo cada medida, «Acceso rápido» y alertas numeradas (A-01, A-02...).",
+            "Barre du bas avec ton processeur et ta carte graphique, et le nom du module en haut de chaque rubrique.", "Bottom bar with your processor and graphics card, and the module name at the top of each section.", "Barra inferior con tu procesador y tu tarjeta gráfica, y el nombre del módulo arriba de cada sección.",
         };
         private static readonly string[] Prefixes =
         {
