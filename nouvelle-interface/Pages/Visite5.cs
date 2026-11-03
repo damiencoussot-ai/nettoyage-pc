@@ -20,6 +20,7 @@ namespace NettoyagePC.Nouveau
         private readonly FenetrePrincipale F;
         private readonly List<Etape> etapes;
         private readonly Canvas calque = new Canvas();
+        private readonly VoileVisite voile = new VoileVisite { IsHitTestVisible = false };
         private readonly Cadre5 bulle;
         private readonly TextBlock tCompteur, tTitre, tTexte;
         private readonly BoutonNoyau bSuivant;
@@ -48,6 +49,7 @@ namespace NettoyagePC.Nouveau
                 new Etape { Cible = () => PageAccueil.Courante == null ? null : PageAccueil.Courante.ZoneAlertes, Titre = "Les alertes", Texte = "Ce qui peut être amélioré sur ton PC, chacune avec son bouton pour la régler." },
                 new Etape { Cible = () => F.ZoneRecherche, Titre = "Tu cherches un outil ?", Texte = "Clique ici ou appuie sur Ctrl+K, puis tape son nom : il s'ouvre directement." },
             };
+            Children.Add(voile);
             Children.Add(calque);
             var s = new StackPanel { Spacing = 8 };
             tCompteur = new TextBlock { FontFamily = Habillage.Console, FontSize = 10.5, LetterSpacing = 1.5, Foreground = Habillage.Pinceau(P.Accent) };
@@ -98,27 +100,33 @@ namespace NettoyagePC.Nouveau
             else if (trou.Bottom + 18 + h <= Bounds.Height - 12) { x = Math.Max(12, Math.Min(Bounds.Width - w - 12, trou.Left)); y = trou.Bottom + 18; }
             else { x = Math.Max(12, Math.Min(Bounds.Width - w - 12, trou.Left)); y = Math.Max(12, trou.Top - h - 18); }
             Canvas.SetLeft(bulle, x); Canvas.SetTop(bulle, y);
-            InvalidateVisual();
-        }
-
-        public override void Render(DrawingContext ctx)
-        {
-            base.Render(ctx);
-            var P = Habillage.P;
-            var tout = new Rect(Bounds.Size);
-            var voile = trou.Width > 0 ? (Geometry)new CombinedGeometry(GeometryCombineMode.Exclude, new RectangleGeometry(tout), new RectangleGeometry(trou)) : new RectangleGeometry(tout);
-            ctx.DrawGeometry(Habillage.Pinceau(Colors.Black, P.Sombre ? 170 : 120), null, voile);
-            if (trou.Width > 0)
-            {
-                ctx.DrawRectangle(null, new Pen(Habillage.Pinceau(P.Accent, 60), 8), trou);
-                ctx.DrawRectangle(null, new Pen(Habillage.Pinceau(P.Accent), 1.5), trou);
-            }
+            voile.Trou = trou;
+            voile.InvalidateVisual();
         }
 
         private void Terminer()
         {
             F.Retirer(this);
             F.Statut("Visite terminée. Tu peux la revoir à tout moment avec Ctrl+K, « Visite guidée ».");
+        }
+    }
+
+    /// <summary>Voile sombre de la visite, avec la zone expliquée découpée et entourée de cyan.</summary>
+    internal sealed class VoileVisite : Control
+    {
+        public Rect Trou;
+
+        public override void Render(DrawingContext ctx)
+        {
+            var P = Habillage.P;
+            var tout = new Rect(Bounds.Size);
+            var voile = Trou.Width > 0 ? (Geometry)new CombinedGeometry(GeometryCombineMode.Exclude, new RectangleGeometry(tout), new RectangleGeometry(Trou)) : new RectangleGeometry(tout);
+            ctx.DrawGeometry(Habillage.Pinceau(Colors.Black, P.Sombre ? 170 : 120), null, voile);
+            if (Trou.Width > 0)
+            {
+                ctx.DrawRectangle(null, new Pen(Habillage.Pinceau(P.Accent, 60), 8), Trou);
+                ctx.DrawRectangle(null, new Pen(Habillage.Pinceau(P.Accent), 1.5), Trou);
+            }
         }
     }
 }
