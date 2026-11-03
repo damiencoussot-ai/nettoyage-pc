@@ -189,6 +189,26 @@ namespace NettoyagePC.Nouveau
             return g;
         }
 
+        /// <summary>HUD : les éléments apparaissent l'un après l'autre (fondu et léger glissement vers le haut).</summary>
+        public static void Cascade(System.Collections.Generic.IEnumerable<Avalonia.Controls.Control> elements, int pas = 55, int duree = 320)
+        {
+            if (!Animations) return;
+            int i = 0;
+            foreach (var c in elements)
+            {
+                if (c == null) continue;
+                var decalage = new TranslateTransform(0, 10);
+                c.RenderTransform = decalage; c.Opacity = 0;
+                long debut = Horloge.Maintenant + i++ * pas;
+                Horloge.Lancer(t =>
+                {
+                    double p = Math.Max(0, Math.Min(1, (t - debut) / (double)duree)), e = Douce(p);
+                    c.Opacity = e; decalage.Y = 10 * (1 - e);
+                    return p < 1;
+                });
+            }
+        }
+
         /// <summary>Courbe « ralentie à l'arrivée » (0 à 1).</summary>
         public static double Douce(double p) { p = Math.Max(0, Math.Min(1, p)); double q = 1 - p; return 1 - q * q * q; }
     }

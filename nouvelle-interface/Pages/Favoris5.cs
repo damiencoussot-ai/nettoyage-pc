@@ -95,6 +95,8 @@ namespace NettoyagePC.Nouveau
             O("photos", "Premium", "Photos en double", "Rafales et copies : garde la meilleure.", Outil("photos"), true),
             O("bulletin", "Premium", "Bulletin mensuel du PC", "Une page claire sur ton PC, chaque mois.", Outil("bulletin"), true),
             O("surveillance", "Premium", "Surveillance du réseau", "Les appareils inconnus sur ta box.", Outil("reseau"), true),
+            O("moniteur", "Premium", "Moniteur en direct", "Courbes du PC sur 60 secondes.", Outil("moniteur"), true),
+            O("widget", "Premium", "Widget de bureau", "L'indice et les mesures toujours visibles.", Outil("widget"), true),
             O("batterie", "Premium", "Santé de la batterie", "Usure, cycles et autonomie réelle.", Outil("batterie"), true),
         };
 
@@ -116,6 +118,12 @@ namespace NettoyagePC.Nouveau
                 {
                     if (!File.Exists(Chemins.Fichier("modejeu.json"))) return 0;
                     detail = Langue.T("Le mode jeu est en cours : clique pour le terminer.");
+                    return 1;
+                }
+                if (o.Id == "widget")
+                {
+                    if (!Widget5.Ouvert) return 0;
+                    detail = Langue.T("Le widget est affiché sur le bureau.");
                     return 1;
                 }
                 if (o.Id == "alim")

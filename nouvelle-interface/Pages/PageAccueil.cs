@@ -28,6 +28,9 @@ namespace NettoyagePC.Nouveau
         private BoutonNoyau bActualiser;
         private readonly DispatcherTimer minuteur = new DispatcherTimer { Interval = TimeSpan.FromSeconds(2) };
         private Bilan bilan;
+        /// <summary>Zones montrées par la visite guidée (accueil affiché en ce moment).</summary>
+        public static PageAccueil Courante;
+        public Control ZoneAnneau, BoutonOptimiser, ZoneFavoris, ZoneAlertes;
         private bool okVisibles, mesureEnCours;
         private int compteur;
 
@@ -64,6 +67,7 @@ namespace NettoyagePC.Nouveau
             var boutons = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 12, Margin = new Thickness(0, 12, 0, 0) };
             var unClic = new BoutonNoyau(f.Simulation ? "Simuler en 1 clic" : "Optimiser en 1 clic", true, 240, 48) { TaillePolice = 16 };
             unClic.Clic += () => F.LancerAction("complet");
+            BoutonOptimiser = unClic; ZoneAnneau = zoneAnneau; ZoneAlertes = liste;
             var analyser = new BoutonNoyau("Analyser sans rien modifier", false, 240, 48);
             analyser.Clic += () => F.LancerAction("analyse");
             boutons.Children.Add(unClic); boutons.Children.Add(analyser);
@@ -83,7 +87,8 @@ namespace NettoyagePC.Nouveau
             Children.Add(haut);
 
             // ---- favoris choisis (outils gratuits et Premium), lancés en un clic
-            Children.Add(Favoris5.Bande(f));
+            ZoneFavoris = Favoris5.Bande(f);
+            Children.Add(ZoneFavoris);
 
             // ---- liste des améliorations
             var titre = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto"), Margin = new Thickness(12, 0, 0, -6) };
@@ -99,13 +104,22 @@ namespace NettoyagePC.Nouveau
 
             AttachedToVisualTree += (s, e) =>
             {
+                Courante = this;
+                // HUD : panneaux et tuiles qui apparaissent en cascade
+                if (Habillage.Hud && !F.Source.Immediat)
+                {
+                    var l = new List<Control> { ZoneAnneau };
+                    if (mesures != null) l.AddRange(mesures.Children.OfType<Control>());
+                    l.Add(ZoneFavoris);
+                    Habillage.Cascade(l);
+                }
                 F.BilanPret += Recevoir;
                 if (F.Bilan != null) Appliquer(F.Bilan, false);
                 // bilan de plus de 5 minutes, ou aucun : on le (re)calcule
                 if (F.Bilan == null || (DateTime.Now - F.Bilan.Date).TotalMinutes > 5) F.ActualiserBilan();
                 if (!F.Source.Immediat) { minuteur.Start(); Mesurer(); }
             };
-            DetachedFromVisualTree += (s, e) => { F.BilanPret -= Recevoir; minuteur.Stop(); };
+            DetachedFromVisualTree += (s, e) => { F.BilanPret -= Recevoir; minuteur.Stop(); if (Courante == this) Courante = null; };
             minuteur.Tick += (s, e) => Mesurer();
         }
 
@@ -126,7 +140,8 @@ namespace NettoyagePC.Nouveau
                 zone.Children.Add(coins[k]);
             }
             coins[3].Children.Add(new TextBlock { Text = "INTÉGRITÉ.SYS", FontFamily = Habillage.Console, FontSize = 10.5, LetterSpacing = 1.5, Foreground = Habillage.Pinceau(P.Accent, 200) });
-            haut.Children.Add(new Cadre5 { Child = zone, Coupe = 22, Background = Habillage.Pinceau(P.Carte, P.Sombre ? 230 : 255), BorderBrush = Habillage.Pinceau(P.Accent, 56), BorderThickness = new Thickness(1) });
+            ZoneAnneau = new Cadre5 { Child = zone, Coupe = 22, Background = Habillage.Pinceau(P.Carte, P.Sombre ? 230 : 255), BorderBrush = Habillage.Pinceau(P.Accent, 56), BorderThickness = new Thickness(1) };
+            haut.Children.Add(ZoneAnneau);
 
             var texte = new StackPanel { Spacing = 10, MaxWidth = 760, HorizontalAlignment = HorizontalAlignment.Stretch };
             tAnalyse = new TextBlock { Text = "> " + Langue.T("ANALYSE EN COURS…"), FontFamily = Habillage.Console, FontSize = 11, LetterSpacing = 1.5, Foreground = Habillage.Pinceau(P.Accent, 200) };
@@ -138,6 +153,7 @@ namespace NettoyagePC.Nouveau
             var boutons = new WrapPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 4, 0, 0) };
             var unClic = new BoutonNoyau(f.Simulation ? "Simuler en 1 clic" : "Optimiser en 1 clic", true, 0, 48) { TaillePolice = 16, Margin = new Thickness(0, 0, 12, 0) };
             unClic.Clic += () => F.LancerAction("complet");
+            BoutonOptimiser = unClic;
             var analyser = new BoutonNoyau("Analyser sans rien modifier", false, 0, 48) { TaillePolice = 14, Capitales = true };
             analyser.Clic += () => F.LancerAction("analyse");
             boutons.Children.Add(unClic); boutons.Children.Add(analyser);
@@ -154,7 +170,8 @@ namespace NettoyagePC.Nouveau
             haut.Children.Add(texte);
             Children.Add(haut);
 
-            Children.Add(Favoris5.Bande(f));
+            ZoneFavoris = Favoris5.Bande(f);
+            Children.Add(ZoneFavoris);
 
             // alertes : titre avec trait qui s'efface, puis la liste
             var titre = new Grid { ColumnDefinitions = new ColumnDefinitions("Auto,*,Auto"), Margin = new Thickness(12, 2, 0, -6) };
@@ -167,6 +184,7 @@ namespace NettoyagePC.Nouveau
             Grid.SetColumn(bActualiser, 2); titre.Children.Add(bActualiser);
             Children.Add(titre);
             Children.Add(liste);
+            ZoneAlertes = liste;
         }
 
         /// <summary>Trait fin qui s'efface vers la droite (titres de section du HUD).</summary>

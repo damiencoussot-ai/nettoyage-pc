@@ -39,6 +39,7 @@ namespace NettoyagePC.Nouveau
             {
                 CarteAction.Code("Style de l'interface", Langue.T("HUD : le look futuriste, depuis la version 5.5. Classique : l'apparence d'avant. Tes outils, tes favoris et tes réglages restent les mêmes.") + " " + Langue.F("Actuellement : {0}.", Langue.T(Habillage.Hud ? "HUD" : "Classique")),
                     Habillage.Hud ? "Passer au style classique" : "Passer au style HUD", () => { f.ChangerStyle(!Habillage.Hud); f.Afficher("Reglages", false); }, true),
+                CarteAction.Code("Visite guidée", "30 secondes pour découvrir l'interface : les rubriques, l'indice du PC, l'accès rapide, les alertes et Ctrl+K.", "Lancer la visite", () => { f.Afficher("Accueil", false); Visite5.Lancer(f); }),
                 CarteAction.Code("Mode simple", "Pour un débutant (un parent, par exemple) : un seul écran avec trois gros boutons, sans les options avancées.", "Activer le mode simple", () =>
                     f.Demander("Passer au mode simple ?", "L'écran ne montrera plus que trois gros boutons : Nettoyer mon PC, Vérifier mon PC, Appeler à l'aide. Le lien « Afficher toutes les options » en bas de l'écran permet de revenir au mode complet.", "Passer au mode simple", "Annuler", oui => { if (oui) f.AppliquerModeSimple(true); })),
                 CarteAction.Code("Informations légales", "Contrat de licence, conditions de vente, politique de confidentialité et mentions légales.", "Consulter", () => Legal5(f)),

@@ -329,6 +329,24 @@ namespace NettoyagePC.Nouveau
             catch (Exception ex) { PageDemarrage5.Exemple = null; Gains5.Exemple = null; erreurs++; rapport.AppendLine("ERREUR : démarrage et gains : " + ex); }
             try
             {
+                // 5.6 : moniteur en direct, widget de bureau, visite guidée
+                Moniteur5.Exemple = true; Moniteur5.Ouvrir(f);
+                for (int k = 0; k < 6; k++) { Dispatcher.UIThread.RunJobs(); System.Threading.Thread.Sleep(50); }
+                Capturer(f, dossier, "sombre-moniteur.png", rapport, ref erreurs);
+                f.ViderCalques(); Moniteur5.Exemple = false;
+                Widget5.Apercu(f);
+                for (int k = 0; k < 6; k++) { Dispatcher.UIThread.RunJobs(); System.Threading.Thread.Sleep(50); }
+                Capturer(f, dossier, "sombre-widget.png", rapport, ref erreurs);
+                f.ViderCalques();
+                f.Afficher("Accueil", false);
+                for (int k = 0; k < 6; k++) { Dispatcher.UIThread.RunJobs(); System.Threading.Thread.Sleep(50); }
+                Visite5.Lancer(f);
+                for (int k = 0; k < 10; k++) { Dispatcher.UIThread.RunJobs(); System.Threading.Thread.Sleep(50); }
+                Capturer(f, dossier, "sombre-visite.png", rapport, ref erreurs);
+                f.ViderCalques();
+                f.SousPage("Nettoyer", "Nettoyage"); f.Afficher("Nettoyer", false);
+                for (int k = 0; k < 6; k++) { Dispatcher.UIThread.RunJobs(); System.Threading.Thread.Sleep(50); }
+                Capturer(f, dossier, "sombre-Nettoyer-hud.png", rapport, ref erreurs);
                 Annonce5.Ouvrir(f);
                 for (int k = 0; k < 6; k++) { Dispatcher.UIThread.RunJobs(); System.Threading.Thread.Sleep(50); }
                 Capturer(f, dossier, "sombre-annonce.png", rapport, ref erreurs);

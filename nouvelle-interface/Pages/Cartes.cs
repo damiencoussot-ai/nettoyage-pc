@@ -50,7 +50,9 @@ namespace NettoyagePC.Nouveau
             var b = new Cadre5
             {
                 Margin = new Thickness(0, 0, 12, 12), Padding = new Thickness(20, 18, 20, 18), CornerRadius = new CornerRadius(3), Coupe = 16,
-                Background = Habillage.Pinceau(P.Carte), BorderBrush = Habillage.Pinceau(c.Principal ? Habillage.Alpha(P.Accent, 110) : P.Bordure), BorderThickness = new Thickness(1),
+                Background = Habillage.Pinceau(P.Carte, Habillage.Hud && P.Sombre ? 232 : 255),
+                BorderBrush = Habillage.Pinceau(c.Principal ? Habillage.Alpha(P.Accent, 110) : Habillage.Hud && P.Sombre ? Habillage.Alpha(P.Accent, 50) : P.Bordure), BorderThickness = new Thickness(1),
+                TraitHaut = Habillage.Hud && c.Principal ? P.Accent : (Color?)null,
             };
             var d = new DockPanel { LastChildFill = true };
             var bouton = new BoutonNoyau(c.Bouton, c.Principal, Math.Max(150, Math.Min(260, c.Bouton.Length * 8.2 + 44)), 36) { TaillePolice = 13.5, HorizontalAlignment = HorizontalAlignment.Left, Margin = new Thickness(0, 14, 0, 0) };
@@ -62,7 +64,7 @@ namespace NettoyagePC.Nouveau
             DockPanel.SetDock(bouton, Dock.Bottom);
             d.Children.Add(bouton);
             var s = new StackPanel { Spacing = 6 };
-            if (c.Principal) s.Children.Add(new Border { Height = 2, Width = 36, HorizontalAlignment = HorizontalAlignment.Left, Background = Habillage.DegradeAccent(), Margin = new Thickness(0, 0, 0, 4) });
+            if (c.Principal && !Habillage.Hud) s.Children.Add(new Border { Height = 2, Width = 36, HorizontalAlignment = HorizontalAlignment.Left, Background = Habillage.DegradeAccent(), Margin = new Thickness(0, 0, 0, 4) });
             var titre = new TextBlock { Text = Langue.T(c.Titre), FontFamily = Habillage.Affichage, FontSize = 16.5, FontWeight = FontWeight.SemiBold, Foreground = Habillage.Pinceau(P.Texte), TextWrapping = TextWrapping.Wrap };
             // étoile des favoris (affichés sur l'accueil) pour les cartes d'outils
             var favori = Favoris5.ParTitre(c.Titre);
@@ -97,7 +99,7 @@ namespace NettoyagePC.Nouveau
                 bool ouvert = f.OptionOuverte(clePlus);
                 var grille = Grille(f, plus);
                 grille.IsVisible = ouvert;
-                var bascule = new BoutonNoyau(ouvert ? "Moins d'options  ▴" : "Plus d'options  ▾", false, 170, 32) { TaillePolice = 13, HorizontalAlignment = HorizontalAlignment.Left };
+                var bascule = new BoutonNoyau(ouvert ? "Moins d'options  ▴" : "Plus d'options  ▾", false, 170, 32) { TaillePolice = 13, HorizontalAlignment = HorizontalAlignment.Left, Capitales = Habillage.Hud };
                 bascule.Clic += () =>
                 {
                     bool o = !grille.IsVisible;
@@ -147,8 +149,19 @@ namespace NettoyagePC.Nouveau
             foreach (var o in pages)
             {
                 bool actif = o.Item1 == active;
-                var texte = new TextBlock { Text = Langue.T(o.Item2), FontFamily = Habillage.Affichage, FontSize = 14, FontWeight = actif ? FontWeight.SemiBold : FontWeight.Normal, Foreground = Habillage.Pinceau(actif ? P.Texte : P.Discret) };
-                var trait = new Border { Height = 2, Background = actif ? Habillage.DegradeAccent() : Brushes.Transparent, Margin = new Thickness(0, 9, 0, -1) };
+                // HUD : onglets en capitales, l'actif en cyan avec un trait lumineux
+                bool hud = Habillage.Hud;
+                string nomOnglet = Langue.T(o.Item2);
+                var texte = new TextBlock
+                {
+                    Text = hud ? (actif ? "▸ " : "") + nomOnglet.ToUpper(Langue.Culture) : nomOnglet, FontFamily = Habillage.Affichage, FontSize = hud ? 13.5 : 14, LetterSpacing = hud ? 1 : 0,
+                    FontWeight = actif ? FontWeight.SemiBold : FontWeight.Normal, Foreground = Habillage.Pinceau(actif ? (hud ? P.Accent : P.Texte) : P.Discret),
+                };
+                var trait = new Border
+                {
+                    Height = 2, Background = actif ? (hud ? Habillage.Pinceau(P.Accent) : Habillage.DegradeAccent()) : Brushes.Transparent, Margin = new Thickness(0, 9, 0, -1),
+                    BoxShadow = actif && hud && P.Sombre ? BoxShadows.Parse("0 0 8 0 " + P.Accent.ToString()) : default(BoxShadows),
+                };
                 var bloc = new StackPanel { Children = { texte, trait }, Margin = new Thickness(0, 0, 18, 0), Cursor = new Avalonia.Input.Cursor(Avalonia.Input.StandardCursorType.Hand), Background = Brushes.Transparent };
                 string cle2 = o.Item1;
                 bloc.PointerEntered += (s, e) => { if (cle2 != active) texte.Foreground = Habillage.Pinceau(P.Texte); };

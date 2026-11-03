@@ -58,4 +58,38 @@ namespace NettoyagePC.Nouveau
             for (double y = 0.5; y < h; y += 32) ctx.DrawLine(crayon, new Point(0, y), new Point(w, y));
         }
     }
+
+    /// <summary>HUD : trait lumineux qui balaie la page de haut en bas quand elle s'ouvre.</summary>
+    public sealed class BalayageHud : Control
+    {
+        private double position = -1;
+
+        public void Lancer()
+        {
+            if (!Habillage.Animations || !Habillage.Hud) return;
+            long debut = Horloge.Maintenant;
+            IsVisible = true;
+            Horloge.Lancer(t =>
+            {
+                position = Math.Min(1, (t - debut) / 650.0);
+                InvalidateVisual();
+                if (position >= 1) { position = -1; IsVisible = false; return false; }
+                return true;
+            });
+        }
+
+        public override void Render(DrawingContext ctx)
+        {
+            if (position < 0) return;
+            var P = Habillage.P;
+            double h = Bounds.Height, w = Bounds.Width, y = Habillage.Douce(position) * h, alpha = 1 - position * 0.6;
+            var traine = new LinearGradientBrush
+            {
+                StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative), EndPoint = new RelativePoint(0, 1, RelativeUnit.Relative),
+                GradientStops = { new GradientStop(Habillage.Alpha(P.Accent, 0), 0), new GradientStop(Habillage.Alpha(P.Accent, (int)(38 * alpha)), 1) },
+            };
+            ctx.DrawRectangle(traine, null, new Rect(0, Math.Max(0, y - 90), w, Math.Min(90, y)));
+            ctx.DrawRectangle(Habillage.Pinceau(P.Accent, (int)(200 * alpha)), null, new Rect(0, y, w, 1.5));
+        }
+    }
 }

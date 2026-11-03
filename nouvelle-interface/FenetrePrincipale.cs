@@ -51,6 +51,9 @@ namespace NettoyagePC.Nouveau
         private readonly Dictionary<string, ElementMenu> menu = new Dictionary<string, ElementMenu>();
         private TransitioningContentControl contenu;
         private TextBlock titre, sousTitre, statut, numeroRubrique;
+        /// <summary>Zones montrées par la visite guidée.</summary>
+        public Control ZoneMenu, ZoneRecherche;
+        private BalayageHud balayage;
         private Border indicateur, lumiere;
         private readonly TranslateTransform positionIndicateur = new TranslateTransform(), positionLumiere = new TranslateTransform(-400, 0);
         private Canvas calqueIndicateur;
@@ -173,11 +176,14 @@ namespace NettoyagePC.Nouveau
             foreach (var o in new[] { new[] { "plantages", "Analyse des plantages" }, new[] { "demarrage", "Analyse du démarrage" }, new[] { "enqueteur", "Pourquoi mon PC ralentit ?" }, new[] { "sante", "Santé prédictive" },
                 new[] { "fps", "Preuve en FPS" }, new[] { "energie", "Coût en électricité" }, new[] { "gardien", "Gardien en temps réel" }, new[] { "assistant", "Assistant local" }, new[] { "benchmark", "Mesure des performances" }, new[] { "batterie", "Santé de la batterie" },
                 new[] { "modejeu", "Mode jeu automatique" }, new[] { "majapps", "Mises à jour automatiques des applications" }, new[] { "photos", "Photos en double et presque identiques" },
-                new[] { "bulletin", "Bulletin mensuel du PC" }, new[] { "reseau", "Surveillance du réseau" } })
+                new[] { "bulletin", "Bulletin mensuel du PC" }, new[] { "reseau", "Surveillance du réseau" },
+                new[] { "moniteur", "Moniteur en direct" }, new[] { "widget", "Widget de bureau" } })
             {
                 string cle = o[0];
                 l.Add(new EntreeCommande { Titre = Langue.T(o[1]), Detail = Licence.Premium ? Langue.T("Premium") : Langue.T("Premium (essai gratuit 7 jours)"), Type = "Outil", Faire = () => OuvrirOutil(cle) });
             }
+            l.Add(new EntreeCommande { Titre = Langue.T("Visite guidée"), Detail = Langue.T("30 secondes pour découvrir l'interface"), Type = "Action", Faire = () => { Afficher("Accueil", false); Visite5.Lancer(this); } });
+            l.Add(new EntreeCommande { Titre = Langue.T("Avant / après"), Detail = Langue.T("Tes derniers nettoyages comparés"), Type = "Action", Faire = () => Ouvrir("Avant / après", Gains5.Comparaisons(AvantApres.Liste()), 720) });
             l.Add(new EntreeCommande { Titre = Langue.T("Ce qui est activé"), Detail = Langue.T("Vérifier que tout fonctionne"), Type = "Action", Faire = () => Etat5.Ouvrir(this) });
             l.Add(new EntreeCommande { Titre = Langue.T("Choisir mes favoris"), Detail = Langue.T("Les outils affichés sur l'accueil"), Type = "Action", Faire = () => Favoris5.Choisir(this) });
             l.Add(new EntreeCommande { Titre = Langue.T("Bouclier anti-arnaque"), Detail = Langue.T("Faux technicien ? Logiciels de prise en main à distance"), Type = "Action", Faire = () => Bouclier5.Ouvrir(this) });
@@ -283,7 +289,7 @@ namespace NettoyagePC.Nouveau
                     Moteur.Fini -= fini;
                     Statut((Moteur.Arrete ? "Arrêtée : " : "Terminé : ") + Moteur.Titre + " (" + DateTime.Now.ToString("HH:mm") + ")");
                     if (apres != null) { try { apres(); } catch (Exception ex) { JournalDemarrage.Erreur("après l'action (version 5)", ex); } }
-                    if (!simulation && !Moteur.Arrete && (cle == "standard" || cle == "complet")) ResumerGains(noteAvant, debut);
+                    if (!simulation && !Moteur.Arrete && (cle == "standard" || cle == "complet")) ResumerGains(noteAvant, debut, cle);
                     if (!simulation) ActualiserBilan();
                     if (cle == "planifier" || cle == "deplanifier") { PageReglages5.EntretienActif = null; if (PageActive == "Reglages") Afficher("Reglages", false); }
                 };
@@ -302,7 +308,7 @@ namespace NettoyagePC.Nouveau
         }
 
         /// <summary>« Ce que tu as gagné » après un nettoyage réel : attend le nouveau bilan pour la note après.</summary>
-        private void ResumerGains(int noteAvant, DateTime debut)
+        private void ResumerGains(int noteAvant, DateTime debut, string cle)
         {
             Action<Bilan> pret = null;
             pret = b =>
@@ -319,6 +325,8 @@ namespace NettoyagePC.Nouveau
                     var g = t.Result.Item1;
                     // seulement si le moteur a bien noté ce nettoyage (statistiques.csv) pendant cette action
                     if (Gains5.Exemple == null && (!g.Dernier.HasValue || g.Dernier.Value < debut.AddMinutes(-1))) return;
+                    // rapport avant / après : gardé pour comparer les nettoyages entre eux
+                    if (Gains5.Exemple == null && !Source.Immediat) AvantApres.Enregistrer(cle == "complet" ? "profond" : "rapide", noteAvant, b != null ? b.Score : -1, g.DernierOctets);
                     try { Gains5.Montrer(this, g, noteAvant, b != null ? b.Score : -1, t.Result.Item2); } catch (Exception ex) { JournalDemarrage.Erreur("résumé des gains (version 5)", ex); }
                 }));
             };
@@ -375,6 +383,7 @@ namespace NettoyagePC.Nouveau
                 { "assistant", () => Assistant5.Ouvrir(this) }, { "benchmark", () => Benchmark5.Ouvrir(this) },
                 { "modejeu", () => ModeJeu5.Ouvrir(this) }, { "majapps", () => MajApps5.Ouvrir(this) }, { "photos", () => Photos5.Ouvrir(this) },
                 { "bulletin", () => Bulletin5.Ouvrir(this) }, { "reseau", () => ReseauPremium5.Ouvrir(this) },
+                { "moniteur", () => Moniteur5.Ouvrir(this) }, { "widget", () => Widget5.Basculer(this) },
             };
             // le bouclier anti-arnaque est gratuit
             if (cle == "bouclier") { Bouclier5.Ouvrir(this); return true; }
@@ -461,6 +470,7 @@ namespace NettoyagePC.Nouveau
             // mode simple : pas de menu, un seul écran à trois gros boutons
             var racine = new Grid { ColumnDefinitions = new ColumnDefinitions(ModeSimple ? "0,*" : "220,*") };
             var barreMenu = BarreDeMenu();
+            ZoneMenu = barreMenu;
             barreMenu.IsVisible = !ModeSimple;
             racine.Children.Add(barreMenu);
             var droite = new DockPanel { LastChildFill = true };
@@ -470,7 +480,9 @@ namespace NettoyagePC.Nouveau
             panneauAction = new PanneauAction(this, Moteur) { IsVisible = panneauVisible };
             DockPanel.SetDock(panneauAction, Dock.Bottom); droite.Children.Add(panneauAction);
             contenu = new TransitioningContentControl { PageTransition = Habillage.Animations ? new CrossFade(TimeSpan.FromMilliseconds(180)) : null };
-            droite.Children.Add(contenu);
+            // HUD : trait lumineux qui balaie la page à chaque changement de rubrique
+            balayage = new BalayageHud { IsHitTestVisible = false, IsVisible = false };
+            droite.Children.Add(new Panel { Children = { contenu, balayage } });
             racine.Children.Add(droite);
             // calque des questions (par-dessus tout, caché tant qu'aucune question n'est posée)
             calqueDialogue = new Panel { IsVisible = false };
@@ -562,6 +574,7 @@ namespace NettoyagePC.Nouveau
                 },
             };
             recherche.Cursor = new Avalonia.Input.Cursor(Avalonia.Input.StandardCursorType.Hand);
+            ZoneRecherche = recherche;
             recherche.PointerReleased += (s, e) => OuvrirPalette();
             recherche.IsVisible = !ModeSimple;
             droite.Children.Add(recherche);
@@ -721,7 +734,7 @@ namespace NettoyagePC.Nouveau
             string nom = Habillage.Hud ? r.Nom.ToUpper(Langue.Culture) : r.Nom;
             int rang = Rubriques.Where(x => !x.EnBas).ToList().IndexOf(r);
             if (numeroRubrique != null) numeroRubrique.Text = Langue.T("MODULE") + " " + (rang >= 0 ? (rang + 1).ToString("00") : "00") + " // " + Langue.T(Module(r.Cle)).ToUpper(Langue.Culture);
-            if (anime && change && Habillage.Animations) { Decoder(nom); Balayer(); } else titre.Text = nom;
+            if (anime && change && Habillage.Animations) { Decoder(nom); Balayer(); if (balayage != null) balayage.Lancer(); } else titre.Text = nom;
             contenu.Content = new ScrollViewer { Content = r.Page(), HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled, VerticalScrollBarVisibility = ScrollBarVisibility.Auto };
             PlacerIndicateur(anime);
         }

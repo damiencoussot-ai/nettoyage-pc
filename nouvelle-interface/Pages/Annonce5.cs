@@ -62,7 +62,10 @@ namespace NettoyagePC.Nouveau
             }
             var boutons = new WrapPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 6, 0, 0) };
             FenetreInterieure fen = null;
-            var ok = new BoutonNoyau("C'est parti", true, 170, 44) { TaillePolice = 15, Margin = new Thickness(0, 0, 12, 8) };
+            var visite = new BoutonNoyau("Faire la visite (30 s)", true, 0, 44) { TaillePolice = 15, Margin = new Thickness(0, 0, 12, 8) };
+            visite.Clic += () => { if (fen != null) fen.Fermer(); f.Afficher("Accueil", false); Visite5.Lancer(f); };
+            boutons.Children.Add(visite);
+            var ok = new BoutonNoyau("C'est parti", false, 150, 44) { TaillePolice = 15, Margin = new Thickness(0, 0, 12, 8) };
             ok.Clic += () => { if (fen != null) fen.Fermer(); };
             var ancien = new BoutonNoyau("Revenir à l'ancien look", false, 220, 44) { TaillePolice = 14, Margin = new Thickness(0, 0, 12, 8) };
             ancien.Clic += () =>

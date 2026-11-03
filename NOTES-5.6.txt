@@ -1,0 +1,17 @@
+Nettoyage PC 5.6 : six nouveautés
+
+- Visite guidée de 30 secondes : l'écran met en lumière, une par une, les rubriques, l'indice du PC,
+  « Optimiser en 1 clic », l'accès rapide, les alertes et Ctrl+K. Depuis l'annonce du nouveau look,
+  Ctrl+K « Visite guidée » ou Réglages.
+- Le style HUD sur toutes les rubriques : onglets en capitales avec trait lumineux, cartes à coins coupés.
+- Moniteur en direct (Premium) : processeur, mémoire vive, place libre sur le disque et température sur
+  les 60 dernières secondes, en courbes, avec moyenne et maximum. Lecture seule.
+- Avant / après : chaque nettoyage rapide ou profond garde l'indice du PC avant et après, et l'espace
+  libéré ; les derniers sont comparés dans « Ce que tu as gagné » et dans Ctrl+K « Avant / après ».
+- Widget de bureau (Premium) : une petite fenêtre HUD toujours visible en bas à droite de l'écran, avec
+  l'indice, le processeur, la mémoire, la température et un bouton « Nettoyer » (qui pose toujours la
+  question avant de lancer quoi que ce soit). Se déplace à la souris.
+- Animations : un trait lumineux balaie la page à chaque rubrique, et les tuiles de l'accueil
+  apparaissent en cascade.
+
+SHA256 de NettoyagePC-Setup-5.6.exe : voir le fichier NettoyagePC-Setup-5.6.sha256
