@@ -382,6 +382,15 @@ namespace NettoyagePC.Nouveau
                 Habillage.ChoisirCouleur("aurore"); f.ChangerTheme(true); f.Afficher("Accueil", false);
                 for (int k = 0; k < 10; k++) { Dispatcher.UIThread.RunJobs(); System.Threading.Thread.Sleep(50); }
                 Capturer(f, dossier, "sombre-gamer-accueil.png", rapport, ref erreurs);
+                Gamer5.Trophee(f, Langue.T("SUCCÈS DÉBLOQUÉ"), Langue.T("Dix gigas"), Langue.T("Libérer 10 Go au total"), true);
+                for (int k = 0; k < 4; k++) { Dispatcher.UIThread.RunJobs(); System.Threading.Thread.Sleep(50); }
+                Capturer(f, dossier, "sombre-gamer-trophee.png", rapport, ref erreurs);
+                f.ChangerTheme(true); f.Afficher("Accueil", false);
+                Gamer5.Cinematique(f);
+                for (int k = 0; k < 8; k++) { Dispatcher.UIThread.RunJobs(); System.Threading.Thread.Sleep(50); }
+                Capturer(f, dossier, "sombre-gamer-boost.png", rapport, ref erreurs);
+                f.ChangerTheme(true); f.Afficher("Accueil", false);
+                for (int k = 0; k < 4; k++) { Dispatcher.UIThread.RunJobs(); System.Threading.Thread.Sleep(50); }
                 Succes5.Ouvrir(f);
                 for (int k = 0; k < 6; k++) { Dispatcher.UIThread.RunJobs(); System.Threading.Thread.Sleep(50); }
                 Capturer(f, dossier, "sombre-gamer-succes.png", rapport, ref erreurs);

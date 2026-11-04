@@ -28,7 +28,7 @@ namespace NettoyagePC.Nouveau
         private BoutonNoyau bActualiser;
         private readonly DispatcherTimer minuteur = new DispatcherTimer { Interval = TimeSpan.FromSeconds(2) };
         private Bilan bilan;
-        private QgGamer5 qg;   // profil Gamer : panneau « QG GAMER »
+        private QgGamer5 qg; private Control banniere;   // profil Gamer : panneau « QG GAMER »
         /// <summary>Zones montrées par la visite guidée (accueil affiché en ce moment).</summary>
         public static PageAccueil Courante;
         public Control ZoneAnneau, BoutonOptimiser, ZoneFavoris, ZoneAlertes;
@@ -111,6 +111,7 @@ namespace NettoyagePC.Nouveau
                 {
                     var l = new List<Control> { ZoneAnneau };
                     if (mesures != null) l.AddRange(mesures.Children.OfType<Control>());
+                    if (banniere != null) l.Insert(0, banniere);
                     if (qg != null) l.Add(qg);
                     l.Add(ZoneFavoris);
                     Habillage.Cascade(l);
@@ -130,6 +131,8 @@ namespace NettoyagePC.Nouveau
         {
             var P = Habillage.P;
             Margin = new Thickness(12, 6, 28, 20);
+            // profil Gamer : bannière néon animée tout en haut
+            if (Habillage.Gamer) { banniere = Gamer5.Banniere(f); Children.Add(banniere); }
             var haut = new Grid { ColumnDefinitions = new ColumnDefinitions("330,22,*") };
             // panneau de l'anneau, étiquettes aux quatre coins
             var zone = new Panel { Height = 318 };

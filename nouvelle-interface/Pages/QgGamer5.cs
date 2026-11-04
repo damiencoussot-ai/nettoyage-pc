@@ -90,7 +90,7 @@ namespace NettoyagePC.Nouveau
             var c = new StackPanel { Spacing = 10, VerticalAlignment = VerticalAlignment.Center, MinWidth = 200 };
             bool actif = ModeJeuActif();
             bModeJeu = new BoutonNoyau(actif ? "Terminer le mode jeu" : "Lancer le mode jeu", !actif, 0, 50) { TaillePolice = 15, Capitales = true, HorizontalAlignment = HorizontalAlignment.Stretch };
-            bModeJeu.Clic += () => F.LancerAction(ModeJeuActif() ? "finmodejeu" : "modejeu", () => Dispatcher.UIThread.Post(MajBouton));
+            bModeJeu.Clic += () => Gamer5.Boost(F, MajBouton);
             c.Children.Add(bModeJeu);
             var fps = new BoutonNoyau("Preuve en FPS", false, 0, 40) { TaillePolice = 13, Capitales = true, HorizontalAlignment = HorizontalAlignment.Stretch };
             fps.Clic += () => F.OuvrirOutil("fps");
@@ -200,6 +200,8 @@ namespace NettoyagePC.Nouveau
                 ToolTip.SetTip(losange, Langue.T(s.Nom) + (s.Obtenu ? " ✔" : "") + "\n" + Langue.T(s.Condition));
                 badges.Children.Add(losange);
             }
+            // succès débloqués ou niveau supérieur depuis la dernière fois : annonce façon console
+            try { Gamer5.AnnoncerNouveautes(F, p); } catch (Exception ex) { JournalDemarrage.Erreur("annonce des succès", ex); }
             // la barre se remplit en douceur
             double cible = p.Avancement, depart = avancement; long t0 = Horloge.Maintenant;
             Horloge.Lancer(t =>
