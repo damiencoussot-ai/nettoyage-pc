@@ -73,19 +73,19 @@ namespace NettoyagePC
             while (XpPourNiveau(p.Niveau + 1) <= p.Xp && p.Niveau < 99) p.Niveau++;
             p.XpNiveau = XpPourNiveau(p.Niveau); p.XpSuivant = XpPourNiveau(p.Niveau + 1);
 
-            Action<string, string, string, bool> s = (icone, nom, cond, ok) => p.Succes.Add(new SuccesJeu { Icone = icone, Nom = nom, Condition = cond, Obtenu = ok });
+            Action<string, string, string, bool> ajouter = (icone, nom, cond, ok) => p.Succes.Add(new SuccesJeu { Icone = icone, Nom = nom, Condition = cond, Obtenu = ok });
             const long Go = 1073741824L;
-            s("◆", "Premier coup de balai", "Faire un premier nettoyage", nettoyages >= 1);
-            s("◆", "Un giga de gagné", "Libérer 1 Go au total", octets >= Go);
-            s("◆", "Dix gigas", "Libérer 10 Go au total", octets >= 10 * Go);
-            s("◆", "Centurion", "Libérer 100 Go au total", octets >= 100 * Go);
-            s("◆", "Habitué", "Faire 10 nettoyages", nettoyages >= 10);
-            s("◆", "Régulier", "Entretenir le PC 4 semaines différentes", semainesPropres >= 4);
-            s("◆", "En forme", "Atteindre un indice de 80", meilleurIndice >= 80);
-            s("◆", "Machine de guerre", "Atteindre un indice de 90", meilleurIndice >= 90);
-            s("◆", "Coup de boost", "Gagner 10 points d'indice en un nettoyage", meilleurGain >= 10);
-            s("◆", "Joueur", "Jouer une partie en mode jeu automatique", parties >= 1);
-            s("◆", "Marathonien", "Jouer 25 parties en mode jeu automatique", parties >= 25);
+            ajouter("◆", "Premier coup de balai", "Faire un premier nettoyage", nettoyages >= 1);
+            ajouter("◆", "Un giga de gagné", "Libérer 1 Go au total", octets >= Go);
+            ajouter("◆", "Dix gigas", "Libérer 10 Go au total", octets >= 10 * Go);
+            ajouter("◆", "Centurion", "Libérer 100 Go au total", octets >= 100 * Go);
+            ajouter("◆", "Habitué", "Faire 10 nettoyages", nettoyages >= 10);
+            ajouter("◆", "Régulier", "Entretenir le PC 4 semaines différentes", semainesPropres >= 4);
+            ajouter("◆", "En forme", "Atteindre un indice de 80", meilleurIndice >= 80);
+            ajouter("◆", "Machine de guerre", "Atteindre un indice de 90", meilleurIndice >= 90);
+            ajouter("◆", "Coup de boost", "Gagner 10 points d'indice en un nettoyage", meilleurGain >= 10);
+            ajouter("◆", "Joueur", "Jouer une partie en mode jeu automatique", parties >= 1);
+            ajouter("◆", "Marathonien", "Jouer 25 parties en mode jeu automatique", parties >= 25);
             return p;
         }
     }
