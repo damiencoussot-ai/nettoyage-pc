@@ -27,6 +27,8 @@ namespace NettoyagePC.Nouveau
         private readonly Grid barreXp;
         private readonly WrapPanel badges = new WrapPanel { Orientation = Orientation.Horizontal };
         private readonly BoutonNoyau bModeJeu;
+        private readonly Embleme embleme = new Embleme { Width = 46, Height = 52, VerticalAlignment = VerticalAlignment.Center };
+        private readonly ContentControl zoneDefis = new ContentControl();
         private double avancement;
         private double memoire = -1, temperature = -1, gpu = -1; private int indice = -1;
 
@@ -55,7 +57,7 @@ namespace NettoyagePC.Nouveau
             var ligneNiveau = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 12 };
             tNiveau = new TextBlock { Text = "NIV. 1", FontFamily = Habillage.Affichage, FontSize = 30, FontWeight = FontWeight.Bold, Foreground = Habillage.Pinceau(P.Texte), VerticalAlignment = VerticalAlignment.Bottom };
             tTitreNiveau = new TextBlock { Text = "", FontFamily = Habillage.Console, FontSize = 12, LetterSpacing = 1, Foreground = Habillage.Pinceau(P.Accent2), VerticalAlignment = VerticalAlignment.Bottom, Margin = new Thickness(0, 0, 0, 6) };
-            ligneNiveau.Children.Add(tNiveau); ligneNiveau.Children.Add(tTitreNiveau);
+            ligneNiveau.Children.Add(embleme); ligneNiveau.Children.Add(tNiveau); ligneNiveau.Children.Add(tTitreNiveau);
             b.Children.Add(ligneNiveau);
             // barre d'XP à coins coupés, remplie d'un dégradé magenta → violet
             barreXp = new Grid { Height = 12 };
@@ -82,7 +84,11 @@ namespace NettoyagePC.Nouveau
             ligneSucces.Children.Add(gaucheSucces);
             var voir = new BoutonNoyau("Succès", false, 0, 30) { TaillePolice = 12, Capitales = true, VerticalAlignment = VerticalAlignment.Bottom, Margin = new Thickness(10, 0, 0, 0) };
             voir.Clic += () => Succes5.Ouvrir(F);
-            Grid.SetColumn(voir, 1); ligneSucces.Children.Add(voir);
+            var carte = new BoutonNoyau("Carte", false, 0, 30) { TaillePolice = 12, Capitales = true, VerticalAlignment = VerticalAlignment.Bottom, Margin = new Thickness(6, 0, 0, 0) };
+            ToolTip.SetTip(carte, Langue.T("Ta carte de joueur à partager (image)"));
+            carte.Clic += () => Progression5.OuvrirCarte(F);
+            var boutonsSucces = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Bottom, Children = { voir, carte } };
+            Grid.SetColumn(boutonsSucces, 1); ligneSucces.Children.Add(boutonsSucces);
             b.Children.Add(ligneSucces);
             Grid.SetColumn(b, 2); g.Children.Add(b);
 
@@ -116,7 +122,7 @@ namespace NettoyagePC.Nouveau
             c.Children.Add(options);
             Grid.SetColumn(c, 4); g.Children.Add(c);
 
-            Child = g;
+            Child = new StackPanel { Children = { g, zoneDefis } };
             Recalculer();
             ChargerProgression();
         }
@@ -204,7 +210,10 @@ namespace NettoyagePC.Nouveau
         {
             var P = Habillage.P;
             tNiveau.Text = Langue.T("NIV.") + " " + p.Niveau;
-            tTitreNiveau.Text = Langue.T(p.Titre).ToUpper(Langue.Culture);
+            tTitreNiveau.Text = Langue.T(p.Titre).ToUpper(Langue.Culture) + (p.Rang.NiveauSuivant > 0 ? "  ·  " + Langue.F("{0} au niveau {1}", Langue.T(RangsJeu.Rangs[p.Rang.Palier + 1]).ToUpper(Langue.Culture), p.Rang.NiveauSuivant) : "");
+            tTitreNiveau.Foreground = new SolidColorBrush(Progression5.CouleursRang(p.Rang.Palier)[0]);
+            embleme.Palier = p.Rang.Palier; embleme.Niveau = p.Niveau; embleme.InvalidateVisual();
+            zoneDefis.Content = Progression5.Defis(p);
             tXp.Text = Langue.F("{0} / {1} XP · encore {2} XP pour le niveau {3}", p.Xp, p.XpSuivant, Math.Max(0, p.XpSuivant - p.Xp), p.Niveau + 1);
             int obtenus = p.Succes.Count(s => s.Obtenu);
             tSucces.Text = Langue.F("SUCCÈS {0} / {1}", obtenus, p.Succes.Count);
@@ -214,11 +223,11 @@ namespace NettoyagePC.Nouveau
                 var losange = new Border
                 {
                     Width = 13, Height = 13, Margin = new Thickness(0, 0, 9, 4), RenderTransform = new RotateTransform(45),
-                    Background = s.Obtenu ? Habillage.Pinceau(P.Accent) : Habillage.Pinceau(P.Discret, 40),
-                    BorderBrush = Habillage.Pinceau(s.Obtenu ? P.Accent2 : P.Discret, s.Obtenu ? 255 : 110), BorderThickness = new Thickness(1),
+                    Background = s.Obtenu ? Habillage.Pinceau(Progression5.CouleurRarete(s.Rarete)) : Habillage.Pinceau(P.Discret, 40),
+                    BorderBrush = Habillage.Pinceau(s.Obtenu ? Colors.White : P.Discret, s.Obtenu ? 170 : 110), BorderThickness = new Thickness(1),
                 };
-                if (s.Obtenu && P.Sombre) losange.BoxShadow = BoxShadows.Parse("0 0 6 0 " + Habillage.Alpha(P.Accent, 160).ToString());
-                ToolTip.SetTip(losange, Langue.T(s.Nom) + (s.Obtenu ? " ✔" : "") + "\n" + Langue.T(s.Condition));
+                if (s.Obtenu && P.Sombre) losange.BoxShadow = BoxShadows.Parse("0 0 6 0 " + Habillage.Alpha(Progression5.CouleurRarete(s.Rarete), 170).ToString());
+                ToolTip.SetTip(losange, Langue.T(s.Nom) + (s.Obtenu ? " ✔" : "") + "  ·  " + Langue.T(Progression5.NomRarete(s.Rarete)) + " · +" + s.Xp + " XP\n" + Langue.T(s.Condition));
                 badges.Children.Add(losange);
             }
             // succès débloqués ou niveau supérieur depuis la dernière fois : annonce façon console
@@ -250,25 +259,26 @@ namespace NettoyagePC.Nouveau
             var s = new StackPanel { Spacing = 12 };
             var tete = new TextBlock { Text = Langue.T("Calcul…"), FontFamily = Habillage.Console, FontSize = 12, Foreground = Habillage.Pinceau(P.Accent) };
             s.Children.Add(tete);
-            s.Children.Add(new TextBlock { Text = Langue.T("Tu gagnes de l'XP en entretenant ton PC : 10 par nettoyage, 1 par 100 Mo libérés, 5 par partie en mode jeu automatique, 20 par semaine entretenue, et un bonus pour un bon indice."), FontFamily = Habillage.Corps, FontSize = 13, Foreground = Habillage.Pinceau(P.Discret), TextWrapping = TextWrapping.Wrap });
+            s.Children.Add(new TextBlock { Text = Langue.T("Tu gagnes de l'XP en entretenant ton PC : 10 par nettoyage, 1 par 100 Mo libérés, 5 par BOOST ou partie en mode jeu automatique, 20 par semaine entretenue, 5 par jour de série, 30 par défi du jour (50 de bonus pour les trois), et l'XP de chaque succès selon sa rareté."), FontFamily = Habillage.Corps, FontSize = 13, Foreground = Habillage.Pinceau(P.Discret), TextWrapping = TextWrapping.Wrap });
             var grille = new UniformGrid { Columns = 3 };
-            s.Children.Add(grille);
+            s.Children.Add(new ScrollViewer { Content = grille, MaxHeight = 470, VerticalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Auto });
             f.Ouvrir("Succès", s, 900);
             Action<ProgressionJeu> afficher = p =>
             {
-                tete.Text = Langue.F("NIVEAU {0} · {1} · {2} XP", p.Niveau, Langue.T(p.Titre).ToUpper(Langue.Culture), p.Xp) + "   ·   " + Langue.F("{0} / {1} succès débloqués", p.Succes.Count(x => x.Obtenu), p.Succes.Count);
-                foreach (var x in p.Succes)
+                tete.Text = Langue.F("NIVEAU {0} · {1} · {2} XP", p.Niveau, Langue.T(p.Titre).ToUpper(Langue.Culture), p.Xp) + "   ·   " + Langue.F("SÉRIE {0} · {1} DÉFIS", p.Serie, p.DefisFaits) + "   ·   " + Langue.F("{0} / {1} succès débloqués", p.Succes.Count(x => x.Obtenu), p.Succes.Count);
+                foreach (var x in p.Succes.OrderByDescending(y => y.Obtenu).ThenByDescending(y => y.Rarete))
                 {
+                    var rc = Progression5.CouleurRarete(x.Rarete);
                     var c = new StackPanel { Spacing = 4 };
                     c.Children.Add(new TextBlock { Text = (x.Obtenu ? "◆  " : "◇  ") + Langue.T(x.Nom), FontFamily = Habillage.Affichage, FontSize = 15, FontWeight = FontWeight.Bold, Foreground = Habillage.Pinceau(x.Obtenu ? P.Texte : P.Discret) });
                     c.Children.Add(new TextBlock { Text = Langue.T(x.Condition), FontFamily = Habillage.Corps, FontSize = 12, Foreground = Habillage.Pinceau(P.Discret), TextWrapping = TextWrapping.Wrap });
-                    c.Children.Add(new TextBlock { Text = Langue.T(x.Obtenu ? "DÉBLOQUÉ" : "VERROUILLÉ"), FontFamily = Habillage.Console, FontSize = 10.5, LetterSpacing = 1.5, Foreground = Habillage.Pinceau(x.Obtenu ? P.Vert : P.Discret) });
+                    c.Children.Add(new TextBlock { Text = Langue.T(x.Obtenu ? "DÉBLOQUÉ" : "VERROUILLÉ") + "  ·  " + Langue.T(Progression5.NomRarete(x.Rarete)) + "  ·  +" + x.Xp + " XP", FontFamily = Habillage.Console, FontSize = 10.5, LetterSpacing = 1.5, Foreground = Habillage.Pinceau(x.Obtenu ? rc : P.Discret) });
                     grille.Children.Add(new Cadre5
                     {
                         Child = c, Coupe = 10, Padding = new Thickness(14, 12), Margin = new Thickness(0, 0, 10, 10),
                         Background = Habillage.Pinceau(x.Obtenu ? Habillage.Alpha(P.Accent, P.Sombre ? 20 : 14) : P.Carte),
-                        BorderBrush = Habillage.Pinceau(x.Obtenu ? P.Accent : P.Bordure, x.Obtenu ? 150 : 255), BorderThickness = new Thickness(1),
-                        TraitHaut = x.Obtenu ? P.Accent : (Color?)null,
+                        BorderBrush = Habillage.Pinceau(x.Obtenu ? rc : P.Bordure, x.Obtenu ? 170 : 255), BorderThickness = new Thickness(1),
+                        TraitHaut = x.Obtenu ? rc : (Color?)null,
                     });
                 }
             };

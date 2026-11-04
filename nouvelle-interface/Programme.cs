@@ -396,6 +396,18 @@ namespace NettoyagePC.Nouveau
                 for (int k = 0; k < 6; k++) { Dispatcher.UIThread.RunJobs(); System.Threading.Thread.Sleep(50); }
                 Capturer(f, dossier, "sombre-gamer-session.png", rapport, ref erreurs);
                 f.ChangerTheme(true); f.Afficher("Accueil", false);
+                f.Ouvrir("QG GAMER", new QgGamer5(f), 1120);
+                for (int k = 0; k < 10; k++) { Dispatcher.UIThread.RunJobs(); System.Threading.Thread.Sleep(50); }
+                Capturer(f, dossier, "sombre-gamer-qg.png", rapport, ref erreurs);
+                f.ChangerTheme(true); f.Afficher("Accueil", false);
+                Progression5.OuvrirCarte(f);
+                for (int k = 0; k < 10; k++) { Dispatcher.UIThread.RunJobs(); System.Threading.Thread.Sleep(50); }
+                Capturer(f, dossier, "sombre-gamer-carte.png", rapport, ref erreurs);
+                f.ChangerTheme(true); f.Afficher("Accueil", false);
+                Progression5.NiveauSuperieur(f, QgGamer5.Exemple, true);
+                for (int k = 0; k < 8; k++) { Dispatcher.UIThread.RunJobs(); System.Threading.Thread.Sleep(50); }
+                Capturer(f, dossier, "sombre-gamer-niveau.png", rapport, ref erreurs);
+                f.ChangerTheme(true); f.Afficher("Accueil", false);
                 for (int k = 0; k < 4; k++) { Dispatcher.UIThread.RunJobs(); System.Threading.Thread.Sleep(50); }
                 Succes5.Ouvrir(f);
                 for (int k = 0; k < 6; k++) { Dispatcher.UIThread.RunJobs(); System.Threading.Thread.Sleep(50); }

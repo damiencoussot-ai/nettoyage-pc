@@ -158,7 +158,7 @@ namespace NettoyagePC.Nouveau
             DateTime? debut = actif ? SessionJeu5.Debut() : null;
             f.LancerAction(actif ? "finmodejeu" : "modejeu", () => Dispatcher.UIThread.Post(() =>
             {
-                if (!actif && ModeJeuActif()) { SessionJeu5.Nouvelle(); Cinematique(f); }
+                if (!actif && ModeJeuActif()) { SessionJeu5.Nouvelle(); JournalJeu.Noter("boost"); Cinematique(f); }
                 else if (actif && !ModeJeuActif()) { try { SessionJeu5.Rapport(f, debut); } catch (Exception ex) { JournalDemarrage.Erreur("rapport de session", ex); } }
                 if (apres != null) apres();
             }));
@@ -253,13 +253,19 @@ namespace NettoyagePC.Nouveau
                 foreach (var n in obtenus.Where(x => !deja.Contains(x)).Take(3))
                 {
                     var su = p.Succes.First(x => x.Nom == n);
-                    annonces.Add(Tuple.Create(Langue.T("SUCCÈS DÉBLOQUÉ"), Langue.T(su.Nom), Langue.T(su.Condition)));
+                    annonces.Add(Tuple.Create(Langue.T("SUCCÈS DÉBLOQUÉ"), Langue.T(su.Nom), Langue.T(Progression5.NomRarete(su.Rarete)) + " · +" + su.Xp + " XP · " + Langue.T(su.Condition)));
                 }
-                if (!deja.Contains(niveau) && deja.Any(x => x.StartsWith("niv"))) annonces.Add(Tuple.Create(Langue.T("NIVEAU SUPÉRIEUR"), Langue.F("Niveau {0} atteint", p.Niveau), Langue.T(p.Titre)));
+                // niveau supérieur : animation plein écran (avec le nouveau rang s'il change)
+                var ancien = deja.Where(x => x.StartsWith("niv")).Select(x => { int v; return int.TryParse(x.Substring(3), out v) ? v : 0; }).DefaultIfEmpty(0).Max();
+                if (ancien > 0 && p.Niveau > ancien)
+                {
+                    bool nouveauRang = RangsJeu.Rang(ancien).Palier != p.Rang.Palier;
+                    DispatcherTimer.RunOnce(() => Progression5.NiveauSuperieur(f, p, nouveauRang), TimeSpan.FromMilliseconds(400));
+                }
             }
             string nouveau = string.Join("|", obtenus.Concat(new[] { niveau }));
             if (nouveau != vus) f.EnregistrerReglage(x => x.SuccesVus = nouveau);
-            for (int i = 0; i < annonces.Count; i++) { var a = annonces[i]; int d = i; DispatcherTimer.RunOnce(() => Trophee(f, a.Item1, a.Item2, a.Item3), TimeSpan.FromMilliseconds(600 + d * 1400)); }
+            for (int i = 0; i < annonces.Count; i++) { var a = annonces[i]; int d = i; DispatcherTimer.RunOnce(() => Trophee(f, a.Item1, a.Item2, a.Item3), TimeSpan.FromMilliseconds(900 + d * 1400)); }
         }
 
         /// <summary>Annonce façon console, en bas à droite : glisse, reste 4,5 secondes, repart.</summary>

@@ -60,6 +60,7 @@ namespace NettoyagePC.Nouveau
             try { voulu = Parametres.Lire().OverlayJeu; } catch { }
             if (voulu && Habillage.Gamer && fenetre == null) Basculer(f, false);
             SessionJeu5.Demarrer(f);
+            Task.Run(() => JournalJeu.Noter("ouverture"));   // série de jours du profil Gamer
         }
 
         /// <summary>Affiche ou cache l'overlay (et retient le choix).</summary>
@@ -116,6 +117,7 @@ namespace NettoyagePC.Nouveau
             f.Closed += (s, e) => { if (fenetre != null) fenetre.Close(); };
             fenetre = w;
             w.Show();
+            Task.Run(() => JournalJeu.Noter("overlay"));
             minuteur.Start();
             Mesurer(f);
         }

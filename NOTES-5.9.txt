@@ -1,0 +1,14 @@
+Velox 5.9 : niveaux, rangs et défis du profil Gamer
+
+- Rangs : Bronze, Argent, Or, Platine, Diamant puis Légende, avec un emblème qui change de couleur.
+  Quand tu montes de niveau, une animation plein écran l'annonce (et ton nouveau rang s'il change).
+- Défis du jour : trois nouveaux défis chaque jour (fais un nettoyage, lance un BOOST, analyse ton PC...),
+  +30 XP chacun et +50 XP si tu réussis les trois.
+- Série : ouvre Velox ou fais un nettoyage chaque jour pour garder ta série (+5 XP par jour), avec ton record.
+- 22 succès (11 nouveaux) avec une rareté : commun, rare, épique, légendaire. Chacun rapporte de l'XP.
+- Carte de joueur : une image avec ton pseudo, ton rang, ton niveau, tes succès et ton matériel,
+  enregistrée dans Images\Velox, à partager sur Discord.
+
+Tout est calculé sur ton PC à partir de ce que Velox a déjà noté : rien n'est envoyé.
+
+SHA256 de Velox-Setup-5.9.exe : voir le fichier Velox-Setup-5.9.sha256

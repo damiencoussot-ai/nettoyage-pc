@@ -26,6 +26,7 @@ namespace NettoyagePC.Nouveau
         public PageMonPc5(FenetrePrincipale f)
         {
             F = f;
+            if (!f.Source.Immediat) System.Threading.Tasks.Task.Run(() => JournalJeu.Noter("monpc"));   // défi du jour du profil Gamer
             var P = Habillage.P;
             Spacing = 14; Margin = new Thickness(0, 0, 12, 0);
             var tete = new StackPanel { Spacing = 4 };
