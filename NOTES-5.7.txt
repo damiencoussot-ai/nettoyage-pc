@@ -1,0 +1,18 @@
+Nettoyage PC 5.7
+
+- Mettre à jour les applications, en plus poussé : la liste des logiciels qui ont une nouvelle version
+  (version installée → nouvelle), tu coches ceux à mettre à jour, un point de restauration avant si tu veux,
+  puis chaque application est mise à jour à part, avec son résultat (à jour, application ouverte...).
+  Une seule autorisation de Windows pour toutes.
+- Mon PC (Outils) : processeur, mémoire, carte graphique, disques, carte mère et Windows, l'âge du PC,
+  l'état de chaque pièce et des conseils concrets (SSD, mémoire, profil EXPO / XMP, place sur le disque...).
+- Profils d'utilisation (Réglages) : Gamer, Bureautique ou PC familial règlent d'un coup tes favoris et,
+  avec Premium, ce que le gardien surveille. Tout est montré avant, rien n'est supprimé.
+- Résumé de la semaine : espace libéré et évolution de l'indice, une fois par semaine (barre du bas à
+  l'ouverture, notification du gardien avec Premium, et Ctrl+K « Résumé de la semaine »).
+- Signaler un problème (Outils > Aide à distance, ou Ctrl+K) : un rapport anonyme (version, Windows,
+  dernières erreurs ; ton nom, celui du PC et tes dossiers sont masqués), montré en entier, envoyé par
+  ta propre messagerie seulement si tu cliques.
+- L'ancienne version 4 est retirée du code : la version 5 la remplace entièrement (le moteur est le même).
+
+SHA256 de NettoyagePC-Setup-5.7.exe : voir le fichier NettoyagePC-Setup-5.7.sha256

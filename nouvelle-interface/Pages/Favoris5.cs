@@ -55,7 +55,7 @@ namespace NettoyagePC.Nouveau
             O("modejeu", "Accelerer", "Mode jeu", "Performances maximales avant de jouer.", f => f.LancerAction(File.Exists(Chemins.Fichier("modejeu.json")) ? "finmodejeu" : "modejeu"), false, "Mode jeu (actif)"),
             O("optim", "Accelerer", "Bilan d'optimisation", "Des conseils concrets, sans rien modifier.", Act("optim")),
             O("demarrage", "Accelerer", "Programmes au démarrage", "Ce qui se lance avec Windows, et ce qui peut attendre.", Page("Accelerer", "Demarrage")),
-            O("majapps", "Accelerer", "Mettre à jour les applications", "Tes logiciels à jour avec winget.", Act("majapps")),
+            O("majapps", "Accelerer", "Mettre à jour les applications", "Tes logiciels à jour avec winget.", f => MajApplis5.Ouvrir(f)),
             O("alim", "Accelerer", "Mode d'alimentation", "Performances élevées ou Équilibré.", f => f.LancerAction(PageAccelerer.ModeAlimentation() == "Performances élevées" ? "equilibre" : "perf")),
             O("ramlib", "Accelerer", "Libérer la RAM", "Juste avant un jeu ou une application gourmande.", Act("ramlib")),
             O("raminfo", "Accelerer", "Infos mémoire vive", "Barrettes, applications gourmandes, erreurs.", Act("raminfo")),
@@ -71,6 +71,7 @@ namespace NettoyagePC.Nouveau
             O("confidentialite", "Proteger", "Confidentialité", "Moins de publicité et de pistage.", f => ReglagesWindows5.Confidentialite(f)),
             O("sauvegarde", "Proteger", "Sauvegarde", "Copier tes documents et tes photos.", Page("Proteger", "Sauvegarde")),
 
+            O("monpc", "Outils", "Mon PC", "Fiche du matériel et conseils d'amélioration.", Page("Outils", "MonPc")),
             O("memoire", "Outils", "Mémoire vive et BIOS", "Vitesse réelle des barrettes, profil EXPO / XMP.", f => Memoire5.Ouvrir(f)),
             O("santedisques", "Outils", "Santé détaillée des disques", "Usure, température et erreurs (SMART).", Act("santedisques")),
             O("rapport", "Outils", "Rapport du PC", "Espace, gros fichiers, doublons, dans tes Documents.", Act("rapport"), false, "Rapport complet du PC"),
@@ -163,6 +164,12 @@ namespace NettoyagePC.Nouveau
                 courants = brut == null ? Proposes.ToList() : brut.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Where(id => Par(id) != null).Distinct().Take(Maximum).ToList();
             }
             return courants.ToList();
+        }
+
+        /// <summary>Remplace tous les favoris (profils d'utilisation).</summary>
+        public static void Remplacer(FenetrePrincipale f, IEnumerable<string> ids)
+        {
+            Enregistrer(f, ids.Where(id => Par(id) != null).Distinct().Take(Maximum).ToList());
         }
 
         public static bool Est(string id) { return Liste().Contains(id); }

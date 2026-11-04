@@ -329,6 +329,27 @@ namespace NettoyagePC.Nouveau
             catch (Exception ex) { PageDemarrage5.Exemple = null; Gains5.Exemple = null; erreurs++; rapport.AppendLine("ERREUR : démarrage et gains : " + ex); }
             try
             {
+                // 5.7 : mises à jour des applications, profils, signaler un problème
+                MajApplis5.Exemple = new System.Collections.Generic.List<AppAMettreAJour>
+                {
+                    new AppAMettreAJour { Nom = "Discord", Id = "Discord.Discord", Version = "1.0.9210", Disponible = "1.0.9215" },
+                    new AppAMettreAJour { Nom = "Mozilla Firefox (x64 fr)", Id = "Mozilla.Firefox.fr", Version = "144.0.2", Disponible = "145.0" },
+                    new AppAMettreAJour { Nom = "7-Zip 25.00 (x64)", Id = "7zip.7zip", Version = "25.00", Disponible = "25.01" },
+                    new AppAMettreAJour { Nom = "VLC media player", Id = "VideoLAN.VLC", Version = "3.0.21", Disponible = "3.0.22" },
+                    new AppAMettreAJour { Nom = "Steam", Id = "Valve.Steam", Version = "2.10.91.91", Disponible = "—", Exclue = true },
+                };
+                MajApplis5.Ouvrir(f);
+                for (int k = 0; k < 6; k++) { Dispatcher.UIThread.RunJobs(); System.Threading.Thread.Sleep(50); }
+                Capturer(f, dossier, "sombre-majapplis.png", rapport, ref erreurs);
+                f.ViderCalques(); MajApplis5.Exemple = null;
+                Profils5.Ouvrir(f);
+                for (int k = 0; k < 6; k++) { Dispatcher.UIThread.RunJobs(); System.Threading.Thread.Sleep(50); }
+                Capturer(f, dossier, "sombre-profils.png", rapport, ref erreurs);
+                f.ViderCalques();
+                Signaler5.Ouvrir(f);
+                for (int k = 0; k < 6; k++) { Dispatcher.UIThread.RunJobs(); System.Threading.Thread.Sleep(50); }
+                Capturer(f, dossier, "sombre-signaler.png", rapport, ref erreurs);
+                f.ViderCalques();
                 // 5.6 : moniteur en direct, widget de bureau, visite guidée
                 Moniteur5.Exemple = true; Moniteur5.Ouvrir(f);
                 for (int k = 0; k < 6; k++) { Dispatcher.UIThread.RunJobs(); System.Threading.Thread.Sleep(50); }
@@ -385,6 +406,30 @@ namespace NettoyagePC.Nouveau
             // Outils : matériel, aide à distance (plein potentiel : sous Windows seulement, l'analyse lit le matériel)
             try
             {
+                // « Mon PC » avec une fiche d'exemple (rien n'est lu)
+                PageMonPc5.Exemple = new FicheMonPc
+                {
+                    Resume = "PC fixe · environ 2 an(s) · 32 Go de mémoire vive", AgeAnnees = 2,
+                    Pieces =
+                    {
+                        new PieceMonPc { Categorie = "Windows", Nom = "Windows 11 Famille", Detail = "build 26200 · installé le 14/03/2024" },
+                        new PieceMonPc { Categorie = "Processeur", Nom = "AMD Ryzen 7 7800X3D 8-Core Processor", Detail = "16 cœurs logiques" },
+                        new PieceMonPc { Categorie = "Mémoire vive", Nom = "32 Go DDR5 · bridée à 4800 MT/s", Detail = "2 barrette(s)", Etat = 1 },
+                        new PieceMonPc { Categorie = "Carte graphique", Nom = "AMD Radeon RX 7900 XTX", Detail = "carte dédiée · pilote 32.0.21025.1024" },
+                        new PieceMonPc { Categorie = "Carte mère", Nom = "ASUS TUF GAMING B650-PLUS", Detail = "BIOS 3024 du 12/06/2025" },
+                        new PieceMonPc { Categorie = "Disque", Nom = "Samsung SSD 990 PRO 2TB", Detail = "SSD · 1,82 To · usure 3 %" },
+                        new PieceMonPc { Categorie = "Disque de Windows", Nom = "C:", Detail = "27,60 Go libres sur 1,82 To", Etat = 2 },
+                    },
+                    Conseils =
+                    {
+                        new ConseilMonPc { Priorite = 1, Titre = "Active le profil EXPO", Texte = "Tes barrettes tournent moins vite que prévu. Le guide pas à pas est dans Outils > Matériel > Mémoire vive et BIOS." },
+                        new ConseilMonPc { Priorite = 1, Titre = "Libère de la place sur le disque de Windows", Texte = "Moins de 15 % libres ralentit Windows et ses mises à jour. Lance un nettoyage, ou ajoute un second disque pour tes jeux et vidéos." },
+                    },
+                };
+                f.SousPage("Outils", "MonPc"); f.Afficher("Outils", false);
+                for (int k = 0; k < 6; k++) { Dispatcher.UIThread.RunJobs(); System.Threading.Thread.Sleep(50); }
+                Capturer(f, dossier, "sombre-Outils-MonPc.png", rapport, ref erreurs);
+                PageMonPc5.Exemple = null;
                 foreach (var onglet in OperatingSystem.IsWindows() ? new[] { "Materiel", "Potentiel", "Aide" } : new[] { "Materiel", "Aide" })
                 {
                     f.SousPage("Outils", onglet);

@@ -16,6 +16,8 @@ namespace NettoyagePC
         public bool Notifier, Surveillance, Sauvegarde, ModeJeu, FinModeJeu, MajWindows, Progression, AnciensPilotes, SanteDisques, AnalyseDemarrage, Kit, Wifi;
         public bool Plantages, Leger, Incrementale;
         public int JoursTelechargements = 90, JoursTemp = 2, SeuilMo = 10;
+        /// <summary>--apps : applications choisies (identifiants winget séparés par des virgules) ; vide = toutes.</summary>
+        public string AppsChoisies = "";
         public string ModeAlim = "", Destination = "", Dossiers = "Documents,Images,Bureau", IdsMaj = "", Tube = "";
         public List<string> PilotesChoisis = new List<string>();
 
@@ -68,6 +70,7 @@ namespace NettoyagePC
                     case "--pilote": o.PilotesChoisis.Add(suivant()); break;
                     case "--mode-alim": o.ModeAlim = suivant(); break;
                     case "--destination": o.Destination = suivant(); break;
+                    case "--apps": o.AppsChoisies = suivant(); break;
                     case "--dossiers": o.Dossiers = suivant(); break;
                     case "--ids-maj": o.IdsMaj = suivant(); break;
                     case "--tube": o.Tube = suivant(); break;

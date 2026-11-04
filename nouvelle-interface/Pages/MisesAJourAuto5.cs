@@ -23,6 +23,7 @@ namespace NettoyagePC.Nouveau
             // 5.5 : annonce du nouveau look (une fois), à la place des nouveautés habituelles
             try { nouveautes = Annonce5.SiBesoin(f, profilCree); } catch (Exception ex) { JournalDemarrage.Erreur("annonce du nouveau look (version 5)", ex); }
             try { if (!nouveautes) nouveautes = profilCree && MontrerNouveautes(f); } catch (Exception ex) { JournalDemarrage.Erreur("nouveautés (version 5)", ex); }
+            try { ResumeAOuverture(f); } catch (Exception ex) { JournalDemarrage.Erreur("résumé de la semaine (version 5)", ex); }
             Parametres p;
             try { p = Parametres.Lire(); } catch { p = new Parametres(); }
             if (!p.VerifAuto) return;
@@ -31,6 +32,32 @@ namespace NettoyagePC.Nouveau
             minuteur = new DispatcherTimer { Interval = TimeSpan.FromHours(6) };
             minuteur.Tick += (s, e) => Chercher(f);
             minuteur.Start();
+        }
+
+        /// <summary>Une fois par semaine, à l'ouverture : le résumé de la semaine dans la barre du bas (sans fenêtre qui gêne).</summary>
+        private static void ResumeAOuverture(FenetrePrincipale f)
+        {
+            var p = Parametres.Lire();
+            DateTime der;
+            string aujourdhui = DateTime.Now.ToString("yyyy-MM-dd");
+            if (!DateTime.TryParseExact(p.ResumeSemaine ?? "", "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out der))
+            { f.EnregistrerReglage(r => r.ResumeSemaine = aujourdhui); return; }   // premier lancement : le premier résumé dans une semaine
+            if ((DateTime.Now - der).TotalDays < 7) return;
+            f.EnregistrerReglage(r => r.ResumeSemaine = aujourdhui);
+            Task.Run(() => ResumeSemaine.Calculer()).ContinueWith(t => Dispatcher.UIThread.Post(() =>
+            {
+                if (t.Result == null) return;
+                // après le message « Prêt » du bilan
+                DispatcherTimer.RunOnce(() => f.Statut(t.Result.Texte), TimeSpan.FromSeconds(4));
+            }));
+        }
+
+        public static void MontrerResume(FenetrePrincipale f)
+        {
+            Task.Run(() => ResumeSemaine.Calculer()).ContinueWith(t => Dispatcher.UIThread.Post(() =>
+            {
+                if (t.Result != null) f.Demander(t.Result.Titre, t.Result.Texte, "Compris", null, r => { });
+            }));
         }
 
         /// <summary>Nouveautés des versions installées depuis la dernière ouverture (une seule fois).</summary>

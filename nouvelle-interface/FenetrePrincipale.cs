@@ -145,7 +145,7 @@ namespace NettoyagePC.Nouveau
             new[] { "Nettoyer", "Nettoyage", "Nettoyage" }, new[] { "Nettoyer", "Disques", "Disques et gros fichiers" }, new[] { "Nettoyer", "Doublons", "Doublons" },
             new[] { "Accelerer", "Optimisation", "Optimisation" }, new[] { "Accelerer", "Demarrage", "Démarrage" }, new[] { "Accelerer", "Applications", "Applications" }, new[] { "Accelerer", "Jeux", "Jeux" },
             new[] { "Proteger", "Securite", "Sécurité" }, new[] { "Proteger", "Sauvegarde", "Sauvegarde" },
-            new[] { "Outils", "Materiel", "Matériel" }, new[] { "Outils", "Potentiel", "Plein potentiel" }, new[] { "Outils", "Reseau", "Réseau" }, new[] { "Outils", "Aide", "Aide à distance" },
+            new[] { "Outils", "MonPc", "Mon PC" }, new[] { "Outils", "Materiel", "Matériel" }, new[] { "Outils", "Potentiel", "Plein potentiel" }, new[] { "Outils", "Reseau", "Réseau" }, new[] { "Outils", "Aide", "Aide à distance" },
             new[] { "MisesAJour", "MisesAJour", "Mises à jour de Nettoyage PC" }, new[] { "MisesAJour", "Pilotes", "Windows et pilotes" },
         };
 
@@ -182,6 +182,9 @@ namespace NettoyagePC.Nouveau
                 string cle = o[0];
                 l.Add(new EntreeCommande { Titre = Langue.T(o[1]), Detail = Licence.Premium ? Langue.T("Premium") : Langue.T("Premium (essai gratuit 7 jours)"), Type = "Outil", Faire = () => OuvrirOutil(cle) });
             }
+            l.Add(new EntreeCommande { Titre = Langue.T("Résumé de la semaine"), Detail = Langue.T("Espace libéré et indice des 7 derniers jours"), Type = "Action", Faire = () => MisesAJourAuto5.MontrerResume(this) });
+            l.Add(new EntreeCommande { Titre = Langue.T("Profil d'utilisation"), Detail = Langue.T("Gamer, Bureautique ou PC familial"), Type = "Action", Faire = () => Profils5.Ouvrir(this) });
+            l.Add(new EntreeCommande { Titre = Langue.T("Signaler un problème"), Detail = Langue.T("Rapport anonyme, montré avant l'envoi"), Type = "Action", Faire = () => Signaler5.Ouvrir(this) });
             l.Add(new EntreeCommande { Titre = Langue.T("Visite guidée"), Detail = Langue.T("30 secondes pour découvrir l'interface"), Type = "Action", Faire = () => { Afficher("Accueil", false); Visite5.Lancer(this); } });
             l.Add(new EntreeCommande { Titre = Langue.T("Avant / après"), Detail = Langue.T("Tes derniers nettoyages comparés"), Type = "Action", Faire = () => Ouvrir("Avant / après", Gains5.Comparaisons(AvantApres.Liste()), 720) });
             l.Add(new EntreeCommande { Titre = Langue.T("Ce qui est activé"), Detail = Langue.T("Vérifier que tout fonctionne"), Type = "Action", Faire = () => Etat5.Ouvrir(this) });

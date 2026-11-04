@@ -295,6 +295,32 @@ namespace NettoyagePC
                     if (p != "" && !Regex.IsMatch(p, @"^[\s\-\\/|]+$")) Ecrire("    " + p);
                 }
             }
+            else if (O.AppsChoisies != "")
+            {
+                // applications choisies une par une : un résultat clair pour chacune
+                var ids = O.AppsChoisies.Split(',').Select(x => x.Trim()).Where(MajAppsAuto.IdValide).Distinct().Take(200).ToList();
+                Ecrire("  " + ids.Count + " application(s) choisie(s). Ferme-les si possible avant la mise à jour.");
+                int ok = 0, echecs = 0, num = 0;
+                foreach (var id in ids)
+                {
+                    num++;
+                    Ecrire("  [" + num + "/" + ids.Count + "] " + id + "...");
+                    int code;
+                    string sortie = Programmes.Executer(winget, "upgrade --id \"" + id + "\" --exact --silent --accept-source-agreements --accept-package-agreements --disable-interactivity", 1800000, Encoding.UTF8, out code);
+                    if (code == 0) { ok++; Ecrire("    [OK] " + id + " est à jour."); }
+                    else
+                    {
+                        echecs++;
+                        string raison = Regex.IsMatch(sortie ?? "", "in use|en cours d'utilisation|is running", RegexOptions.IgnoreCase) ? "application ouverte : ferme-la et réessaie"
+                            : Regex.IsMatch(sortie ?? "", "No applicable|Aucune mise à jour|No available upgrade", RegexOptions.IgnoreCase) ? "déjà à jour"
+                            : Regex.IsMatch(sortie ?? "", "hash|empreinte", RegexOptions.IgnoreCase) ? "empreinte du fichier différente (winget a refusé par sécurité)"
+                            : "code " + code;
+                        Ecrire("    [ÉCHEC] " + id + " : " + raison + ".");
+                    }
+                }
+                Ecrire("  -> " + ok + " application(s) mise(s) à jour" + (echecs > 0 ? ", " + echecs + " échec(s)" : "") + ".");
+                resumeAutres.Add(ok + " application(s) mise(s) à jour (winget)");
+            }
             else
             {
                 Ecrire("  Mise à jour de toutes les applications connues de winget (peut durer longtemps ; ferme les applications concernées si possible)...");

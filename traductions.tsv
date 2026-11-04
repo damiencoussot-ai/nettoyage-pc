@@ -2565,3 +2565,117 @@ Style HUD sur toutes les rubriques (onglets, cartes) et animations : balayage lu
 Plus fluide : les animations suivent la fréquence de ton écran (jusqu'à 144 Hz et plus), l'anneau de l'accueil ne recalcule plus d'effet de flou à chaque image, et les mesures ne relancent la mise en page que quand elles changent.	Smoother: animations follow your screen's refresh rate (up to 144 Hz and more), the home ring no longer recomputes a blur on every frame, and readings only redo the layout when they change.	Más fluido: las animaciones siguen la frecuencia de tu pantalla (hasta 144 Hz y más), el anillo del inicio ya no recalcula un desenfoque en cada imagen y las medidas solo rehacen el diseño cuando cambian.
 Correction : l'accueil, le moniteur et le widget mesuraient le processeur en même temps et faussaient la valeur ; une seule mesure est maintenant partagée.	Fix: the home page, the monitor and the widget measured the processor at the same time and skewed the value; a single shared reading is now used.	Corrección: el inicio, el monitor y el widget medían el procesador al mismo tiempo y falseaban el valor; ahora se comparte una sola medida.
 EN LIGNE	ONLINE	EN LÍNEA
+8 Go suffisent pour la bureautique, mais les jeux récents et les nombreux onglets profitent de 16 Go.	8 GB is enough for office work, but recent games and many tabs benefit from 16 GB.	8 GB bastan para ofimática, pero los juegos recientes y muchas pestañas aprovechan 16 GB.
+Active le profil {0}	Turn on the {0} profile	Activa el perfil {0}
+Ajoute de la mémoire vive	Add more memory	Añade memoria RAM
+Aucune messagerie n'est configurée : le rapport est copié, colle-le dans un e-mail à {0}.	No mail app is set up: the report is copied, paste it into an e-mail to {0}.	No hay ninguna aplicación de correo configurada: el informe se ha copiado, pégalo en un correo a {0}.
+Bureautique	Office	Ofimática
+Carte mère	Motherboard	Placa base
+Cette semaine	This week	Esta semana
+Choisir ce profil	Choose this profile	Elegir este perfil
+Choisir le profil « {0} » ?	Choose the "{0}" profile?	¿Elegir el perfil «{0}»?
+Choisir un profil	Choose a profile	Elegir un perfil
+Conseils pour l'améliorer	Tips to improve it	Consejos para mejorarlo
+Copier le rapport	Copy the report	Copiar el informe
+Créer un point de restauration avant (conseillé si tu mets à jour beaucoup d'applications)	Create a restore point first (recommended if you update many apps)	Crear un punto de restauración antes (recomendado si actualizas muchas aplicaciones)
+Disque de Windows	Windows drive	Disco de Windows
+Enregistrer sur le Bureau	Save to the Desktop	Guardar en el Escritorio
+Envoyer par e-mail	Send by e-mail	Enviar por correo
+Espace libéré et indice des 7 derniers jours	Space freed and score over the last 7 days	Espacio liberado e índice de los últimos 7 días
+Favoris : Mode jeu, Preuve en FPS, Libérer la RAM, Réglages des jeux, Mettre à jour les applications, Moniteur en direct	Favorites: Game mode, FPS proof, Free up RAM, Game settings, Update apps, Live monitor	Favoritos: Modo juego, Prueba en FPS, Liberar RAM, Ajustes de juegos, Actualizar aplicaciones, Monitor en directo
+Favoris : Nettoyage rapide, Bilan de sécurité, Bouclier anti-arnaque, Analyse antivirus rapide, Sauvegarde, Aide à distance	Favorites: Quick cleanup, Security check, Anti-scam shield, Quick antivirus scan, Backup, Remote help	Favoritos: Limpieza rápida, Revisión de seguridad, Escudo antiestafa, Análisis antivirus rápido, Copia de seguridad, Ayuda remota
+Favoris : Nettoyage rapide, Mettre à jour les applications, Sauvegarde, Bilan de sécurité, Carte de l'espace disque, Extensions des navigateurs	Favorites: Quick cleanup, Update apps, Backup, Security check, Disk space map, Browser extensions	Favoritos: Limpieza rápida, Actualizar aplicaciones, Copia de seguridad, Revisión de seguridad, Mapa del espacio en disco, Extensiones de navegadores
+Ferme-les si possible avant. Windows demande une seule autorisation pour toutes.	Close them first if you can. Windows asks for permission only once for all of them.	Ciérralas antes si puedes. Windows pide un solo permiso para todas.
+Fiche de ton PC	Your PC's profile	Ficha de tu PC
+Fiche du matériel et conseils d'amélioration.	Hardware profile and upgrade tips.	Ficha del hardware y consejos de mejora.
+Gamer	Gamer	Gamer
+Gamer, Bureautique ou PC familial	Gamer, Office or Family PC	Gamer, Ofimática o PC familiar
+Gamer, Bureautique ou PC familial : règle d'un coup tes favoris et ce que le gardien surveille.	Gamer, Office or Family PC: sets your favorites and what the guardian watches in one go.	Gamer, Ofimática o PC familiar: ajusta de una vez tus favoritos y lo que vigila el guardián.
+Gardien (Premium) : alerte anti-arnaque, appareils inconnus sur la box, antivirus coupé	Guardian (Premium): anti-scam alert, unknown devices on the router, antivirus off	Guardián (Premium): alerta antiestafa, dispositivos desconocidos en el router, antivirus desactivado
+Gardien (Premium) : bulletin mensuel et surveillance du disque	Guardian (Premium): monthly report and drive monitoring	Guardián (Premium): boletín mensual y vigilancia del disco
+Gardien (Premium) : mode jeu automatique, OneDrive en pause pendant les parties	Guardian (Premium): automatic game mode, OneDrive paused while you play	Guardián (Premium): modo juego automático, OneDrive en pausa durante las partidas
+Il a consommé une grande partie de son endurance. Garde une sauvegarde à jour et prévois son remplacement.	It has used up much of its endurance. Keep an up-to-date backup and plan to replace it.	Ha consumido gran parte de su resistencia. Mantén una copia de seguridad al día y prevé su sustitución.
+Impossible d'enregistrer le rapport :	Can't save the report:	No se puede guardar el informe:
+La puce graphique intégrée suffit pour la vidéo et la bureautique ; pour jouer, une carte graphique dédiée change tout.	Integrated graphics are fine for video and office work; for gaming, a dedicated graphics card changes everything.	Los gráficos integrados bastan para vídeo y ofimática; para jugar, una tarjeta gráfica dedicada lo cambia todo.
+La recherche a échoué.	The search failed.	La búsqueda ha fallado.
+Le matériel n'a pas pu être lu sur ce PC.	The hardware could not be read on this PC.	No se ha podido leer el hardware de este PC.
+Le rapport contient la version de Nettoyage PC, celle de Windows et les dernières erreurs du journal. Ton nom, celui du PC, tes adresses e-mail et tes dossiers personnels sont masqués. Tu le vois en entier avant de l'envoyer.	The report contains the Nettoyage PC version, the Windows version and the latest errors from the log. Your name, the PC's name, your e-mail addresses and your personal folders are hidden. You see all of it before sending.	El informe contiene la versión de Nettoyage PC, la de Windows y los últimos errores del registro. Tu nombre, el del PC, tus direcciones de correo y tus carpetas personales se ocultan. Lo ves entero antes de enviarlo.
+Le rapport qui sera envoyé :	The report that will be sent:	El informe que se enviará:
+Lecture du matériel…	Reading the hardware…	Leyendo el hardware…
+Libère de la place sur le disque de Windows	Free up space on the Windows drive	Libera espacio en el disco de Windows
+Liste tes logiciels qui ont une nouvelle version (winget, l'outil officiel de Microsoft) : tu choisis lesquels mettre à jour, avec le résultat pour chacun. Avec Premium, c'est automatique chaque semaine.	Lists your software with a new version (winget, Microsoft's official tool): you choose which ones to update, with the result for each. With Premium, it's automatic every week.	Muestra tus programas con una nueva versión (winget, la herramienta oficial de Microsoft): eliges cuáles actualizar, con el resultado de cada uno. Con Premium, es automático cada semana.
+Mettre à jour la sélection	Update the selection	Actualizar la selección
+Mettre à jour la sélection ({0})	Update the selection ({0})	Actualizar la selección ({0})
+Mettre à jour {0} application(s) ?	Update {0} app(s)?	¿Actualizar {0} aplicación(es)?
+Mises à jour automatiques et exclusions	Automatic updates and exclusions	Actualizaciones automáticas y exclusiones
+Moins de 15 % libres ralentit Windows et ses mises à jour. Lance un nettoyage, ou ajoute un second disque pour tes jeux et vidéos.	Less than 15% free slows Windows and its updates. Run a cleanup, or add a second drive for your games and videos.	Menos del 15 % libre ralentiza Windows y sus actualizaciones. Haz una limpieza o añade un segundo disco para tus juegos y vídeos.
+Moins de 8 Go, c'est trop juste pour Windows 11 et un navigateur. Passer à 16 Go évite les ralentissements quand plusieurs applications sont ouvertes.	Under 8 GB is too tight for Windows 11 and a browser. Going to 16 GB avoids slowdowns when several apps are open.	Menos de 8 GB es muy justo para Windows 11 y un navegador. Pasar a 16 GB evita ralentizaciones con varias aplicaciones abiertas.
+Non détecté	Not detected	No detectado
+Non détectée	Not detected	No detectada
+Ouvre Nettoyage PC pour voir ce qui peut être amélioré.	Open Nettoyage PC to see what can be improved.	Abre Nettoyage PC para ver qué se puede mejorar.
+PC familial	Family PC	PC familiar
+PC fixe	Desktop PC	PC de sobremesa
+PC portable	Laptop	Portátil
+Par exemple : la fenêtre se ferme quand je clique sur Nettoyage profond.	For example: the window closes when I click Deep cleanup.	Por ejemplo: la ventana se cierra cuando hago clic en Limpieza profunda.
+Passe à Windows 11	Move to Windows 11	Pasa a Windows 11
+Passe à un SSD	Switch to an SSD	Pasa a un SSD
+Pense à 16 Go de mémoire vive	Consider 16 GB of memory	Piensa en 16 GB de memoria
+Pour jouer : performances, mode jeu, FPS.	For gaming: performance, game mode, FPS.	Para jugar: rendimiento, modo juego, FPS.
+Pour les jeux : une carte graphique dédiée	For games: a dedicated graphics card	Para juegos: una tarjeta gráfica dedicada
+Pour toute la famille : sécurité, anti-arnaque, aide à distance.	For the whole family: security, anti-scam, remote help.	Para toda la familia: seguridad, antiestafa, ayuda remota.
+Pour travailler : un PC propre, à jour et sauvegardé.	For work: a clean, up-to-date and backed-up PC.	Para trabajar: un PC limpio, actualizado y con copia de seguridad.
+Profil actuel	Current profile	Perfil actual
+Profil d'utilisation	Usage profile	Perfil de uso
+Profil « {0} » appliqué : tes favoris sont sur l'accueil.	"{0}" profile applied: your favorites are on the home page.	Perfil «{0}» aplicado: tus favoritos están en el inicio.
+Que s'est-il passé ? (facultatif)	What happened? (optional)	¿Qué ha pasado? (opcional)
+Rapport anonyme, montré avant l'envoi	Anonymous report, shown before sending	Informe anónimo, mostrado antes del envío
+Rapport copié : colle-le dans un e-mail à {0}.	Report copied: paste it into an e-mail to {0}.	Informe copiado: pégalo en un correo a {0}.
+Rapport enregistré sur le Bureau : {0}	Report saved to the Desktop: {0}	Informe guardado en el Escritorio: {0}
+Recherche des mises à jour… (jusqu'à une minute)	Checking for updates… (up to a minute)	Buscando actualizaciones… (hasta un minuto)
+Rien à signaler.	Nothing to report.	Nada que señalar.
+Résumé de la semaine	Weekly summary	Resumen de la semana
+S'il te convient, garde-le : un SSD et de la mémoire vive lui donnent souvent une seconde jeunesse.	If it suits you, keep it: an SSD and more memory often give it a second life.	Si te sirve, consérvalo: un SSD y más memoria a menudo le dan una segunda vida.
+Sans Premium, seuls les favoris changent.	Without Premium, only the favorites change.	Sin Premium, solo cambian los favoritos.
+Sauvegarde tes fichiers	Back up your files	Haz una copia de tus archivos
+Signaler	Report	Informar
+Signaler un problème	Report a problem	Informar de un problema
+Ta messagerie s'ouvre avec le rapport : vérifie-le, puis clique sur Envoyer.	Your mail app opens with the report: check it, then click Send.	Tu correo se abre con el informe: revísalo y haz clic en Enviar.
+Ta semaine avec Nettoyage PC	Your week with Nettoyage PC	Tu semana con Nettoyage PC
+Tes barrettes tournent moins vite que prévu. Le guide pas à pas est dans Outils > Matériel > Mémoire vive et BIOS.	Your memory runs slower than intended. The step-by-step guide is in Tools > Hardware > Memory and BIOS.	Tu memoria funciona más lenta de lo previsto. La guía paso a paso está en Herramientas > Hardware > Memoria y BIOS.
+Ton PC est bien équipé : rien à changer pour l'instant.	Your PC is well equipped: nothing to change for now.	Tu PC está bien equipado: nada que cambiar por ahora.
+Ton SSD vieillit	Your SSD is ageing	Tu SSD está envejeciendo
+Tout cocher	Check all	Marcar todo
+Un PC de plus de 8 ans	A PC over 8 years old	Un PC de más de 8 años
+Un bogue, une fenêtre qui se ferme ? Envoie un rapport anonyme à l'éditeur : tu le vois en entier avant l'envoi.	A bug, a window that closes? Send an anonymous report to the publisher: you see all of it before sending.	¿Un error, una ventana que se cierra? Envía un informe anónimo al editor: lo ves entero antes del envío.
+Un disque signale un problème de santé. Copie tes documents et photos sur un autre support, puis prévois son remplacement.	A drive reports a health problem. Copy your documents and photos to another device, then plan to replace it.	Un disco indica un problema de salud. Copia tus documentos y fotos en otro soporte y prevé su sustitución.
+Un profil règle d'un coup tes favoris et, avec Premium, ce que le gardien surveille. Rien n'est supprimé, et tu peux tout changer ensuite à la main.	A profile sets your favorites and, with Premium, what the guardian watches, in one go. Nothing is deleted, and you can change everything by hand afterwards.	Un perfil ajusta de una vez tus favoritos y, con Premium, lo que vigila el guardián. No se elimina nada y puedes cambiarlo todo a mano después.
+Voir les mises à jour	See the updates	Ver las actualizaciones
+Windows 10 ne reçoit plus de mises à jour de sécurité gratuites. La page Compatibilité de ce PC dit si ton matériel peut passer à Windows 11.	Windows 10 no longer gets free security updates. The PC compatibility page tells you if your hardware can move to Windows 11.	Windows 10 ya no recibe actualizaciones de seguridad gratuitas. La página Compatibilidad de este PC indica si tu hardware puede pasar a Windows 11.
+Windows est sur un disque dur classique. Un SSD rend le démarrage et l'ouverture des applications 3 à 5 fois plus rapides : c'est l'amélioration la plus visible.	Windows is on a traditional hard drive. An SSD makes startup and opening apps 3 to 5 times faster: it's the most noticeable upgrade.	Windows está en un disco duro clásico. Un SSD hace el inicio y la apertura de aplicaciones de 3 a 5 veces más rápidos: es la mejora más visible.
+aucun nettoyage cette semaine	no cleanup this week	ninguna limpieza esta semana
+carte dédiée	dedicated card	tarjeta dedicada
+de mémoire vive	of memory	de memoria
+environ {0} an(s)	about {0} year(s)	unos {0} año(s)
+exclue (Premium)	excluded (Premium)	excluida (Premium)
+indice {0}	score {0}	índice {0}
+indice {0} ({1}{2})	score {0} ({1}{2})	índice {0} ({1}{2})
+installé le {0}	installed on {0}	instalado el {0}
+intégrée au processeur	built into the processor	integrada en el procesador
+moins d'un an	less than a year	menos de un año
+pilote {0}	driver {0}	controlador {0}
+santé à vérifier	health to check	salud que revisar
+usure {0} %	wear {0}%	desgaste {0} %
+winget, l'outil officiel de Microsoft, télécharge chaque nouvelle version depuis le site de son éditeur. Coche celles à installer : chaque application est mise à jour à part, avec son résultat. Les mises à jour corrigent souvent des failles de sécurité.	winget, Microsoft's official tool, downloads each new version from its publisher's site. Check the ones to install: each app is updated separately, with its result. Updates often fix security holes.	winget, la herramienta oficial de Microsoft, descarga cada nueva versión desde el sitio de su editor. Marca las que quieras instalar: cada aplicación se actualiza por separado, con su resultado. Las actualizaciones suelen corregir fallos de seguridad.
+{0} barrette(s)	{0} module(s)	{0} módulo(s)
+{0} cœurs logiques	{0} logical cores	{0} núcleos lógicos
+{0} libérés en {1} nettoyage(s)	{0} freed in {1} cleanup(s)	{0} liberados en {1} limpieza(s)
+{0} mise(s) à jour disponible(s).	{0} update(s) available.	{0} actualización(es) disponible(s).
+à surveiller	to watch	a vigilar
+bien	good	bien
+… et {0} autre(s)	… and {0} more	… y {0} más
+Mon PC	My PC	Mi PC
+(rapport complet copié : colle-le ici avec Ctrl+V)	(full report copied: paste it here with Ctrl+V)	(informe completo copiado: pégalo aquí con Ctrl+V)
+APPLICATION	APP	APLICACIÓN
+INSTALLÉE	INSTALLED	INSTALADA
+NOUVELLE	NEW	NUEVA
+Nettoyage PC 5.7 : profils, Mon PC, mises à jour des applications au choix, résumé de la semaine, signalement de problème, et l'ancienne version 4 retirée.	Nettoyage PC 5.7: profiles, My PC, choose which apps to update, weekly summary, problem reports, and the old version 4 removed.	Nettoyage PC 5.7: perfiles, Mi PC, actualizaciones de aplicaciones a elegir, resumen de la semana, informe de problemas y la antigua versión 4 retirada.

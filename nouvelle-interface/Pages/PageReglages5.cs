@@ -37,6 +37,8 @@ namespace NettoyagePC.Nouveau
             pile.Children.Add(CarteCouleur(f));
             pile.Children.Add(Cartes.Page(f, null, new[]
             {
+                CarteAction.Code("Profil d'utilisation", Langue.T("Gamer, Bureautique ou PC familial : règle d'un coup tes favoris et ce que le gardien surveille.") + (Profils5.Actuel() != "" ? " " + Langue.F("Actuellement : {0}.", Profils5.Actuel()) : ""),
+                    "Choisir un profil", () => Profils5.Ouvrir(f), true),
                 CarteAction.Code("Style de l'interface", Langue.T("HUD : le look futuriste, depuis la version 5.5. Classique : l'apparence d'avant. Tes outils, tes favoris et tes réglages restent les mêmes.") + " " + Langue.F("Actuellement : {0}.", Langue.T(Habillage.Hud ? "HUD" : "Classique")),
                     Habillage.Hud ? "Passer au style classique" : "Passer au style HUD", () => { f.ChangerStyle(!Habillage.Hud); f.Afficher("Reglages", false); }, true),
                 CarteAction.Code("Visite guidée", "30 secondes pour découvrir l'interface : les rubriques, l'indice du PC, l'accès rapide, les alertes et Ctrl+K.", "Lancer la visite", () => { f.Afficher("Accueil", false); Visite5.Lancer(f); }),

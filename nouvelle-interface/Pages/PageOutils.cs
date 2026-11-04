@@ -19,6 +19,7 @@ namespace NettoyagePC.Nouveau
         {
             return new Onglets(f, "Outils", new[]
             {
+                Tuple.Create<string, string, Func<Control>>("MonPc", "Mon PC", () => new PageMonPc5(f)),
                 Tuple.Create<string, string, Func<Control>>("Materiel", "Matériel", () => Materiel(f)),
                 Tuple.Create<string, string, Func<Control>>("Potentiel", "Plein potentiel", () => new PagePotentiel5(f)),
                 Tuple.Create<string, string, Func<Control>>("Reseau", "Réseau", () => Reseau(f)),
@@ -160,6 +161,7 @@ namespace NettoyagePC.Nouveau
             Children.Add(Cartes.Page(f, null, new[]
             {
                 CarteAction.Code("Résumé de ce PC", "Windows, processeur, mémoire, disques, carte graphique et problèmes détectés : copié en un clic, à coller dans un message pour la personne qui t'aide.", "Copier le résumé", CopierResume, true),
+                CarteAction.Code("Signaler un problème", "Un bogue, une fenêtre qui se ferme ? Envoie un rapport anonyme à l'éditeur : tu le vois en entier avant l'envoi.", "Signaler", () => Signaler5.Ouvrir(F)),
                 CarteAction.Code("Aider quelqu'un", "Pour dépanner un proche : ouvre l'Assistance rapide, clique sur « Aider quelqu'un » (compte Microsoft demandé), puis donne-lui le code.", "Ouvrir l'Assistance rapide", OuvrirAssistance),
                 CarteAction.Code("Journal de démarrage", "Si Nettoyage PC se ferme ou affiche une erreur, ce fichier explique pourquoi : envoie-le à la personne qui t'aide.", "Montrer le fichier", () =>
                 {

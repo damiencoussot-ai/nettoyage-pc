@@ -108,6 +108,7 @@ namespace NettoyagePC
                     if (R.ModeJeuAuto || ModeJeuAuto.Actif) VerifierModeJeu();
                     if (R.Bulletin && n % 120 == 47) VerifierBulletin();
                     if (R.NouveauxAppareils && n % 30 == 23) VerifierAppareils();
+                    if (R.ResumeSemaine && n % 120 == 77) VerifierResumeSemaine();
                     if (n % 360 == 5) Instantanes.PrendreSiBesoin();
                     if (chaleurANoter && n % 30 == 7) { chaleurANoter = false; Sante.EnregistrerTemperature(jourChaleur, chaleurMaxJour); }
                 }
@@ -306,6 +307,18 @@ namespace NettoyagePC
             try { f = Bulletin.Creer(precedent); } catch (Exception ex) { JournalDemarrage.Erreur("bulletin mensuel", ex); return; }
             string mois = precedent.ToString("MMMM yyyy", Langue.Culture);
             S.SurUi(() => Notifier(Langue.F("Ton bulletin mensuel est prêt ({0})", mois), "Note du PC, espace gagné, démarrage, températures et santé du mois. Clique pour l'ouvrir (il est aussi dans Documents\\NettoyagePC\\Bulletins).", 0, () => Programmes.Ouvrir(f)));
+        }
+
+        // ------------------------------------------------------------ Résumé de la semaine
+        private void VerifierResumeSemaine()
+        {
+            var der = Date("resume");
+            if (der == DateTime.MinValue) { Noter("resume"); return; }   // premier lancement : le premier résumé dans une semaine
+            if ((DateTime.Now - der).TotalDays < 7) return;
+            Noter("resume");
+            ResumeHebdo r;
+            try { r = ResumeSemaine.Calculer(); } catch (Exception ex) { JournalDemarrage.Erreur("résumé de la semaine", ex); return; }
+            S.SurUi(() => Notifier(r.Titre, r.Texte, 0, () => OuvrirAppli("--page Accueil")));
         }
 
         // ------------------------------------------------------------ Nouveaux appareils sur le réseau

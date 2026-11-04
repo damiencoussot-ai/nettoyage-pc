@@ -1,0 +1,101 @@
+// Nettoyage PC 5 - profils d'utilisation : « Gamer », « Bureautique », « PC familial ». Un profil règle d'un coup
+// les favoris de l'accueil et, avec Premium, ce que le gardien surveille. Tout est montré avant (question),
+// rien n'est supprimé, et chaque réglage reste modifiable ensuite à la main.
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
+using Avalonia.Layout;
+using Avalonia.Media;
+
+namespace NettoyagePC.Nouveau
+{
+    internal static class Profils5
+    {
+        private sealed class Profil
+        {
+            public string Cle, Nom, Pour;
+            public string[] Favoris;
+            public string[] Changements;            // ce qui est réglé, en clair
+            public Action<ReglagesGardien> Gardien;   // réglages du gardien (Premium)
+        }
+
+        private static readonly Profil[] Liste =
+        {
+            new Profil
+            {
+                Cle = "gamer", Nom = "Gamer", Pour = "Pour jouer : performances, mode jeu, FPS.",
+                Favoris = new[] { "modejeu", "fps", "ramlib", "reglagesjeux", "majapps", "moniteur" },
+                Changements = new[] { "Favoris : Mode jeu, Preuve en FPS, Libérer la RAM, Réglages des jeux, Mettre à jour les applications, Moniteur en direct", "Gardien (Premium) : mode jeu automatique, OneDrive en pause pendant les parties" },
+                Gardien = r => { r.ModeJeuAuto = true; r.PauseOneDrive = true; r.Temperature = true; },
+            },
+            new Profil
+            {
+                Cle = "bureautique", Nom = "Bureautique", Pour = "Pour travailler : un PC propre, à jour et sauvegardé.",
+                Favoris = new[] { "rapide", "majapps", "sauvegarde", "secu", "carteespace", "extensions" },
+                Changements = new[] { "Favoris : Nettoyage rapide, Mettre à jour les applications, Sauvegarde, Bilan de sécurité, Carte de l'espace disque, Extensions des navigateurs", "Gardien (Premium) : bulletin mensuel et surveillance du disque" },
+                Gardien = r => { r.Bulletin = true; r.Disque = true; r.NettoyageAuto = true; },
+            },
+            new Profil
+            {
+                Cle = "famille", Nom = "PC familial", Pour = "Pour toute la famille : sécurité, anti-arnaque, aide à distance.",
+                Favoris = new[] { "rapide", "secu", "bouclier", "antivirus", "sauvegarde", "aide" },
+                Changements = new[] { "Favoris : Nettoyage rapide, Bilan de sécurité, Bouclier anti-arnaque, Analyse antivirus rapide, Sauvegarde, Aide à distance", "Gardien (Premium) : alerte anti-arnaque, appareils inconnus sur la box, antivirus coupé" },
+                Gardien = r => { r.Arnaque = true; r.NouveauxAppareils = true; r.Antivirus = true; },
+            },
+        };
+
+        public static string Actuel()
+        {
+            try { var p = Liste.FirstOrDefault(x => x.Cle == Parametres.Lire().Profil); return p != null ? Langue.T(p.Nom) : ""; } catch { return ""; }
+        }
+
+        public static void Ouvrir(FenetrePrincipale f)
+        {
+            var P = Habillage.P;
+            var s = new StackPanel { Spacing = 14 };
+            s.Children.Add(new TextBlock { Text = Langue.T("Un profil règle d'un coup tes favoris et, avec Premium, ce que le gardien surveille. Rien n'est supprimé, et tu peux tout changer ensuite à la main."), FontFamily = Habillage.Corps, FontSize = 13.5, Foreground = Habillage.Pinceau(P.Discret), TextWrapping = TextWrapping.Wrap });
+            string actuel = "";
+            try { actuel = Parametres.Lire().Profil; } catch { }
+            var grille = new UniformGrid { Columns = 3 };
+            FenetreInterieure fen = null;
+            foreach (var p in Liste)
+            {
+                var pp = p;
+                var c = new StackPanel { Spacing = 8 };
+                c.Children.Add(new TextBlock { Text = Langue.T(p.Nom), FontFamily = Habillage.Affichage, FontSize = 18, FontWeight = FontWeight.Bold, Foreground = Habillage.Pinceau(P.Texte) });
+                c.Children.Add(new TextBlock { Text = Langue.T(p.Pour), FontFamily = Habillage.Corps, FontSize = 13, Foreground = Habillage.Pinceau(P.Texte), TextWrapping = TextWrapping.Wrap });
+                foreach (var ch in p.Changements) c.Children.Add(new TextBlock { Text = "▸ " + Langue.T(ch), FontFamily = Habillage.Corps, FontSize = 12, Foreground = Habillage.Pinceau(P.Discret), TextWrapping = TextWrapping.Wrap });
+                bool est = p.Cle == actuel;
+                var b = new BoutonNoyau(est ? "Profil actuel" : "Choisir ce profil", !est, 0, 36) { TaillePolice = 13, HorizontalAlignment = HorizontalAlignment.Left, Margin = new Thickness(0, 6, 0, 0) };
+                b.Clic += () => Appliquer(f, pp, () => { if (fen != null) fen.Fermer(); });
+                c.Children.Add(b);
+                grille.Children.Add(new Cadre5 { Child = c, Coupe = 14, Padding = new Thickness(16, 14), Margin = new Thickness(0, 0, 10, 10), Background = Habillage.Pinceau(P.Carte), BorderBrush = Habillage.Pinceau(est ? P.Accent : Habillage.Alpha(P.Accent, 50)), BorderThickness = new Thickness(1), TraitHaut = est ? P.Accent : (Color?)null });
+            }
+            s.Children.Add(grille);
+            fen = f.Ouvrir("Profil d'utilisation", s, 1000);
+        }
+
+        private static void Appliquer(FenetrePrincipale f, Profil p, Action fermer)
+        {
+            string texte = string.Join("\n", p.Changements.Select(c => "•  " + Langue.T(c)));
+            if (!Licence.Premium) texte += "\n\n" + Langue.T("Sans Premium, seuls les favoris changent.");
+            f.Demander(Langue.F("Choisir le profil « {0} » ?", Langue.T(p.Nom)), texte, "Choisir", "Annuler", oui =>
+            {
+                if (!oui) return;
+                Favoris5.Remplacer(f, p.Favoris);
+                if (Licence.Premium && !f.Source.Immediat)
+                {
+                    try { var r = ReglagesGardien.Lire(); p.Gardien(r); r.Ecrire(); Gardien.Recharger(); }
+                    catch (Exception ex) { JournalDemarrage.Erreur("profil " + p.Cle, ex); }
+                }
+                f.EnregistrerReglage(r => r.Profil = p.Cle);
+                fermer();
+                f.Statut(Langue.F("Profil « {0} » appliqué : tes favoris sont sur l'accueil.", Langue.T(p.Nom)));
+                if (f.PageActive == "Reglages") f.Afficher("Reglages", false);
+            });
+        }
+    }
+}
