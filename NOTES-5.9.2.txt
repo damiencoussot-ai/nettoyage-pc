@@ -1,0 +1,9 @@
+Velox 5.9.2 : les tâches planifiées passent au nom Velox
+
+- L'entretien automatique et les mises à jour automatiques des applications s'appellent maintenant
+  « Velox - hebdomadaire », « Velox - complet », « Velox - surveillance des disques » et
+  « Velox - applications (Premium) » dans le Planificateur de tâches de Windows.
+- Rien à faire : à l'installation, les anciennes tâches « Nettoyage PC - ... » sont remplacées par les
+  nouvelles, avec les mêmes horaires. La désinstallation retire les deux.
+
+SHA256 de Velox-Setup-5.9.2.exe : voir le fichier Velox-Setup-5.9.2.sha256

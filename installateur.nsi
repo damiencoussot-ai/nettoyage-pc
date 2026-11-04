@@ -250,8 +250,11 @@ Section "${NOM} (obligatoire)" SecPrincipal
     Pop $0
     nsExec::Exec '"$SYSDIR\schtasks.exe" /Query /TN "Nettoyage PC hebdomadaire"'
     Pop $1
+    nsExec::Exec '"$SYSDIR\schtasks.exe" /Query /TN "Velox - hebdomadaire"'
+    Pop $2
     ${If} $0 == 0
     ${OrIf} $1 == 0
+    ${OrIf} $2 == 0
         nsExec::ExecToLog '"$INSTDIR\NettoyagePC.exe" --moteur --planifier'
         Pop $0
     ${EndIf}
@@ -281,7 +284,7 @@ Section "Uninstall"
     IfFileExists "$INSTDIR\NettoyagePC.exe" 0 +3
         nsExec::ExecToLog '"$INSTDIR\NettoyagePC.exe" --moteur --deplanifier --deplanifier-apps'
         Pop $0
-    nsExec::ExecToLog '"$SYSDIR\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -ExecutionPolicy Bypass -Command "Get-ScheduledTask -TaskName ''Nettoyage PC*'' -ErrorAction SilentlyContinue | Unregister-ScheduledTask -Confirm:$$false"'
+    nsExec::ExecToLog '"$SYSDIR\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -ExecutionPolicy Bypass -Command "Get-ScheduledTask -TaskName ''Nettoyage PC*'',''Velox - *'' -ErrorAction SilentlyContinue | Unregister-ScheduledTask -Confirm:$$false"'
     Pop $0
 
     ; Arrête le gardien Premium et retire son lancement automatique

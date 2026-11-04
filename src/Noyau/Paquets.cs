@@ -1,4 +1,4 @@
-// Nettoyage PC - applications du Microsoft Store (paquets de l'utilisateur), sans PowerShell
+// Velox - applications du Microsoft Store (paquets de l'utilisateur), sans PowerShell
 using System;
 using System.Collections.Generic;
 using System.IO;

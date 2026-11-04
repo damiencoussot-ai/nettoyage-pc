@@ -1,4 +1,4 @@
-// Nettoyage PC - nouveautés de chaque version (affichées même sans Internet). Partagé par la version 4 et la version 5.
+// Velox - nouveautés de chaque version (affichées même sans Internet). Partagé par la version 4 et la version 5.
 using System.Collections.Generic;
 
 namespace NettoyagePC
@@ -7,6 +7,7 @@ namespace NettoyagePC
     {
         public static readonly List<KeyValuePair<string, string[]>> Liste = new List<KeyValuePair<string, string[]>>
         {
+            N("5.9.2", "Les tâches planifiées de l'entretien automatique s'appellent maintenant « Velox - … » (remplacées automatiquement, mêmes horaires)."),
             N("5.9.1", "Corrections du profil Gamer : le mode jeu lancé depuis un favori compte pour les défis et le rapport de session, raccourci de l'overlay Ctrl+Alt+O (seulement avec le profil Gamer)."),
             N("5.9", "Profil Gamer : rangs de Bronze à Légende avec emblème, animation de niveau supérieur, défis du jour et série de jours.",
                 "22 succès avec rareté (commun à légendaire) et carte de joueur à partager en image."),

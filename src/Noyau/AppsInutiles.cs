@@ -1,4 +1,4 @@
-// Nettoyage PC - applications préinstallées inutiles (publicitaires ou rarement utilisées), toutes réinstallables
+// Velox - applications préinstallées inutiles (publicitaires ou rarement utilisées), toutes réinstallables
 // depuis le Microsoft Store. Jamais : Store, Paramètres, Photos, Calculatrice, Bloc-notes, Xbox, Sécurité, Assistance rapide.
 // Partagé par la version 4 et la version 5.
 using System;

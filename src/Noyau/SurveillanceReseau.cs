@@ -1,4 +1,4 @@
-// Nettoyage PC - surveillance du réseau (Premium) : les appareils connectés à ta box (nouvel appareil = alerte du
+// Velox - surveillance du réseau (Premium) : les appareils connectés à ta box (nouvel appareil = alerte du
 // gardien) et les applications connectées à Internet en ce moment. Lecture seule : rien n'est bloqué ni modifié.
 // Sans interface : partagé v4 / v5.
 using System;

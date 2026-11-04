@@ -18,7 +18,7 @@ namespace NettoyagePC
 
     internal static class MajAppsAuto
     {
-        public const string Tache = "Nettoyage PC - applications (Premium)";
+        public const string Tache = "Velox - applications (Premium)";
         public static string FichierDerniere { get { return Path.Combine(Chemins.Local, "majapps-derniere.txt"); } }
 
         public static bool Active { get { return Moteur.TacheExiste(Tache); } }

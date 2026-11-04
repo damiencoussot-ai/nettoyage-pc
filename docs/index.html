@@ -128,6 +128,22 @@ section { padding-block: 64px; }
 .gratuit { display: inline-block; font-family: var(--console); font-size: .72rem; letter-spacing: .12em; color: var(--vert); border: 1px solid currentColor; padding: 2px 8px; justify-self: start; }
 @media (max-width: 820px) { .avant, .avant.inverse { grid-template-columns: minmax(0, 1fr); gap: 20px; } .avant.inverse .avant-texte { order: 0; } }
 
+/* Profil Gamer */
+#gamer { background: radial-gradient(ellipse at 70% 0%, rgba(255, 43, 214, .16), transparent 60%), radial-gradient(ellipse at 10% 100%, rgba(124, 92, 255, .14), transparent 55%); }
+#gamer .etiquette, #gamer h2 em { color: #ff2bd6; }
+#gamer h2 em { font-style: normal; }
+.gamer-haut { display: grid; grid-template-columns: minmax(0, 340px) minmax(0, 1fr); gap: 48px; align-items: center; }
+@media (max-width: 860px) { .gamer-haut { grid-template-columns: minmax(0, 1fr); } }
+.video-gamer { border: 1px solid #ff2bd6; background: #07020f; padding: 8px; box-shadow: 0 0 60px -14px rgba(255, 43, 214, .7); max-width: 340px; justify-self: center; }
+.video-gamer video { display: block; width: 100%; height: auto; aspect-ratio: 9 / 16; background: #07020f; }
+.atouts { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
+.atouts li { display: grid; grid-template-columns: 30px minmax(0, 1fr); gap: 2px 12px; }
+.atouts .ico { font-family: var(--console); color: #ff2bd6; font-size: .95rem; padding-top: 2px; }
+.atouts strong { font-family: var(--affichage); font-size: 1.08rem; color: var(--texte); }
+.atouts span.d { grid-column: 2; color: var(--discret); font-size: .95rem; }
+.gamer .capture { border-color: rgba(255, 43, 214, .45); }
+.badge-gamer { display: inline-block; font-family: var(--console); font-size: .72rem; letter-spacing: .12em; color: #ff2bd6; border: 1px solid currentColor; padding: 2px 8px; justify-self: start; }
+
 /* Premium */
 .premium-tete { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 380px); gap: 32px; align-items: start; }
 @media (max-width: 900px) { .premium-tete { grid-template-columns: minmax(0, 1fr); } }
@@ -204,6 +220,7 @@ mark.a-completer { background: var(--orange); color: var(--sur-accent); padding:
     <a class="marque" href="#haut"><img src="img/icone-64.png" alt="" width="30" height="30">Velox</a>
     <nav class="nav" aria-label="Sections">
       <a href="#gratuit">Fonctions</a>
+      <a href="#gamer">Mode Gamer</a>
       <a href="#premium">Premium</a>
       <a href="#securite">Sécurité</a>
       <a href="#questions">Questions</a>
@@ -215,7 +232,7 @@ mark.a-completer { background: var(--orange); color: var(--sur-accent); padding:
 <main id="haut">
   <div class="enveloppe ouverture">
     <div class="texte">
-      <span class="etiquette">// Nouveau nom : Nettoyage PC devient Velox</span>
+      <span class="etiquette">// Nouveau : le profil Gamer, avec niveaux, défis et overlay en jeu</span>
       <h1>Un PC propre, rapide et protégé, <em>sans rien casser</em>.</h1>
       <p class="chapo">Velox fait le ménage, accélère le démarrage et surveille la sécurité de votre ordinateur. Chaque action est expliquée, réversible, et rien ne se fait sans votre accord.</p>
       <p class="chapo" style="font-size:.95em;opacity:.8">Velox, c'est le nouveau nom de Nettoyage PC : même logiciel, même éditeur. Votre clé Premium reste valable.</p>
@@ -224,12 +241,12 @@ mark.a-completer { background: var(--orange); color: var(--sur-accent); padding:
         <a class="bouton" href="#premium">Premium · 9,99 € une fois</a>
       </div>
       <div class="fiche">
-        <span id="version">Version 5.5.1</span><span>Windows 10 et 11, 64 bits</span><span>Français · English · Español</span><span>Sans publicité ni pistage</span>
+        <span id="version">Version 5.9.1</span><span>Windows 10 et 11, 64 bits</span><span>Français · English · Español</span><span>Sans publicité ni pistage</span>
       </div>
     </div>
 
     <figure class="capture-principale coins" style="margin-inline:0">
-      <div class="cadre"><img src="img/accueil.webp" width="1240" height="800" alt="Accueil de Velox 5.5 au style HUD : un anneau segmenté donne l'indice du PC (72 sur 100), avec le bouton « Optimiser en 1 clic », les mesures du processeur, de la mémoire, du disque et de la température, l'accès rapide aux outils favoris et les alertes numérotées, chacune avec son bouton."></div>
+      <div class="cadre"><img src="img/accueil.webp" width="1240" height="800" alt="Accueil de Velox 5.9 au style HUD : un anneau segmenté donne l'indice du PC (72 sur 100), avec le bouton « Optimiser en 1 clic », les mesures du processeur, de la mémoire, du disque et de la température, l'accès rapide aux outils favoris et les alertes numérotées, chacune avec son bouton."></div>
       <figcaption class="legende"><span>ACCUEIL · le bilan du PC en un coup d'œil</span><span>Chaque action demande votre accord avant de se lancer</span></figcaption>
     </figure>
   </div>
@@ -307,12 +324,62 @@ mark.a-completer { background: var(--orange); color: var(--sur-accent); padding:
 
   <hr class="separateur">
 
+  <section id="gamer" class="gamer">
+    <div class="enveloppe">
+      <div class="gamer-haut">
+        <figure class="video-gamer" style="margin:0">
+          <video src="video/velox-gamer.mp4" poster="video/velox-gamer.jpg" autoplay muted loop playsinline preload="metadata" aria-label="Présentation du profil Gamer de Velox en 20 secondes : QG GAMER, BOOST, succès."></video>
+        </figure>
+        <div style="display:grid;gap:22px">
+          <div class="titre-section" style="margin:0">
+            <span class="etiquette">// Profil Gamer · gratuit</span>
+            <h2>Ton PC prêt pour jouer. <em>Et ça se voit.</em></h2>
+            <p>Un clic sur GAMER, en bas à gauche de l'application : l'interface passe en néon et l'accueil devient ton QG.</p>
+          </div>
+          <ul class="atouts">
+            <li><span class="ico">01</span><strong>BOOST en un clic</strong><span class="d">Le mode jeu passe l'alimentation en « Performances élevées » et libère la mémoire vive. Rien n'est fermé, et tout revient comme avant à la fin.</span></li>
+            <li><span class="ico">02</span><strong>Prêt pour jouer ?</strong><span class="d">Un score en direct : mode jeu, mémoire vive, température du processeur et de la carte graphique, indice du PC.</span></li>
+            <li><span class="ico">03</span><strong>Overlay en jeu</strong><span class="d">Processeur, carte graphique, mémoire et heure par-dessus tes jeux, sans gêner les clics. Ctrl+Alt+O pour l'afficher.</span></li>
+            <li><span class="ico">04</span><strong>Niveaux, rangs et défis</strong><span class="d">De Bronze à Légende : de l'XP en entretenant ton PC, trois défis par jour, une série de jours et 22 succès à débloquer.</span></li>
+            <li><span class="ico">05</span><strong>Rapport de session et carte de joueur</strong><span class="d">Durée, températures maximales, processeur : à copier sur Discord. Et une carte de joueur à partager en image.</span></li>
+          </ul>
+          <div class="actions"><a class="bouton principal" href="https://github.com/damiencoussot-ai/nettoyage-pc/releases/latest" data-telecharger>Télécharger Velox</a></div>
+        </div>
+      </div>
+
+      <div class="galerie">
+        <figure><div class="capture"><a href="img/gamer.webp"><img src="img/gamer.webp" width="1240" height="800" loading="lazy" alt="Accueil en profil Gamer : bannière néon VELOX // GAMER avec soleil et sol quadrillé, bouton BOOST, anneau de l'indice en magenta."></a></div><figcaption><strong>Le QG GAMER</strong> : bannière animée, rang et bouton BOOST.</figcaption></figure>
+        <figure><div class="capture"><a href="img/boost.webp"><img src="img/boost.webp" width="1240" height="800" loading="lazy" alt="Animation plein écran BOOST ENGAGÉ avec barre de chargement et la liste de ce qui a été fait."></a></div><figcaption><strong>BOOST ENGAGÉ</strong> : ce que fait vraiment le mode jeu, ligne par ligne.</figcaption></figure>
+        <figure><div class="capture"><a href="img/niveau.webp"><img src="img/niveau.webp" width="1240" height="800" loading="lazy" alt="Animation NIVEAU SUPÉRIEUR : emblème hexagonal argent avec le niveau 5 et NOUVEAU RANG : ARGENT."></a></div><figcaption><strong>Niveau supérieur</strong> : nouvel emblème à chaque rang.</figcaption></figure>
+      </div>
+      <div class="avant" style="margin-top:48px">
+        <div class="avant-texte">
+          <span class="badge-gamer">DÉFIS DU JOUR</span>
+          <h3>Une raison de revenir chaque jour</h3>
+          <p>Trois défis qui changent chaque jour (lance un BOOST, libère 500 Mo, analyse ton PC…), une série de jours avec ton record, et des succès communs, rares, épiques ou légendaires.</p>
+          <p>Tout est calculé sur ton PC à partir de ce que Velox a déjà noté : rien n'est envoyé.</p>
+        </div>
+        <div class="capture"><img src="img/qg.webp" width="1096" height="400" loading="lazy" alt="Panneau QG GAMER : jauge Prêt pour jouer, emblème et niveau, barre d'XP, succès en losanges colorés, boutons Lancer le mode jeu, Preuve en FPS, Sons et Overlay, et défis du jour avec la série de 14 jours."></div>
+      </div>
+      <div class="avant inverse" style="margin-top:48px">
+        <div class="capture"><img src="img/carte.webp" width="634" height="330" loading="lazy" alt="Carte de joueur Velox : emblème Argent niveau 5, pseudo Damien, XP, succès 10 sur 22, série record 14 jours, 19 défis réussis, processeur et carte graphique."></div>
+        <div class="avant-texte">
+          <span class="badge-gamer">À PARTAGER</span>
+          <h3>Ta carte de joueur</h3>
+          <p>Une image avec ton pseudo, ton rang, ton niveau, tes succès et ton matériel, enregistrée dans Images\Velox. Et après chaque session, un rapport à copier directement sur Discord.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="separateur">
+
   <section id="premium">
     <div class="enveloppe">
       <div class="premium-tete">
         <div class="titre-section" style="margin-bottom:0">
           <span class="etiquette">// Premium</span>
-          <h2>18 outils de pro, débloqués d'un coup</h2>
+          <h2>19 outils de pro, débloqués d'un coup</h2>
           <p>Premium comprend tous les outils ci-dessous, et les prochains outils Premium des versions 4 et 5, sans payer de nouveau.</p>
           <p>Essayez-le d'abord gratuitement 7 jours dans l'application, sans paiement ni coordonnées.</p>
         </div>
@@ -349,6 +416,8 @@ mark.a-completer { background: var(--orange); color: var(--sur-accent); padding:
         <article class="outil"><h3>Mesure des performances</h3><p>Processeur, mémoire et disque, avec une comparaison avant / après un réglage.</p></article>
         <article class="outil"><h3>Kit de réinstallation</h3><p>Applications, pilotes et réseaux Wi-Fi remis en place en quelques minutes après une réinstallation.</p></article>
         <article class="outil"><h3>Santé de la batterie</h3><p>Usure et capacité réelle de la batterie des ordinateurs portables.</p></article>
+        <article class="outil"><h3>Moniteur en direct</h3><p>Processeur, mémoire, disques, réseau et températures en temps réel, avec des courbes.</p></article>
+        <article class="outil"><h3>Widget de bureau</h3><p>Une petite fenêtre toujours visible avec l'indice du PC, le processeur, la mémoire et la température.</p></article>
         <article class="outil"><h3>Thèmes de couleur</h3><p>Des couleurs exclusives pour l'interface, en clair comme en sombre. Et les prochains outils Premium des versions 4 et 5 s'ajoutent sans supplément.</p></article>
       </div>
 
@@ -408,7 +477,7 @@ mark.a-completer { background: var(--orange); color: var(--sur-accent); padding:
         <h2>Questions fréquentes</h2>
       </div>
       <div class="questions">
-        <details><summary>La version gratuite est-elle vraiment gratuite ?</summary><div class="reponse"><p>Oui. Le nettoyage, l'accélération, la protection et les outils restent gratuits, sans publicité et sans limite de durée. Premium ajoute 13 outils pour ceux qui veulent aller plus loin.</p></div></details>
+        <details><summary>La version gratuite est-elle vraiment gratuite ?</summary><div class="reponse"><p>Oui. Le nettoyage, l'accélération, la protection et les outils restent gratuits, sans publicité et sans limite de durée. Premium ajoute 19 outils pour ceux qui veulent aller plus loin. Le profil Gamer (BOOST, overlay, niveaux et défis) est gratuit.</p></div></details>
         <details><summary>Premium, c'est un abonnement ?</summary><div class="reponse"><p>Non. Vous payez <strong>9,99 € TTC une seule fois</strong>. La licence vaut pour toutes les versions 4 et 5 de Velox, sur 3 ordinateurs à la fois. Le bouton « Retirer la licence de ce PC » libère une place.</p></div></details>
         <details><summary>Comment je reçois ma clé ?</summary><div class="reponse"><p>Juste après le paiement sur la page sécurisée de Stripe, votre clé s'affiche à l'écran. <strong>Si vous achetez depuis Velox, Premium s'active tout seul</strong> : il suffit de revenir dans l'application.</p><p>Sur un autre PC, collez la clé dans l'onglet Premium, bouton « J'ai une clé ». Gardez-la bien. Le reçu et la facture arrivent par e-mail, envoyés par Link, le service de paiement de Stripe.</p></div></details>
         <details><summary>Faut-il Internet ?</summary><div class="reponse"><p>Pour activer la clé, oui. Elle est ensuite revérifiée environ une fois par semaine et reste active 45 jours sans Internet. Les fonctions gratuites marchent sans Internet, sauf la recherche des mises à jour et les tests du réseau.</p></div></details>

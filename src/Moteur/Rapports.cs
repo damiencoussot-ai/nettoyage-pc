@@ -190,12 +190,25 @@ namespace NettoyagePC
         }
 
         // ------------------------------------------------------------ Entretien automatique (tâches planifiées)
-        public const string TacheHebdo = "Nettoyage PC - hebdomadaire";
-        public const string TacheComplet = "Nettoyage PC - complet (toutes les 4 semaines)";
-        public const string TacheSurveillance = "Nettoyage PC - surveillance des disques";
+        public const string TacheHebdo = "Velox - hebdomadaire";
+        public const string TacheComplet = "Velox - complet (toutes les 4 semaines)";
+        public const string TacheSurveillance = "Velox - surveillance des disques";
         public const string TacheAncienne = "Nettoyage PC hebdomadaire";
+        // noms d'avant le changement de nom (Nettoyage PC -> Velox) : reconnus, puis remplacés à la prochaine planification
+        public static readonly Dictionary<string, string> NomsAvantVelox = new Dictionary<string, string>
+        {
+            { TacheHebdo, "Nettoyage PC - hebdomadaire" }, { TacheComplet, "Nettoyage PC - complet (toutes les 4 semaines)" },
+            { TacheSurveillance, "Nettoyage PC - surveillance des disques" }, { MajAppsAuto.Tache, "Nettoyage PC - applications (Premium)" },
+        };
 
+        /// <summary>La tâche existe, sous son nom Velox ou sous son ancien nom « Nettoyage PC - ... ».</summary>
         public static bool TacheExiste(string nom)
+        {
+            string ancien;
+            return TacheExisteNom(nom) || (NomsAvantVelox.TryGetValue(nom, out ancien) && TacheExisteNom(ancien));
+        }
+
+        private static bool TacheExisteNom(string nom)
         {
             try
             {
@@ -207,6 +220,19 @@ namespace NettoyagePC
             catch { return false; }
         }
 
+        /// <summary>Supprime une tâche sous son nom Velox et sous son ancien nom ; vrai si au moins une a été supprimée.</summary>
+        private bool SupprimerTache(string schtasks, string nom)
+        {
+            bool fait = false; string ancien;
+            foreach (var n in NomsAvantVelox.TryGetValue(nom, out ancien) ? new[] { nom, ancien } : new[] { nom })
+            {
+                if (!TacheExisteNom(n)) continue;
+                int c; Programmes.Executer(schtasks, "/Delete /TN \"" + n + "\" /F", 30000, null, out c);
+                if (c == 0) fait = true;
+            }
+            return fait;
+        }
+
         private void Planification()
         {
             if (!Admin) { Ecrire("Opération impossible : il faut l'autorisation administrateur."); return; }
@@ -216,9 +242,7 @@ namespace NettoyagePC
                 int supprimees = 0;
                 foreach (var nom in O.DeplanifierApps ? new[] { TacheHebdo, TacheComplet, TacheAncienne, TacheSurveillance, MajAppsAuto.Tache } : new[] { TacheHebdo, TacheComplet, TacheAncienne, TacheSurveillance })
                 {
-                    if (!TacheExiste(nom)) continue;
-                    int c; Programmes.Executer(schtasks, "/Delete /TN \"" + nom + "\" /F", 30000, null, out c);
-                    if (c == 0) { Ecrire("Tâche supprimée : " + nom); supprimees++; }
+                    if (SupprimerTache(schtasks, nom)) { Ecrire("Tâche supprimée : " + nom); supprimees++; }
                 }
                 if (supprimees == 0) Ecrire("Aucune tâche de nettoyage planifiée trouvée.");
                 return;
@@ -230,8 +254,13 @@ namespace NettoyagePC
                 Ecrire("Opération impossible : l'entretien automatique ne peut être activé que si Velox est installé (dossier Program Files). Installe-le avec NettoyagePC-Setup puis réactive l'entretien automatique.");
                 return;
             }
-            if (TacheExiste(TacheAncienne)) Programmes.Executer(schtasks, "/Delete /TN \"" + TacheAncienne + "\" /F", 30000);
+            if (TacheExisteNom(TacheAncienne)) Programmes.Executer(schtasks, "/Delete /TN \"" + TacheAncienne + "\" /F", 30000);
+            // changement de nom : les tâches « Nettoyage PC - ... » sont remplacées par les mêmes, nommées « Velox - ... »
+            bool appsAnciennes = TacheExisteNom(NomsAvantVelox[MajAppsAuto.Tache]);
+            foreach (var kv in NomsAvantVelox) if (TacheExisteNom(kv.Value)) Programmes.Executer(schtasks, "/Delete /TN \"" + kv.Value + "\" /F", 30000);
             string utilisateur = WindowsIdentity.GetCurrent().Name;
+            if (appsAnciennes) CreerTache(MajAppsAuto.Tache, "--tache applications", "Mises à jour des applications par winget, sauf celles exclues dans Velox (Premium).",
+                "<CalendarTrigger><StartBoundary>2026-01-07T19:00:00</StartBoundary><ScheduleByWeek><WeeksInterval>1</WeeksInterval><DaysOfWeek><Wednesday /></DaysOfWeek></ScheduleByWeek></CalendarTrigger>", "PT3H", utilisateur);
             bool ok = CreerTache(TacheHebdo, "--tache hebdo", "Nettoyage standard : temporaires, caches, corbeille, vieux téléchargements.",
                     "<CalendarTrigger><StartBoundary>2026-01-04T10:00:00</StartBoundary><ScheduleByWeek><WeeksInterval>1</WeeksInterval><DaysOfWeek><Sunday /></DaysOfWeek></ScheduleByWeek></CalendarTrigger>", "PT3H", utilisateur)
                 & CreerTache(TacheComplet, "--tache complet", "Nettoyage complet : standard + profond (Windows Update, DISM) + disques (santé, TRIM, optimisation) + sécurité.",
@@ -257,11 +286,12 @@ namespace NettoyagePC
             if (O.DeplanifierApps)
             {
                 if (!TacheExiste(MajAppsAuto.Tache)) { Ecrire("Les mises à jour automatiques des applications n'étaient pas activées."); return; }
-                int c; Programmes.Executer(schtasks, "/Delete /TN \"" + MajAppsAuto.Tache + "\" /F", 30000, null, out c);
-                Ecrire(c == 0 ? "Mises à jour automatiques des applications désactivées." : "Opération impossible : le Planificateur de tâches a refusé la suppression.");
+                Ecrire(SupprimerTache(schtasks, MajAppsAuto.Tache) ? "Mises à jour automatiques des applications désactivées." : "Opération impossible : le Planificateur de tâches a refusé la suppression.");
                 return;
             }
             if (!Chemins.EstInstalle) { Ecrire("Opération impossible : les mises à jour automatiques ne peuvent être activées que si Velox est installé (dossier Program Files)."); return; }
+            string ancienneApps = NomsAvantVelox[MajAppsAuto.Tache];
+            if (TacheExisteNom(ancienneApps)) Programmes.Executer(schtasks, "/Delete /TN \"" + ancienneApps + "\" /F", 30000);
             string utilisateur = WindowsIdentity.GetCurrent().Name;
             bool ok = CreerTache(MajAppsAuto.Tache, "--tache applications", "Mises à jour des applications par winget, sauf celles exclues dans Velox (Premium).",
                 "<CalendarTrigger><StartBoundary>2026-01-07T19:00:00</StartBoundary><ScheduleByWeek><WeeksInterval>1</WeeksInterval><DaysOfWeek><Wednesday /></DaysOfWeek></ScheduleByWeek></CalendarTrigger>", "PT3H", utilisateur);

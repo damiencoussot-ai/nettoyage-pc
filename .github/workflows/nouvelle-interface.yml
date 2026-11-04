@@ -181,7 +181,7 @@ jobs:
           $mk = 'C:\Program Files (x86)\NSIS\makensis.exe'
           if (-not (Test-Path $mk)) { choco install nsis -y --no-progress | Out-Null }
           Copy-Item publie\NettoyagePC.exe . -Force
-          & $mk /V2 /DV5 "/DVERSION=5.9.1" "/DVERSION4=5.9.1.0" installateur.nsi
+          & $mk /V2 /DV5 "/DVERSION=5.9.2" "/DVERSION4=5.9.2.0" installateur.nsi
           if ($LASTEXITCODE -ne 0) { throw "makensis a échoué" }
           $setup5 = (Resolve-Path 'NettoyagePC-Setup-5.2.exe').Path
           Noter ("installateur 5.0 : {0:N1} Mo" -f ((Get-Item $setup5).Length / 1MB))
@@ -198,7 +198,7 @@ jobs:
           Fermer
           Noter ("version 4 : installateur code {0}, programme {1}" -f $p.ExitCode, (Get-Item $exe).VersionInfo.ProductVersion)
           $p = Start-Process $exe -ArgumentList '--moteur --planifier' -Wait -PassThru -WindowStyle Hidden
-          $tache = Get-ScheduledTask -TaskName 'Nettoyage PC*' -ErrorAction SilentlyContinue | Select-Object -First 1
+          $tache = Get-ScheduledTask -TaskName 'Velox - *','Nettoyage PC*' -ErrorAction SilentlyContinue | Select-Object -First 1
           Noter ("entretien automatique (version 4) : code {0}, tâche {1}" -f $p.ExitCode, $(if ($tache) { $tache.TaskName } else { 'absente' }))
 
           # 2. version 5 par-dessus
@@ -214,7 +214,7 @@ jobs:
           foreach ($f in 'legal\LICENCE.txt', 'Desinstaller.exe', 'LISEZMOI.txt') { if (-not (Test-Path (Join-Path $dossier $f))) { throw "fichier absent après l'installation : $f" } }
           $cle = Get-ItemProperty 'HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\NettoyagePC'
           Noter ("Applications installées : {0} {1}" -f $cle.DisplayName, $cle.DisplayVersion)
-          $tache = Get-ScheduledTask -TaskName 'Nettoyage PC*' -ErrorAction SilentlyContinue | Select-Object -First 1
+          $tache = Get-ScheduledTask -TaskName 'Velox - *','Nettoyage PC*' -ErrorAction SilentlyContinue | Select-Object -First 1
           if ($tache) { Noter ("entretien automatique (version 5) : {0} -> {1} {2}" -f $tache.TaskName, $tache.Actions[0].Execute, $tache.Actions[0].Arguments) } else { Noter 'entretien automatique (version 5) : tâche absente' }
 
           # 3. le programme installé fonctionne
@@ -233,7 +233,7 @@ jobs:
           $p = Start-Process (Join-Path $dossier 'Desinstaller.exe') -ArgumentList '/S', "_?=$dossier" -Wait -PassThru   # _?= : le désinstalleur ne se relance pas depuis TEMP, donc -Wait attend vraiment la fin
           Start-Sleep 5
           $reste = Test-Path $exe
-          $tache = Get-ScheduledTask -TaskName 'Nettoyage PC*' -ErrorAction SilentlyContinue
+          $tache = Get-ScheduledTask -TaskName 'Velox - *','Nettoyage PC*' -ErrorAction SilentlyContinue
           Noter ("désinstallation : code {0}, programme {1}, tâches {2}" -f $p.ExitCode, $(if ($reste) { 'encore là' } else { 'retiré' }), $(if ($tache) { 'encore là' } else { 'retirées' }))
           if ($reste) { throw "le programme est resté après la désinstallation" }
 
