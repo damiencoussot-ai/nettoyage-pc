@@ -505,8 +505,8 @@ namespace NettoyagePC.Nouveau
             var noms = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
             noms.Children.Add(new TextBlock { Text = Habillage.Hud ? "NETTOYAGE PC" : "Nettoyage PC", FontFamily = Habillage.Affichage, FontSize = 17, FontWeight = Habillage.Hud ? FontWeight.Bold : FontWeight.SemiBold, Foreground = Brushes.White });
             string version = Installation5.Apercu ? Langue.T("Version 5.0 · aperçu") : Langue.T("Version") + " " + Appli.Version;
-            if (Habillage.Hud && !Installation5.Apercu) version = "v" + Appli.Version + " · " + Langue.T("SYSTÈME EN LIGNE");
-            noms.Children.Add(new TextBlock { Text = Habillage.Hud ? version.ToUpper(Langue.Culture) : version, FontFamily = Habillage.Hud ? Habillage.Console : Habillage.Corps, FontSize = Habillage.Hud ? 10.5 : 11, Foreground = Habillage.Pinceau(Habillage.Hud ? Color.FromRgb(111, 168, 188) : Color.FromRgb(138, 160, 180)) });
+            if (Habillage.Hud && !Installation5.Apercu) version = "v" + Appli.Version + " · " + Langue.T("EN LIGNE");
+            noms.Children.Add(new TextBlock { Text = Habillage.Hud ? version.ToUpper(Langue.Culture) : version, FontFamily = Habillage.Hud ? Habillage.Console : Habillage.Corps, FontSize = Habillage.Hud ? 10.5 : 11, TextTrimming = TextTrimming.CharacterEllipsis, MaxWidth = 150, Foreground = Habillage.Pinceau(Habillage.Hud ? Color.FromRgb(111, 168, 188) : Color.FromRgb(138, 160, 180)) });
             tete.Children.Add(noms);
             grille.Children.Add(tete);
             // menu principal et groupe du bas
