@@ -8,7 +8,8 @@ namespace NettoyagePC
         public static readonly List<KeyValuePair<string, string[]>> Liste = new List<KeyValuePair<string, string[]>>
         {
             N("5.7", "Nettoyage PC devient Velox (« rapide » en latin) : même logiciel, réglages, historique et Premium gardés.",
-                "Velox 5.7 : profils, Mon PC, mises à jour des applications au choix, résumé de la semaine, signalement de problème, et l'ancienne version 4 retirée."),
+                "Velox 5.7 : profils, Mon PC, mises à jour des applications au choix, résumé de la semaine, signalement de problème, et l'ancienne version 4 retirée.",
+                "Profil Gamer : look néon, ligne RGB, QG GAMER sur l'accueil (prêt pour jouer, mode jeu en un clic), niveaux, XP et 11 succès à débloquer."),
             N("5.6.1", "Plus fluide : les animations suivent la fréquence de ton écran (jusqu'à 144 Hz et plus), l'anneau de l'accueil ne recalcule plus d'effet de flou à chaque image, et les mesures ne relancent la mise en page que quand elles changent.",
                 "Correction : l'accueil, le moniteur et le widget mesuraient le processeur en même temps et faussaient la valeur ; une seule mesure est maintenant partagée."),
             N("5.6", "Visite guidée de 30 secondes, Moniteur en direct et Widget de bureau (Premium), comparaison avant / après de chaque nettoyage.",

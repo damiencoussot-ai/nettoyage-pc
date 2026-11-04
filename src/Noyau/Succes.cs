@@ -36,7 +36,6 @@ namespace NettoyagePC
 
         public static ProgressionJeu Calculer()
         {
-            var p = new ProgressionJeu();
             long octets = 0; int nettoyages = 0; int semainesPropres = 0;
             var datesNettoyage = new List<DateTime>();
             try
@@ -66,6 +65,15 @@ namespace NettoyagePC
             int meilleurGain = 0;
             try { meilleurGain = AvantApres.Liste().Select(c => c.Gain).DefaultIfEmpty(0).Max(); } catch { }
 
+            return Construire(nettoyages, octets, semainesPropres, meilleurIndice, parties, meilleurGain);
+        }
+
+        /// <summary>(captures) progression d'exemple.</summary>
+        public static ProgressionJeu Exemple() { return Construire(23, 31L * 1073741824L, 6, 84, 12, 11); }
+
+        private static ProgressionJeu Construire(int nettoyages, long octets, int semainesPropres, int meilleurIndice, int parties, int meilleurGain)
+        {
+            var p = new ProgressionJeu();
             // XP : 10 par nettoyage, 1 par 100 Mo libérés, 5 par partie, 20 par semaine entretenue, bonus pour un bon indice
             long xp = nettoyages * 10L + octets / (100L * 1024 * 1024) + parties * 5L + semainesPropres * 20L + (meilleurIndice >= 90 ? 100 : meilleurIndice >= 80 ? 50 : 0);
             p.Xp = (int)Math.Min(int.MaxValue, xp);

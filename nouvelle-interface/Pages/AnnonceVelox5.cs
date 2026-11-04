@@ -47,7 +47,7 @@ namespace NettoyagePC.Nouveau
             {
                 new[] { "Rien n'est perdu", "Tes réglages, ton historique, tes favoris et l'entretien automatique sont gardés." },
                 new[] { "Premium reste actif", "Ta clé Premium marche toujours, sans rien faire." },
-                new[] { "Une nouvelle icône Velox", "Le raccourci du menu Démarrer et celui du Bureau s'appellent maintenant « Velox »." },
+                new[] { "Des raccourcis renommés", "Le raccourci du menu Démarrer et celui du Bureau s'appellent maintenant « Velox »." },
             };
             for (int i = 0; i < points.Length; i++)
             {

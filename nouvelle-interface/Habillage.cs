@@ -106,6 +106,36 @@ namespace NettoyagePC.Nouveau
                 l.SurAccent = Colors.White;
                 l.AccentBarre = l == Palette.ClairHud ? Palette.SombreHud.Accent : c.Sombre1;
             }
+            if (Gamer) Neon();
+        }
+
+        /// <summary>Profil Gamer : néon magenta et violet, à la place de la couleur choisie (qui revient quand le profil change).</summary>
+        public static bool Gamer;
+
+        private static void Neon()
+        {
+            foreach (var s in new[] { Palette.SombreNoyau, Palette.SombreHud })
+            {
+                s.Accent = C(255, 43, 214); s.Accent2 = C(124, 92, 255);
+                s.SurAccent = C(18, 4, 22);
+                s.AccentBarre = s.Accent;
+            }
+            foreach (var l in new[] { Palette.ClairNoyau, Palette.ClairHud })
+            {
+                l.Accent = C(176, 0, 140); l.Accent2 = C(98, 52, 210);
+                l.SurAccent = Colors.White;
+                l.AccentBarre = C(255, 43, 214);
+            }
+        }
+
+        /// <summary>Couleur de l'arc-en-ciel RGB (ligne d'ambiance du profil Gamer) : t de 0 à 1.</summary>
+        public static Color Rgb(double t)
+        {
+            t = t - Math.Floor(t);
+            Color[] c = { C(255, 43, 214), C(124, 92, 255), C(0, 229, 255), C(61, 255, 162), C(255, 181, 71), C(255, 43, 214) };
+            double x = t * (c.Length - 1); int i = (int)Math.Floor(x);
+            if (i >= c.Length - 1) return c[c.Length - 1];
+            return Melanger(c[i], c[i + 1], x - i);
         }
 
         /// <summary>Animations autorisées (coupées pour les captures automatiques, ou si l'utilisateur le demande).</summary>

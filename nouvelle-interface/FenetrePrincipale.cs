@@ -58,6 +58,7 @@ namespace NettoyagePC.Nouveau
         private readonly TranslateTransform positionIndicateur = new TranslateTransform(), positionLumiere = new TranslateTransform(-400, 0);
         private Canvas calqueIndicateur;
         private Panel ligneEntete;
+        private Action<long> ambianceRgb;   // profil Gamer : ligne RGB qui défile sous l'en-tête
         public string PageActive { get; private set; } = "Accueil";
         public readonly ISourceBilan Source;
         // mode réel dès l'ouverture (comme la version 4) : chaque action pose sa question avant de se lancer ;
@@ -182,6 +183,7 @@ namespace NettoyagePC.Nouveau
                 string cle = o[0];
                 l.Add(new EntreeCommande { Titre = Langue.T(o[1]), Detail = Licence.Premium ? Langue.T("Premium") : Langue.T("Premium (essai gratuit 7 jours)"), Type = "Outil", Faire = () => OuvrirOutil(cle) });
             }
+            l.Add(new EntreeCommande { Titre = Langue.T("Succès et niveau"), Detail = Langue.T("Ton XP, ton niveau et les succès débloqués en entretenant ton PC"), Type = "Action", Faire = () => Succes5.Ouvrir(this) });
             l.Add(new EntreeCommande { Titre = Langue.T("Résumé de la semaine"), Detail = Langue.T("Espace libéré et indice des 7 derniers jours"), Type = "Action", Faire = () => MisesAJourAuto5.MontrerResume(this) });
             l.Add(new EntreeCommande { Titre = Langue.T("Profil d'utilisation"), Detail = Langue.T("Gamer, Bureautique ou PC familial"), Type = "Action", Faire = () => Profils5.Ouvrir(this) });
             l.Add(new EntreeCommande { Titre = Langue.T("Signaler un problème"), Detail = Langue.T("Rapport anonyme, montré avant l'envoi"), Type = "Action", Faire = () => Signaler5.Ouvrir(this) });
@@ -508,7 +510,7 @@ namespace NettoyagePC.Nouveau
             var noms = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
             noms.Children.Add(new TextBlock { Text = Habillage.Hud ? "VELOX" : "Velox", FontFamily = Habillage.Affichage, FontSize = 17, FontWeight = Habillage.Hud ? FontWeight.Bold : FontWeight.SemiBold, Foreground = Brushes.White });
             string version = Installation5.Apercu ? Langue.T("Version 5.0 · aperçu") : Langue.T("Version") + " " + Appli.Version;
-            if (Habillage.Hud && !Installation5.Apercu) version = "v" + Appli.Version + " · " + Langue.T("EN LIGNE");
+            if (Habillage.Hud && !Installation5.Apercu) version = "v" + Appli.Version + " · " + Langue.T(Habillage.Gamer ? "MODE GAMER" : "EN LIGNE");
             noms.Children.Add(new TextBlock { Text = Habillage.Hud ? version.ToUpper(Langue.Culture) : version, FontFamily = Habillage.Hud ? Habillage.Console : Habillage.Corps, FontSize = Habillage.Hud ? 10.5 : 11, TextTrimming = TextTrimming.CharacterEllipsis, MaxWidth = 150, Foreground = Habillage.Pinceau(Habillage.Hud ? Color.FromRgb(111, 168, 188) : Color.FromRgb(138, 160, 180)) });
             tete.Children.Add(noms);
             grille.Children.Add(tete);
@@ -593,6 +595,21 @@ namespace NettoyagePC.Nouveau
             // trait du bas et lumière qui le parcourt au changement de rubrique
             ligneEntete = new Panel { Height = 2, ClipToBounds = true };
             ligneEntete.Children.Add(new Border { Height = 1, VerticalAlignment = VerticalAlignment.Bottom, Background = Habillage.Pinceau(P.Accent, P.Sombre ? 40 : 60) });
+            if (ambianceRgb != null) { Horloge.RetirerAmbiance(ambianceRgb); ambianceRgb = null; }
+            if (Habillage.Gamer)
+            {
+                // ligne RGB : les couleurs glissent doucement (un tour en 6 secondes), comme l'éclairage d'un PC gamer
+                var arrets = new GradientStops();
+                for (int k = 0; k <= 6; k++) arrets.Add(new GradientStop(Habillage.Rgb(k / 6.0), k / 6.0));
+                var degrade = new LinearGradientBrush { StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative), EndPoint = new RelativePoint(1, 0, RelativeUnit.Relative), GradientStops = arrets };
+                ligneEntete.Children.Add(new Border { Height = 2, VerticalAlignment = VerticalAlignment.Bottom, Background = degrade, Opacity = P.Sombre ? 0.9 : 0.75 });
+                ambianceRgb = ms =>
+                {
+                    double d = (ms % 6000) / 6000.0;
+                    for (int k = 0; k < arrets.Count; k++) arrets[k].Color = Habillage.Rgb(k / 6.0 - d);
+                };
+                Horloge.Ambiance(ambianceRgb);
+            }
             lumiere = new Border
             {
                 Width = 320, Height = 2, HorizontalAlignment = HorizontalAlignment.Left, RenderTransform = positionLumiere,
@@ -737,7 +754,7 @@ namespace NettoyagePC.Nouveau
             sousTitre.Text = r.Sous;
             string nom = Habillage.Hud ? r.Nom.ToUpper(Langue.Culture) : r.Nom;
             int rang = Rubriques.Where(x => !x.EnBas).ToList().IndexOf(r);
-            if (numeroRubrique != null) numeroRubrique.Text = Langue.T("MODULE") + " " + (rang >= 0 ? (rang + 1).ToString("00") : "00") + " // " + Langue.T(Module(r.Cle)).ToUpper(Langue.Culture);
+            if (numeroRubrique != null) numeroRubrique.Text = Langue.T("MODULE") + " " + (rang >= 0 ? (rang + 1).ToString("00") : "00") + " // " + Langue.T(Habillage.Gamer && r.Cle == "Accueil" ? "QG GAMER" : Module(r.Cle)).ToUpper(Langue.Culture);
             if (anime && change && Habillage.Animations) { Decoder(nom); Balayer(); if (balayage != null) balayage.Lancer(); } else titre.Text = nom;
             contenu.Content = new ScrollViewer { Content = r.Page(), HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled, VerticalScrollBarVisibility = ScrollBarVisibility.Auto };
             PlacerIndicateur(anime);

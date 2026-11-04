@@ -7,6 +7,9 @@ Velox 5.7 (anciennement Nettoyage PC)
   (version installée → nouvelle), tu coches ceux à mettre à jour, un point de restauration avant si tu veux,
   puis chaque application est mise à jour à part, avec son résultat (à jour, application ouverte...).
   Une seule autorisation de Windows pour toutes.
+- Profil Gamer, avec des bonus : look néon magenta et violet, ligne RGB animée en haut, et sur l'accueil
+  un « QG GAMER » : ton PC est-il prêt pour jouer (score et liste de points), le mode jeu en un clic,
+  ton niveau et ton XP gagnés en entretenant le PC, et 11 succès à débloquer (Ctrl+K « Succès »).
 - Mon PC (Outils) : processeur, mémoire, carte graphique, disques, carte mère et Windows, l'âge du PC,
   l'état de chaque pièce et des conseils concrets (SSD, mémoire, profil EXPO / XMP, place sur le disque...).
 - Profils d'utilisation (Réglages) : Gamer, Bureautique ou PC familial règlent d'un coup tes favoris et,

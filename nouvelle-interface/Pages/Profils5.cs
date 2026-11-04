@@ -28,7 +28,7 @@ namespace NettoyagePC.Nouveau
             {
                 Cle = "gamer", Nom = "Gamer", Pour = "Pour jouer : performances, mode jeu, FPS.",
                 Favoris = new[] { "modejeu", "fps", "ramlib", "reglagesjeux", "majapps", "moniteur" },
-                Changements = new[] { "Favoris : Mode jeu, Preuve en FPS, Libérer la RAM, Réglages des jeux, Mettre à jour les applications, Moniteur en direct", "Gardien (Premium) : mode jeu automatique, OneDrive en pause pendant les parties" },
+                Changements = new[] { "Favoris : Mode jeu, Preuve en FPS, Libérer la RAM, Réglages des jeux, Mettre à jour les applications, Moniteur en direct", "Gardien (Premium) : mode jeu automatique, OneDrive en pause pendant les parties", "Bonus : look néon, QG GAMER sur l'accueil, niveaux et succès" },
                 Gardien = r => { r.ModeJeuAuto = true; r.PauseOneDrive = true; r.Temperature = true; },
             },
             new Profil
@@ -93,8 +93,13 @@ namespace NettoyagePC.Nouveau
                 }
                 f.EnregistrerReglage(r => r.ProfilUsage = p.Cle);
                 fermer();
-                f.Statut(Langue.F("Profil « {0} » appliqué : tes favoris sont sur l'accueil.", Langue.T(p.Nom)));
-                if (f.PageActive == "Reglages") f.Afficher("Reglages", false);
+                // profil Gamer : look néon, ligne RGB, QG GAMER, niveaux et succès (l'interface est reconstruite)
+                bool etaitGamer = Habillage.Gamer;
+                Habillage.Gamer = p.Cle == "gamer";
+                if (etaitGamer != Habillage.Gamer) { Habillage.ChoisirCouleur(Habillage.CouleurActuelle); f.ChangerTheme(Habillage.P.Sombre); }
+                else if (f.PageActive == "Reglages") f.Afficher("Reglages", false);
+                f.Statut(Habillage.Gamer && !etaitGamer ? Langue.T("Mode Gamer activé : look néon, QG GAMER sur l'accueil, niveaux et succès. GG !")
+                    : Langue.F("Profil « {0} » appliqué : tes favoris sont sur l'accueil.", Langue.T(p.Nom)));
             });
         }
     }

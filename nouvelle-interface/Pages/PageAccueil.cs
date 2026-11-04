@@ -28,6 +28,7 @@ namespace NettoyagePC.Nouveau
         private BoutonNoyau bActualiser;
         private readonly DispatcherTimer minuteur = new DispatcherTimer { Interval = TimeSpan.FromSeconds(2) };
         private Bilan bilan;
+        private QgGamer5 qg;   // profil Gamer : panneau « QG GAMER »
         /// <summary>Zones montrées par la visite guidée (accueil affiché en ce moment).</summary>
         public static PageAccueil Courante;
         public Control ZoneAnneau, BoutonOptimiser, ZoneFavoris, ZoneAlertes;
@@ -110,6 +111,7 @@ namespace NettoyagePC.Nouveau
                 {
                     var l = new List<Control> { ZoneAnneau };
                     if (mesures != null) l.AddRange(mesures.Children.OfType<Control>());
+                    if (qg != null) l.Add(qg);
                     l.Add(ZoneFavoris);
                     Habillage.Cascade(l);
                 }
@@ -146,7 +148,7 @@ namespace NettoyagePC.Nouveau
             var texte = new StackPanel { Spacing = 10, MaxWidth = 760, HorizontalAlignment = HorizontalAlignment.Stretch };
             tAnalyse = new TextBlock { Text = "> " + Langue.T("ANALYSE EN COURS…"), FontFamily = Habillage.Console, FontSize = 11, LetterSpacing = 1.5, Foreground = Habillage.Pinceau(P.Accent, 200) };
             texte.Children.Add(tAnalyse);
-            texte.Children.Add(new TextBlock { Text = Textes.Salut(f.Pseudo, DateTime.Now), FontFamily = Habillage.Affichage, FontSize = 34, FontWeight = FontWeight.SemiBold, Foreground = Habillage.Pinceau(P.Texte) });
+            texte.Children.Add(new TextBlock { Text = Habillage.Gamer ? (string.IsNullOrEmpty(f.Pseudo) ? Langue.T("Prêt à jouer ?") : Langue.F("Prêt à jouer, {0} ?", f.Pseudo)) : Textes.Salut(f.Pseudo, DateTime.Now), FontFamily = Habillage.Affichage, FontSize = 34, FontWeight = FontWeight.SemiBold, Foreground = Habillage.Pinceau(P.Texte) });
             tEtat = new TextBlock { Text = Langue.T("Analyse de ton PC…"), FontFamily = Habillage.Corps, FontSize = 16, FontWeight = FontWeight.SemiBold, Foreground = Habillage.Pinceau(P.Accent), TextWrapping = TextWrapping.Wrap };
             tDetail = new TextBlock { IsVisible = false };
             texte.Children.Add(tEtat);
@@ -169,6 +171,9 @@ namespace NettoyagePC.Nouveau
             Grid.SetColumn(texte, 2);
             haut.Children.Add(texte);
             Children.Add(haut);
+
+            // profil Gamer : QG GAMER (prêt pour jouer, niveau et succès, mode jeu en un clic)
+            if (Habillage.Gamer) { qg = new QgGamer5(f); Children.Add(qg); }
 
             ZoneFavoris = Favoris5.Bande(f);
             Children.Add(ZoneFavoris);
@@ -257,6 +262,7 @@ namespace NettoyagePC.Nouveau
             var P = Habillage.P;
             bilan = b;
             bActualiser.IsEnabled = true;
+            if (qg != null) qg.MajBilan(b);
             Color couleur;
             tEtat.Text = Textes.EtatCourt(b, out couleur);
             tEtat.Foreground = Habillage.Pinceau(couleur);
@@ -317,6 +323,7 @@ namespace NettoyagePC.Nouveau
         private void AfficherMesures(Mesures m)
         {
             if (m == null) return;
+            if (qg != null) qg.MajMesures(m);
             if (Habillage.Hud)
             {
                 if (m.Processeur >= 0) ValeurHud(0, Math.Round(m.Processeur).ToString(), "%", m.Processeur / 100);

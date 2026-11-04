@@ -124,6 +124,7 @@ namespace NettoyagePC.Nouveau
                 App.ModeSimple = reglages.ModeSimple;
                 App.ProfilCree = reglages.ProfilCree || !string.IsNullOrEmpty(reglages.Pseudo);
                 Habillage.Hud = reglages.Style != "classique";
+                Habillage.Gamer = reglages.ProfilUsage == "gamer";   // profil Gamer : néon, ligne RGB, QG GAMER
                 Habillage.P = Palette.Pour(!(reglages.Theme == "Clair" || (reglages.Theme == "Auto" && WindowsEnClair())));
             }
             catch (Exception ex) { JournalDemarrage.Erreur("réglages (version 5)", ex); }
@@ -376,6 +377,20 @@ namespace NettoyagePC.Nouveau
                 for (int k = 0; k < 6; k++) { Dispatcher.UIThread.RunJobs(); System.Threading.Thread.Sleep(50); }
                 Capturer(f, dossier, "sombre-annonce-velox.png", rapport, ref erreurs);
                 f.ViderCalques();
+                // profil Gamer : néon, ligne RGB, QG GAMER, succès
+                Habillage.Gamer = true; QgGamer5.Exemple = Succes.Exemple();
+                Habillage.ChoisirCouleur("aurore"); f.ChangerTheme(true); f.Afficher("Accueil", false);
+                for (int k = 0; k < 10; k++) { Dispatcher.UIThread.RunJobs(); System.Threading.Thread.Sleep(50); }
+                Capturer(f, dossier, "sombre-gamer-accueil.png", rapport, ref erreurs);
+                Succes5.Ouvrir(f);
+                for (int k = 0; k < 6; k++) { Dispatcher.UIThread.RunJobs(); System.Threading.Thread.Sleep(50); }
+                Capturer(f, dossier, "sombre-gamer-succes.png", rapport, ref erreurs);
+                f.ViderCalques();
+                Habillage.ChoisirCouleur("aurore"); f.ChangerTheme(false); f.Afficher("Accueil", false);
+                for (int k = 0; k < 10; k++) { Dispatcher.UIThread.RunJobs(); System.Threading.Thread.Sleep(50); }
+                Capturer(f, dossier, "clair-gamer-accueil.png", rapport, ref erreurs);
+                Habillage.Gamer = false; QgGamer5.Exemple = null;
+                Habillage.ChoisirCouleur("aurore"); f.ChangerTheme(true);
                 Etat5.Exemple = new System.Collections.Generic.List<EtatFonction>
                 {
                     new EtatFonction { Id = "premium", Nom = "Premium", Groupe = EtatFonctions.Application, Actif = true, Detail = "Actif sur ce PC, pour les versions 4 et 5." },
