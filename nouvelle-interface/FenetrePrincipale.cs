@@ -124,6 +124,9 @@ namespace NettoyagePC.Nouveau
         }
 
         /// <summary>Ferme tous les calques (captures, changement de thème).</summary>
+        /// <summary>Calque libre par-dessus toute la fenêtre (cinématique du mode jeu, succès débloqués) ; disparaît si l'interface est reconstruite.</summary>
+        public void AjouterCalque(Control c) { var p = Content as Panel; if (p != null && !p.Children.Contains(c)) p.Children.Add(c); }
+        public void RetirerCalque(Control c) { var p = Content as Panel; if (p != null) p.Children.Remove(c); }
         public void ViderCalques() { calqueDialogue.Children.Clear(); calqueDialogue.IsVisible = false; }
 
         public void Retirer(Control c)

@@ -2641,6 +2641,8 @@ namespace NettoyagePC
             "Travail", "Work", "Trabajo",
             "Famille", "Family", "Familia",
             "Le profil « {0} » est déjà choisi.", "The \"{0}\" profile is already selected.", "El perfil «{0}» ya está elegido.",
+            "Nouveau logo, raccourcis renommés", "New logo, renamed shortcuts", "Nuevo logo, accesos directos renombrados",
+            "Le « V » de la vitesse remplace l'hexagone. Les raccourcis du menu Démarrer et du Bureau s'appellent maintenant « Velox ».", "The \"V\" for speed replaces the hexagon. The Start menu and desktop shortcuts are now called \"Velox\".", "La «V» de la velocidad reemplaza al hexágono. Los accesos directos del menú Inicio y del Escritorio ahora se llaman «Velox».",
         };
         private static readonly string[] Prefixes =
         {
