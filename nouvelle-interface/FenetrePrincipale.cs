@@ -612,8 +612,11 @@ namespace NettoyagePC.Nouveau
                 for (int k = 0; k <= 6; k++) arrets.Add(new GradientStop(Habillage.Rgb(k / 6.0), k / 6.0));
                 var degrade = new LinearGradientBrush { StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative), EndPoint = new RelativePoint(1, 0, RelativeUnit.Relative), GradientStops = arrets };
                 ligneEntete.Children.Add(new Border { Height = 2, VerticalAlignment = VerticalAlignment.Bottom, Background = degrade, Opacity = P.Sombre ? 0.9 : 0.75 });
+                long derniere = -1000;
                 ambianceRgb = ms =>
                 {
+                    if (ms - derniere < 33) return;   // 30 images par seconde suffisent pour un dégradé qui glisse
+                    derniere = ms;
                     double d = (ms % 6000) / 6000.0;
                     for (int k = 0; k < arrets.Count; k++) arrets[k].Color = Habillage.Rgb(k / 6.0 - d);
                 };

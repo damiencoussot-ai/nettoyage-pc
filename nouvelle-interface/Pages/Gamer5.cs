@@ -10,89 +10,95 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Layout;
 using Avalonia.Media;
+using Avalonia.Media.Immutable;
 using Avalonia.Threading;
 
 namespace NettoyagePC.Nouveau
 {
-    /// <summary>Paysage néon : ciel violet, soleil rayé, sol quadrillé en perspective qui avance.</summary>
+    /// <summary>Paysage néon : ciel violet, soleil rayé, sol quadrillé en perspective qui avance.
+    /// Pinceaux préparés une fois, et 60 images par seconde au plus (même sur un écran 144 Hz) : léger pour le PC.</summary>
     internal sealed class FondSynthwave : Control
     {
         private double decalage;
+        private long derniere = -1000;
+        private readonly Action<long> ambiance;
         /// <summary>Position du soleil (0 = à gauche, 1 = à droite).</summary>
         public double Soleil = 0.62;
-        private readonly Action<long> ambiance;
+
+        private static Color C(int r, int g, int b, int a = 255) { return Color.FromArgb((byte)a, (byte)r, (byte)g, (byte)b); }
+        private static readonly IBrush Ciel = new LinearGradientBrush
+        {
+            StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative), EndPoint = new RelativePoint(0, 1, RelativeUnit.Relative),
+            GradientStops = { new GradientStop(C(10, 4, 26), 0), new GradientStop(C(48, 10, 72), 0.85), new GradientStop(C(90, 14, 96), 1) },
+        }.ToImmutable();
+        private static readonly IBrush Halo = new RadialGradientBrush { GradientStops = { new GradientStop(C(255, 43, 214, 70), 0), new GradientStop(C(255, 43, 214, 0), 1) } }.ToImmutable();
+        private static readonly IBrush Astre = new LinearGradientBrush
+        {
+            StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative), EndPoint = new RelativePoint(0, 1, RelativeUnit.Relative),
+            GradientStops = { new GradientStop(C(255, 214, 92), 0), new GradientStop(C(255, 92, 140), 0.55), new GradientStop(C(255, 43, 214), 1) },
+        }.ToImmutable();
+        private static readonly IBrush Bande = new SolidColorBrush(C(48, 10, 72)).ToImmutable();
+        private static readonly IBrush Sol = new SolidColorBrush(C(8, 2, 20)).ToImmutable();
+        private static readonly IBrush Horizon = new SolidColorBrush(C(255, 120, 230, 220)).ToImmutable();
+        private static readonly IBrush Lueur = new LinearGradientBrush
+        {
+            StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative), EndPoint = new RelativePoint(0, 1, RelativeUnit.Relative),
+            GradientStops = { new GradientStop(C(255, 43, 214, 90), 0), new GradientStop(C(255, 43, 214, 0), 1) },
+        }.ToImmutable();
+        private static readonly IBrush Voile = new LinearGradientBrush
+        {
+            StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative), EndPoint = new RelativePoint(1, 0, RelativeUnit.Relative),
+            GradientStops = { new GradientStop(C(6, 2, 16, 232), 0), new GradientStop(C(6, 2, 16, 150), 0.42), new GradientStop(C(6, 2, 16, 0), 0.62) },
+        }.ToImmutable();
+        // crayons : 16 niveaux de transparence et d'épaisseur pour les lignes qui avancent
+        private static readonly IPen[] Verticales = new IPen[15], Horizontales = new IPen[16];
+        static FondSynthwave()
+        {
+            for (int i = 0; i < 15; i++) Verticales[i] = new ImmutablePen(new SolidColorBrush(C(255, 43, 214, Math.Max(40, 150 - i * 6))).ToImmutable(), 1);
+            for (int k = 0; k < 16; k++) { double z = k / 15.0; Horizontales[k] = new ImmutablePen(new SolidColorBrush(C(255, 43, 214, (int)(30 + 200 * z))).ToImmutable(), 1 + z); }
+        }
 
         public FondSynthwave()
         {
             ClipToBounds = true;
-            ambiance = t => { decalage = (t % 1400) / 1400.0; InvalidateVisual(); };
+            ambiance = t =>
+            {
+                if (t - derniere < 16) return;
+                derniere = t; decalage = (t % 1400) / 1400.0; InvalidateVisual();
+            };
             AttachedToVisualTree += (s, e) => Horloge.Ambiance(ambiance);
             DetachedFromVisualTree += (s, e) => Horloge.RetirerAmbiance(ambiance);
         }
-
-        private static Color C(int r, int g, int b, int a = 255) { return Color.FromArgb((byte)a, (byte)r, (byte)g, (byte)b); }
 
         public override void Render(DrawingContext ctx)
         {
             double w = Bounds.Width, h = Bounds.Height;
             if (w < 10 || h < 10) return;
-            bool sombre = Habillage.P.Sombre;
             double horizon = h * 0.58;
-            // ciel
-            ctx.DrawRectangle(new LinearGradientBrush
-            {
-                StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative), EndPoint = new RelativePoint(0, 1, RelativeUnit.Relative),
-                GradientStops = { new GradientStop(C(10, 4, 26), 0), new GradientStop(C(48, 10, 72), 0.85), new GradientStop(C(90, 14, 96), 1) },
-            }, null, new Rect(0, 0, w, horizon));
-            // soleil néon (rayé dans sa partie basse), à droite
+            ctx.DrawRectangle(Ciel, null, new Rect(0, 0, w, horizon));
             double cx = w * Soleil, r = Math.Min(h * 0.46, 120);
             using (ctx.PushClip(new Rect(0, 0, w, horizon)))
             {
-                ctx.DrawEllipse(new RadialGradientBrush
-                {
-                    GradientStops = { new GradientStop(C(255, 43, 214, 70), 0), new GradientStop(C(255, 43, 214, 0), 1) },
-                }, null, new Point(cx, horizon), r * 1.9, r * 1.4);
-                ctx.DrawEllipse(new LinearGradientBrush
-                {
-                    StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative), EndPoint = new RelativePoint(0, 1, RelativeUnit.Relative),
-                    GradientStops = { new GradientStop(C(255, 214, 92), 0), new GradientStop(C(255, 92, 140), 0.55), new GradientStop(C(255, 43, 214), 1) },
-                }, null, new Point(cx, horizon), r, r);
-                var bande = new SolidColorBrush(C(48, 10, 72));
+                ctx.DrawEllipse(Halo, null, new Point(cx, horizon), r * 1.9, r * 1.4);
+                ctx.DrawEllipse(Astre, null, new Point(cx, horizon), r, r);
                 for (int k = 0; k < 6; k++)
                 {
                     double y = horizon - r * 0.08 - k * r * 0.13, e = 1.5 + (5 - k) * 0.9;
-                    ctx.DrawRectangle(bande, null, new Rect(cx - r, y - e, 2 * r, e));
+                    ctx.DrawRectangle(Bande, null, new Rect(cx - r, y - e, 2 * r, e));
                 }
             }
-            // sol
-            ctx.DrawRectangle(new SolidColorBrush(C(8, 2, 20)), null, new Rect(0, horizon, w, h - horizon));
+            ctx.DrawRectangle(Sol, null, new Rect(0, horizon, w, h - horizon));
             double vx = w * 0.5;
             for (int i = -14; i <= 14; i++)
-            {
-                double xb = vx + i * w / 9.0, xh = vx + i * w / 60.0;
-                int a = 150 - Math.Abs(i) * 6;
-                ctx.DrawLine(new Pen(new SolidColorBrush(C(255, 43, 214, Math.Max(40, a))), 1), new Point(xh, horizon), new Point(xb, h));
-            }
+                ctx.DrawLine(Verticales[Math.Abs(i)], new Point(vx + i * w / 60.0, horizon), new Point(vx + i * w / 9.0, h));
             for (int k = 0; k < 9; k++)
             {
-                double z = (k + decalage) / 9.0;                 // 0 = horizon, 1 = premier plan
-                double y = horizon + (h - horizon) * z * z;
-                int a = (int)(30 + 200 * z);
-                ctx.DrawLine(new Pen(new SolidColorBrush(C(255, 43, 214, a)), 1 + z), new Point(0, y), new Point(w, y));
+                double z = (k + decalage) / 9.0, y = horizon + (h - horizon) * z * z;
+                ctx.DrawLine(Horizontales[Math.Min(15, (int)(z * 15))], new Point(0, y), new Point(w, y));
             }
-            // ligne d'horizon lumineuse
-            ctx.DrawRectangle(new SolidColorBrush(C(255, 120, 230, 220)), null, new Rect(0, horizon - 1, w, 2));
-            ctx.DrawRectangle(new LinearGradientBrush
-            {
-                StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative), EndPoint = new RelativePoint(0, 1, RelativeUnit.Relative),
-                GradientStops = { new GradientStop(C(255, 43, 214, 90), 0), new GradientStop(C(255, 43, 214, 0), 1) },
-            }, null, new Rect(0, horizon, w, 26));
-            // voile à gauche pour que le texte reste lisible
-            ctx.DrawRectangle(new LinearGradientBrush
-            {
-                StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative), EndPoint = new RelativePoint(1, 0, RelativeUnit.Relative),
-                GradientStops = { new GradientStop(C(6, 2, 16, sombre ? 235 : 225), 0), new GradientStop(C(6, 2, 16, 150), 0.42), new GradientStop(C(6, 2, 16, 0), 0.62) },
-            }, null, new Rect(0, 0, w, h));
+            ctx.DrawRectangle(Horizon, null, new Rect(0, horizon - 1, w, 2));
+            ctx.DrawRectangle(Lueur, null, new Rect(0, horizon, w, 26));
+            ctx.DrawRectangle(Voile, null, new Rect(0, 0, w, h));
         }
     }
 
@@ -142,9 +148,18 @@ namespace NettoyagePC.Nouveau
             var boost = new BoutonNoyau(ModeJeuActif() ? "Mode jeu actif" : "Boost", true, 190, 56) { TaillePolice = 19, Capitales = true, VerticalAlignment = VerticalAlignment.Center };
             boost.Clic += () => Boost(f, () => boost.Changer(ModeJeuActif() ? "Mode jeu actif" : "Boost"));
             ToolTip.SetTip(boost, Langue.T("Lance le mode jeu : alimentation « Performances élevées » et mémoire vive libérée. Rien n'est fermé."));
-            Grid.SetColumn(boost, 1); contenu.Children.Add(boost);
+            // halo qui pulse derrière BOOST (invite à cliquer), 30 images par seconde
+            var halo = new Border { Margin = new Thickness(6), Background = new SolidColorBrush(Color.FromArgb(1, 0, 0, 0)), BoxShadow = BoxShadows.Parse("0 0 28 6 #FF2BD6"), IsHitTestVisible = false };
+            var zoneBoost = new Panel { VerticalAlignment = VerticalAlignment.Center, Children = { halo, boost } };
+            long derniere = -1000;
+            bool actifPouls = ModeJeuActif(); long lu = 0;
+            Action<long> pouls = t => { if (t - derniere < 33) return; derniere = t; if (t - lu > 2000) { lu = t; actifPouls = ModeJeuActif(); } halo.Opacity = actifPouls ? 0.15 : 0.35 + 0.45 * (0.5 + 0.5 * Math.Sin(t / 420.0)); };
+            zoneBoost.AttachedToVisualTree += (s, e) => Horloge.Ambiance(pouls);
+            zoneBoost.DetachedFromVisualTree += (s, e) => Horloge.RetirerAmbiance(pouls);
+            Grid.SetColumn(zoneBoost, 1); contenu.Children.Add(zoneBoost);
             g.Children.Add(contenu);
             cadre.Child = g;
+            Survol.Lumineux(cadre, Magenta, 160, 255);
             Action<ProgressionJeu> afficher = p => rang.Text = Langue.F("RANG : {0}  ·  NIV. {1}  ·  {2} XP  ·  {3}/{4} SUCCÈS", Langue.T(p.Titre).ToUpper(Langue.Culture), p.Niveau, p.Xp, p.Succes.Count(x => x.Obtenu), p.Succes.Count);
             if (QgGamer5.Exemple != null) afficher(QgGamer5.Exemple);
             else Task.Run(() => Succes.Calculer()).ContinueWith(t => { if (!t.IsFaulted) Dispatcher.UIThread.Post(() => afficher(t.Result)); });

@@ -251,6 +251,60 @@ namespace NettoyagePC.Nouveau
         }
     }
 
+    /// <summary>Jauge circulaire « PRÊT POUR JOUER » : l'anneau se remplit et le pourcentage compte jusqu'à la valeur.</summary>
+    internal sealed class JaugePret : Control
+    {
+        private double affiche, cible;
+        private long depart; private double origine;
+        public Color Couleur = Color.FromRgb(255, 43, 214);
+
+        public void Montrer(double valeur, Color couleur)
+        {
+            Couleur = couleur; cible = Math.Max(0, Math.Min(100, valeur)); origine = affiche; depart = Horloge.Maintenant;
+            Horloge.Lancer(t =>
+            {
+                double k = Math.Min(1, (t - depart) / 900.0);
+                affiche = origine + (cible - origine) * Habillage.Douce(k);
+                InvalidateVisual();
+                return k < 1;
+            });
+        }
+
+        public override void Render(DrawingContext ctx)
+        {
+            double w = Bounds.Width, h = Bounds.Height, r = Math.Min(w, h) / 2 - 6;
+            if (r < 10) return;
+            var c = new Point(w / 2, h / 2);
+            var P = Habillage.P;
+            ctx.DrawEllipse(null, new Pen(Habillage.Pinceau(P.Discret, 45), 7), c, r, r);
+            // graduations
+            var trait = new Pen(Habillage.Pinceau(P.Discret, 70), 1);
+            for (int i = 0; i < 40; i++)
+            {
+                double a = Math.PI * 2 * i / 40 - Math.PI / 2;
+                ctx.DrawLine(trait, new Point(c.X + (r - 11) * Math.Cos(a), c.Y + (r - 11) * Math.Sin(a)), new Point(c.X + (r - 14) * Math.Cos(a), c.Y + (r - 14) * Math.Sin(a)));
+            }
+            if (affiche > 0.5)
+            {
+                double balayage = Math.Min(359.9, 360 * affiche / 100);
+                if (P.Sombre) ctx.DrawGeometry(null, new Pen(new SolidColorBrush(Color.FromArgb(60, Couleur.R, Couleur.G, Couleur.B)), 15, lineCap: PenLineCap.Round), Habillage.Arc(c, r, -90, balayage));
+                ctx.DrawGeometry(null, new Pen(new SolidColorBrush(Couleur), 7, lineCap: PenLineCap.Round), Habillage.Arc(c, r, -90, balayage));
+            }
+            var texte = new FormattedText(Math.Round(affiche) + "%", CultureInfo.InvariantCulture, FlowDirection.LeftToRight, new Typeface(Habillage.Affichage, FontStyle.Normal, FontWeight.Bold), r * 0.52, Habillage.Pinceau(P.Texte));
+            ctx.DrawText(texte, new Point(c.X - texte.Width / 2, c.Y - texte.Height / 2));
+        }
+    }
+
+    /// <summary>Survol : le cadre s'illumine (bordure plus vive), sans rien recalculer d'autre.</summary>
+    internal static class Survol
+    {
+        public static void Lumineux(Cadre5 cadre, Color couleur, int repos = 80, int survol = 230)
+        {
+            cadre.PointerEntered += (s, e) => cadre.BorderBrush = Habillage.Pinceau(couleur, survol);
+            cadre.PointerExited += (s, e) => cadre.BorderBrush = Habillage.Pinceau(couleur, repos);
+        }
+    }
+
     /// <summary>Petite flamme (série de jours).</summary>
     internal sealed class Flamme : Control
     {

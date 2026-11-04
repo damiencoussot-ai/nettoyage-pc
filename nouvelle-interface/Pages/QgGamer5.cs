@@ -29,6 +29,8 @@ namespace NettoyagePC.Nouveau
         private readonly BoutonNoyau bModeJeu;
         private readonly Embleme embleme = new Embleme { Width = 46, Height = 52, VerticalAlignment = VerticalAlignment.Center };
         private readonly ContentControl zoneDefis = new ContentControl();
+        private readonly JaugePret jauge = new JaugePret { Width = 104, Height = 104, VerticalAlignment = VerticalAlignment.Top };
+        private bool premiereListe = true;
         private double avancement;
         private double memoire = -1, temperature = -1, gpu = -1; private int indice = -1;
 
@@ -47,8 +49,12 @@ namespace NettoyagePC.Nouveau
             var a = new StackPanel { Spacing = 6 };
             a.Children.Add(Etiquette("PRÊT POUR JOUER"));
             tScore = new TextBlock { Text = "…", FontFamily = Habillage.Affichage, FontSize = 38, FontWeight = FontWeight.Bold, Foreground = Habillage.Pinceau(P.Accent), Margin = new Thickness(0, -4, 0, 0) };
-            a.Children.Add(tScore);
-            a.Children.Add(checklist);
+            // jauge circulaire à gauche, liste des points à droite
+            var ligneScore = new Grid { ColumnDefinitions = new ColumnDefinitions("Auto,*") };
+            ligneScore.Children.Add(jauge);
+            checklist.Margin = new Thickness(14, 4, 0, 0); checklist.VerticalAlignment = VerticalAlignment.Center;
+            Grid.SetColumn(checklist, 1); ligneScore.Children.Add(checklist);
+            a.Children.Add(ligneScore);
             g.Children.Add(a);
 
             // ---- niveau, XP et succès
@@ -73,6 +79,20 @@ namespace NettoyagePC.Nouveau
             };
             if (P.Sombre) remplissage.BoxShadow = BoxShadows.Parse("0 0 10 0 " + Habillage.Alpha(P.Accent, 150).ToString());
             barreXp.Children.Add(remplissage);
+            // reflet qui parcourt la barre d'XP (30 images par seconde, arrêté quand la fenêtre est en arrière-plan)
+            barreXp.ClipToBounds = true;
+            var reflet = new Border { Width = 70, HorizontalAlignment = HorizontalAlignment.Left, RenderTransform = new TranslateTransform(-80, 0), IsHitTestVisible = false,
+                Background = new LinearGradientBrush { StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative), EndPoint = new RelativePoint(1, 0, RelativeUnit.Relative), GradientStops = { new GradientStop(Color.FromArgb(0, 255, 255, 255), 0), new GradientStop(Color.FromArgb(110, 255, 255, 255), 0.5), new GradientStop(Color.FromArgb(0, 255, 255, 255), 1) } } };
+            barreXp.Children.Add(reflet);
+            long derniereImage = -1000;
+            Action<long> pasReflet = ms =>
+            {
+                if (ms - derniereImage < 33) return; derniereImage = ms;
+                double cycle = (ms % 2800) / 2800.0, larg = Math.Max(1, remplissage.Width);
+                ((TranslateTransform)reflet.RenderTransform).X = cycle < 0.6 ? -80 + (larg + 80) * (cycle / 0.6) : -80;
+            };
+            barreXp.AttachedToVisualTree += (o, e) => Horloge.Ambiance(pasReflet);
+            barreXp.DetachedFromVisualTree += (o, e) => Horloge.RetirerAmbiance(pasReflet);
             barreXp.SizeChanged += (o, e) => PlacerXp();
             b.Children.Add(barreXp);
             tXp = new TextBlock { Text = "", FontFamily = Habillage.Console, FontSize = 11, Foreground = Habillage.Pinceau(P.Discret) };
@@ -123,6 +143,7 @@ namespace NettoyagePC.Nouveau
             Grid.SetColumn(c, 4); g.Children.Add(c);
 
             Child = new StackPanel { Children = { g, zoneDefis } };
+            Survol.Lumineux(this, P.Accent, 80, 220);
             Recalculer();
             ChargerProgression();
         }
@@ -188,7 +209,7 @@ namespace NettoyagePC.Nouveau
             var connus = points.Where(x => x.Item3).ToList();
             int score = connus.Count == 0 ? 0 : (int)Math.Round(100.0 * connus.Count(x => x.Item2) / connus.Count);
             tScore.Text = score + " %";
-            tScore.Foreground = Habillage.Pinceau(score >= 80 ? P.Vert : score >= 50 ? P.Accent : P.Orange);
+            jauge.Montrer(score, score >= 80 ? P.Vert : score >= 50 ? P.Accent : P.Orange);
             checklist.Children.Clear();
             foreach (var p in points)
             {
@@ -198,6 +219,7 @@ namespace NettoyagePC.Nouveau
                 l.Children.Add(new TextBlock { Text = p.Item1, FontFamily = Habillage.Corps, FontSize = 12.5, Foreground = Habillage.Pinceau(p.Item3 ? P.Texte : P.Discret), VerticalAlignment = VerticalAlignment.Center, TextTrimming = TextTrimming.CharacterEllipsis });
                 checklist.Children.Add(l);
             }
+            if (premiereListe && !F.Source.Immediat) { premiereListe = false; Habillage.Cascade(checklist.Children.OfType<Control>(), 70, 280); }
         }
 
         private void ChargerProgression()
