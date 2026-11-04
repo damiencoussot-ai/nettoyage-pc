@@ -18,6 +18,8 @@ namespace NettoyagePC.Nouveau
     internal sealed class FondSynthwave : Control
     {
         private double decalage;
+        /// <summary>Position du soleil (0 = à gauche, 1 = à droite).</summary>
+        public double Soleil = 0.62;
         private readonly Action<long> ambiance;
 
         public FondSynthwave()
@@ -43,7 +45,7 @@ namespace NettoyagePC.Nouveau
                 GradientStops = { new GradientStop(C(10, 4, 26), 0), new GradientStop(C(48, 10, 72), 0.85), new GradientStop(C(90, 14, 96), 1) },
             }, null, new Rect(0, 0, w, horizon));
             // soleil néon (rayé dans sa partie basse), à droite
-            double cx = w * 0.74, r = h * 0.46;
+            double cx = w * Soleil, r = Math.Min(h * 0.46, 120);
             using (ctx.PushClip(new Rect(0, 0, w, horizon)))
             {
                 ctx.DrawEllipse(new RadialGradientBrush
@@ -164,7 +166,7 @@ namespace NettoyagePC.Nouveau
         public static void Cinematique(FenetrePrincipale f)
         {
             var calque = new Panel { Background = new SolidColorBrush(Color.FromArgb(215, 4, 2, 12)), Cursor = new Avalonia.Input.Cursor(Avalonia.Input.StandardCursorType.Hand) };
-            var fond = new FondSynthwave { Opacity = 0.35 };
+            var fond = new FondSynthwave { Opacity = 0.35, Soleil = 0.5 };
             calque.Children.Add(fond);
             var s = new StackPanel { HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center, Spacing = 14, Width = 560 };
             s.Children.Add(new TextBlock { Text = "> " + Langue.T("INITIALISATION DU MODE JEU"), FontFamily = Habillage.Console, FontSize = 13, LetterSpacing = 2, Foreground = new SolidColorBrush(Cyan), HorizontalAlignment = HorizontalAlignment.Center });
