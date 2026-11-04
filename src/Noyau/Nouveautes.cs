@@ -7,6 +7,8 @@ namespace NettoyagePC
     {
         public static readonly List<KeyValuePair<string, string[]>> Liste = new List<KeyValuePair<string, string[]>>
         {
+            N("5.8", "Overlay en jeu (Ctrl+Maj+O) : processeur, carte graphique et mémoire par-dessus tes jeux, sans gêner les clics.",
+                "Température de la carte graphique, rapport de fin de session à copier pour Discord, et petits sons optionnels au BOOST et aux succès."),
             N("5.7.1", "Nouveau logo Velox, et les profils (Gamer, Travail, Famille) se choisissent dans la barre de gauche.",
                 "Profil Gamer : bannière néon animée avec BOOST, animation plein écran au lancement du mode jeu, annonces de succès et de niveau."),
             N("5.7", "Nettoyage PC devient Velox (« rapide » en latin) : même logiciel, réglages, historique et Premium gardés.",

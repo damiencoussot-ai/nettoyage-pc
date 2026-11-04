@@ -124,7 +124,8 @@ namespace NettoyagePC.Nouveau
                 App.ModeSimple = reglages.ModeSimple;
                 App.ProfilCree = reglages.ProfilCree || !string.IsNullOrEmpty(reglages.Pseudo);
                 Habillage.Hud = reglages.Style != "classique";
-                Habillage.Gamer = reglages.ProfilUsage == "gamer";   // profil Gamer : néon, ligne RGB, QG GAMER
+                Habillage.Gamer = reglages.ProfilUsage == "gamer";
+                Sons5.Actifs = reglages.SonsGamer;   // profil Gamer : néon, ligne RGB, QG GAMER
                 Habillage.P = Palette.Pour(!(reglages.Theme == "Clair" || (reglages.Theme == "Auto" && WindowsEnClair())));
             }
             catch (Exception ex) { JournalDemarrage.Erreur("réglages (version 5)", ex); }
@@ -389,6 +390,11 @@ namespace NettoyagePC.Nouveau
                 Gamer5.Cinematique(f);
                 for (int k = 0; k < 8; k++) { Dispatcher.UIThread.RunJobs(); System.Threading.Thread.Sleep(50); }
                 Capturer(f, dossier, "sombre-gamer-boost.png", rapport, ref erreurs);
+                f.ChangerTheme(true); f.Afficher("Accueil", false);
+                SessionJeu5.CpuMoyen = 38; SessionJeu5.CpuMax = 71; SessionJeu5.TempMax = 74; SessionJeu5.GpuMax = 68; SessionJeu5.RamMax = 57; SessionJeu5.NbMesures = 800;
+                SessionJeu5.Rapport(f, DateTime.Now.AddMinutes(-134));
+                for (int k = 0; k < 6; k++) { Dispatcher.UIThread.RunJobs(); System.Threading.Thread.Sleep(50); }
+                Capturer(f, dossier, "sombre-gamer-session.png", rapport, ref erreurs);
                 f.ChangerTheme(true); f.Afficher("Accueil", false);
                 for (int k = 0; k < 4; k++) { Dispatcher.UIThread.RunJobs(); System.Threading.Thread.Sleep(50); }
                 Succes5.Ouvrir(f);

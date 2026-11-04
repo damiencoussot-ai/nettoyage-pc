@@ -155,9 +155,11 @@ namespace NettoyagePC.Nouveau
         public static void Boost(FenetrePrincipale f, Action apres)
         {
             bool actif = ModeJeuActif();
+            DateTime? debut = actif ? SessionJeu5.Debut() : null;
             f.LancerAction(actif ? "finmodejeu" : "modejeu", () => Dispatcher.UIThread.Post(() =>
             {
-                if (!actif && ModeJeuActif()) Cinematique(f);
+                if (!actif && ModeJeuActif()) { SessionJeu5.Nouvelle(); Cinematique(f); }
+                else if (actif && !ModeJeuActif()) { try { SessionJeu5.Rapport(f, debut); } catch (Exception ex) { JournalDemarrage.Erreur("rapport de session", ex); } }
                 if (apres != null) apres();
             }));
         }
@@ -205,6 +207,7 @@ namespace NettoyagePC.Nouveau
             };
             calque.PointerReleased += (o, e) => fermer();
             f.AjouterCalque(calque);
+            Sons5.Boost();
             if (!Habillage.Animations)
             {
                 // captures : l'état final, sans fermeture automatique
@@ -278,6 +281,7 @@ namespace NettoyagePC.Nouveau
             };
             f.AjouterCalque(carte);
             if (!Habillage.Animations || fixe) { decal.X = 0; return; }
+            if (entete == Langue.T("NIVEAU SUPÉRIEUR")) Sons5.Niveau(); else Sons5.Succes();
             long t0 = Horloge.Maintenant;
             Horloge.Lancer(t =>
             {

@@ -28,7 +28,7 @@ namespace NettoyagePC.Nouveau
         private readonly WrapPanel badges = new WrapPanel { Orientation = Orientation.Horizontal };
         private readonly BoutonNoyau bModeJeu;
         private double avancement;
-        private double memoire = -1, temperature = -1; private int indice = -1;
+        private double memoire = -1, temperature = -1, gpu = -1; private int indice = -1;
 
         public QgGamer5(FenetrePrincipale f)
         {
@@ -98,6 +98,22 @@ namespace NettoyagePC.Nouveau
             var jeux = new BoutonNoyau("Réglages des jeux", false, 0, 40) { TaillePolice = 13, Capitales = true, HorizontalAlignment = HorizontalAlignment.Stretch };
             jeux.Clic += () => F.OuvrirOutil("reglagesjeux");
             c.Children.Add(jeux);
+            // réglages rapides : sons (coupés par défaut) et overlay en jeu
+            var options = new Avalonia.Controls.Primitives.UniformGrid { Columns = 2 };
+            var bSons = new BoutonNoyau(Sons5.Actifs ? "Sons : oui" : "Sons : non", false, 0, 32) { TaillePolice = 11.5, Capitales = true, HorizontalAlignment = HorizontalAlignment.Stretch, Margin = new Thickness(0, 0, 6, 0) };
+            ToolTip.SetTip(bSons, Langue.T("Petits sons au BOOST et quand un succès se débloque."));
+            bSons.Clic += () =>
+            {
+                Sons5.Actifs = !Sons5.Actifs; bool v = Sons5.Actifs;
+                F.EnregistrerReglage(r => r.SonsGamer = v);
+                bSons.Changer(v ? "Sons : oui" : "Sons : non");
+                if (v) Sons5.Succes();
+            };
+            var bOverlay = new BoutonNoyau("Overlay", false, 0, 32) { TaillePolice = 11.5, Capitales = true, HorizontalAlignment = HorizontalAlignment.Stretch };
+            ToolTip.SetTip(bOverlay, Langue.T("Processeur, carte graphique et mémoire par-dessus tes jeux. Ctrl+Maj+O pour l'afficher ou le cacher, même en jeu."));
+            bOverlay.Clic += () => Overlay5.Basculer(F, false);
+            options.Children.Add(bSons); options.Children.Add(bOverlay);
+            c.Children.Add(options);
             Grid.SetColumn(c, 4); g.Children.Add(c);
 
             Child = g;
@@ -127,6 +143,7 @@ namespace NettoyagePC.Nouveau
         {
             if (b == null) return;
             indice = b.Score;
+            if (Exemple != null) gpu = 63;
             if (b.Memoire >= 0) memoire = b.Memoire;
             if (b.Temperature > 0) temperature = b.Temperature;
             Recalculer();
@@ -136,10 +153,13 @@ namespace NettoyagePC.Nouveau
         public void MajMesures(Mesures m)
         {
             if (m == null) return;
-            bool avant = Etat(memoire, 70) , avantT = Etat(temperature, 80);
+            bool avant = Etat(memoire, 70) , avantT = Etat(temperature, 80), avantG = Etat(gpu, 85);
+            double g = Exemple != null ? 63 : TemperatureGpu.Lire();
+            bool nouveauGpu = (g > 0) != (gpu > 0);
+            if (g > 0) gpu = g;
             if (m.Memoire >= 0) memoire = m.Memoire;
             if (m.Temperature > 0) temperature = m.Temperature;
-            if (avant != Etat(memoire, 70) || avantT != Etat(temperature, 80)) Recalculer();
+            if (nouveauGpu || avant != Etat(memoire, 70) || avantT != Etat(temperature, 80) || avantG != Etat(gpu, 85)) Recalculer();
         }
 
         private static bool Etat(double v, double seuil) { return v >= 0 && v < seuil; }
@@ -155,7 +175,8 @@ namespace NettoyagePC.Nouveau
                 Tuple.Create(Langue.T("Mode jeu lancé"), ModeJeuActif(), true),
                 Tuple.Create(Licence.Premium ? Langue.T("Mode jeu automatique (gardien)") : Langue.T("Mode jeu automatique (Premium)"), auto, true),
                 Tuple.Create(memoire >= 0 ? Langue.F("Mémoire vive : {0} % utilisée", Math.Round(memoire)) : Langue.T("Mémoire vive"), memoire >= 0 && memoire < 70, memoire >= 0),
-                Tuple.Create(temperature > 0 ? Langue.F("Température : {0} °C", Math.Round(temperature)) : Langue.T("Température : non lue"), temperature > 0 && temperature < 80, temperature > 0),
+                Tuple.Create(temperature > 0 ? Langue.F("Processeur : {0} °C", Math.Round(temperature)) : Langue.T("Température : non lue"), temperature > 0 && temperature < 80, temperature > 0),
+                Tuple.Create(gpu > 0 ? Langue.F("Carte graphique : {0} °C", Math.Round(gpu)) : Langue.T("Carte graphique : température non lue"), gpu > 0 && gpu < 85, gpu > 0),
                 Tuple.Create(indice >= 0 ? Langue.F("Indice du PC : {0} / 100", indice) : Langue.T("Indice du PC : analyse…"), indice >= 80, indice >= 0),
             };
             var connus = points.Where(x => x.Item3).ToList();

@@ -2778,3 +2778,31 @@ NIVEAU SUPÉRIEUR	LEVEL UP	SUBES DE NIVEL
 Niveau {0} atteint	Level {0} reached	Nivel {0} alcanzado
 Nouveau logo Velox, et les profils (Gamer, Travail, Famille) se choisissent dans la barre de gauche.	New Velox logo, and profiles (Gamer, Work, Family) can be picked from the left bar.	Nuevo logo de Velox, y los perfiles (Gamer, Trabajo, Familia) se eligen en la barra izquierda.
 Profil Gamer : bannière néon animée avec BOOST, animation plein écran au lancement du mode jeu, annonces de succès et de niveau.	Gamer profile: animated neon banner with BOOST, full-screen animation when game mode starts, achievement and level-up pop-ups.	Perfil Gamer: banner neón animado con BOOST, animación a pantalla completa al activar el modo juego, avisos de logros y de nivel.
+Overlay en jeu (Ctrl+Maj+O) : processeur, carte graphique et mémoire par-dessus tes jeux, sans gêner les clics.	In-game overlay (Ctrl+Shift+O): CPU, graphics card and memory on top of your games, without blocking clicks.	Overlay en juego (Ctrl+Mayús+O): procesador, tarjeta gráfica y memoria sobre tus juegos, sin bloquear los clics.
+Température de la carte graphique, rapport de fin de session à copier pour Discord, et petits sons optionnels au BOOST et aux succès.	Graphics card temperature, end-of-session report to copy to Discord, and optional little sounds for BOOST and achievements.	Temperatura de la tarjeta gráfica, informe de fin de sesión para copiar en Discord y pequeños sonidos opcionales con el BOOST y los logros.
+Processeur : {0} °C	CPU: {0} °C	Procesador: {0} °C
+Carte graphique : {0} °C	Graphics card: {0} °C	Tarjeta gráfica: {0} °C
+Carte graphique : température non lue	Graphics card: temperature not read	Tarjeta gráfica: temperatura no leída
+Sons : oui	Sounds: on	Sonidos: sí
+Sons : non	Sounds: off	Sonidos: no
+Overlay	Overlay	Overlay
+Petits sons au BOOST et quand un succès se débloque.	Little sounds on BOOST and when an achievement unlocks.	Pequeños sonidos con el BOOST y al desbloquear un logro.
+Processeur, carte graphique et mémoire par-dessus tes jeux. Ctrl+Maj+O pour l'afficher ou le cacher, même en jeu.	CPU, graphics card and memory on top of your games. Ctrl+Shift+O to show or hide it, even in game.	Procesador, tarjeta gráfica y memoria sobre tus juegos. Ctrl+Mayús+O para mostrarlo u ocultarlo, incluso en juego.
+Overlay en jeu	In-game overlay	Overlay en juego
+Processeur, carte graphique et mémoire par-dessus tes jeux (Ctrl+Maj+O)	CPU, graphics card and memory on top of your games (Ctrl+Shift+O)	Procesador, tarjeta gráfica y memoria sobre tus juegos (Ctrl+Mayús+O)
+Rapport de session de jeu	Gaming session report	Informe de la sesión de juego
+Durée, processeur et températures de ta dernière session en mode jeu	Duration, CPU and temperatures of your last game-mode session	Duración, procesador y temperaturas de tu última sesión en modo juego
+Overlay en jeu affiché en haut à gauche de l'écran : Ctrl+Maj+O pour l'afficher ou le cacher.	In-game overlay shown at the top left of the screen: Ctrl+Shift+O to show or hide it.	Overlay en juego mostrado arriba a la izquierda: Ctrl+Mayús+O para mostrarlo u ocultarlo.
+DURÉE	DURATION	DURACIÓN
+PROCESSEUR MOYEN	AVERAGE CPU	PROCESADOR MEDIO
+PROCESSEUR MAX	MAX CPU	PROCESADOR MÁX.
+TEMP. PROCESSEUR MAX	MAX CPU TEMP.	TEMP. MÁX. PROCESADOR
+TEMP. CARTE GRAPHIQUE MAX	MAX GPU TEMP.	TEMP. MÁX. TARJETA GRÁFICA
+MÉMOIRE VIVE MAX	MAX MEMORY	MEMORIA MÁX.
+SESSION TERMINÉE · GG	SESSION OVER · GG	SESIÓN TERMINADA · GG
+Les mesures sont notées toutes les 10 secondes pendant le mode jeu, tant que Velox est ouvert (même réduit).	Readings are taken every 10 seconds during game mode, as long as Velox is open (even minimised).	Las mediciones se toman cada 10 segundos en modo juego, mientras Velox esté abierto (aunque esté minimizado).
+Session de jeu avec Velox	Gaming session with Velox	Sesión de juego con Velox
+Boosté avec Velox · damiencoussot-ai.github.io/nettoyage-pc	Boosted with Velox · damiencoussot-ai.github.io/nettoyage-pc	Potenciado con Velox · damiencoussot-ai.github.io/nettoyage-pc
+Copier pour Discord	Copy for Discord	Copiar para Discord
+Rapport copié : colle-le sur Discord avec Ctrl+V.	Report copied: paste it on Discord with Ctrl+V.	Informe copiado: pégalo en Discord con Ctrl+V.
+Rapport de session	Session report	Informe de sesión

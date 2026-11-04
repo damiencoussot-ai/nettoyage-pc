@@ -63,7 +63,9 @@ namespace NettoyagePC
             {
                 if (Json.Bool(r, "draft") || Json.Bool(r, "prerelease")) continue;
                 var assets = Json.Objets(Json.Valeur(r, "assets"));
-                var setup = assets.FirstOrDefault(a => Regex.IsMatch(Json.Texte(a, "name"), @"^NettoyagePC-Setup-[\d.]+\.exe$", RegexOptions.IgnoreCase));
+                // nouveau nom (Velox-Setup) en priorité, l'ancien (NettoyagePC-Setup) sinon
+                var setup = assets.FirstOrDefault(a => Regex.IsMatch(Json.Texte(a, "name"), @"^Velox-Setup-[\d.]+\.exe$", RegexOptions.IgnoreCase))
+                    ?? assets.FirstOrDefault(a => Regex.IsMatch(Json.Texte(a, "name"), @"^NettoyagePC-Setup-[\d.]+\.exe$", RegexOptions.IgnoreCase));
                 Dictionary<string, object> hash = null;
                 if (setup != null) { string nh = Regex.Replace(Json.Texte(setup, "name"), @"\.exe$", ".sha256", RegexOptions.IgnoreCase); hash = assets.FirstOrDefault(a => Json.Texte(a, "name") == nh); }
                 string num = null;
@@ -137,7 +139,7 @@ namespace NettoyagePC
         {
             if (!Regex.IsMatch(empreinte ?? "", "^[A-F0-9]{64}$") || !File.Exists(fichier)) return 3;
             string nom = Path.GetFileName(fichier);
-            if (!Regex.IsMatch(nom, @"^NettoyagePC-Setup-\d+(\.\d+){1,3}\.exe$")) return 3;
+            if (!Regex.IsMatch(nom, @"^(NettoyagePC|Velox)-Setup-\d+(\.\d+){1,3}\.exe$")) return 3;
             string dst = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Nettoyage PC", "maj");
             Directory.CreateDirectory(dst);
             string f = Path.Combine(dst, nom);

@@ -1,0 +1,14 @@
+Velox 5.8 : le profil Gamer passe au niveau supérieur
+
+- Overlay en jeu : un petit bandeau par-dessus tes jeux (processeur, carte graphique, mémoire vive, heure),
+  qui laisse passer les clics. Ctrl+Maj+O pour l'afficher ou le cacher, même en pleine partie
+  (jeux en mode « fenêtré plein écran » / sans bordure).
+- Température de la carte graphique, lue comme dans le Gestionnaire des tâches (sans droits administrateur) :
+  dans « Prêt pour jouer » et dans l'overlay.
+- Rapport de session : quand tu termines le mode jeu, Velox affiche la durée de ta session, le processeur
+  moyen et maximal, les températures maximales et la mémoire, avec un bouton « Copier pour Discord ».
+- Petits sons (coupés par défaut, bouton « Sons » du QG GAMER) : au BOOST, quand un succès se débloque
+  et quand tu montes de niveau. Ils sont créés par le programme, rien n'est téléchargé.
+- L'installateur s'appelle maintenant Velox-Setup (l'ancien nom reste publié pour les mises à jour automatiques).
+
+SHA256 de Velox-Setup-5.8.exe : voir le fichier Velox-Setup-5.8.sha256

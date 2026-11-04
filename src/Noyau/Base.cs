@@ -17,7 +17,7 @@ namespace NettoyagePC
 #if !NET5_0_OR_GREATER
         public static readonly string Version = "4.6";   // version 4 (lu par la fabrication : .github/workflows/fabrication.yml)
 #else
-        public static readonly string Version = "5.7.1";   // version 5
+        public static readonly string Version = "5.8";   // version 5
 #endif
         public const string Depot = "damiencoussot-ai/nettoyage-pc";
 
@@ -570,6 +570,8 @@ namespace NettoyagePC
         public bool AnnonceHudVue;     // version 5 : annonce du nouveau look déjà montrée
         public bool AnnonceVeloxVue;   // 5.7 : annonce du nouveau nom (Nettoyage PC devient Velox) déjà montrée
         public string ProfilUsage = "";     // version 5 : profil d'utilisation choisi (gamer, bureautique, famille)
+        public bool SonsGamer;     // profil Gamer : petits sons (BOOST, succès) ; coupés par défaut
+        public bool OverlayJeu;    // profil Gamer : overlay en jeu affiché (Ctrl+Maj+O)
         public string SuccesVus;   // profil Gamer : succès déjà annoncés (noms séparés par « | ») ; null = jamais regardé
         public string ResumeSemaine = "";   // date du dernier résumé de la semaine montré à l'ouverture (aaaa-mm-jj)
         public string Favoris;   // outils favoris de l'accueil (version 5), dans l'ordre ; null = jamais choisis (favoris proposés)
@@ -599,6 +601,7 @@ namespace NettoyagePC
                 p.AnnonceHudVue = Json.Bool(d, "AnnonceHudVue"); p.AnnonceVeloxVue = Json.Bool(d, "AnnonceVeloxVue");
                 string pr = Json.Texte(d, "Profil"); if (pr == "gamer" || pr == "bureautique" || pr == "famille") p.ProfilUsage = pr;
                 p.ResumeSemaine = Json.Texte(d, "ResumeSemaine");
+                p.SonsGamer = Json.Bool(d, "SonsGamer"); p.OverlayJeu = Json.Bool(d, "OverlayJeu");
                 if (d.ContainsKey("SuccesVus")) { string sv = Json.Texte(d, "SuccesVus"); p.SuccesVus = sv.Length <= 2000 ? sv : ""; }
                 if (d.ContainsKey("Favoris")) { string fv = Json.Texte(d, "Favoris"); p.Favoris = System.Text.RegularExpressions.Regex.IsMatch(fv, "^[a-z0-9,]{0,600}$") ? fv : ""; }
                 p.Pseudo = Profil.Nettoyer(Json.Texte(d, "Pseudo"));
@@ -616,6 +619,7 @@ namespace NettoyagePC
                     { "Pseudo", Pseudo }, { "ProfilCree", ProfilCree } };
                 if (Favoris != null) d["Favoris"] = Favoris;
                 d["Style"] = Style; d["AnnonceHudVue"] = AnnonceHudVue; d["AnnonceVeloxVue"] = AnnonceVeloxVue; d["Profil"] = ProfilUsage; d["ResumeSemaine"] = ResumeSemaine;
+                d["SonsGamer"] = SonsGamer; d["OverlayJeu"] = OverlayJeu;
                 if (SuccesVus != null) d["SuccesVus"] = SuccesVus;
                 FichierSur.EcrireInterface(Fichier, Json.Ecrire(d));
             }
