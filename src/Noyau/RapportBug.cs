@@ -28,7 +28,7 @@ namespace NettoyagePC
             try
             {
                 var p = Parametres.Lire();
-                sb.AppendLine("Langue : " + p.Langue + " · thème : " + p.Theme + " · style : " + p.Style + (p.Profil != "" ? " · profil : " + p.Profil : "") + (p.ModeSimple ? " · mode simple" : ""));
+                sb.AppendLine("Langue : " + p.Langue + " · thème : " + p.Theme + " · style : " + p.Style + (p.ProfilUsage != "" ? " · profil : " + p.ProfilUsage : "") + (p.ModeSimple ? " · mode simple" : ""));
             }
             catch { }
             sb.AppendLine("Premium : " + (Licence.Premium ? (Licence.EnEssai ? "essai" : "oui") : "non"));

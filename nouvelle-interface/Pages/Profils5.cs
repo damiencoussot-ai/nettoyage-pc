@@ -49,7 +49,7 @@ namespace NettoyagePC.Nouveau
 
         public static string Actuel()
         {
-            try { var p = Liste.FirstOrDefault(x => x.Cle == Parametres.Lire().Profil); return p != null ? Langue.T(p.Nom) : ""; } catch { return ""; }
+            try { var p = Liste.FirstOrDefault(x => x.Cle == Parametres.Lire().ProfilUsage); return p != null ? Langue.T(p.Nom) : ""; } catch { return ""; }
         }
 
         public static void Ouvrir(FenetrePrincipale f)
@@ -58,7 +58,7 @@ namespace NettoyagePC.Nouveau
             var s = new StackPanel { Spacing = 14 };
             s.Children.Add(new TextBlock { Text = Langue.T("Un profil règle d'un coup tes favoris et, avec Premium, ce que le gardien surveille. Rien n'est supprimé, et tu peux tout changer ensuite à la main."), FontFamily = Habillage.Corps, FontSize = 13.5, Foreground = Habillage.Pinceau(P.Discret), TextWrapping = TextWrapping.Wrap });
             string actuel = "";
-            try { actuel = Parametres.Lire().Profil; } catch { }
+            try { actuel = Parametres.Lire().ProfilUsage; } catch { }
             var grille = new UniformGrid { Columns = 3 };
             FenetreInterieure fen = null;
             foreach (var p in Liste)
@@ -91,7 +91,7 @@ namespace NettoyagePC.Nouveau
                     try { var r = ReglagesGardien.Lire(); p.Gardien(r); r.Ecrire(); Gardien.Recharger(); }
                     catch (Exception ex) { JournalDemarrage.Erreur("profil " + p.Cle, ex); }
                 }
-                f.EnregistrerReglage(r => r.Profil = p.Cle);
+                f.EnregistrerReglage(r => r.ProfilUsage = p.Cle);
                 fermer();
                 f.Statut(Langue.F("Profil « {0} » appliqué : tes favoris sont sur l'accueil.", Langue.T(p.Nom)));
                 if (f.PageActive == "Reglages") f.Afficher("Reglages", false);

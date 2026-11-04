@@ -568,7 +568,7 @@ namespace NettoyagePC
         public string OptionsOuvertes = "";   // pages dont « Plus d'options » est ouvert (clés séparées par des virgules)
         public string Style = "hud";   // version 5 : « hud » (depuis la 5.5) ou « classique » (l'apparence d'avant)
         public bool AnnonceHudVue;     // version 5 : annonce du nouveau look déjà montrée
-        public string Profil = "";     // version 5 : profil d'utilisation choisi (gamer, bureautique, famille)
+        public string ProfilUsage = "";     // version 5 : profil d'utilisation choisi (gamer, bureautique, famille)
         public string ResumeSemaine = "";   // date du dernier résumé de la semaine montré à l'ouverture (aaaa-mm-jj)
         public string Favoris;   // outils favoris de l'accueil (version 5), dans l'ordre ; null = jamais choisis (favoris proposés)
         // Profil : pseudo affiché à l'accueil. Tout reste sur ce PC.
@@ -595,7 +595,7 @@ namespace NettoyagePC
                 string o = Json.Texte(d, "OptionsOuvertes"); if (System.Text.RegularExpressions.Regex.IsMatch(o, "^[A-Za-z,]{0,300}$")) p.OptionsOuvertes = o;
                 string st = Json.Texte(d, "Style"); if (st == "hud" || st == "classique") p.Style = st;
                 p.AnnonceHudVue = Json.Bool(d, "AnnonceHudVue");
-                string pr = Json.Texte(d, "Profil"); if (pr == "gamer" || pr == "bureautique" || pr == "famille") p.Profil = pr;
+                string pr = Json.Texte(d, "Profil"); if (pr == "gamer" || pr == "bureautique" || pr == "famille") p.ProfilUsage = pr;
                 p.ResumeSemaine = Json.Texte(d, "ResumeSemaine");
                 if (d.ContainsKey("Favoris")) { string fv = Json.Texte(d, "Favoris"); p.Favoris = System.Text.RegularExpressions.Regex.IsMatch(fv, "^[a-z0-9,]{0,600}$") ? fv : ""; }
                 p.Pseudo = Profil.Nettoyer(Json.Texte(d, "Pseudo"));
@@ -612,7 +612,7 @@ namespace NettoyagePC
                 var d = new Dictionary<string, object> { { "VerifAuto", VerifAuto }, { "DerniereVersionLancee", DerniereVersionLancee }, { "Theme", Theme }, { "Langue", Langue }, { "NouveautesVues", NouveautesVues }, { "ModeSimple", ModeSimple }, { "Accent", Accent }, { "OptionsOuvertes", OptionsOuvertes },
                     { "Pseudo", Pseudo }, { "ProfilCree", ProfilCree } };
                 if (Favoris != null) d["Favoris"] = Favoris;
-                d["Style"] = Style; d["AnnonceHudVue"] = AnnonceHudVue; d["Profil"] = Profil; d["ResumeSemaine"] = ResumeSemaine;
+                d["Style"] = Style; d["AnnonceHudVue"] = AnnonceHudVue; d["Profil"] = ProfilUsage; d["ResumeSemaine"] = ResumeSemaine;
                 FichierSur.EcrireInterface(Fichier, Json.Ecrire(d));
             }
             catch { }
