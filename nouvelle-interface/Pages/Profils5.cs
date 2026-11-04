@@ -47,6 +47,37 @@ namespace NettoyagePC.Nouveau
             },
         };
 
+        /// <summary>Barre de menu : « // PROFIL » et les trois profils en pastilles ; un clic pose la question habituelle.</summary>
+        public static Control Barre(FenetrePrincipale f)
+        {
+            var A = Habillage.P.AccentBarre;
+            string actuel = "";
+            try { actuel = Parametres.Lire().ProfilUsage ?? ""; } catch { }
+            var s = new StackPanel { Spacing = 6, Margin = new Thickness(20, 0, 14, 16) };
+            s.Children.Add(new TextBlock { Text = (Habillage.Hud ? "// " : "") + Langue.T("PROFIL"), FontFamily = Habillage.Console, FontSize = 10.5, Foreground = Habillage.Pinceau(Color.FromRgb(79, 127, 146)), Margin = new Thickness(11, 0, 0, 0) });
+            var g = new UniformGrid { Columns = 3 };
+            string[][] noms = { new[] { "gamer", "Gamer" }, new[] { "bureautique", "Travail" }, new[] { "famille", "Famille" } };
+            foreach (var n in noms)
+            {
+                var p = Liste.First(x => x.Cle == n[0]);
+                bool est = p.Cle == actuel;
+                var texte = new TextBlock { Text = Langue.T(n[1]).ToUpper(Langue.Culture), FontFamily = Habillage.Console, FontSize = 10, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center, TextTrimming = TextTrimming.CharacterEllipsis, Foreground = est ? Habillage.Pinceau(Habillage.TexteSur(A)) : Habillage.Pinceau(Color.FromRgb(169, 199, 211)) };
+                var b = new Border
+                {
+                    Height = 28, Margin = new Thickness(0, 0, 4, 0), Child = texte, BorderThickness = new Thickness(1),
+                    Background = est ? Habillage.Pinceau(A) : Habillage.Pinceau(A, 12), BorderBrush = Habillage.Pinceau(A, est ? 255 : 70),
+                    Cursor = new Avalonia.Input.Cursor(Avalonia.Input.StandardCursorType.Hand),
+                };
+                ToolTip.SetTip(b, Langue.T(p.Nom) + " : " + Langue.T(p.Pour) + (est ? "\n" + Langue.T("Profil actuel") : ""));
+                b.PointerEntered += (o, e) => { if (!est) b.Background = Habillage.Pinceau(A, 40); };
+                b.PointerExited += (o, e) => { if (!est) b.Background = Habillage.Pinceau(A, 12); };
+                b.PointerReleased += (o, e) => { if (est) f.Statut(Langue.F("Le profil « {0} » est déjà choisi.", Langue.T(p.Nom))); else Appliquer(f, p, () => { }); };
+                g.Children.Add(b);
+            }
+            s.Children.Add(g);
+            return s;
+        }
+
         public static string Actuel()
         {
             try { var p = Liste.FirstOrDefault(x => x.Cle == Parametres.Lire().ProfilUsage); return p != null ? Langue.T(p.Nom) : ""; } catch { return ""; }
@@ -96,8 +127,9 @@ namespace NettoyagePC.Nouveau
                 // profil Gamer : look néon, ligne RGB, QG GAMER, niveaux et succès (l'interface est reconstruite)
                 bool etaitGamer = Habillage.Gamer;
                 Habillage.Gamer = p.Cle == "gamer";
-                if (etaitGamer != Habillage.Gamer) { Habillage.ChoisirCouleur(Habillage.CouleurActuelle); f.ChangerTheme(Habillage.P.Sombre); }
-                else if (f.PageActive == "Reglages") f.Afficher("Reglages", false);
+                // l'interface est reconstruite : profil actuel en surbrillance dans la barre de gauche, look Gamer ou non
+                if (etaitGamer != Habillage.Gamer) Habillage.ChoisirCouleur(Habillage.CouleurActuelle);
+                f.ChangerTheme(Habillage.P.Sombre);
                 f.Statut(Habillage.Gamer && !etaitGamer ? Langue.T("Mode Gamer activé : look néon, QG GAMER sur l'accueil, niveaux et succès. GG !")
                     : Langue.F("Profil « {0} » appliqué : tes favoris sont sur l'accueil.", Langue.T(p.Nom)));
             });

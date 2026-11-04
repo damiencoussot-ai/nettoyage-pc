@@ -517,6 +517,8 @@ namespace NettoyagePC.Nouveau
             // menu principal et groupe du bas
             var haut = new StackPanel { Spacing = 2 };
             var bas = new StackPanel { Spacing = 1, Margin = new Thickness(0, 0, 0, 16) };
+            // profils d'utilisation, choisis en un clic sans passer par Réglages
+            if (!Installation5.Apercu) bas.Children.Add(Profils5.Barre(this));
             if (Habillage.Hud) bas.Children.Add(new TextBlock { Text = "// " + Langue.T("SYSTÈME"), FontFamily = Habillage.Console, FontSize = 10.5, Foreground = Habillage.Pinceau(Color.FromRgb(79, 127, 146)), Margin = new Thickness(31, 0, 0, 6) });
             menu.Clear();
             int n = 0;
