@@ -437,6 +437,7 @@ namespace NettoyagePC.Nouveau
             try { Icon = new WindowIcon(AssetLoader.Open(new Uri("avares://NettoyagePC/Assets/NettoyagePC.ico"))); } catch { }
             DefinirRubriques();
             Construire();
+            Horloge.Fenetre = this;
             Activated += (s, e) => Horloge.Pause(false);
             Deactivated += (s, e) => Horloge.Pause(true);
             PropertyChanged += (s, e) => { if (e.Property == WindowStateProperty) Horloge.Pause(WindowState == WindowState.Minimized); };

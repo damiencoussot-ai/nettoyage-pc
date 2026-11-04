@@ -1,0 +1,15 @@
+Nettoyage PC 5.6.1 : plus fluide
+
+- Les animations suivent la fréquence de ton écran (60, 144 Hz ou plus) au lieu d'une minuterie fixe :
+  l'anneau qui tourne, les tuiles et le balayage sont plus réguliers, sans à-coups.
+- L'anneau de l'accueil est plus léger : le halo du score est dessiné une seule fois au lieu d'un flou
+  recalculé à chaque image.
+- Les mesures (processeur, mémoire, disque, température) ne relancent la mise en page de l'accueil que
+  quand une valeur change.
+- Correction : quand le moniteur en direct ou le widget de bureau étaient ouverts en même temps que
+  l'accueil, la mesure du processeur était faussée. Une seule mesure est maintenant partagée.
+- Moins de vérifications en arrière-plan quand on revient souvent sur l'accueil.
+
+Comprend toutes les nouveautés de la 5.6.
+
+SHA256 de NettoyagePC-Setup-5.6.1.exe : voir le fichier NettoyagePC-Setup-5.6.1.sha256

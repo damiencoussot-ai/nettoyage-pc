@@ -35,7 +35,33 @@ namespace NettoyagePC.Nouveau
 
         private string sourceTemperature;
 
+        private readonly object verrou = new object();
+        private Mesures derniere;
+        private DateTime dateDerniere;
+
+        /// <summary>
+        /// Mesures en direct. L'accueil, le moniteur et le widget les demandent en même temps : une seule mesure à la fois
+        /// (le calcul du processeur compare deux relevés successifs), et la dernière est réutilisée pendant 0,8 seconde.
+        /// </summary>
         public Mesures Mesurer(bool avecTemperature)
+        {
+            lock (verrou)
+            {
+                if (derniere != null && (DateTime.Now - dateDerniere).TotalMilliseconds < 800 && (!avecTemperature || derniere.Temperature > 0 || sourceTemperature == "aucune"))
+                    return Copie(derniere);
+                var m = MesurerSansCache(avecTemperature);
+                if (!avecTemperature && derniere != null) { m.Temperature = derniere.Temperature; m.TitreTemperature = derniere.TitreTemperature; }
+                derniere = m; dateDerniere = DateTime.Now;
+                return Copie(m);
+            }
+        }
+
+        private static Mesures Copie(Mesures m)
+        {
+            return new Mesures { Processeur = m.Processeur, Memoire = m.Memoire, Temperature = m.Temperature, DisqueLibre = m.DisqueLibre, DisquePourcentLibre = m.DisquePourcentLibre, TitreTemperature = m.TitreTemperature };
+        }
+
+        private Mesures MesurerSansCache(bool avecTemperature)
         {
             var m = new Mesures();
             try { m.Processeur = Natif.Processeur(); } catch { }
@@ -58,7 +84,7 @@ namespace NettoyagePC.Nouveau
                 {
                     string source;
                     m.Temperature = InfosPc.Temperature(out source);
-                    sourceTemperature = source;
+                    sourceTemperature = m.Temperature > 0 ? source : "aucune";
                 }
                 catch { }
             }

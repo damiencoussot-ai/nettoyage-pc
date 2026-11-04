@@ -15,6 +15,10 @@ namespace NettoyagePC.Nouveau
         private static readonly Stopwatch montre = Stopwatch.StartNew();
         private static DispatcherTimer minuteur;
         private static bool enPause;
+        /// <summary>Fenêtre principale : les images suivent alors l'écran (60, 144 Hz...) au lieu d'une minuterie fixe.</summary>
+        public static Avalonia.Controls.TopLevel Fenetre;
+        private static int generation;
+        private static bool demande;
 
         public static long Maintenant { get { return montre.ElapsedMilliseconds; } }
 
@@ -39,17 +43,37 @@ namespace NettoyagePC.Nouveau
         public static void Pause(bool pause)
         {
             enPause = pause;
-            if (!pause) Demarrer();
+            // une image demandée pendant que la fenêtre était réduite peut ne jamais arriver : on en redemande une
+            if (!pause) { demande = false; generation++; Demarrer(); }
         }
+
+        private static bool Utile { get { return animations.Count > 0 || (!enPause && ambiances.Count > 0 && Habillage.Animations); } }
 
         private static void Demarrer()
         {
+            if (Fenetre != null)
+            {
+                if (demande || !Utile) return;
+                demande = true;
+                int g = generation;
+                try { Fenetre.RequestAnimationFrame(t => Image(g)); return; }
+                catch { demande = false; Fenetre = null; }   // repli : minuterie
+            }
             if (minuteur == null)
             {
                 minuteur = new DispatcherTimer(DispatcherPriority.Render) { Interval = TimeSpan.FromMilliseconds(16) };
                 minuteur.Tick += (s, e) => Tic();
             }
             if (!minuteur.IsEnabled) minuteur.Start();
+        }
+
+        /// <summary>Une image de l'écran : avance les animations, puis en redemande une si besoin.</summary>
+        private static void Image(int g)
+        {
+            if (g != generation) return;
+            demande = false;
+            Tic();
+            if (Utile) Demarrer();
         }
 
         private static void Tic()
@@ -63,7 +87,7 @@ namespace NettoyagePC.Nouveau
             }
             if (!enPause && Habillage.Animations)
                 foreach (var a in ambiances.ToArray()) { try { a(t); } catch { } }
-            if (animations.Count == 0 && (enPause || ambiances.Count == 0 || !Habillage.Animations)) minuteur.Stop();
+            if (minuteur != null && !Utile) minuteur.Stop();
         }
     }
 }

@@ -223,11 +223,17 @@ namespace NettoyagePC.Nouveau
         private void ValeurHud(int i, string nombre, string unite, double jauge)
         {
             var t = valeurs[i];
-            t.Inlines = new Avalonia.Controls.Documents.InlineCollection
+            // rien ne change : pas de nouvelle mise en page (les mesures arrivent toutes les deux secondes)
+            string cle = nombre + "|" + unite;
+            if (!(t.Tag as string == cle))
+            {
+                t.Tag = cle;
+                t.Inlines = new Avalonia.Controls.Documents.InlineCollection
             {
                 new Avalonia.Controls.Documents.Run(nombre),
                 new Avalonia.Controls.Documents.Run(" " + unite) { FontSize = 13, Foreground = Habillage.Pinceau(Habillage.P.Discret) },
-            };
+                };
+            }
             var bar = barres[i];
             if (bar == null || jauge < 0) return;
             jauge = Math.Max(0, Math.Min(1, jauge));

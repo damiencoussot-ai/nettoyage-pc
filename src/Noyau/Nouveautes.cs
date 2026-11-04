@@ -7,6 +7,8 @@ namespace NettoyagePC
     {
         public static readonly List<KeyValuePair<string, string[]>> Liste = new List<KeyValuePair<string, string[]>>
         {
+            N("5.6.1", "Plus fluide : les animations suivent la fréquence de ton écran (jusqu'à 144 Hz et plus), l'anneau de l'accueil ne recalcule plus d'effet de flou à chaque image, et les mesures ne relancent la mise en page que quand elles changent.",
+                "Correction : l'accueil, le moniteur et le widget mesuraient le processeur en même temps et faussaient la valeur ; une seule mesure est maintenant partagée."),
             N("5.6", "Visite guidée de 30 secondes, Moniteur en direct et Widget de bureau (Premium), comparaison avant / après de chaque nettoyage.",
                 "Style HUD sur toutes les rubriques (onglets, cartes) et animations : balayage lumineux à chaque rubrique, tuiles qui apparaissent en cascade."),
             N("5.5.1", "Accueil HUD complet : panneau « INTÉGRITÉ.SYS » avec anneau segmenté, analyse à l'heure près, jauges sous chaque mesure, « Accès rapide » et alertes numérotées (A-01, A-02...).",

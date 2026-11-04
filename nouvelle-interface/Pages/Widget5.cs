@@ -16,6 +16,7 @@ namespace NettoyagePC.Nouveau
     internal sealed class Widget5 : StackPanel
     {
         private static Window fenetre;
+        private static bool abonne;
         public static bool Ouvert { get { return fenetre != null; } }
 
         private readonly FenetrePrincipale F;
@@ -52,7 +53,7 @@ namespace NettoyagePC.Nouveau
                 catch { }
             };
             w.Closed += (s, e) => { fenetre = null; contenu.minuteur.Stop(); f.Statut("Widget de bureau fermé."); };
-            f.Closed += (s, e) => { if (fenetre != null) fenetre.Close(); };
+            if (!abonne) { abonne = true; f.Closed += (s, e) => { if (fenetre != null) fenetre.Close(); }; }
             fenetre = w;
             w.Show();
             f.Statut("Widget de bureau ouvert en bas à droite de l'écran : fais-le glisser pour le déplacer.");

@@ -32,7 +32,6 @@ namespace NettoyagePC.Nouveau
             {
                 Text = "…", FontFamily = Habillage.Affichage, FontSize = 72, FontWeight = FontWeight.Bold, Foreground = Habillage.Pinceau(P.Texte), HorizontalAlignment = HorizontalAlignment.Center,
                 Margin = new Thickness(0, -6, 0, -6),
-                Effect = P.Sombre ? new DropShadowEffect { BlurRadius = 22, OffsetX = 0, OffsetY = 0, Color = Habillage.Alpha(P.Accent, 170) } : null,
             };
             tNiveau = new TextBlock { Text = Langue.T("analyse…").ToUpper(Langue.Culture), FontFamily = Habillage.Console, FontSize = 11, LetterSpacing = 1, Foreground = Habillage.Pinceau(P.Orange), HorizontalAlignment = HorizontalAlignment.Center };
             centre.Children.Add(tScore); centre.Children.Add(tNiveau);
@@ -88,6 +87,12 @@ namespace NettoyagePC.Nouveau
                 ctx.DrawLine(fente, new Point(c.X + r1 * Math.Cos(a), c.Y + r1 * Math.Sin(a)), new Point(c.X + r2 * Math.Cos(a), c.Y + r2 * Math.Sin(a)));
             }
             ctx.DrawEllipse(null, new Pen(Habillage.Pinceau(P.Accent, 38), 1), c, R * 0.56, R * 0.56);
+            // halo lumineux derrière le score (un simple dégradé : rien à recalculer pendant que l'anneau tourne)
+            if (P.Sombre)
+            {
+                var halo = new RadialGradientBrush { GradientStops = { new GradientStop(Habillage.Alpha(P.Accent, 46), 0), new GradientStop(Habillage.Alpha(P.Accent, 0), 1) } };
+                ctx.DrawEllipse(halo, null, c, R * 0.5, R * 0.42);
+            }
         }
     }
 

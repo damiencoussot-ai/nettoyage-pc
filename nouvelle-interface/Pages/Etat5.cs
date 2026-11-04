@@ -48,7 +48,7 @@ namespace NettoyagePC.Nouveau
         /// <summary>Relevé si le dernier date de plus de 30 secondes (bulles des favoris).</summary>
         public static void ActualiserSiAncien(FenetrePrincipale f)
         {
-            if (Exemple != null || dernier == null || (DateTime.Now - dateDernier).TotalSeconds > 30) Actualiser(f);
+            if (Exemple != null || dernier == null || (DateTime.Now - dateDernier).TotalSeconds > 90) Actualiser(f);
         }
 
         /// <summary>Le mode (réel / simulation) vient de la fenêtre, pas du moteur.</summary>
