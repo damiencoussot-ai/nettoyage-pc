@@ -214,7 +214,7 @@ namespace NettoyagePC.Nouveau
                 lnk.TargetPath = Chemins.Exe;
                 lnk.WorkingDirectory = Chemins.Ici;
                 lnk.Description = "Velox : nettoyage, optimisation et sécurité";
-                lnk.IconLocation = Chemins.Exe + ",0";
+                string ico = Path.Combine(Chemins.Ici, "Velox.ico"); lnk.IconLocation = File.Exists(ico) ? ico + ",0" : Chemins.Exe + ",0";   // logo Velox (fichier à part : Windows garde l'ancienne image de l'exe en cache)
                 lnk.Save();
                 Task.Run(() => { try { Programmes.RafraichirIcones(); } catch { } });
                 f.Demander("Raccourci créé", "Le raccourci « Velox » est sur le Bureau." + (Chemins.EstInstalle ? "" : "\n\nNe déplace pas le dossier de l'application, sinon le raccourci ne fonctionnera plus."), "Compris", null, r => { });

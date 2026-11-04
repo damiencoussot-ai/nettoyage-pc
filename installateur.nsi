@@ -176,6 +176,9 @@ Section "${NOM} (obligatoire)" SecPrincipal
 
     File "NettoyagePC.exe"
     File "NettoyagePC.ico"
+    ; nouveau nom de fichier pour l'icône Velox : Windows garde en cache l'image d'un fichier par son chemin,
+    ; un nouveau fichier oblige les raccourcis à montrer le nouveau logo
+    File "Velox.ico"
     File "LISEZMOI.txt"
     File "mise-a-jour.json"
     SetOutPath "$INSTDIR\legal"
@@ -212,25 +215,25 @@ Section "${NOM} (obligatoire)" SecPrincipal
     WriteUninstaller "$INSTDIR\Desinstaller.exe"
 
     ; Menu Démarrer
-    CreateShortcut "$SMPROGRAMS\${NOM}.lnk" "$INSTDIR\NettoyagePC.exe" "" "$INSTDIR\NettoyagePC.ico" 0 SW_SHOWNORMAL "" "Nettoyage, optimisation et sécurité du PC"
+    CreateShortcut "$SMPROGRAMS\${NOM}.lnk" "$INSTDIR\NettoyagePC.exe" "" "$INSTDIR\Velox.ico" 0 SW_SHOWNORMAL "" "Nettoyage, optimisation et sécurité du PC"
     Delete "$SMPROGRAMS\${NOM} (mode limité).lnk"
     ; Changement de nom (Nettoyage PC -> Velox) : les anciens raccourcis sont remplacés par des raccourcis « Velox »
     Delete "$SMPROGRAMS\${ANCIEN_NOM}.lnk"
     Delete "$SMPROGRAMS\${ANCIEN_NOM} (mode limité).lnk"
     IfFileExists "$DESKTOP\${ANCIEN_NOM}.lnk" 0 +3
         Delete "$DESKTOP\${ANCIEN_NOM}.lnk"
-        CreateShortcut "$DESKTOP\${NOM}.lnk" "$INSTDIR\NettoyagePC.exe" "" "$INSTDIR\NettoyagePC.ico" 0 SW_SHOWNORMAL "" "Nettoyage, optimisation et sécurité du PC"
+        CreateShortcut "$DESKTOP\${NOM}.lnk" "$INSTDIR\NettoyagePC.exe" "" "$INSTDIR\Velox.ico" 0 SW_SHOWNORMAL "" "Nettoyage, optimisation et sécurité du PC"
     SetShellVarContext current
     IfFileExists "$DESKTOP\${ANCIEN_NOM}.lnk" 0 +3
         Delete "$DESKTOP\${ANCIEN_NOM}.lnk"
-        CreateShortcut "$DESKTOP\${NOM}.lnk" "$INSTDIR\NettoyagePC.exe" "" "$INSTDIR\NettoyagePC.ico" 0 SW_SHOWNORMAL "" "Nettoyage, optimisation et sécurité du PC"
+        CreateShortcut "$DESKTOP\${NOM}.lnk" "$INSTDIR\NettoyagePC.exe" "" "$INSTDIR\Velox.ico" 0 SW_SHOWNORMAL "" "Nettoyage, optimisation et sécurité du PC"
     SetShellVarContext all
 
     ; Paramètres > Applications installées
     WriteRegStr HKLM "${CLE_DESINST}" "DisplayName" "${NOM}"
     WriteRegStr HKLM "${CLE_DESINST}" "DisplayVersion" "${VERSION}"
     WriteRegStr HKLM "${CLE_DESINST}" "Publisher" "${EDITEUR}"
-    WriteRegStr HKLM "${CLE_DESINST}" "DisplayIcon" "$INSTDIR\NettoyagePC.exe,0"
+    WriteRegStr HKLM "${CLE_DESINST}" "DisplayIcon" "$INSTDIR\Velox.ico"
     WriteRegStr HKLM "${CLE_DESINST}" "InstallLocation" "$INSTDIR"
     WriteRegStr HKLM "${CLE_DESINST}" "UninstallString" '"$INSTDIR\Desinstaller.exe"'
     WriteRegStr HKLM "${CLE_DESINST}" "QuietUninstallString" '"$INSTDIR\Desinstaller.exe" /S'
@@ -257,7 +260,7 @@ SectionEnd
 
 Section "Raccourci sur le Bureau" SecBureau
     SetShellVarContext all
-    CreateShortcut "$DESKTOP\${NOM}.lnk" "$INSTDIR\NettoyagePC.exe" "" "$INSTDIR\NettoyagePC.ico" 0 SW_SHOWNORMAL "" "Nettoyage, optimisation et sécurité du PC"
+    CreateShortcut "$DESKTOP\${NOM}.lnk" "$INSTDIR\NettoyagePC.exe" "" "$INSTDIR\Velox.ico" 0 SW_SHOWNORMAL "" "Nettoyage, optimisation et sécurité du PC"
 SectionEnd
 
 LangString DESC_Principal ${LANG_FRENCH} "Le logiciel (interface, moteur et entretien automatique), l'entrée du menu Démarrer et la désinstallation."
@@ -305,6 +308,7 @@ Section "Uninstall"
     Delete "$INSTDIR\NettoyagePC.ps1"
     Delete "$INSTDIR\nettoyage-pc-complet.ps1"
     Delete "$INSTDIR\NettoyagePC.ico"
+    Delete "$INSTDIR\Velox.ico"
     Delete "$INSTDIR\LISEZMOI.txt"
     Delete "$INSTDIR\mise-a-jour.json"
     RMDir /r "$INSTDIR\modules"
