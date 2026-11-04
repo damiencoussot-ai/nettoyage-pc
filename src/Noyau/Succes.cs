@@ -135,7 +135,6 @@ namespace NettoyagePC
             {
                 case "nettoyage": return d.Nettoyages.Any(x => ceJour(x.Item1));
                 case "500mo": return d.Nettoyages.Where(x => ceJour(x.Item1)).Sum(x => x.Item2) >= 500L * 1048576;
-                case "analyse": return d.Indices.Any(x => ceJour(x.Item1));
                 case "indice80": return d.Indices.Any(x => ceJour(x.Item1) && x.Item2 >= 80);
                 default: return d.Journal.Any(x => ceJour(x.Item1) && x.Item2 == cle);
             }

@@ -1,0 +1,13 @@
+Velox 5.9.1 : corrections du profil Gamer
+
+- Le mode jeu lancé depuis n'importe où (favori « Mode jeu », page Accélérer, bouton BOOST) compte maintenant
+  pour le défi « Lance un BOOST », lance l'animation BOOST et démarre le suivi de la session ; le rapport de
+  session s'affiche aussi quand le mode jeu est terminé depuis un favori.
+- Le raccourci de l'overlay devient Ctrl+Alt+O (Ctrl+Maj+O ouvrait aussi les favoris de Chrome et d'Edge),
+  et il n'est actif qu'avec le profil Gamer : il ne gêne plus les autres logiciels.
+- Le défi « Analyse ton PC » demande maintenant de cliquer sur « Analyser sans rien modifier » (l'analyse
+  automatique à l'ouverture le validait toute seule).
+- Bouton de la bannière : « Stop boost » quand le mode jeu est actif (il affichait « Mode jeu actif » alors
+  qu'un clic le termine).
+
+SHA256 de Velox-Setup-5.9.1.exe : voir le fichier Velox-Setup-5.9.1.sha256

@@ -2778,7 +2778,7 @@ NIVEAU SUPÉRIEUR	LEVEL UP	SUBES DE NIVEL
 Niveau {0} atteint	Level {0} reached	Nivel {0} alcanzado
 Nouveau logo Velox, et les profils (Gamer, Travail, Famille) se choisissent dans la barre de gauche.	New Velox logo, and profiles (Gamer, Work, Family) can be picked from the left bar.	Nuevo logo de Velox, y los perfiles (Gamer, Trabajo, Familia) se eligen en la barra izquierda.
 Profil Gamer : bannière néon animée avec BOOST, animation plein écran au lancement du mode jeu, annonces de succès et de niveau.	Gamer profile: animated neon banner with BOOST, full-screen animation when game mode starts, achievement and level-up pop-ups.	Perfil Gamer: banner neón animado con BOOST, animación a pantalla completa al activar el modo juego, avisos de logros y de nivel.
-Overlay en jeu (Ctrl+Maj+O) : processeur, carte graphique et mémoire par-dessus tes jeux, sans gêner les clics.	In-game overlay (Ctrl+Shift+O): CPU, graphics card and memory on top of your games, without blocking clicks.	Overlay en juego (Ctrl+Mayús+O): procesador, tarjeta gráfica y memoria sobre tus juegos, sin bloquear los clics.
+Overlay en jeu (Ctrl+Alt+O) : processeur, carte graphique et mémoire par-dessus tes jeux, sans gêner les clics.	In-game overlay (Ctrl+Alt+O): CPU, graphics card and memory on top of your games, without blocking clicks.	Overlay en juego (Ctrl+Alt+O): procesador, tarjeta gráfica y memoria sobre tus juegos, sin bloquear los clics.
 Température de la carte graphique, rapport de fin de session à copier pour Discord, et petits sons optionnels au BOOST et aux succès.	Graphics card temperature, end-of-session report to copy to Discord, and optional little sounds for BOOST and achievements.	Temperatura de la tarjeta gráfica, informe de fin de sesión para copiar en Discord y pequeños sonidos opcionales con el BOOST y los logros.
 Processeur : {0} °C	CPU: {0} °C	Procesador: {0} °C
 Carte graphique : {0} °C	Graphics card: {0} °C	Tarjeta gráfica: {0} °C
@@ -2787,12 +2787,12 @@ Sons : oui	Sounds: on	Sonidos: sí
 Sons : non	Sounds: off	Sonidos: no
 Overlay	Overlay	Overlay
 Petits sons au BOOST et quand un succès se débloque.	Little sounds on BOOST and when an achievement unlocks.	Pequeños sonidos con el BOOST y al desbloquear un logro.
-Processeur, carte graphique et mémoire par-dessus tes jeux. Ctrl+Maj+O pour l'afficher ou le cacher, même en jeu.	CPU, graphics card and memory on top of your games. Ctrl+Shift+O to show or hide it, even in game.	Procesador, tarjeta gráfica y memoria sobre tus juegos. Ctrl+Mayús+O para mostrarlo u ocultarlo, incluso en juego.
+Processeur, carte graphique et mémoire par-dessus tes jeux. Ctrl+Alt+O pour l'afficher ou le cacher, même en jeu.	CPU, graphics card and memory on top of your games. Ctrl+Alt+O to show or hide it, even in game.	Procesador, tarjeta gráfica y memoria sobre tus juegos. Ctrl+Alt+O para mostrarlo u ocultarlo, incluso en juego.
 Overlay en jeu	In-game overlay	Overlay en juego
-Processeur, carte graphique et mémoire par-dessus tes jeux (Ctrl+Maj+O)	CPU, graphics card and memory on top of your games (Ctrl+Shift+O)	Procesador, tarjeta gráfica y memoria sobre tus juegos (Ctrl+Mayús+O)
+Processeur, carte graphique et mémoire par-dessus tes jeux (Ctrl+Alt+O)	CPU, graphics card and memory on top of your games (Ctrl+Alt+O)	Procesador, tarjeta gráfica y memoria sobre tus juegos (Ctrl+Alt+O)
 Rapport de session de jeu	Gaming session report	Informe de la sesión de juego
 Durée, processeur et températures de ta dernière session en mode jeu	Duration, CPU and temperatures of your last game-mode session	Duración, procesador y temperaturas de tu última sesión en modo juego
-Overlay en jeu affiché en haut à gauche de l'écran : Ctrl+Maj+O pour l'afficher ou le cacher.	In-game overlay shown at the top left of the screen: Ctrl+Shift+O to show or hide it.	Overlay en juego mostrado arriba a la izquierda: Ctrl+Mayús+O para mostrarlo u ocultarlo.
+Overlay en jeu affiché en haut à gauche de l'écran : Ctrl+Alt+O pour l'afficher ou le cacher.	In-game overlay shown at the top left of the screen: Ctrl+Alt+O to show or hide it.	Overlay en juego mostrado arriba a la izquierda: Ctrl+Alt+O para mostrarlo u ocultarlo.
 DURÉE	DURATION	DURACIÓN
 PROCESSEUR MOYEN	AVERAGE CPU	PROCESADOR MEDIO
 PROCESSEUR MAX	MAX CPU	PROCESADOR MÁX.
@@ -2871,3 +2871,5 @@ Réussir 100 défis du jour	Complete 100 daily challenges	Supera 100 retos del d
 Or massif	Solid gold	Oro macizo
 Atteindre le rang Or (niveau 10)	Reach Gold rank (level 10)	Alcanza el rango Oro (nivel 10)
 Atteindre le rang Légende (niveau 30)	Reach Legend rank (level 30)	Alcanza el rango Leyenda (nivel 30)
+Corrections du profil Gamer : le mode jeu lancé depuis un favori compte pour les défis et le rapport de session, raccourci de l'overlay Ctrl+Alt+O (seulement avec le profil Gamer).	Gamer profile fixes: game mode started from a favourite now counts for challenges and the session report, overlay shortcut Ctrl+Alt+O (Gamer profile only).	Correcciones del perfil Gamer: el modo juego iniciado desde un favorito cuenta para los retos y el informe de sesión, atajo del overlay Ctrl+Alt+O (solo con el perfil Gamer).
+Stop boost	Stop boost	Parar boost

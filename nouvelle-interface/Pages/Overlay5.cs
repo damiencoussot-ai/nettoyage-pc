@@ -1,6 +1,6 @@
 // Velox 5 - overlay en jeu (profil Gamer) : petit bandeau toujours au premier plan, en haut à gauche de l'écran,
 // avec le processeur, la mémoire vive, les températures et l'heure. Il laisse passer les clics (il ne gêne jamais le
-// jeu) et s'affiche ou se cache avec Ctrl+Maj+O, même quand Velox est en arrière-plan. Visible dans les jeux en
+// jeu) et s'affiche ou se cache avec Ctrl+Alt+O, même quand Velox est en arrière-plan. Visible dans les jeux en
 // mode « fenêtré plein écran » (sans bordure) ; un jeu en plein écran exclusif passe par-dessus.
 // Pendant le mode jeu, il note aussi les mesures de la session (rapport de session à la fin).
 using System;
@@ -19,12 +19,16 @@ namespace NettoyagePC.Nouveau
     {
         [DllImport("user32.dll")] private static extern bool RegisterHotKey(IntPtr hWnd, int id, uint mod, uint vk);
         [DllImport("user32.dll")] private static extern int GetMessageW(out MSG msg, IntPtr hWnd, uint min, uint max);
+        [DllImport("user32.dll")] private static extern bool UnregisterHotKey(IntPtr hWnd, int id);
+        [DllImport("user32.dll")] private static extern bool PostThreadMessageW(uint thread, uint msg, IntPtr w, IntPtr l);
+        [DllImport("kernel32.dll")] private static extern uint GetCurrentThreadId();
         [DllImport("user32.dll", EntryPoint = "GetWindowLongPtrW")] private static extern IntPtr GetWindowLongPtr(IntPtr h, int i);
         [DllImport("user32.dll", EntryPoint = "SetWindowLongPtrW")] private static extern IntPtr SetWindowLongPtr(IntPtr h, int i, IntPtr v);
         [StructLayout(LayoutKind.Sequential)] private struct MSG { public IntPtr hwnd; public uint message; public IntPtr wParam, lParam; public uint time; public int x, y; }
         private const int GWL_EXSTYLE = -20;
         private const long WS_EX_TRANSPARENT = 0x20, WS_EX_LAYERED = 0x80000, WS_EX_TOOLWINDOW = 0x80, WS_EX_NOACTIVATE = 0x8000000;
-        private const uint MOD_CONTROL = 2, MOD_SHIFT = 4, MOD_NOREPEAT = 0x4000, WM_HOTKEY = 0x312;
+        private const uint MOD_ALT = 1, MOD_CONTROL = 2, MOD_NOREPEAT = 0x4000, WM_HOTKEY = 0x312, WM_QUIT = 0x12;
+        private static uint filRaccourci;
 
         private static Window fenetre;
         private static FenetrePrincipale principale;
@@ -35,32 +39,48 @@ namespace NettoyagePC.Nouveau
 
         public static bool Ouvert { get { return fenetre != null; } }
 
-        /// <summary>À l'ouverture de Velox : raccourci Ctrl+Maj+O, overlay remis s'il était affiché, suivi de la session de jeu.</summary>
+        /// <summary>À l'ouverture de Velox : raccourci Ctrl+Alt+O, overlay remis s'il était affiché, suivi de la session de jeu.</summary>
         public static void Initialiser(FenetrePrincipale f)
         {
             principale = f;
             if (f.Source.Immediat || !OperatingSystem.IsWindows()) return;
-            if (!raccourci)
-            {
-                raccourci = true;
-                var fil = new Thread(() =>
-                {
-                    try
-                    {
-                        if (!RegisterHotKey(IntPtr.Zero, 0x5601, MOD_CONTROL | MOD_SHIFT | MOD_NOREPEAT, 'O')) { JournalDemarrage.Noter("Overlay : raccourci Ctrl+Maj+O déjà pris par un autre logiciel."); return; }
-                        MSG m;
-                        while (GetMessageW(out m, IntPtr.Zero, 0, 0) > 0)
-                            if (m.message == WM_HOTKEY) Dispatcher.UIThread.Post(() => Basculer(principale, true));
-                    }
-                    catch (Exception ex) { JournalDemarrage.Erreur("raccourci de l'overlay", ex); }
-                }) { IsBackground = true, Name = "Raccourci overlay" };
-                fil.Start();
-            }
+            Raccourci(Habillage.Gamer);
             bool voulu = false;
             try { voulu = Parametres.Lire().OverlayJeu; } catch { }
             if (voulu && Habillage.Gamer && fenetre == null) Basculer(f, false);
             SessionJeu5.Demarrer(f);
             Task.Run(() => JournalJeu.Noter("ouverture"));   // série de jours du profil Gamer
+        }
+
+        /// <summary>Raccourci Ctrl+Alt+O, actif seulement avec le profil Gamer (sinon la combinaison reste libre pour
+        /// les autres logiciels). Il est enregistré par un petit fil qui attend les messages de Windows.</summary>
+        public static void Raccourci(bool actif)
+        {
+            if (!OperatingSystem.IsWindows()) return;
+            if (!actif)
+            {
+                if (raccourci && filRaccourci != 0) { PostThreadMessageW(filRaccourci, WM_QUIT, IntPtr.Zero, IntPtr.Zero); }
+                raccourci = false;
+                if (fenetre != null) fenetre.Close();
+                return;
+            }
+            if (raccourci) return;
+            raccourci = true;
+            var fil = new Thread(() =>
+            {
+                try
+                {
+                    filRaccourci = GetCurrentThreadId();
+                    if (!RegisterHotKey(IntPtr.Zero, 0x5601, MOD_CONTROL | MOD_ALT | MOD_NOREPEAT, 'O')) { JournalDemarrage.Noter("Overlay : raccourci Ctrl+Alt+O déjà pris par un autre logiciel."); raccourci = false; return; }
+                    MSG m;
+                    while (GetMessageW(out m, IntPtr.Zero, 0, 0) > 0)
+                        if (m.message == WM_HOTKEY) Dispatcher.UIThread.Post(() => Basculer(principale, true));
+                    UnregisterHotKey(IntPtr.Zero, 0x5601);
+                }
+                catch (Exception ex) { JournalDemarrage.Erreur("raccourci de l'overlay", ex); }
+                finally { filRaccourci = 0; }
+            }) { IsBackground = true, Name = "Raccourci overlay" };
+            fil.Start();
         }
 
         /// <summary>Affiche ou cache l'overlay (et retient le choix).</summary>
@@ -70,7 +90,7 @@ namespace NettoyagePC.Nouveau
             if (fenetre != null) { fenetre.Close(); f.EnregistrerReglage(r => r.OverlayJeu = false); return; }
             Ouvrir(f);
             f.EnregistrerReglage(r => r.OverlayJeu = true);
-            if (!parRaccourci) f.Statut(Langue.T("Overlay en jeu affiché en haut à gauche de l'écran : Ctrl+Maj+O pour l'afficher ou le cacher."));
+            if (!parRaccourci) f.Statut(Langue.T("Overlay en jeu affiché en haut à gauche de l'écran : Ctrl+Alt+O pour l'afficher ou le cacher."));
         }
 
         private static TextBlock Valeur() { return new TextBlock { FontFamily = Habillage.Console, FontSize = 13, Foreground = Brushes.White, VerticalAlignment = VerticalAlignment.Center }; }

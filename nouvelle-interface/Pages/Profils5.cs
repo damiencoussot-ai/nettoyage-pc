@@ -128,7 +128,7 @@ namespace NettoyagePC.Nouveau
                 bool etaitGamer = Habillage.Gamer;
                 Habillage.Gamer = p.Cle == "gamer";
                 // l'interface est reconstruite : profil actuel en surbrillance dans la barre de gauche, look Gamer ou non
-                if (etaitGamer != Habillage.Gamer) Habillage.ChoisirCouleur(Habillage.CouleurActuelle);
+                if (etaitGamer != Habillage.Gamer) { Habillage.ChoisirCouleur(Habillage.CouleurActuelle); Overlay5.Raccourci(Habillage.Gamer); }
                 f.ChangerTheme(Habillage.P.Sombre);
                 f.Statut(Habillage.Gamer && !etaitGamer ? Langue.T("Mode Gamer activé : look néon, QG GAMER sur l'accueil, niveaux et succès. GG !")
                     : Langue.F("Profil « {0} » appliqué : tes favoris sont sur l'accueil.", Langue.T(p.Nom)));

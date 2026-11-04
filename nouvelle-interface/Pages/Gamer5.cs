@@ -145,8 +145,8 @@ namespace NettoyagePC.Nouveau
             var rang = new TextBlock { Text = Langue.T("Calcul de ton rang…"), FontFamily = Habillage.Console, FontSize = 12, LetterSpacing = 1.5, Foreground = new SolidColorBrush(Color.FromRgb(255, 170, 238)) };
             gauche.Children.Add(rang);
             contenu.Children.Add(gauche);
-            var boost = new BoutonNoyau(ModeJeuActif() ? "Mode jeu actif" : "Boost", true, 190, 56) { TaillePolice = 19, Capitales = true, VerticalAlignment = VerticalAlignment.Center };
-            boost.Clic += () => Boost(f, () => boost.Changer(ModeJeuActif() ? "Mode jeu actif" : "Boost"));
+            var boost = new BoutonNoyau(ModeJeuActif() ? "Stop boost" : "Boost", true, 190, 56) { TaillePolice = 19, Capitales = true, VerticalAlignment = VerticalAlignment.Center };
+            boost.Clic += () => Boost(f, () => boost.Changer(ModeJeuActif() ? "Stop boost" : "Boost"));
             ToolTip.SetTip(boost, Langue.T("Lance le mode jeu : alimentation « Performances élevées » et mémoire vive libérée. Rien n'est fermé."));
             // halo qui pulse derrière BOOST (invite à cliquer), 30 images par seconde
             var halo = new Border { Margin = new Thickness(6), Background = new SolidColorBrush(Color.FromArgb(1, 0, 0, 0)), BoxShadow = BoxShadows.Parse("0 0 28 6 #FF2BD6"), IsHitTestVisible = false };
@@ -169,14 +169,24 @@ namespace NettoyagePC.Nouveau
         /// <summary>Lance (ou termine) le mode jeu ; s'il est bien lancé, la cinématique « BOOST » se joue.</summary>
         public static void Boost(FenetrePrincipale f, Action apres)
         {
-            bool actif = ModeJeuActif();
-            DateTime? debut = actif ? SessionJeu5.Debut() : null;
-            f.LancerAction(actif ? "finmodejeu" : "modejeu", () => Dispatcher.UIThread.Post(() =>
+            f.LancerAction(ModeJeuActif() ? "finmodejeu" : "modejeu", () => Dispatcher.UIThread.Post(() => { if (apres != null) apres(); }));
+        }
+
+        /// <summary>Après une action réelle du moteur (bouton BOOST, favori « Mode jeu », page Accélérer...) :
+        /// mode jeu lancé → nouvelle session, journal, cinématique ; terminé → rapport de session ; analyse → défi du jour.</summary>
+        public static void ApresAction(FenetrePrincipale f, string cle, DateTime? debutJeu)
+        {
+            if (cle == "modejeu" && ModeJeuActif())
             {
-                if (!actif && ModeJeuActif()) { SessionJeu5.Nouvelle(); JournalJeu.Noter("boost"); Cinematique(f); }
-                else if (actif && !ModeJeuActif()) { try { SessionJeu5.Rapport(f, debut); } catch (Exception ex) { JournalDemarrage.Erreur("rapport de session", ex); } }
-                if (apres != null) apres();
-            }));
+                SessionJeu5.Nouvelle();
+                System.Threading.Tasks.Task.Run(() => JournalJeu.Noter("boost"));
+                if (Habillage.Gamer) Cinematique(f);
+            }
+            else if (cle == "finmodejeu" && !ModeJeuActif())
+            {
+                if (Habillage.Gamer && debutJeu.HasValue) SessionJeu5.Rapport(f, debutJeu);
+            }
+            else if (cle == "analyse") System.Threading.Tasks.Task.Run(() => JournalJeu.Noter("analyse"));
         }
 
         /// <summary>Cinématique plein écran : « BOOST ENGAGÉ », barre de chargement, ce qui a été fait. Un clic la ferme.</summary>

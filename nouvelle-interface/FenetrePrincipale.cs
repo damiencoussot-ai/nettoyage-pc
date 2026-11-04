@@ -186,7 +186,7 @@ namespace NettoyagePC.Nouveau
                 string cle = o[0];
                 l.Add(new EntreeCommande { Titre = Langue.T(o[1]), Detail = Licence.Premium ? Langue.T("Premium") : Langue.T("Premium (essai gratuit 7 jours)"), Type = "Outil", Faire = () => OuvrirOutil(cle) });
             }
-            l.Add(new EntreeCommande { Titre = Langue.T("Overlay en jeu"), Detail = Langue.T("Processeur, carte graphique et mémoire par-dessus tes jeux (Ctrl+Maj+O)"), Type = "Action", Faire = () => Overlay5.Basculer(this, false) });
+            l.Add(new EntreeCommande { Titre = Langue.T("Overlay en jeu"), Detail = Langue.T("Processeur, carte graphique et mémoire par-dessus tes jeux (Ctrl+Alt+O)"), Type = "Action", Faire = () => Overlay5.Basculer(this, false) });
             l.Add(new EntreeCommande { Titre = Langue.T("Rapport de session de jeu"), Detail = Langue.T("Durée, processeur et températures de ta dernière session en mode jeu"), Type = "Action", Faire = () => SessionJeu5.Rapport(this, Gamer5.ModeJeuActif() ? SessionJeu5.Debut() : null) });
             l.Add(new EntreeCommande { Titre = Langue.T("Succès et niveau"), Detail = Langue.T("Ton XP, ton niveau et les succès débloqués en entretenant ton PC"), Type = "Action", Faire = () => Succes5.Ouvrir(this) });
             l.Add(new EntreeCommande { Titre = Langue.T("Résumé de la semaine"), Detail = Langue.T("Espace libéré et indice des 7 derniers jours"), Type = "Action", Faire = () => MisesAJourAuto5.MontrerResume(this) });
@@ -293,11 +293,14 @@ namespace NettoyagePC.Nouveau
                 Statut((simulation ? "Simulation : " : "En cours : ") + a.Titre + "…");
                 int noteAvant = Bilan != null ? Bilan.Score : -1;
                 DateTime debut = DateTime.Now;
+                DateTime? debutJeu = cle == "finmodejeu" ? SessionJeu5.Debut() : null;   // lu avant que le moteur efface modejeu.json
                 Action fini = null;
                 fini = () =>
                 {
                     Moteur.Fini -= fini;
                     Statut((Moteur.Arrete ? "Arrêtée : " : "Terminé : ") + Moteur.Titre + " (" + DateTime.Now.ToString("HH:mm") + ")");
+                    // profil Gamer : BOOST, rapport de session, défis du jour (quel que soit le bouton qui a lancé l'action)
+                    if (!simulation && !Moteur.Arrete) { try { Gamer5.ApresAction(this, cle, debutJeu); } catch (Exception ex) { JournalDemarrage.Erreur("profil Gamer après l'action", ex); } }
                     if (apres != null) { try { apres(); } catch (Exception ex) { JournalDemarrage.Erreur("après l'action (version 5)", ex); } }
                     if (!simulation && !Moteur.Arrete && (cle == "standard" || cle == "complet")) ResumerGains(noteAvant, debut, cle);
                     if (!simulation) ActualiserBilan();
@@ -448,7 +451,7 @@ namespace NettoyagePC.Nouveau
             DefinirRubriques();
             Construire();
             Horloge.Fenetre = this;
-            // profil Gamer : raccourci Ctrl+Maj+O de l'overlay en jeu, et suivi des sessions de mode jeu
+            // profil Gamer : raccourci Ctrl+Alt+O de l'overlay en jeu, et suivi des sessions de mode jeu
             Opened += (s, e) => { try { Overlay5.Initialiser(this); } catch (Exception ex) { JournalDemarrage.Erreur("overlay en jeu", ex); } };
             Activated += (s, e) => Horloge.Pause(false);
             Deactivated += (s, e) => Horloge.Pause(true);
