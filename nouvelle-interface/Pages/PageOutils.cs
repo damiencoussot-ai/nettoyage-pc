@@ -1,4 +1,4 @@
-// Nettoyage PC 5 - rubrique Outils : matériel, plein potentiel (réglages qui brident le matériel), réseau, aide à distance.
+// Velox 5 - rubrique Outils : matériel, plein potentiel (réglages qui brident le matériel), réseau, aide à distance.
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -69,7 +69,7 @@ namespace NettoyagePC.Nouveau
             var entete = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto") };
             var s = new StackPanel { Spacing = 6 };
             tTitre = new TextBlock { Text = "Analyse du matériel…", FontFamily = Habillage.Affichage, FontSize = 20, FontWeight = FontWeight.SemiBold, Foreground = Habillage.Pinceau(P.Texte), TextWrapping = TextWrapping.Wrap };
-            tDetail = new TextBlock { Text = Langue.T("Écrans, carte graphique et mémoire vive : Nettoyage PC vérifie qu'ils donnent tout ce qu'ils peuvent. Rien n'est modifié."), FontFamily = Habillage.Corps, FontSize = 13.5, Foreground = Habillage.Pinceau(P.Discret), TextWrapping = TextWrapping.Wrap };
+            tDetail = new TextBlock { Text = Langue.T("Écrans, carte graphique et mémoire vive : Velox vérifie qu'ils donnent tout ce qu'ils peuvent. Rien n'est modifié."), FontFamily = Habillage.Corps, FontSize = 13.5, Foreground = Habillage.Pinceau(P.Discret), TextWrapping = TextWrapping.Wrap };
             s.Children.Add(tTitre); s.Children.Add(tDetail);
             entete.Children.Add(s);
             bRevoir = new BoutonNoyau("Revérifier", false, 130, 34) { TaillePolice = 13, VerticalAlignment = VerticalAlignment.Top, Margin = new Thickness(16, 0, 0, 0) };
@@ -163,7 +163,7 @@ namespace NettoyagePC.Nouveau
                 CarteAction.Code("Résumé de ce PC", "Windows, processeur, mémoire, disques, carte graphique et problèmes détectés : copié en un clic, à coller dans un message pour la personne qui t'aide.", "Copier le résumé", CopierResume, true),
                 CarteAction.Code("Signaler un problème", "Un bogue, une fenêtre qui se ferme ? Envoie un rapport anonyme à l'éditeur : tu le vois en entier avant l'envoi.", "Signaler", () => Signaler5.Ouvrir(F)),
                 CarteAction.Code("Aider quelqu'un", "Pour dépanner un proche : ouvre l'Assistance rapide, clique sur « Aider quelqu'un » (compte Microsoft demandé), puis donne-lui le code.", "Ouvrir l'Assistance rapide", OuvrirAssistance),
-                CarteAction.Code("Journal de démarrage", "Si Nettoyage PC se ferme ou affiche une erreur, ce fichier explique pourquoi : envoie-le à la personne qui t'aide.", "Montrer le fichier", () =>
+                CarteAction.Code("Journal de démarrage", "Si Velox se ferme ou affiche une erreur, ce fichier explique pourquoi : envoie-le à la personne qui t'aide.", "Montrer le fichier", () =>
                 {
                     if (File.Exists(JournalDemarrage.Fichier)) Programmes.MontrerDansExplorateur(JournalDemarrage.Fichier);
                     else F.Demander("Journal de démarrage", "Le journal de démarrage est vide pour l'instant.", "Compris", null, r => { });

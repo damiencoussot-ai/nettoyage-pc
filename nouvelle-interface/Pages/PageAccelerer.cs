@@ -1,4 +1,4 @@
-// Nettoyage PC 5 - rubrique Accélérer : optimisation (mode jeu, alimentation, RAM), programmes au démarrage
+// Velox 5 - rubrique Accélérer : optimisation (mode jeu, alimentation, RAM), programmes au démarrage
 // (décocher = ne plus lancer, réversible), applications installées (désinstallation par leur propre programme).
 using System;
 using System.Collections.Generic;

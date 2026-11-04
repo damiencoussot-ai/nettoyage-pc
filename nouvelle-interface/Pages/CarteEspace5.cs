@@ -1,4 +1,4 @@
-// Nettoyage PC 5 - carte de l'espace disque : chaque dossier est un rectangle proportionnel à sa taille.
+// Velox 5 - carte de l'espace disque : chaque dossier est un rectangle proportionnel à sa taille.
 // Clic : entrer dans le dossier ; clic droit ou « Remonter » : revenir. Lecture seule : rien n'est modifié.
 using System;
 using System.Collections.Concurrent;

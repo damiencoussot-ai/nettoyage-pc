@@ -1,4 +1,4 @@
-﻿// Nettoyage PC - licence Premium : clés achetées (paiement Stripe, clés créées par le service de licences de l'éditeur,
+﻿// Velox - licence Premium : clés achetées (paiement Stripe, clés créées par le service de licences de l'éditeur,
 // même format que l'API de Lemon Squeezy, vérifiées en ligne)
 // et clés offertes (signées par l'éditeur, vérifiées sans Internet).
 using System;
@@ -339,12 +339,12 @@ namespace NettoyagePC
             }
         }
 
-        /// <summary>La réponse concerne bien Nettoyage PC Premium (et pas une clé d'une autre boutique).</summary>
+        /// <summary>La réponse concerne bien Velox Premium (et pas une clé d'une autre boutique).</summary>
         private static string ControlerProduit(Dictionary<string, object> r)
         {
             var meta = Json.Dict(r, "meta");
             if (meta == null) return "réponse inattendue de la boutique";
-            if (Json.Long(meta, "store_id") != Boutique.IdBoutique || Json.Long(meta, "product_id") != Boutique.IdProduit) return "cette clé n'est pas une clé de Nettoyage PC Premium";
+            if (Json.Long(meta, "store_id") != Boutique.IdBoutique || Json.Long(meta, "product_id") != Boutique.IdProduit) return "cette clé n'est pas une clé de Velox Premium";
             var lk = Json.Dict(r, "license_key");
             string statut = Json.Texte(lk, "status");
             if (statut == "disabled") return "cette clé a été désactivée";

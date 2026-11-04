@@ -1,4 +1,4 @@
-﻿// Nettoyage PC - autorisation administrateur à la demande, et canal de sortie du moteur
+﻿// Velox - autorisation administrateur à la demande, et canal de sortie du moteur
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -169,7 +169,7 @@ namespace NettoyagePC
 
         /// <summary>
         /// Démarre le moteur. Si l'action touche tout le PC et que l'application n'a pas l'autorisation, Windows la
-        /// demande (fenêtre « Nettoyage PC »). Renvoie null si l'autorisation est refusée.
+        /// demande (fenêtre « Velox »). Renvoie null si l'autorisation est refusée.
         /// </summary>
         public static Process LancerMoteur(IEnumerable<string> options, bool besoinAdmin, CanalSortie canal, out string erreur)
         {
@@ -316,7 +316,7 @@ namespace NettoyagePC
                     case "redemarrer-bios":   // redémarrage vers les réglages du BIOS / UEFI (dans 15 s, annulable avec shutdown /a)
                         {
                             int code;
-                            Programmes.Executer(Path.Combine(Chemins.Systeme32, "shutdown.exe"), "/r /fw /t 15 /c \"Nettoyage PC : redémarrage vers le BIOS\"", 30000, null, out code);
+                            Programmes.Executer(Path.Combine(Chemins.Systeme32, "shutdown.exe"), "/r /fw /t 15 /c \"Velox : redémarrage vers le BIOS\"", 30000, null, out code);
                             return code == 0 ? 0 : 5;
                         }
                 }

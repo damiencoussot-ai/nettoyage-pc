@@ -1,4 +1,4 @@
-// Nettoyage PC 5 - « Ce qui est activé » : sur l'accueil, une pastille par fonction automatique (verte = activée,
+// Velox 5 - « Ce qui est activé » : sur l'accueil, une pastille par fonction automatique (verte = activée,
 // grise = désactivée, orange = à vérifier) ; la fenêtre « Ce qui est activé » détaille chaque fonction, vérifie que
 // l'application fonctionne bien, et propose la correction quand quelque chose cloche (toujours sur ton clic).
 using System;

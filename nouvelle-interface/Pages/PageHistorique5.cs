@@ -1,4 +1,4 @@
-// Nettoyage PC 5 - historique : espace libéré par passage, courbe de la note de santé, et les modifications
+// Velox 5 - historique : espace libéré par passage, courbe de la note de santé, et les modifications
 // réversibles (chacune peut être annulée : téléchargements remis en place, démarrage réactivé...).
 using System;
 using System.Collections.Generic;

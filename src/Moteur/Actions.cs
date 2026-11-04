@@ -1,4 +1,4 @@
-// Nettoyage PC - moteur : mode jeu, sauvegarde, optimisation, alimentation, mises à jour, sécurité, réparation
+// Velox - moteur : mode jeu, sauvegarde, optimisation, alimentation, mises à jour, sécurité, réparation
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -335,7 +335,7 @@ namespace NettoyagePC
                 if (O.TacheApps)
                 {
                     try { Directory.CreateDirectory(Chemins.Local); File.WriteAllText(MajAppsAuto.FichierDerniere, DateTime.Now.ToString("o")); } catch { }
-                    Notification.Afficher(Langue.T("Nettoyage PC : applications mises à jour"), Langue.T("Tes applications ont été mises à jour par winget, l'outil officiel de Microsoft (sauf celles que tu as exclues)."));
+                    Notification.Afficher(Langue.T("Velox : applications mises à jour"), Langue.T("Tes applications ont été mises à jour par winget, l'outil officiel de Microsoft (sauf celles que tu as exclues)."));
                 }
             }
             Ecrire();
@@ -348,7 +348,7 @@ namespace NettoyagePC
             try
             {
                 dynamic session = Activator.CreateInstance(Type.GetTypeFromProgID("Microsoft.Update.Session"));
-                session.ClientApplicationID = "Nettoyage PC";
+                session.ClientApplicationID = "Velox";
                 Ecrire("  Recherche auprès de Windows Update...");
                 dynamic trouvees = session.CreateUpdateSearcher().Search("IsInstalled=0 and IsHidden=0").Updates;
                 var ids = O.IdsMaj.Split(',').Select(x => x.Trim()).Where(x => x != "").ToList();
@@ -480,7 +480,7 @@ namespace NettoyagePC
             }
             Ecrire();
             if (alertesSecurite.Count == 0) Ecrire("  -> Aucun problème de sécurité détecté.");
-            else Ecrire("  -> " + alertesSecurite.Count + " point(s) de sécurité à corriger (détails ci-dessus). Nettoyage PC ne modifie pas ces réglages à ta place.");
+            else Ecrire("  -> " + alertesSecurite.Count + " point(s) de sécurité à corriger (détails ci-dessus). Velox ne modifie pas ces réglages à ta place.");
             Ecrire();
         }
 

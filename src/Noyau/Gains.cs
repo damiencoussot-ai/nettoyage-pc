@@ -1,4 +1,4 @@
-// Nettoyage PC - ce que les nettoyages ont rapporté (Documents\NettoyagePC\statistiques.csv, écrit par le moteur :
+// Velox - ce que les nettoyages ont rapporté (Documents\NettoyagePC\statistiques.csv, écrit par le moteur :
 // « date;octets libérés;type »). Lecture seule, partagé par la version 4 et la version 5.
 using System;
 using System.Globalization;

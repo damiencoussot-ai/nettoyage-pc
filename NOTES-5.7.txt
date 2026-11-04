@@ -1,5 +1,8 @@
-Nettoyage PC 5.7
+Velox 5.7 (anciennement Nettoyage PC)
 
+- Nouveau nom : Nettoyage PC devient Velox (« rapide » en latin). C'est le même logiciel, du même éditeur.
+  Tes réglages, ton historique, tes favoris, l'entretien automatique et ta clé Premium sont gardés ;
+  les raccourcis du menu Démarrer et du Bureau s'appellent maintenant « Velox ».
 - Mettre à jour les applications, en plus poussé : la liste des logiciels qui ont une nouvelle version
   (version installée → nouvelle), tu coches ceux à mettre à jour, un point de restauration avant si tu veux,
   puis chaque application est mise à jour à part, avec son résultat (à jour, application ouverte...).

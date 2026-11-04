@@ -1,4 +1,4 @@
-// Nettoyage PC 5 - accueil : l'anneau, l'état en une phrase, les deux boutons, les mesures et la liste.
+// Velox 5 - accueil : l'anneau, l'état en une phrase, les deux boutons, les mesures et la liste.
 // Le bilan arrive en arrière-plan (l'anneau tourne en attendant) ; les mesures se rafraîchissent toutes les deux secondes.
 using System;
 using System.Collections.Generic;

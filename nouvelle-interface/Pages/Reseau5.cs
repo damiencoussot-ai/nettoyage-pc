@@ -1,4 +1,4 @@
-// Nettoyage PC 5 - réseau : test de la connexion (ping vers la box et Internet, stabilité, débits) et serveurs DNS
+// Velox 5 - réseau : test de la connexion (ping vers la box et Internet, stabilité, débits) et serveurs DNS
 // (comparaison des temps de réponse, changement réversible avec l'autorisation de Windows).
 using System;
 using System.Collections.Generic;

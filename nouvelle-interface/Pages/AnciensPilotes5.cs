@@ -1,4 +1,4 @@
-// Nettoyage PC 5 - anciens pilotes : les versions que Windows garde « au cas où » après chaque mise à jour d'un pilote.
+// Velox 5 - anciens pilotes : les versions que Windows garde « au cas où » après chaque mise à jour d'un pilote.
 // La plus récente de chaque pilote et celles que Windows utilise sont toujours gardées. Le retrait passe par le moteur
 // (autorisation de Windows, question avant).
 using System;

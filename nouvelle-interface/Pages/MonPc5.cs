@@ -1,4 +1,4 @@
-// Nettoyage PC 5 - Outils > « Mon PC » : fiche du matériel, âge du PC, état de chaque pièce et conseils d'amélioration.
+// Velox 5 - Outils > « Mon PC » : fiche du matériel, âge du PC, état de chaque pièce et conseils d'amélioration.
 // Lu en arrière-plan (quelques secondes), en lecture seule.
 using System;
 using System.Collections.Generic;

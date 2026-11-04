@@ -1,4 +1,4 @@
-// Nettoyage PC 5 - mode simple : l'état du PC en une phrase, trois gros boutons (Nettoyer, Vérifier, Appeler à l'aide)
+// Velox 5 - mode simple : l'état du PC en une phrase, trois gros boutons (Nettoyer, Vérifier, Appeler à l'aide)
 // et les quelques points à régler. Pour un débutant : chaque action réelle demande d'abord « Oui ».
 using System;
 using System.Linq;

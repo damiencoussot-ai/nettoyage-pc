@@ -1,4 +1,4 @@
-// Nettoyage PC 5 - outils Premium de la 5.2 : mode jeu automatique, mises à jour automatiques des applications,
+// Velox 5 - outils Premium de la 5.2 : mode jeu automatique, mises à jour automatiques des applications,
 // photos en double et presque identiques, bulletin mensuel du PC, surveillance du réseau.
 // Le calcul est dans le moteur partagé (Noyau) ; ici, seulement l'affichage et les choix de l'utilisateur.
 using System;
@@ -192,7 +192,7 @@ namespace NettoyagePC.Nouveau
             F = f;
             var P = Habillage.P;
             Spacing = 10;
-            Children.Add(Premium5.Intro("Retrouve les rafales, les copies redimensionnées et les photos un peu retouchées. Nettoyage PC propose de garder la meilleure (la plus grande définition) : vérifie, change les cases si besoin, puis confirme. Les autres vont à la Corbeille, d'où tu peux les récupérer."));
+            Children.Add(Premium5.Intro("Retrouve les rafales, les copies redimensionnées et les photos un peu retouchées. Velox propose de garder la meilleure (la plus grande définition) : vérifie, change les cases si besoin, puis confirme. Les autres vont à la Corbeille, d'où tu peux les récupérer."));
             var ligne = new WrapPanel { Orientation = Orientation.Horizontal };
             foreach (var t in new[] { "Mes images (dossier Images)", "Choisir un dossier…" }) ou.Items.Add(Langue.T(t));
             ou.SelectedIndex = 0; ou.Margin = new Thickness(0, 0, 12, 6);

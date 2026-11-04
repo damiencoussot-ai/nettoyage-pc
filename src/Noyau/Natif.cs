@@ -1,4 +1,4 @@
-// Nettoyage PC - appels directs à Windows (P/Invoke)
+// Velox - appels directs à Windows (P/Invoke)
 // Chaque appel est protégé : sur un Windows qui ne le connaît pas, la fonction concernée renvoie simplement « indisponible ».
 using System;
 using System.IO;

@@ -1,4 +1,4 @@
-﻿// Nettoyage PC - lecture simplifiée des journaux de Windows (événements avec leurs données nommées)
+﻿// Velox - lecture simplifiée des journaux de Windows (événements avec leurs données nommées)
 using System;
 using System.Collections.Generic;
 using System.Linq;

@@ -1,4 +1,4 @@
-// Nettoyage PC 5 - « Preuve en FPS » (Premium) : images par seconde réelles d'un jeu (moyenne, 1 % et 0,1 % les plus
+// Velox 5 - « Preuve en FPS » (Premium) : images par seconde réelles d'un jeu (moyenne, 1 % et 0,1 % les plus
 // lents, saccades), avant puis après un réglage. Mesure par PresentMon (Intel), téléchargé et vérifié avec ta permission.
 using System;
 using System.Collections.Generic;
@@ -152,7 +152,7 @@ namespace NettoyagePC.Nouveau
             string nom = (libelle.Text ?? "").Trim(); if (nom == "") nom = DateTime.Now.ToString("dd/MM HH:mm");
             Action partir = () => Lancer(c, secondes, delai, nom);
             if (!Fps.OutilPresent)
-                F.Demander("Télécharger PresentMon ?", "Pour mesurer, Nettoyage PC utilise PresentMon, l'outil gratuit et open source d'Intel.\n\nIl va être téléchargé depuis sa page officielle (GitHub, environ 2 Mo), vérifié, puis installé dans le dossier de Nettoyage PC. Windows demandera ensuite ton autorisation pour la mesure.", "Continuer", "Annuler", oui => { if (oui) partir(); });
+                F.Demander("Télécharger PresentMon ?", "Pour mesurer, Velox utilise PresentMon, l'outil gratuit et open source d'Intel.\n\nIl va être téléchargé depuis sa page officielle (GitHub, environ 2 Mo), vérifié, puis installé dans le dossier de Velox. Windows demandera ensuite ton autorisation pour la mesure.", "Continuer", "Annuler", oui => { if (oui) partir(); });
             else partir();
         }
 

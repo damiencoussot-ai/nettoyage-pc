@@ -1,4 +1,4 @@
-﻿// Nettoyage PC - langue de l'interface (français, English, Español)
+﻿// Velox - langue de l'interface (français, English, Español)
 // Le texte d'origine (français) sert de clé : une phrase non traduite reste simplement en français.
 using System;
 using System.Collections.Generic;

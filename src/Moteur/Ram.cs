@@ -1,4 +1,4 @@
-// Nettoyage PC - moteur : mémoire vive (barrettes, utilisation, libération)
+// Velox - moteur : mémoire vive (barrettes, utilisation, libération)
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -132,7 +132,7 @@ namespace NettoyagePC
                 foreach (var g in groupes) Ecrire("    " + Dr(T(g.Octets), 10) + "  " + g.Nom + (g.N > 1 ? " (" + g.N + " processus)" : ""));
             }
             catch { }
-            if (pctU >= 85) AlerteRam("Plus de 85 % de la RAM est utilisée. Ferme les applications du haut de la liste (Nettoyage PC ne ferme jamais d'application à ta place), redémarre le PC de temps en temps, et si c'est permanent, ajoute de la RAM.");
+            if (pctU >= 85) AlerteRam("Plus de 85 % de la RAM est utilisée. Ferme les applications du haut de la liste (Velox ne ferme jamais d'application à ta place), redémarre le PC de temps en temps, et si c'est permanent, ajoute de la RAM.");
             Ecrire();
 
             var whea = Evenements.Lire("System", "*[System[Provider[@Name='Microsoft-Windows-WHEA-Logger'] and TimeCreated[timediff(@SystemTime) <= 2592000000]]]", 200);
@@ -193,7 +193,7 @@ namespace NettoyagePC
         {
             Ecrire("Ouverture du Diagnostic de mémoire Windows...");
             Ecrire("Choisis « Redémarrer maintenant » (enregistre d'abord ton travail) ou « Rechercher les problèmes au prochain démarrage ».");
-            Ecrire("Le test dure plusieurs minutes. Son résultat s'affichera après le redémarrage, et Nettoyage PC le rappelle dans la section Mémoire vive.");
+            Ecrire("Le test dure plusieurs minutes. Son résultat s'affichera après le redémarrage, et Velox le rappelle dans la section Mémoire vive.");
             string md = System.IO.Path.Combine(Chemins.Systeme32, "mdsched.exe");
             if (!System.IO.File.Exists(md)) Ecrire("Le Diagnostic de mémoire Windows n'est pas disponible sur ce PC.");
             else try { Process.Start(new ProcessStartInfo(md) { UseShellExecute = true }); } catch { }

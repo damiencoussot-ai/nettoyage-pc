@@ -1,4 +1,4 @@
-// Nettoyage PC 5 - « Pourquoi mon PC ralentit ? » (Premium) : chronologie de ce qui a changé (applications, pilotes,
+// Velox 5 - « Pourquoi mon PC ralentit ? » (Premium) : chronologie de ce qui a changé (applications, pilotes,
 // mises à jour, démarrage, réglages), comparée aux performances. Tout est lu sur le PC et y reste.
 using System;
 using System.Collections.Generic;

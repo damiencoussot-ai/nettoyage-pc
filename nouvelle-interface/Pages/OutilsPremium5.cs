@@ -1,4 +1,4 @@
-// Nettoyage PC 5 - outils Premium en lecture seule : santé de la batterie, santé prédictive, coût en électricité.
+// Velox 5 - outils Premium en lecture seule : santé de la batterie, santé prédictive, coût en électricité.
 // Tout est lu sur le PC (rapports de Windows, journaux, mesures du gardien) : rien n'est modifié.
 using System;
 using System.Collections.Generic;

@@ -1,4 +1,4 @@
-// Nettoyage PC 5 - mesure des performances (Premium) : processeur (1 cœur et tous les cœurs), mémoire vive, disque
+// Velox 5 - mesure des performances (Premium) : processeur (1 cœur et tous les cœurs), mémoire vive, disque
 // (lecture, écriture, accès 4 Ko), environ une minute. Les fichiers de test sont supprimés à la fin ; rien d'autre n'est écrit.
 using System;
 using System.Collections.Generic;

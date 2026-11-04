@@ -1,4 +1,4 @@
-// Nettoyage PC 5 - démarrage. « --captures DOSSIER » : rendu sans écran de la fenêtre, enregistré en PNG
+// Velox 5 - démarrage. « --captures DOSSIER » : rendu sans écran de la fenêtre, enregistré en PNG
 // (aperçus et essais automatiques ; rien n'est lu ni modifié sur le PC).
 using System;
 using System.IO;
@@ -96,7 +96,7 @@ namespace NettoyagePC.Nouveau
 
             int ie = Array.IndexOf(args, "--essai-demarrage");
             if (ie >= 0 && ie + 1 < args.Length) App.FichierEssaiDemarrage = Path.GetFullPath(args[ie + 1]);
-            JournalDemarrage.Noter("--- Démarrage de Nettoyage PC " + Appli.Version + (Installation5.Apercu ? " (aperçu)" : "") + " : Windows " + Environment.OSVersion.Version + ", .NET " + Environment.Version + ", dossier " + Chemins.Ici);
+            JournalDemarrage.Noter("--- Démarrage de Velox " + Appli.Version + (Installation5.Apercu ? " (aperçu)" : "") + " : Windows " + Environment.OSVersion.Version + ", .NET " + Environment.Version + ", dossier " + Chemins.Ici);
             // toujours avec les droits normaux : lancée en administrateur, l'application se relance par l'Explorateur
             if (Appli.EstAdmin && Natif.EstWindows && App.FichierEssaiDemarrage == null && Demarrage.RelancerSansAdmin()) return 0;
             // une seule fenêtre (programme installé ou portable) : un deuxième lancement ramène la fenêtre ouverte et lui
@@ -175,7 +175,7 @@ namespace NettoyagePC.Nouveau
             garde.Start();
             try
             {
-                JournalDemarrage.Noter("--- Auto-contrôle de Nettoyage PC " + Appli.Version);
+                JournalDemarrage.Noter("--- Auto-contrôle de Velox " + Appli.Version);
                 Habillage.Animations = false;
                 AppBuilder.Configure<App>().UseSkia().UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false }).SetupWithoutStarting();
                 try { Licence.Charger(); } catch { }
@@ -372,6 +372,10 @@ namespace NettoyagePC.Nouveau
                 for (int k = 0; k < 6; k++) { Dispatcher.UIThread.RunJobs(); System.Threading.Thread.Sleep(50); }
                 Capturer(f, dossier, "sombre-annonce.png", rapport, ref erreurs);
                 f.ViderCalques();
+                AnnonceVelox5.Ouvrir(f);
+                for (int k = 0; k < 6; k++) { Dispatcher.UIThread.RunJobs(); System.Threading.Thread.Sleep(50); }
+                Capturer(f, dossier, "sombre-annonce-velox.png", rapport, ref erreurs);
+                f.ViderCalques();
                 Etat5.Exemple = new System.Collections.Generic.List<EtatFonction>
                 {
                     new EtatFonction { Id = "premium", Nom = "Premium", Groupe = EtatFonctions.Application, Actif = true, Detail = "Actif sur ce PC, pour les versions 4 et 5." },
@@ -383,7 +387,7 @@ namespace NettoyagePC.Nouveau
                     new EtatFonction { Id = "majappsauto", Nom = "Mises à jour automatiques des applications", Groupe = EtatFonctions.Automatique, Actif = false, Premium = true, Detail = "Désactivées." },
                     new EtatFonction { Id = "bulletin", Nom = "Bulletin mensuel du PC", Groupe = EtatFonctions.Automatique, Actif = true, Premium = true, Detail = Langue.F("Dernier bulletin : {0}.", "01/11/2026") },
                     new EtatFonction { Id = "appareils", Nom = "Surveillance du réseau", Groupe = EtatFonctions.Automatique, Actif = true, Premium = true, Detail = "Alerte quand un appareil inconnu se connecte à ta box." },
-                    new EtatFonction { Id = "donnees", Nom = "Dossier de Nettoyage PC", Groupe = EtatFonctions.Application, Actif = true, Detail = @"C:\Users\Camille\Documents\NettoyagePC" },
+                    new EtatFonction { Id = "donnees", Nom = "Dossier de Velox", Groupe = EtatFonctions.Application, Actif = true, Detail = @"C:\Users\Camille\Documents\NettoyagePC" },
                     new EtatFonction { Id = "reglages", Nom = "Fichier des réglages", Groupe = EtatFonctions.Application, Actif = true, Detail = "Lu sans problème." },
                     new EtatFonction { Id = "erreurs", Nom = "Erreurs récentes", Groupe = EtatFonctions.Application, Actif = true, Detail = "Aucune erreur ces 7 derniers jours." },
                 };
@@ -824,7 +828,7 @@ namespace NettoyagePC.Nouveau
                 f.ChangerTheme(true); f.Afficher("Accueil", false);
                 var lignes = new[]
                 {
-                    "=== Nettoyage PC - SIMULATION (rien n'est supprimé ni déplacé) ===", "",
+                    "=== Velox - SIMULATION (rien n'est supprimé ni déplacé) ===", "",
                     "=== Fichiers temporaires ===", "  Temporaires de Windows : 412 Mo libérables", "  Temporaires de ton compte : 1,2 Go libérables",
                     "=== Caches des navigateurs ===", "  Edge : 318 Mo libérables", "  Chrome : 655 Mo libérables",
                 };

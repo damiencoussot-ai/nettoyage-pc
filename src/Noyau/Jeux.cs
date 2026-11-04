@@ -1,4 +1,4 @@
-// Nettoyage PC - jeux installés (Steam, Epic, GOG, Xbox, Ubisoft, EA, Battle.net, Riot...) : dossier, programme
+// Velox - jeux installés (Steam, Epic, GOG, Xbox, Ubisoft, EA, Battle.net, Riot...) : dossier, programme
 // principal et lancement. Partagé par les deux interfaces.
 using System;
 using System.Collections.Generic;

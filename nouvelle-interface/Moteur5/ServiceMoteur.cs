@@ -1,4 +1,4 @@
-// Nettoyage PC 5 - exécution d'une action du moteur (même programme, option --moteur), comme la version 4 :
+// Velox 5 - exécution d'une action du moteur (même programme, option --moteur), comme la version 4 :
 // le moteur écrit ses lignes dans un tube nommé local ; ici on les lit, on suit la progression et les données,
 // et on récupère le résumé à la fin. L'autorisation de Windows n'est demandée que pour les actions qui touchent tout le PC.
 using System;

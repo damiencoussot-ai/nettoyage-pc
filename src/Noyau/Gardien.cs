@@ -1,4 +1,4 @@
-﻿// Nettoyage PC - gardien en temps réel (Premium) : réglages partagés entre l'interface et le gardien (icône près de l'horloge),
+﻿// Velox - gardien en temps réel (Premium) : réglages partagés entre l'interface et le gardien (icône près de l'horloge),
 // lancement automatique à l'ouverture de session (clé Run de l'utilisateur, sans droits administrateur), arrêt et rechargement.
 using System;
 using System.Collections.Generic;

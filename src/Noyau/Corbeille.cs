@@ -1,4 +1,4 @@
-// Nettoyage PC - mise à la corbeille (toujours récupérable). Partagé par la version 4 et la version 5.
+// Velox - mise à la corbeille (toujours récupérable). Partagé par la version 4 et la version 5.
 using System;
 using System.IO;
 

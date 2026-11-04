@@ -1,4 +1,4 @@
-// Nettoyage PC - « Mon PC » : fiche claire du matériel (processeur, mémoire, carte graphique, disques, carte mère,
+// Velox - « Mon PC » : fiche claire du matériel (processeur, mémoire, carte graphique, disques, carte mère,
 // Windows), âge approximatif du PC, état de chaque pièce et conseils d'amélioration concrets. Lecture seule.
 using System;
 using System.Collections.Generic;

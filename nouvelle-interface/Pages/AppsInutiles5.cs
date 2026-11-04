@@ -1,4 +1,4 @@
-// Nettoyage PC 5 - applications préinstallées inutiles : celles conseillées sont cochées, tu gardes celles dont tu te sers.
+// Velox 5 - applications préinstallées inutiles : celles conseillées sont cochées, tu gardes celles dont tu te sers.
 // Chacune se réinstalle depuis le Microsoft Store (et depuis l'Historique). Question avant ; en simulation, rien n'est retiré.
 using System;
 using System.Collections.Generic;

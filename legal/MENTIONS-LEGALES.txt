@@ -2,7 +2,7 @@
 Version du 22 octobre 2026
 
 
-ÉDITEUR DE NETTOYAGE PC ET DE SON SITE
+ÉDITEUR DE VELOX ET DE SON SITE
 
 [PRÉNOM NOM] EI (entrepreneur individuel)
 Adresse : [ADRESSE POSTALE]
@@ -14,7 +14,7 @@ Directeur de la publication : [PRÉNOM NOM]
 
 HÉBERGEMENT
 
-Le site officiel et les fichiers de téléchargement de Nettoyage PC sont hébergés par :
+Le site officiel et les fichiers de téléchargement de Velox sont hébergés par :
 GitHub, Inc.
 88 Colin P. Kelly Jr. Street, San Francisco, CA 94107, États-Unis
 https://github.com
@@ -22,18 +22,18 @@ Site officiel : https://damiencoussot-ai.github.io/nettoyage-pc/ (service GitHub
 Versions et téléchargements : https://github.com/damiencoussot-ai/nettoyage-pc/releases
 
 
-VENTE DE NETTOYAGE PC PREMIUM
+VENTE DE VELOX PREMIUM
 
-Le paiement de Nettoyage PC Premium est assuré par Stripe (service Managed Payments) : la vente est faite par Sold through Link, LLC (service « Link » du groupe Stripe), revendeur officiel de l'Éditeur (« Merchant of Record »), qui encaisse le paiement, gère la TVA et émet les reçus et les factures : https://stripe.com
+Le paiement de Velox Premium est assuré par Stripe (service Managed Payments) : la vente est faite par Sold through Link, LLC (service « Link » du groupe Stripe), revendeur officiel de l'Éditeur (« Merchant of Record »), qui encaisse le paiement, gère la TVA et émet les reçus et les factures : https://stripe.com
 Le service de licences de l'Éditeur (création et vérification des clés Premium) est hébergé par Cloudflare, Inc., 101 Townsend Street, San Francisco, CA 94107, États-Unis : https://www.cloudflare.com
 Conditions de vente : sur le site officiel (https://damiencoussot-ai.github.io/nettoyage-pc/conditions-de-vente.html) et dans le logiciel, Réglages > Informations légales.
 
 
 PROPRIÉTÉ INTELLECTUELLE
 
-Le logiciel Nettoyage PC, son nom, son icône, ses textes et sa documentation sont la propriété de l'Éditeur et sont protégés par le droit d'auteur. Toute reproduction ou diffusion non autorisée par le contrat de licence est interdite.
+Le logiciel Velox, son nom, son icône, ses textes et sa documentation sont la propriété de l'Éditeur et sont protégés par le droit d'auteur. Toute reproduction ou diffusion non autorisée par le contrat de licence est interdite.
 
-Windows, Microsoft Defender, OneDrive et Microsoft Store sont des marques de Microsoft Corporation. AMD, NVIDIA, Intel et les autres marques citées appartiennent à leurs propriétaires respectifs. Nettoyage PC est un logiciel indépendant, qui n'est ni affilié à ces sociétés, ni approuvé par elles.
+Windows, Microsoft Defender, OneDrive et Microsoft Store sont des marques de Microsoft Corporation. AMD, NVIDIA, Intel et les autres marques citées appartiennent à leurs propriétaires respectifs. Velox est un logiciel indépendant, qui n'est ni affilié à ces sociétés, ni approuvé par elles.
 
 
 DONNÉES PERSONNELLES

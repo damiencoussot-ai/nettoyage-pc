@@ -1,4 +1,4 @@
-// Nettoyage PC 5 - Premium : bandeau (état de la licence, essai, achat, clé), outils Premium, gratuit ou Premium ?,
+// Velox 5 - Premium : bandeau (état de la licence, essai, achat, clé), outils Premium, gratuit ou Premium ?,
 // questions fréquentes. Achat et activation : même service de licences que la version 4. Rien n'est payé sans le vouloir :
 // l'achat se fait dans le navigateur, après avoir accepté les conditions de vente.
 using System;
@@ -49,7 +49,7 @@ namespace NettoyagePC.Nouveau
                 Outil("Kit de réinstallation", "Avant de réinstaller Windows ou de changer de PC : tes applications (réinstallées d'un coup), tes pilotes et tes réseaux Wi-Fi, avec un script qui remet tout en place.", "Préparer le kit", "kit"),
                 Outil("Mode jeu automatique", "Quand un jeu se lance, le PC passe en mode performances et OneDrive se met en pause. Quand le jeu se ferme, tout revient comme avant, tout seul.", "Régler", null, () => ModeJeu5.Ouvrir(F)),
                 Outil("Mises à jour automatiques", "Chaque semaine, tes applications se mettent à jour par winget, l'outil officiel de Microsoft (souvent des correctifs de sécurité). Tu choisis celles à exclure.", "Régler", null, () => MajApps5.Ouvrir(F)),
-                Outil("Photos en double", "Rafales, copies redimensionnées, photos un peu retouchées : Nettoyage PC garde la meilleure et propose les autres pour la Corbeille.", "Rechercher", null, () => Photos5.Ouvrir(F)),
+                Outil("Photos en double", "Rafales, copies redimensionnées, photos un peu retouchées : Velox garde la meilleure et propose les autres pour la Corbeille.", "Rechercher", null, () => Photos5.Ouvrir(F)),
                 Outil("Bulletin mensuel du PC", "Chaque mois, une page claire : note, espace gagné, démarrage, températures, santé du matériel. À garder, imprimer ou envoyer à un proche.", "Voir", null, () => Bulletin5.Ouvrir(F)),
                 Outil("Surveillance du réseau", "Alerte quand un appareil inconnu se connecte à ta box, et liste des applications connectées à Internet en ce moment.", "Surveiller", null, () => ReseauPremium5.Ouvrir(F)),
                 Outil("Moniteur en direct", "Processeur, mémoire vive, disque et température sur les 60 dernières secondes, en courbes : tu vois tout de suite ce qui fait chauffer ou ramer ton PC.", "Ouvrir", null, () => Moniteur5.Ouvrir(F)),
@@ -129,7 +129,7 @@ namespace NettoyagePC.Nouveau
                 }
                 else
                 {
-                    pastille = "★  PREMIUM"; titre = "Nettoyage PC Premium";
+                    pastille = "★  PREMIUM"; titre = "Velox Premium";
                     texte = Langue.T("Les outils des pros pour garder ton PC rapide, stable et sauvegardé : un gardien qui veille en continu, la sauvegarde automatique, l'analyse des plantages et du démarrage, et plus encore.") +
                         (!Licence.EssaiDisponible ? "\n" + Langue.T("Ton essai gratuit est terminé : merci de l'avoir essayé !") : "");
                 }
@@ -240,7 +240,7 @@ namespace NettoyagePC.Nouveau
             string info = Langue.T("Licence Premium active sur ce PC.") + "\n\n" + Langue.T(Licence.Type == "offerte" ? "Type : clé offerte" : "Type : achat sur la boutique") +
                 (Licence.Titulaire != "" ? "\n" + Langue.T("Titulaire") + " : " + Licence.Titulaire : "") + (Licence.Courriel != "" ? "\nE-mail : " + Licence.Courriel : "") + "\n" + Langue.T("Clé") + " : " + Licence.CleMasquee +
                 "\n\n" + Langue.T("Retirer la licence de ce PC ? (par exemple avant de le donner ou de le vendre : la place est libérée pour un autre PC)");
-            F.Demander("Nettoyage PC Premium", info, "Retirer la licence de ce PC", "Garder", oui =>
+            F.Demander("Velox Premium", info, "Retirer la licence de ce PC", "Garder", oui =>
             {
                 if (!oui) return;
                 F.Statut("Retrait de la licence…");
@@ -272,7 +272,7 @@ namespace NettoyagePC.Nouveau
         public static void Ouvrir(FenetrePrincipale f, bool cle = false)
         {
             var a = new Achat5(f);
-            a.fenetre = f.Ouvrir("Nettoyage PC Premium", a, 700);
+            a.fenetre = f.Ouvrir("Velox Premium", a, 700);
             a.fenetre.Fermee += () => { if (a.attente != null) a.attente.Stop(); };
             if (cle) Dispatcher.UIThread.Post(() => a.zone.Focus());
         }

@@ -1,4 +1,4 @@
-// Nettoyage PC 5 - favoris : tu choisis tes outils préférés (gratuits et Premium) et ils s'affichent en haut de l'accueil,
+// Velox 5 - favoris : tu choisis tes outils préférés (gratuits et Premium) et ils s'affichent en haut de l'accueil,
 // pour les avoir sous les yeux et les lancer en un clic. Une étoile sur chaque carte d'outil ajoute ou retire un favori ;
 // « Choisir mes favoris » les montre tous, par rubrique, et permet de changer leur ordre. Gardés dans parametres.json.
 using System;

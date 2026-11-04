@@ -1,4 +1,4 @@
-// Nettoyage PC 5 - élément du menu de gauche : numéro, nom en capitales, pastille (PRO, mise à jour).
+// Velox 5 - élément du menu de gauche : numéro, nom en capitales, pastille (PRO, mise à jour).
 using System;
 using System.Globalization;
 using Avalonia;

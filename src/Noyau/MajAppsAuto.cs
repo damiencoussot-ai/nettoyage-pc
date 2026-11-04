@@ -1,4 +1,4 @@
-// Nettoyage PC - mises à jour automatiques des applications (Premium) : une fois par semaine, une tâche de Windows
+// Velox - mises à jour automatiques des applications (Premium) : une fois par semaine, une tâche de Windows
 // lance winget (l'outil officiel de Microsoft) pour mettre à jour les applications, sauf celles que tu as exclues
 // (« épinglées » dans winget : elles restent dans leur version). Sans interface : partagé v4 / v5.
 using System;

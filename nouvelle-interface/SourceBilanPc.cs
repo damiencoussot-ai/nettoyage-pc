@@ -1,4 +1,4 @@
-// Nettoyage PC 5 - vrais relevés du PC pour l'accueil, par le moteur partagé avec la version 4
+// Velox 5 - vrais relevés du PC pour l'accueil, par le moteur partagé avec la version 4
 // (BilanPc : mêmes vérifications, même note sur 100, mêmes secteurs). Lecture seule : rien n'est modifié.
 using System;
 using System.IO;

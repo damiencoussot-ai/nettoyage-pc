@@ -1,4 +1,4 @@
-// Nettoyage PC - rapport avant / après : chaque nettoyage réel (rapide ou profond) garde l'indice du PC avant et après,
+// Velox - rapport avant / après : chaque nettoyage réel (rapide ou profond) garde l'indice du PC avant et après,
 // et l'espace libéré. Les 50 derniers sont gardés dans le dossier local de l'application. Sans interface : partagé v4 / v5.
 using System;
 using System.Collections.Generic;

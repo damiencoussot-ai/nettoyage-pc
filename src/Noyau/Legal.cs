@@ -1,4 +1,4 @@
-// Nettoyage PC - textes légaux (licence, conditions de vente, confidentialité, mentions légales)
+// Velox - textes légaux (licence, conditions de vente, confidentialité, mentions légales)
 // Les textes sont intégrés au programme (dossier legal\ des sources) ; une copie est aussi installée dans legal\.
 using System;
 using System.Collections.Generic;

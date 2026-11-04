@@ -1,4 +1,4 @@
-// Nettoyage PC 5 - l'anneau holographique de l'accueil.
+// Velox 5 - l'anneau holographique de l'accueil.
 // Trois calques : le halo qui respire (opacité), l'anneau fixe (graduations, secteurs, disque central),
 // et l'anneau qui tourne (repère et traînée) ; ce dernier et le halo ne sont jamais redessinés :
 // seules leur rotation et leur opacité changent, ce que la carte graphique fait seule.

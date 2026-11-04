@@ -1,4 +1,4 @@
-// Nettoyage PC - photos en double et presque identiques (Premium) : rafales, copies redimensionnées ou un peu retouchées.
+// Velox - photos en double et presque identiques (Premium) : rafales, copies redimensionnées ou un peu retouchées.
 // Chaque photo est réduite à une petite empreinte visuelle (9 × 8 points en niveaux de gris) ; deux photos dont les
 // empreintes diffèrent de très peu se ressemblent. Rien n'est supprimé ici : la page propose, toi tu choisis, et les
 // photos choisies vont dans la Corbeille (récupérables). Sans interface : partagé v4 / v5.

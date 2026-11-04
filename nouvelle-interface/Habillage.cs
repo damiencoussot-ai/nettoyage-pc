@@ -1,4 +1,4 @@
-// Nettoyage PC 5 - thème « Noyau » : palette, polices et petits outils de dessin.
+// Velox 5 - thème « Noyau » : palette, polices et petits outils de dessin.
 using System;
 using Avalonia;
 using Avalonia.Media;

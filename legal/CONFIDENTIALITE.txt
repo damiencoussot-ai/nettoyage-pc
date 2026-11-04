@@ -1,10 +1,10 @@
-﻿POLITIQUE DE CONFIDENTIALITÉ DE NETTOYAGE PC
+﻿POLITIQUE DE CONFIDENTIALITÉ DE VELOX
 Version du 22 octobre 2026
 
 
 EN BREF
 
-- Nettoyage PC fonctionne sur votre ordinateur. Il n'y a ni compte à créer, ni publicité, ni pistage, ni télémétrie, ni cookies.
+- Velox fonctionne sur votre ordinateur. Il n'y a ni compte à créer, ni publicité, ni pistage, ni télémétrie, ni cookies.
 - Le site officiel n'utilise ni cookie, ni traceur, ni mesure d'audience.
 - Vos fichiers, journaux et réglages restent sur votre ordinateur. Ils ne sont jamais envoyés à l'Éditeur.
 - Le logiciel n'utilise Internet que pour : vérifier les mises à jour, vérifier une licence Premium achetée, télécharger l'outil de mesure PresentMon si vous utilisez la « Preuve en FPS », et les tests de connexion que vous lancez vous-même.
@@ -31,13 +31,13 @@ Ces informations sont créées et gardées uniquement sur votre ordinateur. L'É
 - l'état de votre licence Premium, chiffré par Windows pour votre seul compte (protection DPAPI).
 Les analyses (démarrage, plantages, disques, batterie, sécurité, enquêteur, santé prédictive, bouclier anti-arnaque) lisent les informations de Windows sur place : leurs résultats ne quittent pas votre ordinateur, sauf si vous choisissez de les envoyer à quelqu'un (bouton « Aider quelqu'un », par exemple).
 
-Vous pouvez supprimer ces données à tout moment : désinstallez Nettoyage PC, puis supprimez les dossiers indiqués ci-dessus.
+Vous pouvez supprimer ces données à tout moment : désinstallez Velox, puis supprimez les dossiers indiqués ci-dessus.
 
 
 3. CE QUI PASSE PAR INTERNET
 
 3.1 Vérification des mises à jour
-Le logiciel interroge le service GitHub (GitHub, Inc.), qui héberge Nettoyage PC, pour savoir s'il existe une nouvelle version, et télécharge celle-ci si vous l'acceptez. GitHub reçoit, comme pour tout site web, votre adresse IP et le nom du logiciel. Base légale : l'intérêt légitime de vous proposer des mises à jour de sécurité et de correction (vous pouvez ne pas les installer). Politique de GitHub : https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement
+Le logiciel interroge le service GitHub (GitHub, Inc.), qui héberge Velox, pour savoir s'il existe une nouvelle version, et télécharge celle-ci si vous l'acceptez. GitHub reçoit, comme pour tout site web, votre adresse IP et le nom du logiciel. Base légale : l'intérêt légitime de vous proposer des mises à jour de sécurité et de correction (vous pouvez ne pas les installer). Politique de GitHub : https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement
 
 Si vous utilisez la « Preuve en FPS », le logiciel télécharge aussi, au premier usage, l'outil libre PresentMon d'Intel depuis sa page officielle sur GitHub (github.com/GameTechDev/PresentMon), selon les mêmes règles.
 
@@ -50,7 +50,7 @@ En retour, il reçoit l'état de la licence, ainsi que le nom et l'adresse e-mai
 
 3.3 Achat
 L'achat se fait sur la page de paiement de Stripe (service Managed Payments). La vente est faite par Sold through Link, LLC (service « Link » du groupe Stripe), revendeur de l'Éditeur, qui collecte les données nécessaires au paiement et à la facture (nom, adresse e-mail, pays, moyen de paiement) et en est responsable pour le paiement, selon sa propre politique : https://link.com/privacy-center
-Quand l'achat est lancé depuis Nettoyage PC, le logiciel ajoute à la page de paiement une référence tirée au hasard (sans lien avec votre identité ni avec votre ordinateur) : elle permet au logiciel de récupérer votre clé et d'activer Premium tout seul après le paiement. Elle est effacée de votre ordinateur dès que la clé est activée, et du service de licences au bout de 90 jours.
+Quand l'achat est lancé depuis Velox, le logiciel ajoute à la page de paiement une référence tirée au hasard (sans lien avec votre identité ni avec votre ordinateur) : elle permet au logiciel de récupérer votre clé et d'activer Premium tout seul après le paiement. Elle est effacée de votre ordinateur dès que la clé est activée, et du service de licences au bout de 90 jours.
 L'Éditeur reçoit de Stripe le nom, l'adresse e-mail, le pays et les informations de la commande. Il les utilise uniquement pour gérer votre licence, vous assister, traiter un remboursement et tenir sa comptabilité. Elles ne sont jamais vendues ni utilisées pour de la publicité. Base légale : l'exécution du contrat et les obligations comptables de l'Éditeur.
 
 3.4 Tests que vous lancez vous-même (onglet Réseau)
@@ -60,7 +60,7 @@ L'Éditeur reçoit de Stripe le nom, l'adresse e-mail, le pays et les informatio
 Ces tests ne transmettent aucune information personnelle en dehors de votre adresse IP.
 
 3.5 Outils de Windows lancés à votre demande
-La mise à jour des applications (winget), Windows Update, l'Assistance rapide (aide à distance) et Microsoft Defender sont des outils de Microsoft : lorsqu'ils sont lancés depuis Nettoyage PC, ils échangent avec Microsoft et les éditeurs concernés selon leurs propres règles. Nettoyage PC ne reçoit rien de ces échanges.
+La mise à jour des applications (winget), Windows Update, l'Assistance rapide (aide à distance) et Microsoft Defender sont des outils de Microsoft : lorsqu'ils sont lancés depuis Velox, ils échangent avec Microsoft et les éditeurs concernés selon leurs propres règles. Velox ne reçoit rien de ces échanges.
 
 L'assistant local s'adresse uniquement au logiciel Ollama installé sur votre ordinateur (adresse locale 127.0.0.1) : aucune question ni réponse ne passe par Internet. Ollama est un logiciel tiers, avec ses propres conditions.
 
@@ -71,7 +71,7 @@ Certains boutons ouvrent un site dans votre navigateur (pilotes AMD, NVIDIA ou I
 Les messages que vous envoyez à l'Éditeur (assistance, remboursement) et les fichiers que vous y joignez sont utilisés uniquement pour vous répondre.
 
 3.8 Le site officiel
-Le site officiel de Nettoyage PC (https://damiencoussot-ai.github.io/nettoyage-pc/) n'utilise ni cookie, ni traceur, ni outil de mesure d'audience, et ne charge aucun contenu depuis un autre site. Il est hébergé par GitHub (service GitHub Pages) qui, comme pour tout site web, reçoit l'adresse IP des visiteurs pour faire fonctionner et sécuriser le service. Le bouton « Télécharger » récupère l'installateur sur GitHub ; le bouton « Acheter » ouvre la page de paiement de Stripe (voir 3.3).
+Le site officiel de Velox (https://damiencoussot-ai.github.io/nettoyage-pc/) n'utilise ni cookie, ni traceur, ni outil de mesure d'audience, et ne charge aucun contenu depuis un autre site. Il est hébergé par GitHub (service GitHub Pages) qui, comme pour tout site web, reçoit l'adresse IP des visiteurs pour faire fonctionner et sécuriser le service. Le bouton « Télécharger » récupère l'installateur sur GitHub ; le bouton « Acheter » ouvre la page de paiement de Stripe (voir 3.3).
 
 
 4. DURÉE DE CONSERVATION
@@ -100,4 +100,4 @@ Le logiciel ne s'exécute jamais en administrateur en permanence : Windows deman
 
 8. MODIFICATIONS
 
-Cette politique peut évoluer avec le logiciel. La version en vigueur est toujours consultable sur le site officiel et dans Nettoyage PC (Réglages > Informations légales), avec sa date.
+Cette politique peut évoluer avec le logiciel. La version en vigueur est toujours consultable sur le site officiel et dans Velox (Réglages > Informations légales), avec sa date.

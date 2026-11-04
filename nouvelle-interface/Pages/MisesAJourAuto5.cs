@@ -1,4 +1,4 @@
-// Nettoyage PC 5 - à l'ouverture : nouveautés de la version qui vient d'être installée, puis recherche d'une nouvelle
+// Velox 5 - à l'ouverture : nouveautés de la version qui vient d'être installée, puis recherche d'une nouvelle
 // version (source officielle GitHub) avec « Installer maintenant » / « Plus tard ». Refaite toutes les 6 heures si la
 // fenêtre reste ouverte. Désactivable (réglage « vérifier les mises à jour automatiquement » partagé avec la version 4).
 using System;
@@ -20,8 +20,10 @@ namespace NettoyagePC.Nouveau
         public static void AuDemarrage(FenetrePrincipale f, bool profilCree)
         {
             bool nouveautes = false;
+            // 5.7 : annonce du nouveau nom (une fois), puis 5.5 : annonce du nouveau look
+            try { nouveautes = AnnonceVelox5.SiBesoin(f, profilCree); } catch (Exception ex) { JournalDemarrage.Erreur("annonce du nouveau nom (version 5)", ex); }
             // 5.5 : annonce du nouveau look (une fois), à la place des nouveautés habituelles
-            try { nouveautes = Annonce5.SiBesoin(f, profilCree); } catch (Exception ex) { JournalDemarrage.Erreur("annonce du nouveau look (version 5)", ex); }
+            try { if (!nouveautes) nouveautes = Annonce5.SiBesoin(f, profilCree); } catch (Exception ex) { JournalDemarrage.Erreur("annonce du nouveau look (version 5)", ex); }
             try { if (!nouveautes) nouveautes = profilCree && MontrerNouveautes(f); } catch (Exception ex) { JournalDemarrage.Erreur("nouveautés (version 5)", ex); }
             try { ResumeAOuverture(f); } catch (Exception ex) { JournalDemarrage.Erreur("résumé de la semaine (version 5)", ex); }
             Parametres p;
@@ -78,7 +80,7 @@ namespace NettoyagePC.Nouveau
                 lignes.AddRange(v.Value.Select(l => "•  " + Langue.T(l)));
                 lignes.Add("");
             }
-            f.Demander(Langue.F("Nettoyage PC {0} est installé : voici les nouveautés", Appli.Version), string.Join("\n", lignes).Trim(), "Super", null, r => { });
+            f.Demander(Langue.F("Velox {0} est installé : voici les nouveautés", Appli.Version), string.Join("\n", lignes).Trim(), "Super", null, r => { });
             return true;
         }
 
@@ -95,7 +97,7 @@ namespace NettoyagePC.Nouveau
                     : Regex.Split(v.Notes ?? "", "\r?\n").Select(n => n.Trim()).Where(n => n.StartsWith("-")).Select(n => n.TrimStart('-', ' ')).ToList();
                 string texte = (points.Count > 0 ? string.Join("\n", points.Take(4).Select(x => "•  " + x)) + "\n\n" : "")
                     + Langue.T("L'application se ferme puis se rouvre toute seule (moins d'une minute). Ton historique, tes réglages et Premium sont conservés.");
-                f.Demander(Langue.F("Nettoyage PC {0} est disponible", v.Version), texte, "Installer maintenant", "Plus tard", oui => { if (oui) Installer(f, v, null); });
+                f.Demander(Langue.F("Velox {0} est disponible", v.Version), texte, "Installer maintenant", "Plus tard", oui => { if (oui) Installer(f, v, null); });
             }));
         }
 

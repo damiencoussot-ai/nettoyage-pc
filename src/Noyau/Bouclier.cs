@@ -1,4 +1,4 @@
-// Nettoyage PC - bouclier anti-arnaque : repère les logiciels de prise en main à distance ouverts sur le PC.
+// Velox - bouclier anti-arnaque : repère les logiciels de prise en main à distance ouverts sur le PC.
 // Les arnaques au « faux support technique » demandent presque toujours d'en installer un (AnyDesk, TeamViewer...).
 // Rien n'est fermé automatiquement : l'application prévient, explique, et ne ferme un logiciel que sur demande.
 using System;

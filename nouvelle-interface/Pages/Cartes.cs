@@ -1,4 +1,4 @@
-// Nettoyage PC 5 - briques des rubriques : cartes d'action (titre, explication, bouton), grille qui s'adapte
+// Velox 5 - briques des rubriques : cartes d'action (titre, explication, bouton), grille qui s'adapte
 // à la largeur, « Plus d'options » repliable, et onglets en haut d'une rubrique qui a plusieurs pages.
 using System;
 using System.Collections.Generic;

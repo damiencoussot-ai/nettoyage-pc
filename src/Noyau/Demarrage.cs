@@ -1,4 +1,4 @@
-// Nettoyage PC - démarrage sans interface : moteur, commandes administrateur, état du PC en JSON, réponse de l'assistant,
+// Velox - démarrage sans interface : moteur, commandes administrateur, état du PC en JSON, réponse de l'assistant,
 // et ce que fait le programme avant d'ouvrir une fenêtre. Partagé par la version 4 et la version 5.
 using System;
 using System.Collections.Generic;
@@ -47,7 +47,7 @@ namespace NettoyagePC
             {
                 Langue.Choisir(Parametres.Lire().Langue);
                 Licence.Charger();
-                if (!Licence.Premium) { Console.Out.WriteLine(Langue.T("L'assistant fait partie de Nettoyage PC Premium.")); return 3; }
+                if (!Licence.Premium) { Console.Out.WriteLine(Langue.T("L'assistant fait partie de Velox Premium.")); return 3; }
                 var m = Assistant.Modeles();
                 string modele = Assistant.Conseille(m);
                 if (modele == "") { Console.Out.WriteLine(Langue.T("Ollama n'est pas démarré ou aucun modèle n'est installé.")); return 2; }
@@ -114,7 +114,7 @@ namespace NettoyagePC
                     if (p.Id == moi.Id || p.MainWindowHandle == IntPtr.Zero) continue;
                     if (Natif.IsIconic(p.MainWindowHandle)) Natif.ShowWindow(p.MainWindowHandle, 9);
                     Natif.SetForegroundWindow(p.MainWindowHandle);
-                    JournalDemarrage.Noter("Nettoyage PC est déjà ouvert : la fenêtre existante est ramenée au premier plan.");
+                    JournalDemarrage.Noter("Velox est déjà ouvert : la fenêtre existante est ramenée au premier plan.");
                     return;
                 }
             }

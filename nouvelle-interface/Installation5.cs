@@ -1,4 +1,4 @@
-// Nettoyage PC 5 - aperçu ou programme installé ?
+// Velox 5 - aperçu ou programme installé ?
 // Tant que la version 4 est le programme installé (Program Files) et que ce fichier n'est pas lui, la version 5 est un
 // aperçu : l'entretien automatique, le gardien et les mises à jour restent ceux de la version 4 (les tâches de Windows et
 // le lancement automatique doivent pointer vers le programme installé, pas vers un fichier d'aperçu qu'on peut déplacer).
@@ -30,7 +30,7 @@ namespace NettoyagePC.Nouveau
             catch { return null; }
         }
 
-        /// <summary>Vrai si un autre programme Nettoyage PC est installé et que celui-ci n'est qu'un aperçu.</summary>
+        /// <summary>Vrai si un autre programme Velox est installé et que celui-ci n'est qu'un aperçu.</summary>
         public static bool Apercu
         {
             get

@@ -1,4 +1,4 @@
-// Nettoyage PC - « Plein potentiel » : réglages qui brident le matériel sans qu'on le sache.
+// Velox - « Plein potentiel » : réglages qui brident le matériel sans qu'on le sache.
 // Écrans (fréquence réglée plus basse que possible, résolution non native, écran branché sur la puce graphique
 // du processeur), Resizable BAR / Smart Access Memory, liaison PCIe de la carte graphique, mémoire en simple canal,
 // profil EXPO / XMP. Lecture seule, sans droits administrateur.

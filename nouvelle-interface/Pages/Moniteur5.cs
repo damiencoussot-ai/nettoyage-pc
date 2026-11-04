@@ -1,4 +1,4 @@
-// Nettoyage PC 5 - moniteur en direct (Premium) : processeur, mémoire vive, place libre sur le disque et température
+// Velox 5 - moniteur en direct (Premium) : processeur, mémoire vive, place libre sur le disque et température
 // sur les 60 dernières secondes, en courbes style cockpit. Mesures en lecture seule, toutes les secondes, hors du fil
 // de l'interface ; elles s'arrêtent quand la fenêtre se ferme.
 using System;
@@ -36,7 +36,7 @@ namespace NettoyagePC.Nouveau
             F = f;
             var P = Habillage.P;
             Spacing = 14;
-            Children.Add(new TextBlock { Text = Langue.T("Les 60 dernières secondes, mises à jour chaque seconde. Rien n'est modifié : Nettoyage PC ne fait que lire les compteurs de Windows."), FontFamily = Habillage.Corps, FontSize = 13.5, Foreground = Habillage.Pinceau(P.Discret), TextWrapping = TextWrapping.Wrap });
+            Children.Add(new TextBlock { Text = Langue.T("Les 60 dernières secondes, mises à jour chaque seconde. Rien n'est modifié : Velox ne fait que lire les compteurs de Windows."), FontFamily = Habillage.Corps, FontSize = 13.5, Foreground = Habillage.Pinceau(P.Discret), TextWrapping = TextWrapping.Wrap });
             courbes = new[]
             {
                 new CourbeDirect5 { Titre = "PROCESSEUR", Unite = "%", Couleur = P.Accent, Max = 100 },

@@ -1,4 +1,4 @@
-// Nettoyage PC 5 - annonce du nouveau look (version 5.5) : montrée une fois, à la première ouverture après la mise à
+// Velox 5 - annonce du nouveau look (version 5.5) : montrée une fois, à la première ouverture après la mise à
 // jour, pour que personne ne soit perdu. Elle rappelle que rien n'a bougé ni disparu, et permet de revenir à
 // l'apparence d'avant en un clic (aussi dans Réglages, « Style de l'interface »).
 using System;
@@ -36,7 +36,7 @@ namespace NettoyagePC.Nouveau
             try { tete.Children.Add(new Image { Source = new Bitmap(AssetLoader.Open(new Uri("avares://NettoyagePC/Assets/logo.png"))), Width = 52, Height = 52, VerticalAlignment = VerticalAlignment.Center }); } catch { }
             var titres = new StackPanel { VerticalAlignment = VerticalAlignment.Center, Spacing = 2 };
             titres.Children.Add(new TextBlock { Text = Langue.F("NOUVEAU · VERSION {0}", Appli.Version), FontFamily = Habillage.Console, FontSize = 11, Foreground = Habillage.Pinceau(P.Accent) });
-            titres.Children.Add(new TextBlock { Text = Langue.T("Nettoyage PC change de look et de logo"), FontFamily = Habillage.Affichage, FontSize = 20, FontWeight = FontWeight.Bold, Foreground = Habillage.Pinceau(P.Texte), TextWrapping = TextWrapping.Wrap });
+            titres.Children.Add(new TextBlock { Text = Langue.T("Nouveau look et nouveau logo"), FontFamily = Habillage.Affichage, FontSize = 20, FontWeight = FontWeight.Bold, Foreground = Habillage.Pinceau(P.Texte), TextWrapping = TextWrapping.Wrap });
             tete.Children.Add(titres);
             s.Children.Add(tete);
             s.Children.Add(new TextBlock

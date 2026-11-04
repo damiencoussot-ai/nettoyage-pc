@@ -1,4 +1,4 @@
-﻿CONDITIONS DE VENTE DE NETTOYAGE PC PREMIUM
+﻿CONDITIONS DE VENTE DE VELOX PREMIUM
 Version du 24 octobre 2026
 
 
@@ -19,7 +19,7 @@ Ces conditions s'adressent aux particuliers comme aux professionnels. Les règle
 
 2. LE PRODUIT
 
-Nettoyage PC Premium est une licence logicielle qui débloque, dans Nettoyage PC, les outils suivants :
+Velox Premium est une licence logicielle qui débloque, dans Velox, les outils suivants :
 - Enquêteur « Pourquoi mon PC ralentit ? » : chronologie des changements du PC (applications, pilotes, mises à jour, démarrage, réglages) comparée à ses performances ;
 - Santé prédictive : erreurs du matériel et du disque, arrêts brutaux, usure des SSD, batterie et température, avec leur tendance ;
 - Assistant local : questions sur le PC traitées par un modèle d'intelligence artificielle qui fonctionne sur l'ordinateur grâce au logiciel tiers gratuit Ollama, à installer séparément (rien n'est envoyé à l'Éditeur) ;
@@ -35,7 +35,7 @@ Nettoyage PC Premium est une licence logicielle qui débloque, dans Nettoyage PC
 - Thèmes de couleur exclusifs.
 Les nouveaux outils Premium ajoutés dans les versions 4 et 5 sont inclus sans supplément.
 
-Durée et étendue : la licence est payée une seule fois. Elle est valable sans limite de durée pour toutes les versions 4 et 5 de Nettoyage PC, sur 3 ordinateurs au plus en même temps.
+Durée et étendue : la licence est payée une seule fois. Elle est valable sans limite de durée pour toutes les versions 4 et 5 de Velox, sur 3 ordinateurs au plus en même temps.
 
 Configuration nécessaire et fonctionnement :
 - Windows 10 ou Windows 11, 64 bits (rien d'autre à installer) ;
@@ -54,9 +54,9 @@ Le prix est de 9,99 € TTC (toutes taxes comprises), payé une seule fois. Le p
 
 4. COMMANDE ET PAIEMENT
 
-1) Dans Nettoyage PC (onglet Premium) ou sur le site officiel (https://damiencoussot-ai.github.io/nettoyage-pc/), cliquez sur « Acheter » après avoir accepté les présentes conditions et le contrat de licence.
+1) Dans Velox (onglet Premium) ou sur le site officiel (https://damiencoussot-ai.github.io/nettoyage-pc/), cliquez sur « Acheter » après avoir accepté les présentes conditions et le contrat de licence.
 2) La page de paiement sécurisée de Stripe s'ouvre dans votre navigateur. Vous y indiquez votre adresse e-mail et payez (carte bancaire, Apple Pay, Google Pay, Link ou autres moyens proposés).
-3) Juste après le paiement, votre clé de licence s'affiche à l'écran. Si vous avez acheté depuis Nettoyage PC, Premium s'active en plus automatiquement sur cet ordinateur.
+3) Juste après le paiement, votre clé de licence s'affiche à l'écran. Si vous avez acheté depuis Velox, Premium s'active en plus automatiquement sur cet ordinateur.
 4) Link vous envoie par e-mail le reçu et la facture.
 
 Les données de paiement sont traitées uniquement par Stripe, Link et leurs prestataires : l'Éditeur n'y a jamais accès.
@@ -64,7 +64,7 @@ Les données de paiement sont traitées uniquement par Stripe, Link et leurs pre
 
 5. LIVRAISON
 
-La clé de licence s'affiche à l'écran juste après le paiement. Pour un achat fait depuis Nettoyage PC, Premium s'active automatiquement sur l'ordinateur qui a lancé l'achat. Sur un autre ordinateur, collez la clé dans Nettoyage PC (Premium > J'ai une clé). Conservez votre clé. Si vous ne l'avez pas obtenue ou si vous l'avez perdue, écrivez à l'Éditeur avec l'adresse e-mail utilisée pour l'achat : votre clé vous sera renvoyée, ou un remboursement vous sera proposé.
+La clé de licence s'affiche à l'écran juste après le paiement. Pour un achat fait depuis Velox, Premium s'active automatiquement sur l'ordinateur qui a lancé l'achat. Sur un autre ordinateur, collez la clé dans Velox (Premium > J'ai une clé). Conservez votre clé. Si vous ne l'avez pas obtenue ou si vous l'avez perdue, écrivez à l'Éditeur avec l'adresse e-mail utilisée pour l'achat : votre clé vous sera renvoyée, ou un remboursement vous sera proposé.
 
 
 6. SATISFAIT OU REMBOURSÉ 14 JOURS ET DROIT DE RÉTRACTATION
@@ -80,7 +80,7 @@ La clé de licence s'affiche à l'écran juste après le paiement. Pour un achat
 Formulaire de rétractation (à compléter et à renvoyer uniquement si vous souhaitez vous rétracter) :
 ---------------------------------------------------------------------
 À l'attention de [PRÉNOM NOM] EI, [ADRESSE POSTALE], nettoyagepcai@gmail.com :
-Je vous notifie par la présente ma rétractation du contrat portant sur la licence « Nettoyage PC Premium » ci-dessous :
+Je vous notifie par la présente ma rétractation du contrat portant sur la licence « Velox Premium » ci-dessous :
 Commandée le :
 Adresse e-mail utilisée pour l'achat (et numéro de commande si connu) :
 Nom du consommateur :
@@ -122,7 +122,7 @@ Pour mettre en œuvre ces garanties, écrivez à nettoyagepcai@gmail.com en déc
 
 8. ASSISTANCE
 
-Pour toute question ou difficulté, écrivez à nettoyagepcai@gmail.com. Indiquez la version de Nettoyage PC (Réglages > À propos) et décrivez ce qui se passe ; le « Journal de démarrage » (Réglages) aide à comprendre un problème.
+Pour toute question ou difficulté, écrivez à nettoyagepcai@gmail.com. Indiquez la version de Velox (Réglages > À propos) et décrivez ce qui se passe ; le « Journal de démarrage » (Réglages) aide à comprendre un problème.
 
 
 9. RÉCLAMATIONS ET MÉDIATION

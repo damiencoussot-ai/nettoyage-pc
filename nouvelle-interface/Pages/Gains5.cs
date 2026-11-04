@@ -1,4 +1,4 @@
-// Nettoyage PC 5 - « Ce que tu as gagné » : après un nettoyage réel (rapide ou complet), l'espace libéré, la note du PC
+// Velox 5 - « Ce que tu as gagné » : après un nettoyage réel (rapide ou complet), l'espace libéré, la note du PC
 // avant / après, le total depuis le début, et la suite possible (programmes au démarrage qui peuvent attendre).
 using System;
 using System.Linq;

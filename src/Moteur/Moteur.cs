@@ -1,4 +1,4 @@
-// Nettoyage PC - moteur : le même programme, lancé avec --moteur (par l'interface ou l'entretien automatique)
+// Velox - moteur : le même programme, lancé avec --moteur (par l'interface ou l'entretien automatique)
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -210,7 +210,7 @@ namespace NettoyagePC
             if (O.AnalyseDemarrage) { AnalyseDemarrage(); return; }
             if (O.Kit) { KitReinstallation(); return; }
             if (O.Plantages) { AnalysePlantages(); return; }
-            if (Natif.Build < 10240 && Natif.EstWindows) { Ecrire("Nettoyage PC est conçu pour Windows 10 et Windows 11. Ce système est trop ancien : opération annulée par sécurité."); return; }
+            if (Natif.Build < 10240 && Natif.EstWindows) { Ecrire("Velox est conçu pour Windows 10 et Windows 11. Ce système est trop ancien : opération annulée par sécurité."); return; }
             if (O.TesterRam) { TesterRam(); return; }
             if (O.Planifier || O.Deplanifier) { Planification(); return; }
             if (O.PlanifierApps || O.DeplanifierApps) { PlanificationApps(); return; }
@@ -234,8 +234,8 @@ namespace NettoyagePC
             OuvrirJournal();
 
             verbe = O.Simulation ? "libérables" : "libérés";
-            Ecrire("Nettoyage PC complet - " + DateTime.Now.ToString("dd/MM/yyyy HH:mm") + " - " + Mode());
-            Ecrire("  " + InfosPc.Resume() + " - Nettoyage PC " + Appli.Version);
+            Ecrire("Velox complet - " + DateTime.Now.ToString("dd/MM/yyyy HH:mm") + " - " + Mode());
+            Ecrire("  " + InfosPc.Resume() + " - Velox " + Appli.Version);
             if (!Admin) Ecrire("  (Lancé sans droits administrateur : les éléments système seront ignorés)");
             Ecrire();
 
@@ -386,7 +386,7 @@ namespace NettoyagePC
             if (O.Notifier && !O.Simulation)
             {
                 int nb = alertesSecurite.Count + alertesDisques.Count;
-                string texte = nb > 0 ? nb + " point(s) à vérifier : ouvre Nettoyage PC." : "Tout va bien.";
+                string texte = nb > 0 ? nb + " point(s) à vérifier : ouvre Velox." : "Tout va bien.";
                 string libere = faireNettoyage ? T(grand) + " libérés. " : "";
                 try
                 {
@@ -398,7 +398,7 @@ namespace NettoyagePC
                     }
                 }
                 catch { }
-                Notification.Afficher("Nettoyage PC : entretien terminé", libere + texte);
+                Notification.Afficher("Velox : entretien terminé", libere + texte);
             }
         }
     }

@@ -1,6 +1,6 @@
-// Nettoyage PC - service de licences (Cloudflare Worker, gratuit).
+// Velox - service de licences (Cloudflare Worker, gratuit).
 //
-// Rôle : quand Stripe confirme un paiement de « Nettoyage PC Premium », créer une clé unique, la montrer
+// Rôle : quand Stripe confirme un paiement de « Velox Premium », créer une clé unique, la montrer
 // au client juste après le paiement, la donner à l'application qui a lancé l'achat, et répondre aux
 // vérifications de l'application (même format que l'API des licences de Lemon Squeezy : activate,
 // validate, deactivate). Un remboursement ou une contestation désactive la clé.
@@ -21,7 +21,7 @@
 //   GET/POST /admin                 page de l'éditeur : chercher une clé par e-mail, désactiver, libérer les PC
 
 const LIMITE_PC = 3;
-const PRODUIT = 'Nettoyage PC Premium';
+const PRODUIT = 'Velox Premium';
 const CONTACT = 'nettoyagepcai@gmail.com';
 const SITE = 'https://damiencoussot-ai.github.io/nettoyage-pc/';
 const ENTETES_PAGE = {
@@ -40,7 +40,7 @@ export default {
       if (chemin.startsWith('/v1/achats/') && requete.method === 'GET') return await achat(decodeURIComponent(chemin.slice(11)), env);
       if (chemin.startsWith('/v1/licenses/') && requete.method === 'POST') return await licences(chemin.slice(13), requete, env);
       if (chemin === '/admin') return await admin(requete, env);
-      if (chemin === '/') return new Response('Service de licences de Nettoyage PC.\n', { headers: { 'Content-Type': 'text/plain; charset=utf-8' } });
+      if (chemin === '/') return new Response('Service de licences de Velox.\n', { headers: { 'Content-Type': 'text/plain; charset=utf-8' } });
       return json({ error: 'not found' }, 404);
     } catch (e) {
       console.log('erreur', e && e.stack || e);
@@ -146,11 +146,11 @@ async function desactiverParPaiement(env, paiement, raison) {
 async function merci(url, env) {
   const session = url.searchParams.get('session_id') || '';
   const essai = Math.min(60, Math.max(0, parseInt(url.searchParams.get('essai') || '0', 10) || 0));
-  if (!/^cs_(test|live)_[A-Za-z0-9]{10,200}$/.test(session)) return page('Lien incomplet', '<p>Ce lien ne contient pas de numéro de commande. Si vous venez de payer, ouvrez Nettoyage PC : onglet Premium, ou écrivez à ' + CONTACT + '.</p>', 400);
+  if (!/^cs_(test|live)_[A-Za-z0-9]{10,200}$/.test(session)) return page('Lien incomplet', '<p>Ce lien ne contient pas de numéro de commande. Si vous venez de payer, ouvrez Velox : onglet Premium, ou écrivez à ' + CONTACT + '.</p>', 400);
   const cle = await env.LICENCES.get('ses:' + session);
   const lic = cle ? await lire(env, 'lic:' + cle) : null;
   if (!lic) {
-    if (essai >= 45) return page('Paiement reçu', '<p>Votre paiement est enregistré, mais la clé n\'est pas encore prête. Rechargez cette page dans quelques minutes.</p><p>Si vous avez acheté depuis Nettoyage PC, Premium s\'activera tout seul dans l\'application. Sinon, écrivez à <b>' + CONTACT + '</b> avec l\'adresse e-mail utilisée pour l\'achat : nous vous enverrons votre clé.</p>');
+    if (essai >= 45) return page('Paiement reçu', '<p>Votre paiement est enregistré, mais la clé n\'est pas encore prête. Rechargez cette page dans quelques minutes.</p><p>Si vous avez acheté depuis Velox, Premium s\'activera tout seul dans l\'application. Sinon, écrivez à <b>' + CONTACT + '</b> avec l\'adresse e-mail utilisée pour l\'achat : nous vous enverrons votre clé.</p>');
     const suite = '/merci?session_id=' + encodeURIComponent(session) + '&essai=' + (essai + 1);
     return page('Préparation de votre clé…', '<p class="attente">Paiement reçu. Votre clé est en cours de création, cela prend quelques secondes.</p><p class="petit">La page se met à jour toute seule.</p>', 200, '<meta http-equiv="refresh" content="3;url=' + echapper(suite) + '">');
   }
@@ -158,8 +158,8 @@ async function merci(url, env) {
   const corps = '<p>Merci pour votre achat ! Voici votre clé ' + PRODUIT + ' :</p>' +
     '<div class="cle" id="cle">' + echapper(lic.cle) + '</div>' +
     '<p><button type="button" id="copier">Copier la clé</button> <span id="copiee" class="petit"></span></p>' +
-    '<ul><li><b>Si vous avez acheté depuis Nettoyage PC</b>, Premium s\'active tout seul : revenez simplement dans l\'application.</li>' +
-    '<li><b>Sinon</b>, ouvrez Nettoyage PC, onglet <b>Premium</b>, bouton <b>« J\'ai une clé »</b>, et collez la clé.</li>' +
+    '<ul><li><b>Si vous avez acheté depuis Velox</b>, Premium s\'active tout seul : revenez simplement dans l\'application.</li>' +
+    '<li><b>Sinon</b>, ouvrez Velox, onglet <b>Premium</b>, bouton <b>« J\'ai une clé »</b>, et collez la clé.</li>' +
     '<li>La clé fonctionne sur ' + LIMITE_PC + ' PC à la fois. <b>Gardez-la</b> (notez-la ou faites une capture d\'écran) pour vos autres PC.</li></ul>' +
     '<p class="petit">Le reçu et la facture vous sont envoyés par e-mail par Link, le service de paiement de Stripe. Satisfait ou remboursé 14 jours : écrivez à ' + CONTACT + '. ' +
     (lic.test ? '<b>Clé de test : elle ne fonctionne qu\'avec la boutique en mode test.</b>' : '') + '</p>' +
@@ -171,7 +171,7 @@ async function merci(url, env) {
 
 function page(titre, corps, statut = 200, entete = '') {
   const html = '<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">' + entete +
-    '<title>' + echapper(titre) + ' · Nettoyage PC</title><style>' +
+    '<title>' + echapper(titre) + ' · Velox</title><style>' +
     ':root{--fond:#060A12;--carte:#0A1220;--bord:#18323F;--texte:#DDEBF5;--discret:#8AA0B4;--accent:#3DF5FF;color-scheme:dark}' +
     '@media (prefers-color-scheme:light){:root{--fond:#EEF3F7;--carte:#fff;--bord:#CBD9E3;--texte:#0E1C26;--discret:#4C6170;--accent:#007A9E;color-scheme:light}}' +
     'body{margin:0;background:var(--fond);color:var(--texte);font:16px/1.6 "Segoe UI",system-ui,sans-serif}' +
@@ -181,7 +181,7 @@ function page(titre, corps, statut = 200, entete = '') {
     '.cle{font:600 1.25rem "Cascadia Mono",Consolas,monospace;letter-spacing:.04em;background:var(--carte);border:1px solid var(--accent);padding:16px;margin:12px 0;overflow-wrap:anywhere;user-select:all}' +
     'button{font:600 1rem "Segoe UI",sans-serif;padding:10px 18px;border:0;border-radius:3px;background:var(--accent);color:#04121A;cursor:pointer}' +
     '.petit{color:var(--discret);font-size:.9rem}ul{padding-left:20px}li{margin:6px 0}.attente::before{content:"◌ ";color:var(--accent)}a{color:var(--accent)}' +
-    '</style></head><body><main><a class="marque" href="' + SITE + '">Nettoyage PC</a><h1>' + echapper(titre) + '</h1>' + corps + '</main></body></html>';
+    '</style></head><body><main><a class="marque" href="' + SITE + '">Velox</a><h1>' + echapper(titre) + '</h1>' + corps + '</main></body></html>';
   return new Response(html, { status: statut, headers: ENTETES_PAGE });
 }
 

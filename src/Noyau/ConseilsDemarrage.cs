@@ -1,4 +1,4 @@
-// Nettoyage PC - conseil pour chaque programme lancé au démarrage : impact estimé et ce qu'il vaut mieux en faire.
+// Velox - conseil pour chaque programme lancé au démarrage : impact estimé et ce qu'il vaut mieux en faire.
 // Sans interface (partagé par la version 4 et la version 5). Rien n'est modifié ici : le conseil aide seulement à choisir.
 // L'impact est une estimation d'après le type de programme (lanceur de jeux, messagerie, mise à jour...) : Windows ne
 // donne pas la mesure exacte sans analyse du démarrage (outil Premium « Analyse du démarrage »).
@@ -101,7 +101,7 @@ namespace NettoyagePC
             string texte = (nom ?? "") + " " + (commande ?? "");
             var r = Regles.FirstOrDefault(x => x.Motif.IsMatch(texte));
             if (r != null) return new ConseilDemarrage { Impact = r.Impact, Choix = r.Choix, Conseil = r.Conseil };
-            return new ConseilDemarrage { Impact = 1, Choix = ChoixDemarrage.AuChoix, Conseil = "Programme inconnu de Nettoyage PC : si tu ne sais pas à quoi il sert, cherche son nom avant de le désactiver." };
+            return new ConseilDemarrage { Impact = 1, Choix = ChoixDemarrage.AuChoix, Conseil = "Programme inconnu de Velox : si tu ne sais pas à quoi il sert, cherche son nom avant de le désactiver." };
         }
 
         /// <summary>Programmes actifs qui peuvent attendre (lanceurs, messageries, préchargements).</summary>

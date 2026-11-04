@@ -1,4 +1,4 @@
-# Nettoyage PC - fabrique le site officiel (dossier docs, publié par GitHub Pages).
+# Velox - fabrique le site officiel (dossier docs, publié par GitHub Pages).
 # Lancer depuis le dossier du code source :  python site/fabriquer-site.py
 # Les pages légales sont tirées des fichiers legal\*.txt (les mêmes que dans le logiciel) :
 # modifie les .txt, relance ce script, et le site suit. Le lien d'achat et la version viennent du code.
@@ -93,8 +93,8 @@ MODELE_LEGAL = '''<!doctype html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>{nom} · Nettoyage PC</title>
-<meta name="description" content="{nom} de Nettoyage PC.">
+<title>{nom} · Velox</title>
+<meta name="description" content="{nom} de Velox.">
 <link rel="icon" type="image/png" href="img/icone-64.png">
 <style>
 :root {{ --fond: #060A12; --carte: #0A1220; --bordure: #18323F; --texte: #DDEBF5; --discret: #8AA0B4; --accent: #3DF5FF; --orange: #FFB547; --sur-accent: #04121A;
@@ -132,7 +132,7 @@ mark.a-completer {{ background: var(--orange); color: var(--sur-accent); padding
 </head>
 <body>
 <header class="entete"><div class="enveloppe">
-  <a class="marque" href="index.html"><img src="img/icone-64.png" alt="" width="28" height="28">Nettoyage PC</a>
+  <a class="marque" href="index.html"><img src="img/icone-64.png" alt="" width="28" height="28">Velox</a>
   <nav class="autres" aria-label="Informations légales">{nav}</nav>
 </div></header>
 <main class="enveloppe">
@@ -148,7 +148,7 @@ mark.a-completer {{ background: var(--orange); color: var(--sur-accent); padding
 '''
 
 def titre_lisible(t):
-    # « CONDITIONS DE VENTE DE NETTOYAGE PC PREMIUM » -> « Conditions de vente de Nettoyage PC Premium »
+    # « CONDITIONS DE VENTE DE VELOX PREMIUM » -> « Conditions de vente de Velox Premium »
     t = t.capitalize()
     for mot in ['Nettoyage pc', 'nettoyage pc']: t = t.replace(mot, 'Nettoyage PC')
     return t.replace(' premium', ' Premium').replace(' pc ', ' PC ')

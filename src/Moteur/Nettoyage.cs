@@ -1,4 +1,4 @@
-// Nettoyage PC - moteur : point de restauration, nettoyage des fichiers, téléchargements, nettoyage profond
+// Velox - moteur : point de restauration, nettoyage des fichiers, téléchargements, nettoyage profond
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -41,7 +41,7 @@ namespace NettoyagePC
                 using (var cls = new ManagementClass(new ManagementScope(@"\\.\root\default"), new ManagementPath("SystemRestore"), null))
                 {
                     var p = cls.GetMethodParameters("CreateRestorePoint");
-                    p["Description"] = "Nettoyage PC - " + DateTime.Now.ToString("dd/MM/yyyy HH:mm");
+                    p["Description"] = "Velox - " + DateTime.Now.ToString("dd/MM/yyyy HH:mm");
                     p["RestorePointType"] = 12;   // modification de réglages
                     p["EventType"] = 100;
                     var r = cls.InvokeMethod("CreateRestorePoint", p, null);

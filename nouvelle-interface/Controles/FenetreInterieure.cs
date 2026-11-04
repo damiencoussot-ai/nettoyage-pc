@@ -1,4 +1,4 @@
-// Nettoyage PC 5 - fenêtre intérieure : fond assombri, carte au centre avec un titre, le contenu et « Fermer ».
+// Velox 5 - fenêtre intérieure : fond assombri, carte au centre avec un titre, le contenu et « Fermer ».
 // Remplace les petites fenêtres Windows de la version 4 (bouclier, réglages...) : tout reste dans la fenêtre.
 using System;
 using Avalonia;

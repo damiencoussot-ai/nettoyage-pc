@@ -1,4 +1,4 @@
-// Nettoyage PC 5 - doublons : fichiers au contenu identique (empreinte SHA-256). Nettoyage PC propose la copie
+// Velox 5 - doublons : fichiers au contenu identique (empreinte SHA-256). Velox propose la copie
 // à garder ; tu vérifies, tu changes les cases si besoin, puis tu confirmes. Les copies vont à la corbeille
 // (restaurables depuis l'Historique) ; chaque fichier est revérifié juste avant.
 using System;
@@ -35,7 +35,7 @@ namespace NettoyagePC.Nouveau
             F = f;
             var P = Habillage.P;
             Spacing = 10; Margin = new Thickness(0, 0, 12, 0);
-            Children.Add(new TextBlock { Text = Langue.T("Trouve les fichiers au contenu identique (comparés octet par octet grâce à une empreinte SHA-256, pas seulement le nom). Nettoyage PC propose la copie à garder : vérifie, change les cases si besoin, puis confirme. Les copies vont à la corbeille et peuvent être restaurées depuis l'Historique."), FontFamily = Habillage.Corps, FontSize = 13.5, Foreground = Habillage.Pinceau(P.Discret), TextWrapping = TextWrapping.Wrap });
+            Children.Add(new TextBlock { Text = Langue.T("Trouve les fichiers au contenu identique (comparés octet par octet grâce à une empreinte SHA-256, pas seulement le nom). Velox propose la copie à garder : vérifie, change les cases si besoin, puis confirme. Les copies vont à la corbeille et peuvent être restaurées depuis l'Historique."), FontFamily = Habillage.Corps, FontSize = 13.5, Foreground = Habillage.Pinceau(P.Discret), TextWrapping = TextWrapping.Wrap });
             var ligne = new WrapPanel { Orientation = Orientation.Horizontal };
             ligne.Children.Add(Etiquette("Où chercher :"));
             foreach (var t in new[] { "Mes dossiers (Documents, Images, Vidéos, Musique, Bureau, Téléchargements)", "Tout mon dossier utilisateur", "Choisir un dossier…" }) ou.Items.Add(Langue.T(t));
@@ -280,7 +280,7 @@ namespace NettoyagePC.Nouveau
                 if (faits.Count > 0)
                 {
                     Historique.Ajouter("corbeille", "Doublons : " + faits.Count + " fichier(s) mis à la corbeille (" + Format.Taille(octets) + ")", new Dictionary<string, object> { { "Fichiers", faits.ToArray() } });
-                    var l = new List<string> { "Nettoyage PC - doublons mis à la corbeille le " + DateTime.Now.ToString("dd/MM/yyyy HH:mm"), "", "Mis à la corbeille :" };
+                    var l = new List<string> { "Velox - doublons mis à la corbeille le " + DateTime.Now.ToString("dd/MM/yyyy HH:mm"), "", "Mis à la corbeille :" };
                     l.AddRange(faits.Select(x => "  " + x));
                     if (ignores.Count > 0) { l.Add(""); l.Add("Non touchés :"); l.AddRange(ignores.Select(x => "  " + x)); }
                     FichierSur.Ecrire(Chemins.Fichier("doublons_" + DateTime.Now.ToString("yyyy-MM-dd_HH-mm") + ".txt"), string.Join("\r\n", l) + "\r\n");

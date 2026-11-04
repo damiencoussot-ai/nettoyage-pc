@@ -1,4 +1,4 @@
-// Nettoyage PC 5 - réglages du gardien en temps réel et de la sauvegarde automatique (Premium). Les réglages sont ceux
+// Velox 5 - réglages du gardien en temps réel et de la sauvegarde automatique (Premium). Les réglages sont ceux
 // de la version 4 (même fichier) : dans l'aperçu, le gardien lui-même reste celui de la version 4 installée, c'est
 // donc elle qui l'active (la clé de démarrage de Windows doit pointer vers le programme installé).
 using System;

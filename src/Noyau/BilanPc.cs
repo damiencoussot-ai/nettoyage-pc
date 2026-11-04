@@ -1,4 +1,4 @@
-// Nettoyage PC - bilan de santé du PC (accueil) : collecte, points à vérifier, note sur 100 et secteurs de l'anneau.
+// Velox - bilan de santé du PC (accueil) : collecte, points à vérifier, note sur 100 et secteurs de l'anneau.
 // Sans interface : partagé par la version 4 (WinForms) et la version 5 (Avalonia). Rien n'est modifié sur le PC.
 using System;
 using System.Collections.Generic;
@@ -84,7 +84,7 @@ namespace NettoyagePC
             long recup = d.Corbeille + d.Temp;
             if (recup >= 1073741824L) { Point("attention", Format.Taille(recup) + " récupérables tout de suite (corbeille et fichiers temporaires).", "Nettoyer", "action:standard"); }
             else Point("ok", "Corbeille et fichiers temporaires : " + Format.Taille(recup), null, null);
-            if (!d.DernierJournal.HasValue) { Point("attention", "Aucun nettoyage effectué avec Nettoyage PC pour l'instant.", "Nettoyer", "action:standard"); }
+            if (!d.DernierJournal.HasValue) { Point("attention", "Aucun nettoyage effectué avec Velox pour l'instant.", "Nettoyer", "action:standard"); }
             else
             {
                 int jours = (int)(DateTime.Now - d.DernierJournal.Value).TotalDays;

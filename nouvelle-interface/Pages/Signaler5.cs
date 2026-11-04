@@ -1,4 +1,4 @@
-// Nettoyage PC 5 - « Signaler un problème » : la personne décrit ce qui s'est passé, voit le rapport complet (anonyme)
+// Velox 5 - « Signaler un problème » : la personne décrit ce qui s'est passé, voit le rapport complet (anonyme)
 // avant tout envoi, puis choisit : l'envoyer par son e-mail (nettoyagepcai@gmail.com), le copier ou l'enregistrer.
 // Rien ne part tout seul : c'est sa propre messagerie qui envoie, après qu'elle a cliqué « Envoyer ».
 using System;
@@ -16,7 +16,7 @@ namespace NettoyagePC.Nouveau
         {
             var P = Habillage.P;
             var s = new StackPanel { Spacing = 12 };
-            s.Children.Add(new TextBlock { Text = Langue.T("Le rapport contient la version de Nettoyage PC, celle de Windows et les dernières erreurs du journal. Ton nom, celui du PC, tes adresses e-mail et tes dossiers personnels sont masqués. Tu le vois en entier avant de l'envoyer."), FontFamily = Habillage.Corps, FontSize = 13.5, Foreground = Habillage.Pinceau(P.Discret), TextWrapping = TextWrapping.Wrap });
+            s.Children.Add(new TextBlock { Text = Langue.T("Le rapport contient la version de Velox, celle de Windows et les dernières erreurs du journal. Ton nom, celui du PC, tes adresses e-mail et tes dossiers personnels sont masqués. Tu le vois en entier avant de l'envoyer."), FontFamily = Habillage.Corps, FontSize = 13.5, Foreground = Habillage.Pinceau(P.Discret), TextWrapping = TextWrapping.Wrap });
             s.Children.Add(new TextBlock { Text = Langue.T("Que s'est-il passé ? (facultatif)"), FontFamily = Habillage.Corps, FontSize = 13.5, FontWeight = FontWeight.SemiBold, Foreground = Habillage.Pinceau(P.Texte) });
             var description = new TextBox { AcceptsReturn = true, TextWrapping = TextWrapping.Wrap, Height = 70, MaxLength = 1500, Watermark = Langue.T("Par exemple : la fenêtre se ferme quand je clique sur Nettoyage profond.") };
             s.Children.Add(description);
@@ -35,7 +35,7 @@ namespace NettoyagePC.Nouveau
                 // un lien « mailto » ne peut pas porter un texte trop long : le rapport complet est aussi copié, à coller si besoin
                 await Copier(f, texte);
                 string corps = texte.Length > 1600 ? texte.Substring(0, 1600) + "\n…\n" + Langue.T("(rapport complet copié : colle-le ici avec Ctrl+V)") : texte;
-                string lien = "mailto:" + RapportBug.Adresse + "?subject=" + Uri.EscapeDataString("Nettoyage PC " + Appli.Version + " : problème") + "&body=" + Uri.EscapeDataString(corps);
+                string lien = "mailto:" + RapportBug.Adresse + "?subject=" + Uri.EscapeDataString("Velox " + Appli.Version + " : problème") + "&body=" + Uri.EscapeDataString(corps);
                 try { Programmes.Ouvrir(lien); f.Statut("Ta messagerie s'ouvre avec le rapport : vérifie-le, puis clique sur Envoyer."); }
                 catch { f.Statut(Langue.F("Aucune messagerie n'est configurée : le rapport est copié, colle-le dans un e-mail à {0}.", RapportBug.Adresse), true); }
                 if (fen != null) fen.Fermer();

@@ -1,4 +1,4 @@
-﻿// Nettoyage PC - sécurité des chemins, écritures sûres, lancement de programmes
+﻿// Velox - sécurité des chemins, écritures sûres, lancement de programmes
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;

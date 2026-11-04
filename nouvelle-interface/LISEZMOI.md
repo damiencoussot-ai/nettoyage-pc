@@ -1,4 +1,4 @@
-# Nettoyage PC 5 — nouvelle interface (en construction)
+# Velox 5 — nouvelle interface (en construction)
 
 Interface refaite avec [Avalonia](https://avaloniaui.net) (.NET 10) : le dessin passe par la carte graphique,
 les animations (anneau, menu, transitions) sont fluides et s'arrêtent quand la fenêtre est en arrière-plan.

@@ -1,4 +1,4 @@
-// Nettoyage PC - moteur : analyse des plantages (Premium). Lecture seule des journaux de Windows (Système, Application) sur 90 jours :
+// Velox - moteur : analyse des plantages (Premium). Lecture seule des journaux de Windows (Système, Application) sur 90 jours :
 // écrans bleus, arrêts brutaux, erreurs matérielles (WHEA), erreurs de disque, pilote graphique qui redémarre, applications qui plantent ou se figent.
 using System;
 using System.Collections.Generic;

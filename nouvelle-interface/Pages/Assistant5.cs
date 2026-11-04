@@ -1,4 +1,4 @@
-// Nettoyage PC 5 - assistant local (Premium) : questions sur le PC, réponses d'un modèle d'IA qui tourne sur le PC
+// Velox 5 - assistant local (Premium) : questions sur le PC, réponses d'un modèle d'IA qui tourne sur le PC
 // (Ollama, rien ne part sur Internet). Il ne peut proposer que des actions, rubriques et outils d'une liste fixe
 // (moteur), et chaque action proposée passe par la question habituelle avant de modifier quoi que ce soit.
 using System;

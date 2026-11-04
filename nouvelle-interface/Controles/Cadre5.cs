@@ -1,4 +1,4 @@
-// Nettoyage PC 5 - cadre des cartes : coins coupés (style HUD) ou légèrement arrondis (style classique).
+// Velox 5 - cadre des cartes : coins coupés (style HUD) ou légèrement arrondis (style classique).
 // Mêmes propriétés que Border (fond, bordure, rayon, marge intérieure, enfant) pour remplacer un Border sans autre changement.
 using System;
 using Avalonia;

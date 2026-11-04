@@ -1,4 +1,4 @@
-// Nettoyage PC - ce qui est activé, et est-ce que ça fonctionne : entretien automatique, gardien et ses fonctions,
+// Velox - ce qui est activé, et est-ce que ça fonctionne : entretien automatique, gardien et ses fonctions,
 // mises à jour automatiques, mode jeu, Premium ; plus quelques vérifications de l'application elle-même (dossier des
 // données, réglages, erreurs récentes). Lecture seule : rien n'est modifié ici. Sans interface : partagé v4 / v5.
 using System;
@@ -129,7 +129,7 @@ namespace NettoyagePC
 
         private static EtatFonction Dossier()
         {
-            var e = new EtatFonction { Id = "donnees", Nom = "Dossier de Nettoyage PC", Groupe = Application, Actif = true, Detail = Chemins.Donnees };
+            var e = new EtatFonction { Id = "donnees", Nom = "Dossier de Velox", Groupe = Application, Actif = true, Detail = Chemins.Donnees };
             foreach (var d in new[] { Chemins.Donnees, Chemins.Local })
             {
                 try

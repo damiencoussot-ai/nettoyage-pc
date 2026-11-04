@@ -1,4 +1,4 @@
-// Nettoyage PC - lecture des résultats de l'analyse des plantages et de l'analyse du démarrage (données envoyées par le
+// Velox - lecture des résultats de l'analyse des plantages et de l'analyse du démarrage (données envoyées par le
 // moteur : « @@DONNEES plantages » et « @@DONNEES demarrage »). Partagé par les deux interfaces.
 using System;
 using System.Collections.Generic;

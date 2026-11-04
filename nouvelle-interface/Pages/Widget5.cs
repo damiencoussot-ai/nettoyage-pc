@@ -1,4 +1,4 @@
-// Nettoyage PC 5 - widget de bureau (Premium) : petite fenêtre HUD toujours visible, en bas à droite de l'écran,
+// Velox 5 - widget de bureau (Premium) : petite fenêtre HUD toujours visible, en bas à droite de l'écran,
 // avec l'indice du PC, le processeur, la mémoire vive, la température et un bouton « Nettoyer » (qui pose la question
 // habituelle dans la fenêtre principale : rien n'est lancé sans ton accord). Se déplace à la souris, se ferme d'un clic.
 using System;
@@ -34,7 +34,7 @@ namespace NettoyagePC.Nouveau
             var w = new Window
             {
                 Width = 300, SizeToContent = SizeToContent.Height, SystemDecorations = SystemDecorations.None, Topmost = true, CanResize = false, ShowInTaskbar = false,
-                Background = Brushes.Transparent, TransparencyLevelHint = new[] { WindowTransparencyLevel.Transparent }, Title = "Nettoyage PC",
+                Background = Brushes.Transparent, TransparencyLevelHint = new[] { WindowTransparencyLevel.Transparent }, Title = "Velox",
                 Content = contenu,
             };
             contenu.Fermer += () => w.Close();
@@ -69,7 +69,7 @@ namespace NettoyagePC.Nouveau
             var cadre = new Cadre5 { Coupe = 16, Padding = new Thickness(16, 12, 14, 14), Background = Habillage.Pinceau(P.Sombre ? Color.FromRgb(5, 12, 19) : Colors.White, 245), BorderBrush = Habillage.Pinceau(P.Accent, 120), BorderThickness = new Thickness(1) };
             var s = new StackPanel { Spacing = 8 };
             var tete = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto") };
-            tete.Children.Add(new TextBlock { Text = "NETTOYAGE PC // " + Langue.T("EN DIRECT"), FontFamily = Habillage.Console, FontSize = 10.5, LetterSpacing = 1, Foreground = Habillage.Pinceau(P.Accent), VerticalAlignment = VerticalAlignment.Center });
+            tete.Children.Add(new TextBlock { Text = "VELOX // " + Langue.T("EN DIRECT"), FontFamily = Habillage.Console, FontSize = 10.5, LetterSpacing = 1, Foreground = Habillage.Pinceau(P.Accent), VerticalAlignment = VerticalAlignment.Center });
             var fermer = new Button { Content = "✕", Padding = new Thickness(6, 0), Background = Brushes.Transparent, BorderThickness = new Thickness(0), Foreground = Habillage.Pinceau(P.Discret), FontSize = 12, Cursor = new Cursor(StandardCursorType.Hand) };
             ToolTip.SetTip(fermer, Langue.T("Fermer le widget"));
             fermer.Click += (o, e) => { var x = Fermer; if (x != null) x(); };

@@ -1,4 +1,4 @@
-// Nettoyage PC - cœur du gardien en temps réel (Premium) : vérifications légères toutes les minutes (mémoire, chaleur,
+// Velox - cœur du gardien en temps réel (Premium) : vérifications légères toutes les minutes (mémoire, chaleur,
 // démarrage, disque, antivirus, anti-arnaque, santé, électricité, sauvegarde automatique). Il ne ferme jamais rien et ne
 // modifie rien d'autre que le nettoyage léger automatique (si activé) ; il prévient par une notification.
 // L'icône près de l'horloge (et ses notifications) est fournie par l'interface : WinForms en version 4, native en version 5.
@@ -56,7 +56,7 @@ namespace NettoyagePC
             S.Notifier(Langue.T(titre), Langue.T(texte), type, clic);
         }
 
-        public void Pause() { PauseJusqua = DateTime.Now.AddHours(1); S.Infobulle(Langue.T("Nettoyage PC : gardien en pause")); }
+        public void Pause() { PauseJusqua = DateTime.Now.AddHours(1); S.Infobulle(Langue.T("Velox : gardien en pause")); }
 
         public void Recharger() { R = ReglagesGardien.Lire(); if (!R.Actif) S.Quitter(); }
 
@@ -87,7 +87,7 @@ namespace NettoyagePC
         public void Verifier()
         {
             tick++;
-            if (DateTime.Now >= PauseJusqua && PauseJusqua != DateTime.MinValue) { PauseJusqua = DateTime.MinValue; S.Infobulle(Langue.T("Nettoyage PC : gardien actif")); }
+            if (DateTime.Now >= PauseJusqua && PauseJusqua != DateTime.MinValue) { PauseJusqua = DateTime.MinValue; S.Infobulle(Langue.T("Velox : gardien actif")); }
             if (Interlocked.CompareExchange(ref occupe, 1, 0) != 0) return;
             int n = tick;
             System.Threading.Tasks.Task.Run(() =>

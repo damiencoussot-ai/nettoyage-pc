@@ -1,4 +1,4 @@
-// Nettoyage PC - santé de la batterie (Premium) : rapport de Windows (powercfg /batteryreport, sans droits administrateur),
+// Velox - santé de la batterie (Premium) : rapport de Windows (powercfg /batteryreport, sans droits administrateur),
 // avec repli sur les compteurs WMI de la batterie.
 using System;
 using System.Collections.Generic;

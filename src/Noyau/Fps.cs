@@ -1,7 +1,7 @@
-﻿// Nettoyage PC - « Preuve en FPS » (Premium) : mesure des images par seconde réelles d'un jeu avec PresentMon
+﻿// Velox - « Preuve en FPS » (Premium) : mesure des images par seconde réelles d'un jeu avec PresentMon
 // (outil libre d'Intel, github.com/GameTechDev/PresentMon), avant / après un réglage.
 // PresentMon est téléchargé depuis sa page GitHub officielle, vérifié (empreinte SHA256 publiée par GitHub, ou signature
-// numérique d'Intel), puis copié dans le dossier protégé de Nettoyage PC (Program Files) où il est revérifié avant chaque
+// numérique d'Intel), puis copié dans le dossier protégé de Velox (Program Files) où il est revérifié avant chaque
 // mesure. Il ne lit que le rythme des images affichées : rien d'autre n'est enregistré.
 using System;
 using System.Collections.Generic;

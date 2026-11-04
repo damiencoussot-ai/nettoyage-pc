@@ -1,4 +1,4 @@
-// Nettoyage PC - inventaire sans interface : matériel (mémoire, carte mère, BIOS, disques) et éléments du démarrage.
+// Velox - inventaire sans interface : matériel (mémoire, carte mère, BIOS, disques) et éléments du démarrage.
 // Partagé par l'interface de la version 4 et par la nouvelle interface (version 5).
 using System;
 using System.Collections.Generic;
@@ -147,7 +147,7 @@ namespace NettoyagePC
         {
             var sb = new StringBuilder();
             Action<string> l = s => sb.AppendLine(s);
-            l("Résumé du PC « " + Environment.MachineName + " » - Nettoyage PC " + Appli.Version + " - " + DateTime.Now.ToString("dd/MM/yyyy HH:mm"));
+            l("Résumé du PC « " + Environment.MachineName + " » - Velox " + Appli.Version + " - " + DateTime.Now.ToString("dd/MM/yyyy HH:mm"));
             l("Windows : " + InfosPc.Edition + " (build " + Natif.Build + ", " + (Environment.Is64BitOperatingSystem ? "64" : "32") + " bits)" + (InfosPc.EstPortable ? ", PC portable" : ""));
             try { l("Démarré depuis : " + Math.Floor(TimeSpan.FromMilliseconds(Environment.TickCount & int.MaxValue).TotalHours) + " h" + (InfosPc.RedemarrageEnAttente() ? " (redémarrage en attente)" : "")); } catch { }
             l("Processeur : " + InfosPc.Processeur());

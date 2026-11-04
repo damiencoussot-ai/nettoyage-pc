@@ -1,4 +1,4 @@
-// Nettoyage PC - réseau : ping, débit, serveurs DNS (comparaison et changement réversible)
+// Velox - réseau : ping, débit, serveurs DNS (comparaison et changement réversible)
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;

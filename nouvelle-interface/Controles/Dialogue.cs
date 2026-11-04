@@ -1,4 +1,4 @@
-// Nettoyage PC 5 - question posée dans la fenêtre (pas de boîte Windows grise) : fond assombri, carte au centre,
+// Velox 5 - question posée dans la fenêtre (pas de boîte Windows grise) : fond assombri, carte au centre,
 // deux boutons. Échap = non, Entrée = le bouton principal. Rien n'est lancé sans réponse.
 using System;
 using Avalonia;

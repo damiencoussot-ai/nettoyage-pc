@@ -1,4 +1,4 @@
-// Nettoyage PC - santé prédictive (Premium) : signes de faiblesse du matériel et tendances
+// Velox - santé prédictive (Premium) : signes de faiblesse du matériel et tendances
 // (erreurs matérielles corrigées, erreurs du disque, arrêts brutaux, usure des SSD, batterie, température de la carte graphique).
 // Les prévisions sont de simples tendances : elles disent « à ce rythme », jamais une certitude.
 using System;

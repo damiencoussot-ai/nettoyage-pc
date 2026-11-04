@@ -1,4 +1,4 @@
-﻿// Nettoyage PC - « Pourquoi mon PC ralentit ? » (Premium) : chronologie de tout ce qui a changé sur le PC
+﻿// Velox - « Pourquoi mon PC ralentit ? » (Premium) : chronologie de tout ce qui a changé sur le PC
 // (applications, pilotes, mises à jour, programmes au démarrage, services, réglages), croisée avec ses performances
 // (durée des démarrages, plantages, mesures de performances). Tout est lu sur le PC et reste sur le PC.
 using System;
@@ -203,7 +203,7 @@ namespace NettoyagePC
             {
                 foreach (var p in ProgrammesInstalles.Lister())
                 {
-                    if (!p.Date.HasValue || p.Date.Value < limite || p.Nom.StartsWith("Nettoyage PC")) continue;
+                    if (!p.Date.HasValue || p.Date.Value < limite || p.Nom.StartsWith("Velox")) continue;
                     var c = new Changement { Date = p.Date.Value.Date.AddHours(12), Type = "Application", Titre = Langue.F("Installée : {0}", p.Nom), Cible = "page:Applications" };
                     if (Lourds.IsMatch(p.Nom) || Lourds.IsMatch(p.Editeur)) { c.Suspicion = 2; c.Pourquoi = Langue.T("Les « optimiseurs », les antivirus en double et les barres d'outils ralentissent souvent le PC."); }
                     else if (demarrageActuel.Any(n => n.Length >= 4 && (p.Nom.IndexOf(n, StringComparison.OrdinalIgnoreCase) >= 0 || n.IndexOf(p.Nom.Split(' ')[0], StringComparison.OrdinalIgnoreCase) >= 0 && p.Nom.Split(' ')[0].Length >= 4)))

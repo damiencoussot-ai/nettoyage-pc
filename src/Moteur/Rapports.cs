@@ -1,4 +1,4 @@
-// Nettoyage PC - moteur : rapports, compatibilité, surveillance, entretien automatique
+// Velox - moteur : rapports, compatibilité, surveillance, entretien automatique
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -130,7 +130,7 @@ namespace NettoyagePC
             Ecrire("  Processeur   : " + InfosPc.Processeur());
             foreach (var g in InfosPc.CartesGraphiques()) Ecrire("  Graphique    : " + g.Nom + " (pilote " + g.VersionPilote + (g.DatePilote.HasValue ? " du " + g.DatePilote.Value.ToString("dd/MM/yyyy") : "") + ")");
             foreach (var d in DisquePhysique.Lister(false)) Ecrire("  Disque       : " + d.Nom + " (" + d.Type + ", " + d.Bus + ")");
-            Ecrire("  Programme    : Nettoyage PC " + Appli.Version + " (.NET " + Environment.Version + "), " + (Chemins.EstInstalle ? "installé" : "version portable"));
+            Ecrire("  Programme    : Velox " + Appli.Version + " (.NET " + Environment.Version + "), " + (Chemins.EstInstalle ? "installé" : "version portable"));
             Ecrire("  Antivirus    : " + (avs.Count > 0 ? string.Join(", ", avs) : "aucun déclaré"));
             Ecrire();
             Ecrire("=== Fonctions disponibles sur ce PC ===");
@@ -144,7 +144,7 @@ namespace NettoyagePC
             Ecrire("  Assistance rapide (aide à distance)     : " + oui(Programmes.ExisteSysteme("quickassist.exe")));
             Ecrire("  Autorisation administrateur             : demandée par Windows au moment des actions qui touchent tout le PC");
             Ecrire();
-            if (Natif.EstWindows && Natif.Build < 10240) Ecrire("  ATTENTION : Nettoyage PC est conçu pour Windows 10 et 11. Sur ce système, une partie des fonctions ne marchera pas.");
+            if (Natif.EstWindows && Natif.Build < 10240) Ecrire("  ATTENTION : Velox est conçu pour Windows 10 et 11. Sur ce système, une partie des fonctions ne marchera pas.");
             else Ecrire("  -> Ce PC est compatible. Les fonctions indisponibles sont simplement ignorées.");
             if (InfosPc.Winget() == null) Ecrire("  (Pour la mise à jour des applications : installe « App Installer » depuis le Microsoft Store.)");
             if (!InfosPc.DefenderTempsReel() && avs.Count > 0) Ecrire("  (Un autre antivirus protège ce PC : utilise-le pour les analyses.)");
@@ -184,7 +184,7 @@ namespace NettoyagePC
             }
             if (alertes.Count > 0)
             {
-                Notification.Afficher("Nettoyage PC : attention", string.Join(" ", alertes) + " Ouvre Nettoyage PC pour libérer de la place.");
+                Notification.Afficher("Velox : attention", string.Join(" ", alertes) + " Ouvre Velox pour libérer de la place.");
                 FichierSur.Ecrire(fichier, Json.Ecrire(etat));
             }
         }
@@ -227,7 +227,7 @@ namespace NettoyagePC
             // peut modifier (Program Files), sinon n'importe quel programme pourrait le remplacer.
             if (!Chemins.EstInstalle)
             {
-                Ecrire("Opération impossible : l'entretien automatique ne peut être activé que si Nettoyage PC est installé (dossier Program Files). Installe-le avec NettoyagePC-Setup puis réactive l'entretien automatique.");
+                Ecrire("Opération impossible : l'entretien automatique ne peut être activé que si Velox est installé (dossier Program Files). Installe-le avec NettoyagePC-Setup puis réactive l'entretien automatique.");
                 return;
             }
             if (TacheExiste(TacheAncienne)) Programmes.Executer(schtasks, "/Delete /TN \"" + TacheAncienne + "\" /F", 30000);
@@ -261,9 +261,9 @@ namespace NettoyagePC
                 Ecrire(c == 0 ? "Mises à jour automatiques des applications désactivées." : "Opération impossible : le Planificateur de tâches a refusé la suppression.");
                 return;
             }
-            if (!Chemins.EstInstalle) { Ecrire("Opération impossible : les mises à jour automatiques ne peuvent être activées que si Nettoyage PC est installé (dossier Program Files)."); return; }
+            if (!Chemins.EstInstalle) { Ecrire("Opération impossible : les mises à jour automatiques ne peuvent être activées que si Velox est installé (dossier Program Files)."); return; }
             string utilisateur = WindowsIdentity.GetCurrent().Name;
-            bool ok = CreerTache(MajAppsAuto.Tache, "--tache applications", "Mises à jour des applications par winget, sauf celles exclues dans Nettoyage PC (Premium).",
+            bool ok = CreerTache(MajAppsAuto.Tache, "--tache applications", "Mises à jour des applications par winget, sauf celles exclues dans Velox (Premium).",
                 "<CalendarTrigger><StartBoundary>2026-01-07T19:00:00</StartBoundary><ScheduleByWeek><WeeksInterval>1</WeeksInterval><DaysOfWeek><Wednesday /></DaysOfWeek></ScheduleByWeek></CalendarTrigger>", "PT3H", utilisateur);
             if (ok)
             {
@@ -277,7 +277,7 @@ namespace NettoyagePC
         {
             string xml = "<?xml version=\"1.0\" encoding=\"UTF-16\"?>\r\n" +
                 "<Task version=\"1.2\" xmlns=\"http://schemas.microsoft.com/windows/2004/02/mit/task\">" +
-                "<RegistrationInfo><Description>" + System.Security.SecurityElement.Escape(description) + "</Description><Author>Nettoyage PC</Author></RegistrationInfo>" +
+                "<RegistrationInfo><Description>" + System.Security.SecurityElement.Escape(description) + "</Description><Author>Velox</Author></RegistrationInfo>" +
                 "<Triggers>" + declencheurs + "</Triggers>" +
                 "<Principals><Principal id=\"Author\"><UserId>" + System.Security.SecurityElement.Escape(utilisateur) + "</UserId><LogonType>InteractiveToken</LogonType><RunLevel>HighestAvailable</RunLevel></Principal></Principals>" +
                 "<Settings><MultipleInstancesPolicy>IgnoreNew</MultipleInstancesPolicy><DisallowStartIfOnBatteries>false</DisallowStartIfOnBatteries><StopIfGoingOnBatteries>false</StopIfGoingOnBatteries>" +

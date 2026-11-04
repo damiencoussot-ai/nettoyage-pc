@@ -1,4 +1,4 @@
-// Nettoyage PC 5 - panneau de l'action en cours, en bas de la fenêtre : titre, barre de progression lumineuse,
+// Velox 5 - panneau de l'action en cours, en bas de la fenêtre : titre, barre de progression lumineuse,
 // étape en cours, détail repliable (les lignes du moteur), puis le résumé à la fin. « Arrêter » à tout moment.
 using System;
 using System.Linq;

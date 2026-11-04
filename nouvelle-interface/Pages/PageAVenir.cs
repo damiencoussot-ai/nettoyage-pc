@@ -1,4 +1,4 @@
-// Nettoyage PC 5 - rubriques pas encore refaites : ce qu'elles contiendront (elles existent dans la version 4).
+// Velox 5 - rubriques pas encore refaites : ce qu'elles contiendront (elles existent dans la version 4).
 using System;
 using Avalonia;
 using Avalonia.Controls;

@@ -1,4 +1,4 @@
-// Nettoyage PC 5 - Windows et pilotes : pilote de la carte graphique (outil officiel du fabricant) et mises à jour de
+// Velox 5 - Windows et pilotes : pilote de la carte graphique (outil officiel du fabricant) et mises à jour de
 // Windows Update triées (ce qui est recommandé est coché, le reste est expliqué). Installation par le moteur, question avant.
 using System;
 using System.Collections.Generic;
@@ -66,7 +66,7 @@ namespace NettoyagePC.Nouveau
             tableau.HauteurListe = 300;
             tableau.CaseChangee = (o, v) => { var m = (MajWindows)o; if (v) coches.Add(m); else coches.Remove(m); Resume(); return true; };
             Children.Add(new Border { Child = tableau, BorderBrush = Habillage.Pinceau(P.Bordure), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(3), ClipToBounds = true });
-            tInfo = new TextBlock { Text = Langue.T("Clique sur « Rechercher » : Nettoyage PC demande à Windows Update la liste des mises à jour et pilotes disponibles, et coche ce qui est recommandé."), FontFamily = Habillage.Corps, FontSize = 12.5, Foreground = Habillage.Pinceau(P.Discret), TextWrapping = TextWrapping.Wrap };
+            tInfo = new TextBlock { Text = Langue.T("Clique sur « Rechercher » : Velox demande à Windows Update la liste des mises à jour et pilotes disponibles, et coche ce qui est recommandé."), FontFamily = Habillage.Corps, FontSize = 12.5, Foreground = Habillage.Pinceau(P.Discret), TextWrapping = TextWrapping.Wrap };
             Children.Add(tInfo);
             AttachedToVisualTree += (o, e) => { AfficherGpu(); Rechercher(); };
         }

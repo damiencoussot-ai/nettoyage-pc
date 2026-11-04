@@ -1,4 +1,4 @@
-// Nettoyage PC - commandes reçues de l'extérieur : raccourcis, gardien, assistant vocal (ORION...).
+// Velox - commandes reçues de l'extérieur : raccourcis, gardien, assistant vocal (ORION...).
 //   NettoyagePC.exe --page Nettoyage           ouvre une page
 //   NettoyagePC.exe --ouvrir bouclier          ouvre un outil (gardien, bouclier, assistant, enqueteur, sante, energie, fps)
 //   NettoyagePC.exe --action nettoyage         prépare une action : elle est TOUJOURS confirmée par la personne devant le PC

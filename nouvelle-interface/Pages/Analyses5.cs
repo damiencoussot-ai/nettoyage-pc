@@ -1,4 +1,4 @@
-// Nettoyage PC 5 - analyse des plantages et analyse du démarrage (Premium) : le moteur lit les journaux de Windows
+// Velox 5 - analyse des plantages et analyse du démarrage (Premium) : le moteur lit les journaux de Windows
 // (lecture seule) et envoie ses résultats, affichés ici avec l'explication de chaque ligne et quoi faire.
 using System;
 using System.Collections.Generic;

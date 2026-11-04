@@ -1,4 +1,4 @@
-NETTOYAGE PC 5.7
+VELOX 5.7
 ================
 
 Installation
@@ -7,9 +7,9 @@ Installation
 2. Windows peut afficher « Windows a protégé votre ordinateur » (SmartScreen) : clique sur
    « Informations complémentaires » puis « Exécuter quand même ». C'est normal pour un programme
    qui n'est pas signé par un éditeur connu.
-3. Accepte le contrat de licence, puis suis l'installation. Nettoyage PC s'installe dans C:\Program Files\Nettoyage PC, avec une
+3. Accepte le contrat de licence, puis suis l'installation. Velox s'installe dans C:\Program Files\Nettoyage PC (le dossier garde l\'ancien nom), avec une
    entrée dans le menu Démarrer et, si tu le choisis, un raccourci sur le Bureau.
-4. Lance « Nettoyage PC ». Il démarre avec les droits normaux : Windows ne demande l'autorisation
+4. Lance « Velox ». Il démarre avec les droits normaux : Windows ne demande l'autorisation
    administrateur (fenêtre « Voulez-vous autoriser... », clique sur Oui) qu'au moment d'une action
    qui touche tout le PC (nettoyage profond, disques, réparation...), et seulement pour elle.
 
@@ -17,7 +17,7 @@ Mise à jour depuis la version 4 (ou 3) : installe simplement la version 5.2 par
 sur « Installer maintenant » dans la rubrique Mises à jour). L'historique, les réglages, les
 statistiques, l'entretien automatique et Premium sont conservés.
 
-Désinstaller : Paramètres > Applications > Applications installées > Nettoyage PC > Désinstaller.
+Désinstaller : Paramètres > Applications > Applications installées > Velox > Désinstaller.
 La désinstallation retire aussi l'entretien automatique (tâches planifiées).
 
 Nouveautés de la version 5.7
@@ -89,7 +89,7 @@ Nouveautés de la version 5.2 (outils Premium)
 
 Nouveautés de la version 5.1.1
 ------------------------------
-- À l'ouverture, Nettoyage PC propose directement la nouvelle version quand il y en a une,
+- À l'ouverture, Velox propose directement la nouvelle version quand il y en a une,
   et montre les nouveautés juste après une mise à jour.
 
 Nouveautés de la version 5.1
@@ -105,7 +105,7 @@ Nouveautés de la version 5.1
 
 Nouveautés de la version 5.0.1
 ------------------------------
-- Nettoyage PC s'ouvre directement en mode réel, comme la version 4 : chaque action pose
+- Velox s'ouvre directement en mode réel, comme la version 4 : chaque action pose
   toujours sa question avant de se lancer, et la pastille en haut passe en simulation pour
   voir ce qui serait fait sans rien modifier.
 
@@ -141,7 +141,7 @@ Nouveautés de la version 4.5
   matériel), menu numéroté, lignes fines et coins lumineux.
 - Faisons connaissance : pseudo, couleur et briefing vocal, choisis au premier lancement. Le
   profil reste sur ce PC (Réglages > Mon profil).
-- Briefing vocal : Nettoyage PC te salue par ton pseudo et te dit l'état du PC et les
+- Briefing vocal : Velox te salue par ton pseudo et te dit l'état du PC et les
   améliorations proposées, avec la voix de Windows.
 
 Nouveautés de la version 4.4
@@ -161,7 +161,7 @@ Nouveautés de la version 4.4
 Nouveautés de la version 4.3.4
 ------------------------------
 - Après une mise à jour, le nouveau logo apparaît tout de suite sur le Bureau et dans le menu
-  Démarrer (Nettoyage PC demande à Windows de rafraîchir ses icônes).
+  Démarrer (Velox demande à Windows de rafraîchir ses icônes).
 
 Nouveautés de la version 4.3.3
 ------------------------------
@@ -178,7 +178,7 @@ Nouveautés de la version 4.3.2
 
 Nouveautés de la version 4.3.1
 ------------------------------
-- À chaque ouverture, Nettoyage PC vérifie s'il existe une nouvelle version. Si oui, un bandeau
+- À chaque ouverture, Velox vérifie s'il existe une nouvelle version. Si oui, un bandeau
   apparaît en haut de la fenêtre, sur toutes les pages (et en mode simple) : « Installer
   maintenant » l'installe en moins d'une minute. Plus besoin d'aller dans Mises à jour.
 
@@ -216,7 +216,7 @@ Nouveautés de la version 4.1
 
 Nouveautés de la version 4.0
 ----------------------------
-- Entièrement réécrit : Nettoyage PC s'ouvre en une seconde et tient en un seul programme.
+- Entièrement réécrit : Velox s'ouvre en une seconde et tient en un seul programme.
 - Outils > Matériel : détecte la mémoire vive bridée (profil EXPO / XMP non activé dans le BIOS),
   explique comment l'activer pour ta carte mère et peut redémarrer directement dans le BIOS ;
   santé détaillée des disques (usure des SSD, température, heures d'utilisation, erreurs).
@@ -232,7 +232,7 @@ Nouveautés de la version 4.0
 
 Compatibilité
 -------------
-Nettoyage PC s'adapte tout seul à la configuration du PC :
+Velox s'adapte tout seul à la configuration du PC :
 - Windows 10 et Windows 11 (64 bits), éditions Famille, Pro, Éducation, Entreprise. Rien d'autre à
   installer : tout ce qu'il faut est inclus dans le programme.
 - PC portable ou fixe, machine virtuelle ; cartes graphiques NVIDIA, AMD et Intel ;
@@ -268,7 +268,7 @@ visible ; le bouton « Plus d'options » montre le reste (il reste ouvert si tu 
                 plus : journal de démarrage, journaux des actions, premiers pas).
 - PREMIUM     : les outils Premium (voir plus bas).
 - MISES À JOUR : Windows et pilotes (pilote de la carte graphique, mises à jour de Windows) |
-                Nettoyage PC (version installée, nouveautés, installation en un clic ; point
+                Velox (version installée, nouveautés, installation en un clic ; point
                 orange quand une nouvelle version est disponible).
 - HISTORIQUE  : graphiques, et tout ce que le logiciel a modifié avec un bouton « Annuler ».
 - RÉGLAGES    : apparence, couleur, langue, mode simple, entretien automatique, informations
@@ -352,12 +352,12 @@ Ce que l'application ne fait jamais
 
 Mises à jour
 ------------
-À chaque ouverture (puis toutes les 6 heures si elle reste ouverte), Nettoyage PC vérifie s'il
+À chaque ouverture (puis toutes les 6 heures si elle reste ouverte), Velox vérifie s'il
 existe une nouvelle version. Si c'est le cas, un bandeau s'affiche en haut de la fenêtre, sur
 toutes les pages : un clic sur « Installer maintenant », et elle s'installe toute seule
 (l'application se ferme puis se rouvre). « Plus tard » cache le bandeau jusqu'à la prochaine
 ouverture. Chaque mise à jour est vérifiée (empreinte SHA256) avant d'être installée. Pour ne
-plus vérifier automatiquement : Mises à jour > Nettoyage PC > décoche la case.
+plus vérifier automatiquement : Mises à jour > Velox > décoche la case.
 
 Journaux et rapports
 --------------------

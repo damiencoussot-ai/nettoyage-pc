@@ -1,5 +1,5 @@
 ; ============================================================
-;  Nettoyage PC - installateur Windows (NSIS)
+;  Velox (anciennement Nettoyage PC) - installateur Windows (NSIS)
 ;  /DV5 : installateur de la version 5 (programme .NET 10 autonome, nouvelle interface). Même dossier, même
 ;  programme NettoyagePC.exe, mêmes réglages et même historique : la version 4 en place est remplacée (et gardée
 ;  dans « precedente » jusqu'à ce que la version 5 ait passé son contrôle de démarrage).
@@ -11,7 +11,9 @@ SetCompressor /SOLID lzma
 !include "LogicLib.nsh"
 !include "WinVer.nsh"
 
-!define NOM        "Nettoyage PC"
+!define NOM        "Velox"
+; ancien nom : le dossier dans Program Files et les tâches planifiées le gardent (mises à jour sans rien casser)
+!define ANCIEN_NOM "Nettoyage PC"
 !ifndef VERSION
   !define VERSION "4.6"
 !endif
@@ -24,7 +26,7 @@ Var Precedente
 
 Name "${NOM} ${VERSION}"
 OutFile "NettoyagePC-Setup-${VERSION}.exe"
-InstallDir "$PROGRAMFILES64\${NOM}"
+InstallDir "$PROGRAMFILES64\${ANCIEN_NOM}"
 InstallDirRegKey HKLM "${CLE_DESINST}" "InstallLocation"
 RequestExecutionLevel admin
 BrandingText "${NOM} ${VERSION}"
@@ -94,7 +96,7 @@ Function .onInit
     ; (version 5 : le programme contient tout ce qu'il lui faut, rien à installer en plus)
 FunctionEnd
 
-; Mise à jour silencieuse (/S, lancée depuis l'application) : Nettoyage PC est relancé à la fin, avec les droits normaux
+; Mise à jour silencieuse (/S, lancée depuis l'application) : Velox est relancé à la fin, avec les droits normaux
 Function .onInstSuccess
     ; Windows rafraîchit les icônes (nouveau logo) du menu Démarrer, du Bureau et de la barre des tâches :
     ; sans cela, il garde l'ancienne image en cache
@@ -113,7 +115,7 @@ Function LancerAppli
     Exec '"$WINDIR\explorer.exe" "$INSTDIR\NettoyagePC.exe"'
 FunctionEnd
 
-; Attend que Nettoyage PC soit fermé (mise à jour lancée depuis l'application) avant de remplacer le programme
+; Attend que Velox soit fermé (mise à jour lancée depuis l'application) avant de remplacer le programme
 Function AttendreFermeture
     ; le gardien Premium (icône près de l'horloge) est prié de se fermer : il garde le programme ouvert
     System::Call 'kernel32::OpenEventW(i 0x0002, i 0, w "Local\NettoyagePC-Gardien-Arret") p .r2'
@@ -212,6 +214,17 @@ Section "${NOM} (obligatoire)" SecPrincipal
     ; Menu Démarrer
     CreateShortcut "$SMPROGRAMS\${NOM}.lnk" "$INSTDIR\NettoyagePC.exe" "" "$INSTDIR\NettoyagePC.ico" 0 SW_SHOWNORMAL "" "Nettoyage, optimisation et sécurité du PC"
     Delete "$SMPROGRAMS\${NOM} (mode limité).lnk"
+    ; Changement de nom (Nettoyage PC -> Velox) : les anciens raccourcis sont remplacés par des raccourcis « Velox »
+    Delete "$SMPROGRAMS\${ANCIEN_NOM}.lnk"
+    Delete "$SMPROGRAMS\${ANCIEN_NOM} (mode limité).lnk"
+    IfFileExists "$DESKTOP\${ANCIEN_NOM}.lnk" 0 +3
+        Delete "$DESKTOP\${ANCIEN_NOM}.lnk"
+        CreateShortcut "$DESKTOP\${NOM}.lnk" "$INSTDIR\NettoyagePC.exe" "" "$INSTDIR\NettoyagePC.ico" 0 SW_SHOWNORMAL "" "Nettoyage, optimisation et sécurité du PC"
+    SetShellVarContext current
+    IfFileExists "$DESKTOP\${ANCIEN_NOM}.lnk" 0 +3
+        Delete "$DESKTOP\${ANCIEN_NOM}.lnk"
+        CreateShortcut "$DESKTOP\${NOM}.lnk" "$INSTDIR\NettoyagePC.exe" "" "$INSTDIR\NettoyagePC.ico" 0 SW_SHOWNORMAL "" "Nettoyage, optimisation et sécurité du PC"
+    SetShellVarContext all
 
     ; Paramètres > Applications installées
     WriteRegStr HKLM "${CLE_DESINST}" "DisplayName" "${NOM}"
@@ -248,7 +261,7 @@ Section "Raccourci sur le Bureau" SecBureau
 SectionEnd
 
 LangString DESC_Principal ${LANG_FRENCH} "Le logiciel (interface, moteur et entretien automatique), l'entrée du menu Démarrer et la désinstallation."
-LangString DESC_Bureau ${LANG_FRENCH} "Ajoute l'icône Nettoyage PC sur le Bureau."
+LangString DESC_Bureau ${LANG_FRENCH} "Ajoute l'icône Velox sur le Bureau."
 !insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
     !insertmacro MUI_DESCRIPTION_TEXT ${SecPrincipal} $(DESC_Principal)
     !insertmacro MUI_DESCRIPTION_TEXT ${SecBureau} $(DESC_Bureau)
@@ -261,7 +274,7 @@ FunctionEnd
 
 Section "Uninstall"
     SetShellVarContext all
-    ; Retire l'entretien automatique (tâches planifiées de Nettoyage PC)
+    ; Retire l'entretien automatique (tâches planifiées, qui gardent l'ancien nom « Nettoyage PC »)
     IfFileExists "$INSTDIR\NettoyagePC.exe" 0 +3
         nsExec::ExecToLog '"$INSTDIR\NettoyagePC.exe" --moteur --deplanifier --deplanifier-apps'
         Pop $0
@@ -282,6 +295,11 @@ Section "Uninstall"
     Delete "$DESKTOP\${NOM}.lnk"
     SetShellVarContext current
     Delete "$DESKTOP\${NOM}.lnk"
+    Delete "$DESKTOP\${ANCIEN_NOM}.lnk"
+    SetShellVarContext all
+    Delete "$SMPROGRAMS\${ANCIEN_NOM}.lnk"
+    Delete "$DESKTOP\${ANCIEN_NOM}.lnk"
+    SetShellVarContext current
 
     Delete "$INSTDIR\NettoyagePC.exe"
     Delete "$INSTDIR\NettoyagePC.ps1"
@@ -302,7 +320,7 @@ Section "Uninstall"
 
     ; Journaux : supprimés seulement si l'utilisateur le demande
     IfFileExists "$DOCUMENTS\NettoyagePC\*.*" 0 fin
-        MessageBox MB_YESNO|MB_ICONQUESTION|MB_DEFBUTTON2 "Supprimer aussi les journaux et rapports de Nettoyage PC ?$\r$\n($DOCUMENTS\NettoyagePC)" /SD IDNO IDNO fin
+        MessageBox MB_YESNO|MB_ICONQUESTION|MB_DEFBUTTON2 "Supprimer aussi les journaux et rapports de Velox ?$\r$\n($DOCUMENTS\NettoyagePC)" /SD IDNO IDNO fin
         RMDir /r "$DOCUMENTS\NettoyagePC"
     fin:
 SectionEnd

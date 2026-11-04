@@ -1,4 +1,4 @@
-// Nettoyage PC 5 - mises à jour : version installée, recherche sur GitHub (source officielle), nouveautés de chaque
+// Velox 5 - mises à jour : version installée, recherche sur GitHub (source officielle), nouveautés de chaque
 // version. Dans l'aperçu, l'installation passe par la version 4 (c'est elle qui est installée sur le PC).
 using System;
 using System.Collections.Generic;
@@ -20,7 +20,7 @@ namespace NettoyagePC.Nouveau
         {
             return new Onglets(f, "MisesAJour", new[]
             {
-                Tuple.Create<string, string, Func<Control>>("MisesAJour", "Nettoyage PC", () => new PageMisesAJour5(f)),
+                Tuple.Create<string, string, Func<Control>>("MisesAJour", "Velox", () => new PageMisesAJour5(f)),
                 Tuple.Create<string, string, Func<Control>>("Pilotes", "Windows et pilotes", () => new Pilotes5(f)),
             });
         }
@@ -44,7 +44,7 @@ namespace NettoyagePC.Nouveau
             Spacing = 16; Margin = new Thickness(0, 0, 12, 0);
             var carte = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto") };
             var s = new StackPanel { Spacing = 6 };
-            s.Children.Add(new TextBlock { Text = Langue.T(Installation5.Apercu ? "Nettoyage PC 5 (aperçu)" : "Nettoyage PC") + (Installation5.Apercu ? "" : " " + Appli.Version), FontFamily = Habillage.Affichage, FontSize = 22, FontWeight = FontWeight.SemiBold, Foreground = Habillage.Pinceau(P.Texte) });
+            s.Children.Add(new TextBlock { Text = Langue.T(Installation5.Apercu ? "Velox 5 (aperçu)" : "Velox") + (Installation5.Apercu ? "" : " " + Appli.Version), FontFamily = Habillage.Affichage, FontSize = 22, FontWeight = FontWeight.SemiBold, Foreground = Habillage.Pinceau(P.Texte) });
             s.Children.Add(new TextBlock { Text = Langue.F("Moteur de la version {0}", Appli.Version), FontFamily = Habillage.Console, FontSize = 12, Foreground = Habillage.Pinceau(P.Discret) });
             tEtat = new TextBlock { FontFamily = Habillage.Affichage, FontSize = 16, FontWeight = FontWeight.SemiBold, Margin = new Thickness(0, 8, 0, 0), TextWrapping = TextWrapping.Wrap };
             tDetail = new TextBlock { FontFamily = Habillage.Corps, FontSize = 12.5, Foreground = Habillage.Pinceau(P.Discret), TextWrapping = TextWrapping.Wrap };
@@ -79,7 +79,7 @@ namespace NettoyagePC.Nouveau
             var v = versions.FirstOrDefault();
             if (v == null || installation) return;
             if (F.Moteur.EnCours) { F.Demander("Une action est en cours", "Attends qu'elle se termine avant de mettre à jour.", "Compris", null, r => { }); return; }
-            F.Demander(Langue.F("Installer Nettoyage PC {0} maintenant ?", v.Version), "L'application va se fermer puis se rouvrir toute seule (moins d'une minute). Ton historique et tes réglages sont conservés.", "Installer", "Plus tard", oui =>
+            F.Demander(Langue.F("Installer Velox {0} maintenant ?", v.Version), "L'application va se fermer puis se rouvrir toute seule (moins d'une minute). Ton historique et tes réglages sont conservés.", "Installer", "Plus tard", oui =>
             {
                 if (!oui) return;
                 installation = true; Afficher();
@@ -124,7 +124,7 @@ namespace NettoyagePC.Nouveau
             }
             string detail = dateVerif.HasValue ? Langue.T("Dernière vérification :") + " " + dateVerif.Value.ToString("dd/MM/yyyy HH:mm") + "   ·   " : "";
             detail += Langue.F("Source officielle : {0}", "github.com/" + MisesAJour.Depot);
-            if (etat == "disponible" && Installation5.Apercu) detail += "\n" + Langue.T("Dans cet aperçu, la mise à jour s'installe depuis la version 4 de Nettoyage PC (bandeau « Installer maintenant » en haut de sa fenêtre).");
+            if (etat == "disponible" && Installation5.Apercu) detail += "\n" + Langue.T("Dans cet aperçu, la mise à jour s'installe depuis la version 4 de Velox (bandeau « Installer maintenant » en haut de sa fenêtre).");
             bInstaller.IsVisible = etat == "disponible" && !Installation5.Apercu;
             bInstaller.IsEnabled = !installation;
             tDetail.Text = detail;
@@ -135,7 +135,7 @@ namespace NettoyagePC.Nouveau
                 {
                     string titre = Langue.T("Version") + " " + v.Version + (v.Date.HasValue ? "   —   " + v.Date.Value.ToString("dd/MM/yyyy") : "");
                     int c = MisesAJour.Comparer(v.Version, Appli.Version);
-                    var lignes = Regex.Split(v.Notes ?? "", "\r?\n").Select(n => n.Trim()).Where(n => n != "" && !Regex.IsMatch(n, @"^\s*SHA256") && !n.StartsWith("Nettoyage PC")).Select(n => n.TrimStart('-', '•', '*', ' ')).ToList();
+                    var lignes = Regex.Split(v.Notes ?? "", "\r?\n").Select(n => n.Trim()).Where(n => n != "" && !Regex.IsMatch(n, @"^\s*SHA256") && !n.StartsWith("Velox")).Select(n => n.TrimStart('-', '•', '*', ' ')).ToList();
                     var integre = JournalVersions.Liste.FirstOrDefault(x => x.Key == v.Version);
                     // les notes publiées sur GitHub sont en français : en anglais / espagnol, les nouveautés traduites passent avant
                     if (integre.Value != null && (lignes.Count == 0 || Langue.Code != "fr")) lignes = integre.Value.Select(Langue.T).ToList();

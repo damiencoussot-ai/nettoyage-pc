@@ -1,4 +1,4 @@
-﻿// Nettoyage PC - assistant local (Premium) : questions en langage naturel sur le PC, répondues par un modèle d'IA
+﻿// Velox - assistant local (Premium) : questions en langage naturel sur le PC, répondues par un modèle d'IA
 // qui tourne SUR le PC avec Ollama (http://127.0.0.1:11434) : rien n'est envoyé sur Internet.
 // L'assistant ne fait rien lui-même : il propose des boutons, et chaque action est confirmée par la personne.
 using System;
@@ -43,7 +43,7 @@ namespace NettoyagePC
             { "Accueil", "bilan du PC" }, { "Nettoyage", "nettoyage" }, { "Disques", "espace disque" }, { "Doublons", "fichiers en double" }, { "Optimisation", "optimisation, mode d'alimentation, mémoire" },
             { "Demarrage", "programmes au démarrage" }, { "Applications", "applications installées, désinstaller" }, { "Jeux", "jeux, mode jeu" }, { "Securite", "sécurité" }, { "Sauvegarde", "sauvegarde des documents" },
             { "Materiel", "matériel, températures, mémoire vive" }, { "Potentiel", "réglages qui brident le matériel (écran, EXPO, ReBAR)" }, { "Reseau", "Internet, DNS, Wi-Fi" }, { "Aide", "aide à distance par un proche" },
-            { "Pilotes", "pilotes et mises à jour Windows" }, { "Historique", "historique et annulation" }, { "Reglages", "réglages de Nettoyage PC" }
+            { "Pilotes", "pilotes et mises à jour Windows" }, { "Historique", "historique et annulation" }, { "Reglages", "réglages de Velox" }
         };
 
         public static readonly Dictionary<string, string> OutilsPermis = new Dictionary<string, string>
@@ -99,7 +99,7 @@ namespace NettoyagePC
         public static string Contexte(IEnumerable<string> pointsBilan)
         {
             var sb = new StringBuilder();
-            sb.AppendLine("Tu es l'assistant intégré à Nettoyage PC, une application qui nettoie, accélère et protège ce PC Windows. Tu parles à une personne qui n'est pas forcément à l'aise avec l'informatique.");
+            sb.AppendLine("Tu es l'assistant intégré à Velox, une application qui nettoie, accélère et protège ce PC Windows. Tu parles à une personne qui n'est pas forcément à l'aise avec l'informatique.");
             sb.AppendLine("Réponds en " + (Langue.Code == "en" ? "anglais" : Langue.Code == "es" ? "espagnol" : "français") + ", simplement, en 8 phrases au plus, en tutoyant.");
             sb.AppendLine("Règles :");
             sb.AppendLine("- Appuie-toi uniquement sur l'état du PC ci-dessous ; si une information manque, dis-le au lieu d'inventer.");
@@ -190,13 +190,13 @@ namespace NettoyagePC
             if (d.ContainsKey("antivirusTempsReel")) l.Add((bool)d["antivirusTempsReel"] ? "Protection antivirus en temps réel : active" : "Protection antivirus en temps réel de Microsoft Defender : inactive (peut-être un autre antivirus)");
             var acces = d.ContainsKey("priseEnMainADistance") ? (string[])d["priseEnMainADistance"] : new string[0];
             l.Add(acces.Length == 0 ? "Aucun logiciel de prise en main à distance ouvert" : "Logiciel(s) de prise en main à distance ouvert(s) : " + string.Join(", ", acces));
-            if (d.ContainsKey("dernierNettoyage")) l.Add("Dernière action de Nettoyage PC : " + d["dernierNettoyage"]);
+            if (d.ContainsKey("dernierNettoyage")) l.Add("Dernière action de Velox : " + d["dernierNettoyage"]);
             return l;
         }
 
         public static Dictionary<string, object> Donnees()
         {
-            var d = new Dictionary<string, object> { { "application", "Nettoyage PC" }, { "version", Appli.Version }, { "date", DateTime.Now.ToString("yyyy-MM-dd HH:mm") } };
+            var d = new Dictionary<string, object> { { "application", "Velox" }, { "version", Appli.Version }, { "date", DateTime.Now.ToString("yyyy-MM-dd HH:mm") } };
             try { d["premium"] = Licence.Premium; } catch { }
             try
             {

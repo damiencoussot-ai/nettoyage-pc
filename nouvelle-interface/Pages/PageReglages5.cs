@@ -1,4 +1,4 @@
-// Nettoyage PC 5 - réglages : profil (pseudo), apparence, langue, entretien automatique, raccourci, à propos,
+// Velox 5 - réglages : profil (pseudo), apparence, langue, entretien automatique, raccourci, à propos,
 // informations légales. Mêmes réglages que la version 4 (même fichier parametres.json).
 using System;
 using System.Diagnostics;
@@ -45,9 +45,9 @@ namespace NettoyagePC.Nouveau
                 CarteAction.Code("Mode simple", "Pour un débutant (un parent, par exemple) : un seul écran avec trois gros boutons, sans les options avancées.", "Activer le mode simple", () =>
                     f.Demander("Passer au mode simple ?", "L'écran ne montrera plus que trois gros boutons : Nettoyer mon PC, Vérifier mon PC, Appeler à l'aide. Le lien « Afficher toutes les options » en bas de l'écran permet de revenir au mode complet.", "Passer au mode simple", "Annuler", oui => { if (oui) f.AppliquerModeSimple(true); })),
                 CarteAction.Code("Informations légales", "Contrat de licence, conditions de vente, politique de confidentialité et mentions légales.", "Consulter", () => Legal5(f)),
-                CarteAction.Code("À propos", "Version, éditeur, page officielle et engagements de Nettoyage PC.", "Afficher", () => APropos(f)),
-                CarteAction.Code("Raccourci sur le Bureau", "Ajoute « Nettoyage PC » sur ton Bureau pour lancer l'application en un double-clic.", "Créer le raccourci", () => CreerRaccourci(f)).Plus(),
-                CarteAction.A("Compatibilité de ce PC", "Version de Windows, matériel, disques, antivirus : ce que Nettoyage PC a détecté et les fonctions disponibles sur ce PC.", "Vérifier", "compat").Plus(),
+                CarteAction.Code("À propos", "Version, éditeur, page officielle et engagements de Velox.", "Afficher", () => APropos(f)),
+                CarteAction.Code("Raccourci sur le Bureau", "Ajoute « Velox » sur ton Bureau pour lancer l'application en un double-clic.", "Créer le raccourci", () => CreerRaccourci(f)).Plus(),
+                CarteAction.A("Compatibilité de ce PC", "Version de Windows, matériel, disques, antivirus : ce que Velox a détecté et les fonctions disponibles sur ce PC.", "Vérifier", "compat").Plus(),
             }, "Reglages"));
             // entretien : « Activer » ou « Désactiver » selon que les tâches sont programmées (lu une fois en arrière-plan)
             if (EntretienActif == true) { entretien.Bouton = "Désactiver"; entretien.Cible = "action:deplanifier"; entretien.Principal = false; }
@@ -85,7 +85,7 @@ namespace NettoyagePC.Nouveau
                 if (code == (r.Langue ?? "fr")) return;
                 r.Langue = code;
                 f.EnregistrerReglage(x => x.Langue = code);
-                string q = code == "en" ? "The language will change when Nettoyage PC restarts. Restart now?" : code == "es" ? "El idioma cambiará al reiniciar Nettoyage PC. ¿Reiniciar ahora?" : "La langue changera au redémarrage de Nettoyage PC. Redémarrer maintenant ?";
+                string q = code == "en" ? "The language will change when Velox restarts. Restart now?" : code == "es" ? "El idioma cambiará al reiniciar Velox. ¿Reiniciar ahora?" : "La langue changera au redémarrage de Velox. Redémarrer maintenant ?";
                 if (f.Moteur.EnCours) { f.Statut(q.Split('.')[0] + "."); return; }
                 f.Demander(q, null, code == "en" ? "Restart" : code == "es" ? "Reiniciar" : "Redémarrer", code == "en" ? "Later" : code == "es" ? "Más tarde" : "Plus tard", oui =>
                 {
@@ -200,8 +200,8 @@ namespace NettoyagePC.Nouveau
         private static void APropos(FenetrePrincipale f)
         {
             string texte = "Nettoyage, optimisation, sécurité, disques et mémoire vive pour Windows 10 et 11.\n\nÉditeur : Damien\nPage officielle : https://github.com/" + MisesAJour.Depot +
-                "\nJournaux : " + Chemins.Donnees + "\n\nEngagements :\n- Tes documents, photos et vidéos ne sont jamais supprimés.\n- Un point de restauration est créé avant les opérations importantes.\n- Chaque modification peut être annulée (Historique).\n- Nettoyage PC ne tourne jamais en administrateur : Windows demande l'autorisation pour chaque action qui touche tout le PC.\n- Les mises à jour sont vérifiées (SHA256) avant installation.\n- Ni publicité, ni pistage, ni télémétrie.\n\nWindows et Microsoft Defender sont des marques de Microsoft Corporation. Nettoyage PC est un logiciel indépendant, non affilié à Microsoft.";
-            f.Demander(Langue.F("Nettoyage PC 5 (aperçu) — moteur {0}", Appli.Version), texte, "Fermer", null, r => { });
+                "\nJournaux : " + Chemins.Donnees + "\n\nEngagements :\n- Tes documents, photos et vidéos ne sont jamais supprimés.\n- Un point de restauration est créé avant les opérations importantes.\n- Chaque modification peut être annulée (Historique).\n- Velox ne tourne jamais en administrateur : Windows demande l'autorisation pour chaque action qui touche tout le PC.\n- Les mises à jour sont vérifiées (SHA256) avant installation.\n- Ni publicité, ni pistage, ni télémétrie.\n\nWindows et Microsoft Defender sont des marques de Microsoft Corporation. Velox est un logiciel indépendant, non affilié à Microsoft.";
+            f.Demander(Langue.F("Velox 5 (aperçu) — moteur {0}", Appli.Version), texte, "Fermer", null, r => { });
         }
 
         private static void CreerRaccourci(FenetrePrincipale f)
@@ -210,14 +210,14 @@ namespace NettoyagePC.Nouveau
             {
                 string bureau = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
                 dynamic wsh = Activator.CreateInstance(Type.GetTypeFromProgID("WScript.Shell"));
-                dynamic lnk = wsh.CreateShortcut(Path.Combine(bureau, "Nettoyage PC.lnk"));
+                dynamic lnk = wsh.CreateShortcut(Path.Combine(bureau, "Velox.lnk"));
                 lnk.TargetPath = Chemins.Exe;
                 lnk.WorkingDirectory = Chemins.Ici;
-                lnk.Description = "Nettoyage PC : nettoyage, optimisation et sécurité";
+                lnk.Description = "Velox : nettoyage, optimisation et sécurité";
                 lnk.IconLocation = Chemins.Exe + ",0";
                 lnk.Save();
                 Task.Run(() => { try { Programmes.RafraichirIcones(); } catch { } });
-                f.Demander("Raccourci créé", "Le raccourci « Nettoyage PC » est sur le Bureau." + (Chemins.EstInstalle ? "" : "\n\nNe déplace pas le dossier de l'application, sinon le raccourci ne fonctionnera plus."), "Compris", null, r => { });
+                f.Demander("Raccourci créé", "Le raccourci « Velox » est sur le Bureau." + (Chemins.EstInstalle ? "" : "\n\nNe déplace pas le dossier de l'application, sinon le raccourci ne fonctionnera plus."), "Compris", null, r => { });
             }
             catch (Exception ex) { f.Demander("Impossible de créer le raccourci", ex.Message, "Compris", null, r => { }, true); }
         }

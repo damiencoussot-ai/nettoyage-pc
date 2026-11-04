@@ -1,4 +1,4 @@
-// Nettoyage PC 5 - mémoire vive et BIOS : vitesse réelle des barrettes comparée à leur vitesse prévue (profil EXPO / XMP),
+// Velox 5 - mémoire vive et BIOS : vitesse réelle des barrettes comparée à leur vitesse prévue (profil EXPO / XMP),
 // guide du BIOS selon la carte mère, et redémarrage direct dans le BIOS (question avant ; rien en simulation).
 using System;
 using System.Collections.Generic;

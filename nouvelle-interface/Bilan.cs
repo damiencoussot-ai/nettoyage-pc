@@ -1,4 +1,4 @@
-// Nettoyage PC 5 - données de l'accueil : le bilan (note, secteurs, points à vérifier) et les mesures en direct.
+// Velox 5 - données de l'accueil : le bilan (note, secteurs, points à vérifier) et les mesures en direct.
 // Deux sources : les vrais relevés du PC (SourceBilanPc, moteur partagé avec la version 4)
 // et un bilan d'exemple pour les aperçus et les essais (rien n'est lu sur le PC).
 using System;

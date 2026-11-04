@@ -1,4 +1,4 @@
-// Nettoyage PC 5 - « Que veux-tu faire ? » (Ctrl+K) : tape quelques lettres, les rubriques, onglets et actions
+// Velox 5 - « Que veux-tu faire ? » (Ctrl+K) : tape quelques lettres, les rubriques, onglets et actions
 // correspondants s'affichent, les meilleurs d'abord. Entrée lance le premier, flèches pour choisir, Échap pour fermer.
 // Les actions passent par le même chemin que leurs boutons (question avant toute action réelle).
 using System;

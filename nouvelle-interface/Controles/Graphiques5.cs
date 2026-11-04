@@ -1,4 +1,4 @@
-// Nettoyage PC 5 - petits graphiques des outils Premium : courbe dans le temps (repères, seuil, prévision en pointillés,
+// Velox 5 - petits graphiques des outils Premium : courbe dans le temps (repères, seuil, prévision en pointillés,
 // ou barres par jour), classement en barres horizontales, jauge de santé en arc.
 using System;
 using System.Collections.Generic;

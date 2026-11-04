@@ -1,5 +1,5 @@
-// Nettoyage PC 5 - extensions des navigateurs (lecture seule) : celles installées hors de la boutique officielle ou qui
-// peuvent lire tous les sites sont signalées. La suppression se fait dans le navigateur : Nettoyage PC ne touche à rien.
+// Velox 5 - extensions des navigateurs (lecture seule) : celles installées hors de la boutique officielle ou qui
+// peuvent lire tous les sites sont signalées. La suppression se fait dans le navigateur : Velox ne touche à rien.
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,7 +26,7 @@ namespace NettoyagePC.Nouveau
             F = f;
             var P = Habillage.P;
             Spacing = 10;
-            Children.Add(new TextBlock { Text = Langue.T("Les extensions installées dans tes navigateurs. Une extension inconnue, installée hors de la boutique officielle ou qui peut lire tous les sites mérite d'être vérifiée. Nettoyage PC ne touche à rien : la suppression se fait dans le navigateur."), FontFamily = Habillage.Corps, FontSize = 13.5, Foreground = Habillage.Pinceau(P.Discret), TextWrapping = TextWrapping.Wrap });
+            Children.Add(new TextBlock { Text = Langue.T("Les extensions installées dans tes navigateurs. Une extension inconnue, installée hors de la boutique officielle ou qui peut lire tous les sites mérite d'être vérifiée. Velox ne touche à rien : la suppression se fait dans le navigateur."), FontFamily = Habillage.Corps, FontSize = 13.5, Foreground = Habillage.Pinceau(P.Discret), TextWrapping = TextWrapping.Wrap });
             tableau = new Tableau(false, false, new Colonne("Extension", "2*"), new Colonne("Navigateur", "1.2*"), new Colonne("Version", "90", false, true), new Colonne("Avis", "3*"));
             tableau.HauteurListe = 400;
             tableau.DoubleClic += o => Gerer(o as Extension);

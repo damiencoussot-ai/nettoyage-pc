@@ -1,4 +1,4 @@
-// Nettoyage PC 5 - anneau du style HUD (maquette A) : graduations pointillées qui tournent, anneau épais en segments
+// Velox 5 - anneau du style HUD (maquette A) : graduations pointillées qui tournent, anneau épais en segments
 // rempli selon l'indice, anneau violet en tirets, et au centre « INDICE », le score lumineux et le niveau.
 using System;
 using System.Globalization;

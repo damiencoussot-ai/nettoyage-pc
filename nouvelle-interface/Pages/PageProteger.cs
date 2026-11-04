@@ -1,4 +1,4 @@
-// Nettoyage PC 5 - rubrique Protéger : sécurité (bilan, antivirus, point de restauration, bouclier anti-arnaque...)
+// Velox 5 - rubrique Protéger : sécurité (bilan, antivirus, point de restauration, bouclier anti-arnaque...)
 // et sauvegarde. Rien n'est désactivé : ni l'antivirus, ni le pare-feu, ni Windows Update.
 using System;
 using System.IO;

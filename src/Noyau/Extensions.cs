@@ -1,4 +1,4 @@
-// Nettoyage PC - extensions des navigateurs (lecture seule) : liste, permissions sensibles, origine (boutique ou non).
+// Velox - extensions des navigateurs (lecture seule) : liste, permissions sensibles, origine (boutique ou non).
 // Partagé par la version 4 et la version 5. Rien n'est modifié : la suppression se fait dans le navigateur.
 using System;
 using System.Collections.Generic;

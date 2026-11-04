@@ -1,4 +1,4 @@
-// Nettoyage PC - coût en électricité (Premium) : ESTIMATION de la consommation du PC et de chaque application,
+// Velox - coût en électricité (Premium) : ESTIMATION de la consommation du PC et de chaque application,
 // à partir de l'activité du processeur et de la carte graphique (relevée chaque minute par le gardien) et de la
 // puissance typique de ce matériel. Les écrans ne sont pas comptés. Tout reste sur le PC.
 using System;

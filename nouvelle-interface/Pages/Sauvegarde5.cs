@@ -1,4 +1,4 @@
-// Nettoyage PC 5 - sauvegarde : copie de Documents, Images, Bureau... sur une clé USB ou un disque externe,
+// Velox 5 - sauvegarde : copie de Documents, Images, Bureau... sur une clé USB ou un disque externe,
 // dans un dossier daté. Les fichiers sont copiés : rien n'est jamais supprimé du PC.
 using System;
 using System.Collections.Generic;
@@ -186,7 +186,7 @@ namespace NettoyagePC.Nouveau
 
         private void AfficherDerniere()
         {
-            tDerniere.Text = Langue.T("Aucune sauvegarde faite avec Nettoyage PC pour l'instant.");
+            tDerniere.Text = Langue.T("Aucune sauvegarde faite avec Velox pour l'instant.");
             try
             {
                 string f = Chemins.Fichier("sauvegardes.csv");

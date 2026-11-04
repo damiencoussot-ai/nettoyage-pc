@@ -1,4 +1,4 @@
-// Nettoyage PC - niveaux et succès (profil Gamer, pour le plaisir) : de l'expérience (XP) gagnée en entretenant le PC,
+// Velox - niveaux et succès (profil Gamer, pour le plaisir) : de l'expérience (XP) gagnée en entretenant le PC,
 // un niveau, et des succès débloqués. Calculé seulement à partir de ce que l'application a déjà noté (nettoyages,
 // indices, parties en mode jeu) : rien n'est envoyé, rien n'est modifié.
 using System;

@@ -1,4 +1,4 @@
-// Nettoyage PC 5 - fenêtre principale : menu de gauche (indicateur lumineux qui glisse), en-tête (titre
+// Velox 5 - fenêtre principale : menu de gauche (indicateur lumineux qui glisse), en-tête (titre
 // qui se décode, lumière qui parcourt le trait du bas), pages avec fondu, barre d'état.
 using System;
 using System.Collections.Generic;
@@ -146,7 +146,7 @@ namespace NettoyagePC.Nouveau
             new[] { "Accelerer", "Optimisation", "Optimisation" }, new[] { "Accelerer", "Demarrage", "Démarrage" }, new[] { "Accelerer", "Applications", "Applications" }, new[] { "Accelerer", "Jeux", "Jeux" },
             new[] { "Proteger", "Securite", "Sécurité" }, new[] { "Proteger", "Sauvegarde", "Sauvegarde" },
             new[] { "Outils", "MonPc", "Mon PC" }, new[] { "Outils", "Materiel", "Matériel" }, new[] { "Outils", "Potentiel", "Plein potentiel" }, new[] { "Outils", "Reseau", "Réseau" }, new[] { "Outils", "Aide", "Aide à distance" },
-            new[] { "MisesAJour", "MisesAJour", "Mises à jour de Nettoyage PC" }, new[] { "MisesAJour", "Pilotes", "Windows et pilotes" },
+            new[] { "MisesAJour", "MisesAJour", "Mises à jour de Velox" }, new[] { "MisesAJour", "Pilotes", "Windows et pilotes" },
         };
 
         /// <summary>« Que veux-tu faire ? » (Ctrl+K) : rubriques, onglets et actions du moteur.</summary>
@@ -212,7 +212,7 @@ namespace NettoyagePC.Nouveau
         /// <summary>Une fonction pas encore refaite dans la nouvelle interface : on le dit simplement.</summary>
         public void Bientot(string nom)
         {
-            Demander(nom, "Cette fonction arrive bientôt dans la nouvelle interface. Elle existe déjà dans la version 4 de Nettoyage PC.", "Compris", null, r => { });
+            Demander(nom, "Cette fonction arrive bientôt dans la nouvelle interface. Elle existe déjà dans la version 4 de Velox.", "Compris", null, r => { });
         }
 
         // ---- « Plus d'options » ouverts (gardés dans les réglages, comme la version 4) et page choisie dans chaque rubrique
@@ -435,7 +435,7 @@ namespace NettoyagePC.Nouveau
         public FenetrePrincipale(ISourceBilan source)
         {
             Source = source;
-            Title = "Nettoyage PC";
+            Title = "Velox";
             Width = 1240; Height = 800; MinWidth = 980; MinHeight = 640;
             try { Icon = new WindowIcon(AssetLoader.Open(new Uri("avares://NettoyagePC/Assets/NettoyagePC.ico"))); } catch { }
             DefinirRubriques();
@@ -462,7 +462,7 @@ namespace NettoyagePC.Nouveau
             Rubriques.Add(new Rubrique { Cle = "Outils", Nom = Langue.T("Outils"), Sous = Langue.T("Matériel, plein potentiel, réseau et aide à distance."), Page = () => PageOutils.Creer(this) });
             Rubriques.Add(new Rubrique { Cle = "Premium", Nom = Langue.T("Premium"), Sous = Langue.T("Les outils des pros, débloqués d'un coup."), Page = () => new PagePremium5(this) });
             Rubriques.Add(new Rubrique { Cle = "MisesAJour", Nom = Langue.T("Mises à jour"), Sous = Langue.T("Version installée et nouveautés."), EnBas = true, Page = () => RubriqueMisesAJour.Creer(this) });
-            Rubriques.Add(new Rubrique { Cle = "Historique", Nom = Langue.T("Historique"), Sous = Langue.T("Tout ce que Nettoyage PC a fait, et l'annulation."), EnBas = true, Page = () => new PageHistorique5(this) });
+            Rubriques.Add(new Rubrique { Cle = "Historique", Nom = Langue.T("Historique"), Sous = Langue.T("Tout ce que Velox a fait, et l'annulation."), EnBas = true, Page = () => new PageHistorique5(this) });
             Rubriques.Add(new Rubrique { Cle = "Reglages", Nom = Langue.T("Réglages"), Sous = Langue.T("Apparence, langue, profil et informations."), EnBas = true, Page = () => PageReglages5.Creer(this) });
         }
 
@@ -506,7 +506,7 @@ namespace NettoyagePC.Nouveau
             var tete = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(20, 22, 0, 18), Spacing = 10 };
             try { tete.Children.Add(new Image { Source = new Bitmap(AssetLoader.Open(new Uri("avares://NettoyagePC/Assets/logo.png"))), Width = 32, Height = 32, VerticalAlignment = VerticalAlignment.Center }); } catch { }
             var noms = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
-            noms.Children.Add(new TextBlock { Text = Habillage.Hud ? "NETTOYAGE PC" : "Nettoyage PC", FontFamily = Habillage.Affichage, FontSize = 17, FontWeight = Habillage.Hud ? FontWeight.Bold : FontWeight.SemiBold, Foreground = Brushes.White });
+            noms.Children.Add(new TextBlock { Text = Habillage.Hud ? "VELOX" : "Velox", FontFamily = Habillage.Affichage, FontSize = 17, FontWeight = Habillage.Hud ? FontWeight.Bold : FontWeight.SemiBold, Foreground = Brushes.White });
             string version = Installation5.Apercu ? Langue.T("Version 5.0 · aperçu") : Langue.T("Version") + " " + Appli.Version;
             if (Habillage.Hud && !Installation5.Apercu) version = "v" + Appli.Version + " · " + Langue.T("EN LIGNE");
             noms.Children.Add(new TextBlock { Text = Habillage.Hud ? version.ToUpper(Langue.Culture) : version, FontFamily = Habillage.Hud ? Habillage.Console : Habillage.Corps, FontSize = Habillage.Hud ? 10.5 : 11, TextTrimming = TextTrimming.CharacterEllipsis, MaxWidth = 150, Foreground = Habillage.Pinceau(Habillage.Hud ? Color.FromRgb(111, 168, 188) : Color.FromRgb(138, 160, 180)) });

@@ -1,4 +1,4 @@
-// Nettoyage PC 5 - gardien en temps réel (Premium) : icône près de l'horloge, menu, notifications Windows. Lancé avec
+// Velox 5 - gardien en temps réel (Premium) : icône près de l'horloge, menu, notifications Windows. Lancé avec
 // --gardien à l'ouverture de session, sans droits administrateur et sans fenêtre visible. Les vérifications sont celles
 // du moteur partagé (GardienCoeur), comme en version 4 ; ici, seulement l'icône, écrite directement avec Windows
 // (pas d'interface graphique chargée : le gardien reste léger).
@@ -55,13 +55,13 @@ namespace NettoyagePC.Nouveau
             var classe = new WNDCLASSEX { cbSize = Marshal.SizeOf(typeof(WNDCLASSEX)), lpfnWndProc = proc, hInstance = GetModuleHandle(null), lpszClassName = "NettoyagePC-Gardien-5" };
             RegisterClassEx(ref classe);
             // fenêtre jamais affichée : elle reçoit les clics sur l'icône et porte le menu
-            fenetre = CreateWindowEx(0, classe.lpszClassName, "Nettoyage PC - gardien", 0, 0, 0, 0, 0, IntPtr.Zero, IntPtr.Zero, classe.hInstance, IntPtr.Zero);
+            fenetre = CreateWindowEx(0, classe.lpszClassName, "Velox - gardien", 0, 0, 0, 0, 0, IntPtr.Zero, IntPtr.Zero, classe.hInstance, IntPtr.Zero);
             if (fenetre == IntPtr.Zero) throw new InvalidOperationException("fenêtre du gardien impossible à créer");
             msgBarreRecreee = RegisterWindowMessage("TaskbarCreated");
             icone = NotifNative.ExtractIcon(IntPtr.Zero, Chemins.Exe, 0);
             iconeExtraite = icone != IntPtr.Zero && icone != (IntPtr)1;
             if (!iconeExtraite) icone = NotifNative.LoadIcon(IntPtr.Zero, (IntPtr)32518);   // IDI_SHIELD
-            infobulle = Langue.T("Nettoyage PC : gardien actif");
+            infobulle = Langue.T("Velox : gardien actif");
             AjouterIcone();
             coeur = new GardienCoeur(this);
 
@@ -150,9 +150,9 @@ namespace NettoyagePC.Nouveau
         private void Menu()
         {
             IntPtr m = CreatePopupMenu();
-            AppendMenu(m, MF_STRING | MF_GRAYED, IntPtr.Zero, Langue.T("Nettoyage PC : gardien actif"));
+            AppendMenu(m, MF_STRING | MF_GRAYED, IntPtr.Zero, Langue.T("Velox : gardien actif"));
             AppendMenu(m, MF_SEPARATOR, IntPtr.Zero, null);
-            AppendMenu(m, MF_STRING, (IntPtr)C_OUVRIR, Langue.T("Ouvrir Nettoyage PC"));
+            AppendMenu(m, MF_STRING, (IntPtr)C_OUVRIR, Langue.T("Ouvrir Velox"));
             AppendMenu(m, MF_STRING, (IntPtr)C_SAUVEGARDER, Langue.T("Sauvegarder maintenant"));
             AppendMenu(m, MF_STRING, (IntPtr)C_REGLAGES, Langue.T("Réglages du gardien..."));
             AppendMenu(m, MF_STRING, (IntPtr)C_PAUSE, Langue.T("Pause d'une heure"));

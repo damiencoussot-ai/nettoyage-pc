@@ -1,4 +1,4 @@
-// Nettoyage PC - résumé de la semaine : espace libéré et nombre de nettoyages des 7 derniers jours, indice du PC
+// Velox - résumé de la semaine : espace libéré et nombre de nettoyages des 7 derniers jours, indice du PC
 // aujourd'hui et son évolution. Montré une fois par semaine (notification du gardien, et message à l'ouverture).
 using System;
 using System.Collections.Generic;
@@ -43,13 +43,13 @@ namespace NettoyagePC
                 }
             }
             catch { }
-            r.Titre = Langue.T("Ta semaine avec Nettoyage PC");
+            r.Titre = Langue.T("Ta semaine avec Velox");
             var morceaux = new List<string>();
             morceaux.Add(r.Nettoyages > 0 ? Langue.F("{0} libérés en {1} nettoyage(s)", Format.Taille(r.Octets), r.Nettoyages) : Langue.T("aucun nettoyage cette semaine"));
             if (r.Indice >= 0)
                 morceaux.Add(r.IndiceAvant >= 0 && r.IndiceAvant != r.Indice ? Langue.F("indice {0} ({1}{2})", r.Indice, r.Indice > r.IndiceAvant ? "+" : "", r.Indice - r.IndiceAvant) : Langue.F("indice {0}", r.Indice));
             r.Texte = Langue.T("Cette semaine") + " : " + string.Join(", ", morceaux) + ". "
-                + (r.Indice >= 85 ? Langue.T("Rien à signaler.") : r.Indice >= 0 ? Langue.T("Ouvre Nettoyage PC pour voir ce qui peut être amélioré.") : "");
+                + (r.Indice >= 85 ? Langue.T("Rien à signaler.") : r.Indice >= 0 ? Langue.T("Ouvre Velox pour voir ce qui peut être amélioré.") : "");
             return r;
         }
     }

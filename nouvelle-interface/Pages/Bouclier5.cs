@@ -1,4 +1,4 @@
-// Nettoyage PC 5 - bouclier anti-arnaque : logiciels de prise en main à distance ouverts, conseils,
+// Velox 5 - bouclier anti-arnaque : logiciels de prise en main à distance ouverts, conseils,
 // et le bouton « On me demande de prendre la main sur mon PC ». Rien n'est fermé sans le demander.
 using System;
 using System.Collections.Generic;

@@ -1,4 +1,4 @@
-// Nettoyage PC 5 - tableau : en-tête cliquable (tri), lignes sélectionnables, cases à cocher facultatives,
+// Velox 5 - tableau : en-tête cliquable (tri), lignes sélectionnables, cases à cocher facultatives,
 // lignes estompées (éléments désactivés). Sert aux listes : démarrage, applications, pilotes, gros fichiers...
 using System;
 using System.Collections.Generic;

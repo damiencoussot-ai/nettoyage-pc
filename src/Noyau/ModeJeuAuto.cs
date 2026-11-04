@@ -1,4 +1,4 @@
-// Nettoyage PC - mode jeu automatique (Premium, par le gardien) : quand un jeu se lance, le PC passe en mode
+// Velox - mode jeu automatique (Premium, par le gardien) : quand un jeu se lance, le PC passe en mode
 // d'alimentation « Performances élevées » (et OneDrive se met en pause si tu l'as choisi) ; quand le jeu se ferme,
 // tout revient comme avant. Rien n'est fermé d'autre, rien n'est désinstallé. Sans interface : partagé v4 / v5.
 using System;

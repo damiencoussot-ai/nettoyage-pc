@@ -1,4 +1,4 @@
-// Nettoyage PC 5 - horloge des animations : une seule minuterie pour toute la fenêtre.
+// Velox 5 - horloge des animations : une seule minuterie pour toute la fenêtre.
 // Elle s'arrête quand la fenêtre est réduite ou en arrière-plan (rien ne tourne pour rien),
 // et quand plus aucune animation n'en a besoin.
 using System;

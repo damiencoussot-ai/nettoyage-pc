@@ -1,4 +1,4 @@
-// Nettoyage PC - mises à jour de l'application (GitHub Releases), téléchargement vérifié, installation
+// Velox - mises à jour de l'application (GitHub Releases), téléchargement vérifié, installation
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;

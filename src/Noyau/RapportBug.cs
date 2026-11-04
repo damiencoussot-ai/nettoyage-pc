@@ -1,4 +1,4 @@
-// Nettoyage PC - rapport de problème : version, Windows, réglages utiles et dernières erreurs du journal de démarrage,
+// Velox - rapport de problème : version, Windows, réglages utiles et dernières erreurs du journal de démarrage,
 // SANS données personnelles (nom d'utilisateur, nom du PC, adresses e-mail et chemins personnels sont masqués ;
 // ni clé de licence, ni fichiers). Le rapport est toujours montré avant l'envoi, qui se fait par l'e-mail de l'utilisateur.
 using System;
@@ -18,7 +18,7 @@ namespace NettoyagePC
         public static string Creer(string description)
         {
             var sb = new StringBuilder();
-            sb.AppendLine("Nettoyage PC " + Appli.Version + " — rapport de problème");
+            sb.AppendLine("Velox " + Appli.Version + " — rapport de problème");
             sb.AppendLine("Date : " + DateTime.Now.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture));
             if (!string.IsNullOrWhiteSpace(description)) { sb.AppendLine(); sb.AppendLine("Ce qui s'est passé :"); sb.AppendLine(description.Trim()); }
             sb.AppendLine();

@@ -1,4 +1,4 @@
-// Nettoyage PC 5 - premier lancement : « Faisons connaissance » (pseudo facultatif) et le choix entre le mode simple
+// Velox 5 - premier lancement : « Faisons connaissance » (pseudo facultatif) et le choix entre le mode simple
 // (trois gros boutons) et le mode complet. Tout reste sur ce PC. On peut passer cette étape.
 using System;
 using Avalonia;
@@ -31,12 +31,12 @@ namespace NettoyagePC.Nouveau
             F = f;
             var P = Habillage.P;
             Spacing = 12;
-            Children.Add(new TextBlock { Text = Langue.T("Bienvenue dans Nettoyage PC. Deux petites questions, et c'est parti. Tout reste sur ce PC : pas de compte, pas de mot de passe."), FontFamily = Habillage.Corps, FontSize = 14, Foreground = Habillage.Pinceau(P.Discret), TextWrapping = TextWrapping.Wrap });
+            Children.Add(new TextBlock { Text = Langue.T("Bienvenue dans Velox. Deux petites questions, et c'est parti. Tout reste sur ce PC : pas de compte, pas de mot de passe."), FontFamily = Habillage.Corps, FontSize = 14, Foreground = Habillage.Pinceau(P.Discret), TextWrapping = TextWrapping.Wrap });
             Children.Add(Titre("Comment veux-tu qu'on t'appelle ? (facultatif)"));
             pseudo.Watermark = Langue.T("Ton pseudo");
             pseudo.Text = f.Pseudo ?? "";
             Children.Add(pseudo);
-            Children.Add(Titre("Comment veux-tu utiliser Nettoyage PC ?"));
+            Children.Add(Titre("Comment veux-tu utiliser Velox ?"));
             var choix = new Avalonia.Controls.Primitives.UniformGrid { Columns = 2 };
             carteSimple = Carte("Simple", "Trois gros boutons : Nettoyer, Vérifier, Appeler à l'aide. Idéal pour débuter ou pour un proche.", () => Choisir(true));
             carteComplet = Carte("Complet", "Toutes les rubriques et les options : nettoyage, accélération, sécurité, outils. Chaque action te demande ton accord avant de se lancer.", () => Choisir(false));

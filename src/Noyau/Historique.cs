@@ -1,4 +1,4 @@
-// Nettoyage PC - historique des modifications réversibles (Documents\NettoyagePC\modifications.json)
+// Velox - historique des modifications réversibles (Documents\NettoyagePC\modifications.json)
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -89,7 +89,7 @@ namespace NettoyagePC
         private const string Invalide = "entrée de l'historique invalide (refusée par sécurité)";
         private static readonly Regex Guid = new Regex(@"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$");
 
-        // Clés que Nettoyage PC modifie lui-même (seules celles-ci peuvent être rétablies)
+        // Clés que Velox modifie lui-même (seules celles-ci peuvent être rétablies)
         public static readonly string[] ClesReglages =
         {
             @"HKCU\Software\Microsoft\GameBar", @"HKCU\Software\Microsoft\Windows\CurrentVersion\GameDVR", @"HKCU\Software\Microsoft\DirectX\UserGpuPreferences",

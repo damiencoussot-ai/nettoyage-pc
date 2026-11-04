@@ -1,4 +1,4 @@
-// Nettoyage PC - catalogue des actions du moteur : titre, options, simulation possible, autorisation, confirmation.
+// Velox - catalogue des actions du moteur : titre, options, simulation possible, autorisation, confirmation.
 // Partagé par la version 4 et la version 5 (même programme, option --moteur).
 using System;
 using System.Collections.Generic;

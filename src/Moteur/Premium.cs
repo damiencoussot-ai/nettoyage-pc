@@ -1,4 +1,4 @@
-// Nettoyage PC - moteur : fonctions Premium (analyse du démarrage, kit de réinstallation)
+// Velox - moteur : fonctions Premium (analyse du démarrage, kit de réinstallation)
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.Eventing.Reader;
@@ -155,7 +155,7 @@ namespace NettoyagePC
             var cmd = new StringBuilder();
             cmd.AppendLine("@echo off");
             cmd.AppendLine("chcp 65001 >nul");
-            cmd.AppendLine("title Nettoyage PC - remise en place");
+            cmd.AppendLine("title Velox - remise en place");
             cmd.AppendLine("net session >nul 2>&1");
             cmd.AppendLine("if errorlevel 1 ( echo Clic droit sur Reinstaller.cmd puis \"Executer en tant qu'administrateur\". & pause & exit /b 1 )");
             cmd.AppendLine("cd /d \"%~dp0\"");

@@ -1,4 +1,4 @@
-﻿// Nettoyage PC - informations sur le PC (WMI), notifications, journaux d'événements
+﻿// Velox - informations sur le PC (WMI), notifications, journaux d'événements
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -242,7 +242,7 @@ namespace NettoyagePC
     /// <summary>
     /// Notification Windows (bulle de la zone de notification, affichée comme une notification), sans Windows Forms :
     /// une fenêtre cachée, une icône dans la zone de notification le temps de la bulle, puis tout est retiré.
-    /// Un clic sur la bulle ouvre Nettoyage PC.
+    /// Un clic sur la bulle ouvre Velox.
     /// </summary>
     internal static class Notification
     {
@@ -254,7 +254,7 @@ namespace NettoyagePC
             var d = new NotifNative.NOTIFYICONDATA();
             try
             {
-                fenetre = NotifNative.CreateWindowEx(0, "STATIC", "Nettoyage PC - notification", 0, 0, 0, 0, 0, IntPtr.Zero, IntPtr.Zero, IntPtr.Zero, IntPtr.Zero);
+                fenetre = NotifNative.CreateWindowEx(0, "STATIC", "Velox - notification", 0, 0, 0, 0, 0, IntPtr.Zero, IntPtr.Zero, IntPtr.Zero, IntPtr.Zero);
                 if (fenetre == IntPtr.Zero) return;
                 icone = NotifNative.ExtractIcon(IntPtr.Zero, Chemins.Exe, 0);
                 iconeExtraite = icone != IntPtr.Zero && icone != (IntPtr)1;
@@ -262,7 +262,7 @@ namespace NettoyagePC
                 d.cbSize = System.Runtime.InteropServices.Marshal.SizeOf(typeof(NotifNative.NOTIFYICONDATA));
                 d.hWnd = fenetre; d.uID = 1; d.uCallbackMessage = NotifNative.WM_RAPPEL; d.hIcon = icone;
                 d.uFlags = NotifNative.NIF_MESSAGE | NotifNative.NIF_ICON | NotifNative.NIF_TIP | NotifNative.NIF_INFO;
-                d.szTip = "Nettoyage PC";
+                d.szTip = "Velox";
                 d.szInfo = Couper(texte, 255); d.szInfoTitle = Couper(titre, 63);
                 d.dwInfoFlags = NotifNative.NIIF_INFO; d.uTimeoutOrVersion = 10000;
                 ajoutee = NotifNative.Shell_NotifyIcon(NotifNative.NIM_ADD, ref d);
@@ -337,7 +337,7 @@ namespace NettoyagePC
                 using (var icone = new NotifyIcon())
                 {
                     try { icone.Icon = Icon.ExtractAssociatedIcon(Chemins.Exe); } catch { icone.Icon = SystemIcons.Information; }
-                    icone.Text = "Nettoyage PC";
+                    icone.Text = "Velox";
                     icone.Visible = true;
                     icone.BalloonTipClicked += (s, e) => { try { Process.Start(new ProcessStartInfo(Chemins.Exe) { UseShellExecute = true }); } catch { } };
                     icone.ShowBalloonTip(10000, titre, texte, ToolTipIcon.Info);

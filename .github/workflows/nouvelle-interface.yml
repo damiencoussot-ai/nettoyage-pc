@@ -1,4 +1,4 @@
-# Nettoyage PC 5 (nouvelle interface Avalonia, en construction) : compilation et captures à chaque envoi
+# Velox 5 (nouvelle interface Avalonia, en construction) : compilation et captures à chaque envoi
 # sur la branche interface-avalonia. Les résultats (journal de compilation, captures PNG) sont poussés sur
 # la branche « captures-avalonia » pour être consultés sans télécharger d'artefact.
 # Cette fabrication ne publie rien : la version 4 reste la version distribuée.

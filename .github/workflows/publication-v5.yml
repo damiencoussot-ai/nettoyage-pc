@@ -1,4 +1,4 @@
-# Nettoyage PC 5 : fabrication et publication de la version 5.
+# Velox 5 : fabrication et publication de la version 5.
 # Se lance quand un tag « v5.x » est créé (jamais à un simple envoi de code sur main) :
 # - tag « v5.0 » : version normale, proposée en mise à jour aux PC qui ont la version 4 ;
 # - tag « v5.0-beta1 » (ou -beta2...) : pré-version, que la version 4 installée ne propose pas
@@ -190,7 +190,7 @@ jobs:
         with:
           tag_name: ${{ github.ref_name }}
           target_commitish: ${{ github.sha }}
-          name: Nettoyage PC ${{ steps.version.outputs.version }}${{ steps.version.outputs.beta == 'true' && ' (bêta)' || '' }}
+          name: Velox ${{ steps.version.outputs.version }}${{ steps.version.outputs.beta == 'true' && ' (bêta)' || '' }}
           prerelease: ${{ steps.version.outputs.beta == 'true' }}
           body_path: NOTES-${{ steps.version.outputs.version }}.txt
           files: |

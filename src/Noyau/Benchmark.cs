@@ -1,4 +1,4 @@
-// Nettoyage PC - mesure des performances (processeur, mémoire, disque), pour comparer avant / après un réglage
+// Velox - mesure des performances (processeur, mémoire, disque), pour comparer avant / après un réglage
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;

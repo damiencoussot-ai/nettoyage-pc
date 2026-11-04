@@ -1,4 +1,4 @@
-// Nettoyage PC 5 - visite guidée (30 secondes) : l'écran s'assombrit, sauf la zone expliquée (menu, indice,
+// Velox 5 - visite guidée (30 secondes) : l'écran s'assombrit, sauf la zone expliquée (menu, indice,
 // bouton « Optimiser », accès rapide, alertes, Ctrl+K), avec une bulle « Suivant / Passer ». Lancée depuis l'annonce
 // du nouveau look, « Que veux-tu faire ? » (Ctrl+K) ou Réglages. Rien n'est modifié pendant la visite.
 using System;

@@ -1,4 +1,4 @@
-// Nettoyage PC - pilotes : carte graphique (outil officiel du fabricant) et recherche Windows Update avec tri intelligent
+// Velox - pilotes : carte graphique (outil officiel du fabricant) et recherche Windows Update avec tri intelligent
 // (ce qui est recommandé est coché, le reste est expliqué). Partagé par les deux interfaces.
 using System;
 using System.Collections.Generic;
@@ -85,7 +85,7 @@ namespace NettoyagePC
                 var type = Type.GetTypeFromProgID("Microsoft.Update.Session");
                 if (type == null) { erreur = Langue.T("Le composant Windows Update est introuvable sur ce PC."); return null; }
                 dynamic session = Activator.CreateInstance(type);
-                session.ClientApplicationID = "Nettoyage PC";
+                session.ClientApplicationID = "Velox";
                 dynamic res = session.CreateUpdateSearcher().Search("IsInstalled=0 and IsHidden=0");
                 int n = res.Updates.Count;
                 for (int i = 0; i < n; i++)

@@ -1,4 +1,4 @@
-// Nettoyage PC 5 - « Mettre à jour les applications » : la liste des mises à jour trouvées par winget (l'outil officiel
+// Velox 5 - « Mettre à jour les applications » : la liste des mises à jour trouvées par winget (l'outil officiel
 // de Microsoft), avec la version installée et la nouvelle ; tu coches celles à faire, avec si tu veux un point de
 // restauration avant. Chaque application est mise à jour à part, avec son résultat (à jour, application ouverte...).
 using System;

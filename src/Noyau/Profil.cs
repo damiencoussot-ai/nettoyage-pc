@@ -1,4 +1,4 @@
-﻿// Nettoyage PC - profil : pseudo affiché à l'accueil.
+﻿// Velox - profil : pseudo affiché à l'accueil.
 // Le profil reste sur ce PC (parametres.json) : pas de compte en ligne, pas de mot de passe.
 using System;
 using System.Collections.Generic;

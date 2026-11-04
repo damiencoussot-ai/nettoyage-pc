@@ -1,4 +1,4 @@
-// Nettoyage PC - doublons : recherche par empreinte SHA-256, proposition de la copie à garder, mise à la corbeille
+// Velox - doublons : recherche par empreinte SHA-256, proposition de la copie à garder, mise à la corbeille
 // revérifiée. Partagé par la version 4 et la version 5. Rien n'est supprimé définitivement : tout va à la corbeille.
 using System;
 using System.Collections.Generic;

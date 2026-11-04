@@ -1,4 +1,4 @@
-// Nettoyage PC 5 - réglages de Windows (confidentialité, jeux) : état de chacun, cases à cocher, question avant,
+// Velox 5 - réglages de Windows (confidentialité, jeux) : état de chacun, cases à cocher, question avant,
 // chaque réglage noté dans l'Historique (réversible). En simulation : on montre ce qui serait fait.
 using System;
 using System.Collections.Generic;

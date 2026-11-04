@@ -1,4 +1,4 @@
-// Nettoyage PC 5 - bouton du thème Noyau : principal (dégradé lumineux, reflet qui le traverse au survol)
+// Velox 5 - bouton du thème Noyau : principal (dégradé lumineux, reflet qui le traverse au survol)
 // ou secondaire (fond de carte, liseré qui s'allume au survol). Clavier : Entrée ou Espace.
 using System;
 using System.Globalization;

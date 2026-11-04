@@ -1,4 +1,4 @@
-// Nettoyage PC 5 - rubrique Nettoyer : nettoyage (rapide, profond, analyse), disques et gros fichiers, doublons.
+// Velox 5 - rubrique Nettoyer : nettoyage (rapide, profond, analyse), disques et gros fichiers, doublons.
 // Mêmes actions du moteur que la version 4 ; les gros fichiers vont à la corbeille (récupérables), jamais supprimés.
 using System;
 using System.Collections.Generic;
@@ -209,7 +209,7 @@ namespace NettoyagePC.Nouveau
             if (choisis.Count == 0) return;
             long total = 0; foreach (var fi in choisis) { try { total += fi.Length; } catch { } }
             F.Demander(Langue.F("Mettre {0} fichier(s) à la corbeille ({1}) ?", choisis.Count, Format.Taille(total)),
-                "Tu pourras les récupérer depuis la corbeille tant qu'elle n'est pas vidée, ou depuis l'Historique de Nettoyage PC.", "Mettre à la corbeille", "Annuler", oui =>
+                "Tu pourras les récupérer depuis la corbeille tant qu'elle n'est pas vidée, ou depuis l'Historique de Velox.", "Mettre à la corbeille", "Annuler", oui =>
             {
                 if (!oui) return;
                 int ok = 0, refus = 0;

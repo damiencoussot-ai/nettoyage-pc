@@ -1,4 +1,4 @@
-﻿// Nettoyage PC - moteur : disques (santé, TRIM, optimisation, vérification) et anciens pilotes
+﻿// Velox - moteur : disques (santé, TRIM, optimisation, vérification) et anciens pilotes
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -278,7 +278,7 @@ namespace NettoyagePC
             }
             Ecrire("    (Le dossier Windows n'est pas analysé : il est géré par Windows.)");
             Ecrire();
-            Ecrire("  Conseils SSD : ne défragmente jamais un SSD (Nettoyage PC ne fait que le ReTrim) ; garde 10 à 20 % d'espace libre ;");
+            Ecrire("  Conseils SSD : ne défragmente jamais un SSD (Velox ne fait que le ReTrim) ; garde 10 à 20 % d'espace libre ;");
             Ecrire("  mets à jour son firmware avec l'outil de son fabricant (Samsung Magician, Crucial Storage Executive, WD Dashboard...).");
             Ecrire();
         }

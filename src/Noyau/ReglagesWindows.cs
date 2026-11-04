@@ -1,4 +1,4 @@
-// Nettoyage PC - réglages de Windows proposés (confidentialité, jeux) : état actuel et application suivie dans
+// Velox - réglages de Windows proposés (confidentialité, jeux) : état actuel et application suivie dans
 // l'Historique (réversible). Rien côté sécurité : Windows Update, l'antivirus et le pare-feu ne sont jamais touchés.
 // Partagé par la version 4 et la version 5.
 using System;

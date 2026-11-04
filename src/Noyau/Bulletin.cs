@@ -1,4 +1,4 @@
-// Nettoyage PC - bulletin mensuel du PC (Premium) : une page claire, enregistrée dans Documents\NettoyagePC\Bulletins,
+// Velox - bulletin mensuel du PC (Premium) : une page claire, enregistrée dans Documents\NettoyagePC\Bulletins,
 // à garder, imprimer ou envoyer à un proche : note du PC, espace gagné, démarrage, températures, santé, parties jouées.
 // Rien n'est envoyé nulle part. Sans interface : partagé v4 / v5.
 using System;
@@ -108,7 +108,7 @@ namespace NettoyagePC
             e(".tuiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}.tuile{border:1px solid #dbe3ea;border-left:4px solid #0aa3b5;border-radius:4px;padding:10px 12px}");
             e(".tuile b{display:block;font-size:24px}.tuile span{color:#5b6b78;font-size:13px}ul{padding-left:20px;margin:6px 0}li{margin:4px 0}.ok{color:#11804a}.att{color:#b35c00}.pb{color:#b3261e}");
             e("footer{color:#7a8894;font-size:12px;margin-top:26px}@media print{body{background:#fff;padding:0}main{border:0}}</style></head><body><main>");
-            e("<h1>" + H(titre) + "</h1><p class=\"sous\">" + H(Langue.F("PC « {0} » · Windows {1} · créé le {2} par Nettoyage PC {3}", Environment.MachineName, InfosPc.Edition, DateTime.Now.ToString("dd/MM/yyyy HH:mm"), Appli.Version)) + "</p>");
+            e("<h1>" + H(titre) + "</h1><p class=\"sous\">" + H(Langue.F("PC « {0} » · Windows {1} · créé le {2} par Velox {3}", Environment.MachineName, InfosPc.Edition, DateTime.Now.ToString("dd/MM/yyyy HH:mm"), Appli.Version)) + "</p>");
 
             e("<div class=\"tuiles\">");
             Action<string, string> tuile = (v, l) => e("<div class=\"tuile\"><b>" + H(v) + "</b><span>" + H(l) + "</span></div>");
@@ -151,7 +151,7 @@ namespace NettoyagePC
                 e("</ul>");
             }
 
-            e("<footer>" + H(Langue.T("Ce bulletin est enregistré sur ce PC seulement (Documents\\NettoyagePC\\Bulletins). Nettoyage PC n'envoie rien sur Internet.")) + "</footer></main></body></html>");
+            e("<footer>" + H(Langue.T("Ce bulletin est enregistré sur ce PC seulement (Documents\\NettoyagePC\\Bulletins). Velox n'envoie rien sur Internet.")) + "</footer></main></body></html>");
             Directory.CreateDirectory(Dossier);
             string fichier = Fichier(debut);
             File.WriteAllText(fichier, sb.ToString(), new UTF8Encoding(false));

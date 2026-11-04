@@ -1,4 +1,4 @@
-// Nettoyage PC 5 - profils d'utilisation : « Gamer », « Bureautique », « PC familial ». Un profil règle d'un coup
+// Velox 5 - profils d'utilisation : « Gamer », « Bureautique », « PC familial ». Un profil règle d'un coup
 // les favoris de l'accueil et, avec Premium, ce que le gardien surveille. Tout est montré avant (question),
 // rien n'est supprimé, et chaque réglage reste modifiable ensuite à la main.
 using System;
