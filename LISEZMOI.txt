@@ -1,9 +1,9 @@
-VELOX 5.7
+VELOX 5.7.1
 ================
 
 Installation
 ------------
-1. Double-clique sur « NettoyagePC-Setup-5.7.exe ».
+1. Double-clique sur « NettoyagePC-Setup-5.7.1.exe ».
 2. Windows peut afficher « Windows a protégé votre ordinateur » (SmartScreen) : clique sur
    « Informations complémentaires » puis « Exécuter quand même ». C'est normal pour un programme
    qui n'est pas signé par un éditeur connu.

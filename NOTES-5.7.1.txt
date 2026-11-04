@@ -1,0 +1,13 @@
+Velox 5.7.1 : nouveau logo et profil Gamer encore plus poussé
+
+- Nouveau logo Velox : le « V » de la vitesse, en néon (icône, menu, installateur, site).
+- Les profils se choisissent directement dans la barre de gauche (GAMER, TRAVAIL, FAMILLE), sans passer par Réglages.
+- Profil Gamer :
+  - bannière animée en haut de l'accueil (soleil néon, sol quadrillé qui défile, titre « VELOX // GAMER »),
+    avec ton rang, ton niveau, ton XP et tes succès, et un gros bouton BOOST ;
+  - animation « BOOST ENGAGÉ » plein écran quand le mode jeu se lance ;
+  - annonces « SUCCÈS DÉBLOQUÉ » et « NIVEAU SUPÉRIEUR » en bas à droite, façon console.
+
+Rappel : le look Gamer (néon, QG GAMER, bannière) s'active en choisissant le profil GAMER, en bas de la barre de gauche.
+
+SHA256 de NettoyagePC-Setup-5.7.1.exe : voir le fichier NettoyagePC-Setup-5.7.1.sha256

@@ -7,6 +7,8 @@ namespace NettoyagePC
     {
         public static readonly List<KeyValuePair<string, string[]>> Liste = new List<KeyValuePair<string, string[]>>
         {
+            N("5.7.1", "Nouveau logo Velox, et les profils (Gamer, Travail, Famille) se choisissent dans la barre de gauche.",
+                "Profil Gamer : bannière néon animée avec BOOST, animation plein écran au lancement du mode jeu, annonces de succès et de niveau."),
             N("5.7", "Nettoyage PC devient Velox (« rapide » en latin) : même logiciel, réglages, historique et Premium gardés.",
                 "Velox 5.7 : profils, Mon PC, mises à jour des applications au choix, résumé de la semaine, signalement de problème, et l'ancienne version 4 retirée.",
                 "Profil Gamer : look néon, ligne RGB, QG GAMER sur l'accueil (prêt pour jouer, mode jeu en un clic), niveaux, XP et 11 succès à débloquer."),
