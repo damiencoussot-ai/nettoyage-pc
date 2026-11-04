@@ -7,7 +7,7 @@ using Avalonia.Media;
 
 namespace NettoyagePC.Nouveau
 {
-    public sealed class Cadre5 : Decorator
+    public class Cadre5 : Decorator
     {
         private IBrush fond, bordure;
         private Thickness epaisseur;
