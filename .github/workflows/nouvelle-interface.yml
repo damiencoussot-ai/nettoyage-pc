@@ -230,7 +230,7 @@ jobs:
           Noter ("fenêtre du programme installé : code {0} ; {1}" -f $p.ExitCode, ((Get-Content essais-windows\demarrage-installe.txt -ErrorAction SilentlyContinue) -join ' / '))
 
           # 4. désinstallation
-          $p = Start-Process (Join-Path $dossier 'Desinstaller.exe') -ArgumentList '/S' -Wait -PassThru
+          $p = Start-Process (Join-Path $dossier 'Desinstaller.exe') -ArgumentList '/S', "_?=$dossier" -Wait -PassThru   # _?= : le désinstalleur ne se relance pas depuis TEMP, donc -Wait attend vraiment la fin
           Start-Sleep 5
           $reste = Test-Path $exe
           $tache = Get-ScheduledTask -TaskName 'Nettoyage PC*' -ErrorAction SilentlyContinue

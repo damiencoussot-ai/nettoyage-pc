@@ -119,7 +119,7 @@ jobs:
             if ($p.ExitCode -ne 0) { throw "Auto-contrôle du programme installé en échec (code $($p.ExitCode))" }
             $g = Start-Process $exe -ArgumentList '--gardien' -PassThru
             if (-not $g.WaitForExit(20000)) { $g | Stop-Process -Force; throw "Le gardien ne s'est pas arrêté sans Premium" }
-            $p = Start-Process (Join-Path $dossier 'Desinstaller.exe') -ArgumentList '/S' -Wait -PassThru
+            $p = Start-Process (Join-Path $dossier 'Desinstaller.exe') -ArgumentList '/S', "_?=$dossier" -Wait -PassThru   # _?= : le désinstalleur ne se relance pas depuis TEMP, donc -Wait attend vraiment la fin
             Start-Sleep 5
             if (Test-Path $exe) { throw "Le programme est resté après la désinstallation" }
             Noter "Passage 4 -> $v : installation, auto-contrôle, gardien et désinstallation corrects."
