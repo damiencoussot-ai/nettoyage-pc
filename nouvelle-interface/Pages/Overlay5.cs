@@ -28,7 +28,10 @@ namespace NettoyagePC.Nouveau
         private const int GWL_EXSTYLE = -20;
         private const long WS_EX_TRANSPARENT = 0x20, WS_EX_LAYERED = 0x80000, WS_EX_TOOLWINDOW = 0x80, WS_EX_NOACTIVATE = 0x8000000;
         private const uint MOD_ALT = 1, MOD_CONTROL = 2, MOD_NOREPEAT = 0x4000, WM_HOTKEY = 0x312, WM_QUIT = 0x12;
-        private static uint filRaccourci;
+        private static volatile uint filRaccourci;
+        private static Thread filActif;
+        private static readonly ManualResetEventSlim pret = new ManualResetEventSlim(false);
+        [DllImport("user32.dll")] private static extern bool PeekMessageW(out MSG m, IntPtr h, uint a, uint b, uint remove);
 
         private static Window fenetre;
         private static FenetrePrincipale principale;
@@ -59,18 +62,29 @@ namespace NettoyagePC.Nouveau
             if (!OperatingSystem.IsWindows()) return;
             if (!actif)
             {
-                if (raccourci && filRaccourci != 0) { PostThreadMessageW(filRaccourci, WM_QUIT, IntPtr.Zero, IntPtr.Zero); }
+                // arrête le petit fil proprement (on attend qu'il soit prêt, sinon le message d'arrêt serait perdu
+                // et Ctrl+Alt+O resterait pris)
+                if (raccourci && filActif != null)
+                {
+                    pret.Wait(1000);
+                    if (filRaccourci != 0) PostThreadMessageW(filRaccourci, WM_QUIT, IntPtr.Zero, IntPtr.Zero);
+                    filActif.Join(1000);
+                }
                 raccourci = false;
                 if (fenetre != null) fenetre.Close();
                 return;
             }
             if (raccourci) return;
+            if (filActif != null && filActif.IsAlive) filActif.Join(1000);   // l'ancien fil doit avoir rendu la combinaison
             raccourci = true;
+            pret.Reset();
             var fil = new Thread(() =>
             {
                 try
                 {
+                    MSG p; PeekMessageW(out p, IntPtr.Zero, 0, 0, 0);   // crée la file de messages du fil avant d'annoncer qu'il est prêt
                     filRaccourci = GetCurrentThreadId();
+                    pret.Set();
                     if (!RegisterHotKey(IntPtr.Zero, 0x5601, MOD_CONTROL | MOD_ALT | MOD_NOREPEAT, 'O')) { JournalDemarrage.Noter("Overlay : raccourci Ctrl+Alt+O déjà pris par un autre logiciel."); raccourci = false; return; }
                     MSG m;
                     while (GetMessageW(out m, IntPtr.Zero, 0, 0) > 0)
@@ -78,8 +92,9 @@ namespace NettoyagePC.Nouveau
                     UnregisterHotKey(IntPtr.Zero, 0x5601);
                 }
                 catch (Exception ex) { JournalDemarrage.Erreur("raccourci de l'overlay", ex); }
-                finally { filRaccourci = 0; }
+                finally { filRaccourci = 0; pret.Set(); }
             }) { IsBackground = true, Name = "Raccourci overlay" };
+            filActif = fil;
             fil.Start();
         }
 

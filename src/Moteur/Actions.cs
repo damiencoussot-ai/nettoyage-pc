@@ -54,7 +54,9 @@ namespace NettoyagePC
             else
             {
                 if (!Alimentation.Liste().Contains(Alimentation.Performances)) Alimentation.Dupliquer(Alimentation.Performances);
-                if (avant != "" && avant != Alimentation.Performances && !File.Exists(FichierModeJeu))
+                // le fichier modejeu.json marque « mode jeu en cours » (même si le PC était déjà en « Performances élevées » :
+                // sans lui, l'interface croyait que le mode jeu n'avait pas démarré) et garde le mode d'avant pour le rétablir
+                if (!File.Exists(FichierModeJeu))
                     FichierSur.Ecrire(FichierModeJeu, Json.Ecrire(new Dictionary<string, object> { { "Avant", avant }, { "Date", DateTime.Now.ToString("yyyy-MM-dd HH:mm") } }));
                 if (Alimentation.Activer(Alimentation.Performances))
                 {
@@ -91,7 +93,8 @@ namespace NettoyagePC
             {
                 string avant = Json.Texte(Json.LireFichier(FichierModeJeu) as Dictionary<string, object>, "Avant");
                 if (!Regex.IsMatch(avant, @"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")) avant = "";
-                if (avant != "" && Alimentation.Activer(avant)) Ecrire("  OK : mode d'alimentation précédent rétabli.");
+                if (avant != "" && avant.Equals(Alimentation.Performances, StringComparison.OrdinalIgnoreCase)) Ecrire("  Le PC était déjà en « Performances élevées » avant le mode jeu : rien à rétablir.");
+                else if (avant != "" && Alimentation.Activer(avant)) Ecrire("  OK : mode d'alimentation précédent rétabli.");
                 else Ecrire("  Mode précédent introuvable : passe en « Mode équilibré » depuis la page Optimisation.");
                 if (!Admin || Protection.CheminSansLien(FichierModeJeu)) { try { File.Delete(FichierModeJeu); } catch { } }
                 Historique.MarquerAnnulees(m => m.Type == "alimentation" && m.Titre.StartsWith("Mode jeu"));

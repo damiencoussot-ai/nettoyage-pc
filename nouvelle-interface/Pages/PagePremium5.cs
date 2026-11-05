@@ -328,7 +328,9 @@ namespace NettoyagePC.Nouveau
             Children.Add(bAcheter);
             Children.Add(new TextBlock
             {
-                Text = Langue.T(Boutique.AchatAutomatique || Boutique.UrlAchat == ""
+                Text = Langue.T(Boutique.UrlDiscord != ""
+                    ? "L'abonnement se prend sur le serveur Discord officiel de Velox : paiement sécurisé par Stripe, et ta clé arrive en message privé. Sans engagement ; premier mois remboursé si tu changes d'avis dans les 14 jours."
+                    : Boutique.AchatAutomatique || Boutique.UrlAchat == ""
                     ? "Paiement sécurisé par Stripe (carte bancaire, Apple Pay, Google Pay...). Premium s'active tout seul après le paiement, et ta clé s'affiche pour tes autres PC. Satisfait ou remboursé 14 jours."
                     : "Paiement sécurisé par Lemon Squeezy, revendeur officiel (carte bancaire, PayPal...). La clé arrive par e-mail juste après. Satisfait ou remboursé 14 jours."),
                 FontFamily = Habillage.Corps, FontSize = 12.5, Foreground = Habillage.Pinceau(P.Discret), TextWrapping = TextWrapping.Wrap,
