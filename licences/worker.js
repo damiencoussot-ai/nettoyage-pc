@@ -42,7 +42,7 @@ const ENTETES_PAGE = {
 };
 
 export default {
-  async fetch(requete, env) {
+  async fetch(requete, env, ctx) {
     const url = new URL(requete.url);
     const chemin = url.pathname.replace(/\/+$/, '') || '/';
     try {
@@ -51,7 +51,7 @@ export default {
       if (chemin.startsWith('/v1/achats/') && requete.method === 'GET') return await achat(decodeURIComponent(chemin.slice(11)), env);
       if (chemin.startsWith('/v1/licenses/') && requete.method === 'POST') return await licences(chemin.slice(13), requete, env);
       if (chemin === '/admin') return await admin(requete, env);
-      if (chemin === '/discord' && requete.method === 'POST') return await discord(requete, env);
+      if (chemin === '/discord' && requete.method === 'POST') return await discord(requete, env, ctx);
       if (chemin === '/') return new Response('Service de licences de Velox.\n', { headers: { 'Content-Type': 'text/plain; charset=utf-8' } });
       return json({ error: 'not found' }, 404);
     } catch (e) {
@@ -342,7 +342,7 @@ function carteCle(lic, titre) {
   };
 }
 
-async function discord(requete, env) {
+async function discord(requete, env, ctx) {
   const corps = await requete.text();
   if (!await signatureDiscord(requete, corps, env)) return new Response('signature invalide', { status: 401 });
   const i = JSON.parse(corps);
@@ -394,15 +394,32 @@ async function discord(requete, env) {
     const cible = String((opts.find((o) => o.name === 'membre') || {}).value || '');
     const raison = String((opts.find((o) => o.name === 'raison') || {}).value || 'clé offerte').slice(0, 100);
     if (!/^\d{15,22}$/.test(cible)) return reponse('Membre inconnu.');
-    const lic = {
-      cle: crypto.randomUUID().toUpperCase(), statut: 'active', raison: '', email: '', nom: 'Discord ' + cible, session: '', paiement: '', ref: '',
-      montant: 0, devise: 'eur', test: false, offerte: raison, offertePar: id, creee: new Date().toISOString(), activations: [],
-    };
-    await ecrire(env, lic);
-    const envoyee = await donnerSurDiscord(env, cible, lic, 'offerte');
-    return reponse('Clé offerte à <@' + cible + '> (' + raison + ').' + (envoyee ? ' Elle lui a été envoyée en message privé.' : ' Ses messages privés sont fermés : voici la clé à lui transmettre toi-même :\n```' + lic.cle + '```'));
+    // Discord attend une réponse en moins de 3 secondes : on répond tout de suite « en cours… », puis on crée la clé,
+    // on donne le rôle, on envoie le message privé, et on remplace la réponse par le résultat.
+    const travail = (async () => {
+      const lic = {
+        cle: crypto.randomUUID().toUpperCase(), statut: 'active', raison: '', email: '', nom: 'Discord ' + cible, session: '', paiement: '', ref: '',
+        montant: 0, devise: 'eur', test: false, offerte: raison, offertePar: id, creee: new Date().toISOString(), activations: [],
+      };
+      await ecrire(env, lic);
+      const envoyee = await donnerSurDiscord(env, cible, lic, 'offerte');
+      const texte = 'Clé offerte à <@' + cible + '> (' + raison + ').' + (envoyee ? ' Elle lui a été envoyée en message privé.' : ' Ses messages privés sont fermés : voici la clé à lui transmettre toi-même :\n```' + lic.cle + '```');
+      await modifierReponse(env, i.token, texte);
+    })().catch((e) => console.log('cle-offerte', e));
+    if (ctx && ctx.waitUntil) { ctx.waitUntil(travail); return json({ type: 5, data: { flags: EPHEMERE } }); }
+    await travail;
+    return json({ type: 5, data: { flags: EPHEMERE } });
   }
   return reponse('Commande inconnue.');
+}
+
+/** Remplace la réponse « en cours… » d'une commande (jeton de l'interaction, valable 15 minutes ; pas besoin du jeton du bot). */
+async function modifierReponse(env, jeton, texte) {
+  try {
+    await fetch(API_DISCORD + '/webhooks/' + env.DISCORD_APP_ID + '/' + jeton + '/messages/@original', {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ content: texte, allowed_mentions: { parse: [] } }),
+    });
+  } catch (e) { console.log('discord réponse', e); }
 }
 
 async function appelDiscord(env, methode, chemin, corps) {

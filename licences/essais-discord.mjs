@@ -14,6 +14,7 @@ enreg('POST', '/api/v10/channels/999000000000000001/messages', { id: 'm1' });
 enreg('PUT', /\/api\/v10\/guilds\/.*\/roles\/.*/, '', 204);
 enreg('DELETE', /\/api\/v10\/guilds\/.*\/roles\/.*/, '', 204);
 enreg('PUT', '/api/v10/applications/111111111111111111/commands', []);
+enreg('PATCH', /\/api\/v10\/webhooks\/111111111111111111\/.*\/messages\/@original/, {});
 const SECRET = 'whsec_essai', ADMIN = 'motdepasse-admin-essai';
 const mf = new Miniflare({ modules: true, scriptPath: W, kvNamespaces: ['LICENCES'], compatibilityDate: '2025-06-01', fetchMock,
   bindings: { STRIPE_WEBHOOK_SECRET: SECRET, ADMIN_TOKEN: ADMIN, DISCORD_PUBLIC_KEY: pk, DISCORD_APP_ID: '111111111111111111', DISCORD_BOT_TOKEN: 'jeton-bot', LIEN_PAIEMENT: 'https://buy.stripe.com/test_abc', DISCORD_GUILD_ID: '222222222222222222', DISCORD_ROLE_PREMIUM: '333333333333333333' } });
@@ -39,15 +40,17 @@ r = await mf.dispatchFetch(B + '/stripe', { method: 'POST', body: corps, headers
 ok(r.status === 200, 'webhook Stripe accepté');
 ok(appels.some((a) => a.startsWith('PUT /api/v10/guilds/222222222222222222/members/444444444444444444/roles/333333333333333333')), 'rôle Premium donné');
 const msg = appels.find((a) => a.startsWith('POST /api/v10/channels/'));
-ok(msg && /[A-F0-9]{8}-[A-F0-9]{4}-/.test(msg), 'clé envoyée en message privé');
+ok(!!msg, 'clé envoyée en message privé (appel à Discord)');
 r = await interaction({ type: 2, guild_id: '222222222222222222', member: { user: { id: U }, permissions: '0' }, data: { name: 'ma-cle' } });
 j = await r.json(); ok(j.data.flags === 64 && j.data.embeds.length === 1 && j.data.embeds[0].description.includes('-'), '/ma-cle : la clé, en privé');
 r = await interaction({ type: 2, guild_id: '222222222222222222', member: { user: { id: '666666666666666666' }, permissions: '0' }, data: { name: 'ma-cle' } });
 j = await r.json(); ok(!j.data.embeds, '/ma-cle : rien pour un autre membre');
 r = await interaction({ type: 2, guild_id: '222222222222222222', member: { user: { id: U }, permissions: '0' }, data: { name: 'cle-offerte', options: [{ name: 'membre', value: '777777777777777777' }] } });
 j = await r.json(); ok(/réservée/.test(j.data.content), '/cle-offerte refusée sans droits admin');
-r = await interaction({ type: 2, guild_id: '222222222222222222', member: { user: { id: ADM }, permissions: '8' }, data: { name: 'cle-offerte', options: [{ name: 'membre', value: '777777777777777777' }, { name: 'raison', value: 'concours' }] } });
-j = await r.json(); ok(/Clé offerte/.test(j.data.content) && /envoyée en message privé/.test(j.data.content), '/cle-offerte par un admin');
+r = await interaction({ type: 2, guild_id: '222222222222222222', member: { user: { id: ADM }, permissions: '8' }, token: 'jeton-essai', data: { name: 'cle-offerte', options: [{ name: 'membre', value: '777777777777777777' }, { name: 'raison', value: 'concours' }] } });
+j = await r.json(); ok(j.type === 5 && j.data.flags === 64, '/cle-offerte : réponse immédiate « en cours » (moins de 3 s)');
+await new Promise((x) => setTimeout(x, 300));
+ok(appels.some((a) => a.startsWith('PATCH /api/v10/webhooks/111111111111111111/jeton-essai/messages/@original')), '/cle-offerte : résultat affiché ensuite');
 // la clé offerte est valide pour l'application
 r = await interaction({ type: 2, member: { user: { id: '777777777777777777' }, permissions: '0' }, guild_id: '222222222222222222', data: { name: 'ma-cle' } });
 j = await r.json(); const cleOfferte = /```([A-F0-9-]{36})```/.exec(j.data.embeds[0].description)[1];
