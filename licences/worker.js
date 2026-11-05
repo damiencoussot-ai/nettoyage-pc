@@ -19,6 +19,17 @@
 //   GET  /v1/achats/<référence>     l'application récupère la clé de l'achat qu'elle a lancé
 //   POST /v1/licenses/activate|validate|deactivate   vérifications de l'application
 //   GET/POST /admin                 page de l'éditeur : chercher une clé par e-mail, désactiver, libérer les PC
+//   POST /discord                   commandes Discord (/premium, /ma-cle, /telecharger, /cle-offerte)
+//
+// Discord (facultatif) : vendre Premium sur le serveur Discord et y donner les clés.
+//   Variable      DISCORD_APP_ID           (« Application ID » de l'application Discord)
+//   Variable      DISCORD_PUBLIC_KEY       (« Public Key » de l'application Discord)
+//   Secret        DISCORD_BOT_TOKEN        (jeton du bot : messages privés et rôle Premium)
+//   Variable      LIEN_PAIEMENT            (lien de paiement Stripe « https://buy.stripe.com/… »)
+//   Variable      DISCORD_GUILD_ID         (facultatif : identifiant du serveur, pour donner le rôle)
+//   Variable      DISCORD_ROLE_PREMIUM     (facultatif : identifiant du rôle « Premium »)
+//   Dans le portail Discord : « Interactions Endpoint URL » = https://<ce worker>/discord
+//   Puis, une fois : page /admin, bouton « Installer les commandes Discord ».
 
 const LIMITE_PC = 3;
 const PRODUIT = 'Velox Premium';
@@ -40,6 +51,7 @@ export default {
       if (chemin.startsWith('/v1/achats/') && requete.method === 'GET') return await achat(decodeURIComponent(chemin.slice(11)), env);
       if (chemin.startsWith('/v1/licenses/') && requete.method === 'POST') return await licences(chemin.slice(13), requete, env);
       if (chemin === '/admin') return await admin(requete, env);
+      if (chemin === '/discord' && requete.method === 'POST') return await discord(requete, env);
       if (chemin === '/') return new Response('Service de licences de Velox.\n', { headers: { 'Content-Type': 'text/plain; charset=utf-8' } });
       return json({ error: 'not found' }, 404);
     } catch (e) {
@@ -129,6 +141,9 @@ async function creerLicence(env, s) {
   if (lic.paiement) await env.LICENCES.put('pi:' + lic.paiement, cle);
   if (lic.ref) await env.LICENCES.put('ref:' + lic.ref, cle, { expirationTtl: 90 * 86400 });
   if (lic.email) await env.LICENCES.put('mail:' + lic.email + ':' + cle, '1');
+  // achat lancé depuis Discord (/premium) : la clé arrive aussi en message privé, avec le rôle Premium
+  const idDiscord = /^discord_(\d{15,22})_/.exec(lic.ref || '');
+  if (idDiscord && (!lic.test || env.ACCEPTER_TEST === 'oui')) await donnerSurDiscord(env, idDiscord[1], lic, 'achat');
   return cle;
 }
 
@@ -140,6 +155,7 @@ async function desactiverParPaiement(env, paiement, raison) {
   if (!lic) return;
   lic.statut = 'disabled'; lic.raison = raison; lic.modifiee = new Date().toISOString();
   await ecrire(env, lic);
+  if (lic.discord) await roleDiscord(env, lic.discord, false);   // remboursement : le rôle Premium est retiré
 }
 
 // ------------------------------------------------------------ après le paiement
@@ -286,5 +302,145 @@ async function admin(requete, env) {
     if (!resultats) resultats = '<p>Aucune clé trouvée pour « ' + echapper(recherche) + ' ».</p>';
   }
   const formRecherche = '<form method="post">' + champ('jeton', jeton) + '<p><label>E-mail de l\'acheteur ou clé<br><input name="recherche" value="' + echapper(recherche) + '" style="font-size:1rem;padding:8px;width:100%"></label></p><p><button>Chercher</button></p></form>';
-  return page('Administration', message + formRecherche + resultats);
+  // Discord : installer (ou mettre à jour) les commandes du bot
+  if (action === 'commandes-discord') message = '<p><b>Discord :</b> ' + echapper(await installerCommandes(env)) + '</p>';
+  const formDiscord = env.DISCORD_APP_ID ? '<form method="post" style="margin-top:24px">' + champ('jeton', jeton) + champ('action', 'commandes-discord') + '<button>Installer les commandes Discord</button></form>' : '';
+  return page('Administration', message + formRecherche + resultats + formDiscord);
+}
+
+// ------------------------------------------------------------ Discord
+// Le bot ne lit aucun message : Discord envoie seulement les commandes « / » à cette adresse, signées (Ed25519).
+// Les clés ne sont montrées qu'à la personne concernée (réponse privée ou message privé), jamais dans un salon.
+const API_DISCORD = 'https://discord.com/api/v10';
+const EPHEMERE = 64, ADMINISTRATEUR = 8n;
+const hexOctets = (h) => new Uint8Array((h.match(/../g) || []).map((x) => parseInt(x, 16)));
+
+async function signatureDiscord(requete, corps, env) {
+  const sig = requete.headers.get('X-Signature-Ed25519') || '', ts = requete.headers.get('X-Signature-Timestamp') || '';
+  if (!env.DISCORD_PUBLIC_KEY || !/^[0-9a-f]{128}$/i.test(sig) || !/^\d+$/.test(ts)) return false;
+  if (Math.abs(Date.now() / 1000 - Number(ts)) > 300) return false;
+  for (const nom of ['Ed25519', 'NODE-ED25519']) {
+    try {
+      const algo = nom === 'Ed25519' ? { name: 'Ed25519' } : { name: nom, namedCurve: nom };
+      const k = await crypto.subtle.importKey('raw', hexOctets(env.DISCORD_PUBLIC_KEY), algo, false, ['verify']);
+      return await crypto.subtle.verify(algo, k, hexOctets(sig), enc(ts + corps));
+    } catch (e) { /* algorithme suivant */ }
+  }
+  return false;
+}
+
+function reponse(contenu, options = {}) {
+  return json({ type: 4, data: Object.assign({ flags: EPHEMERE, allowed_mentions: { parse: [] } }, typeof contenu === 'string' ? { content: contenu } : contenu, options) });
+}
+
+const MAGENTA = 0xff2bd6;
+function carteCle(lic, titre) {
+  return {
+    title: titre, color: MAGENTA,
+    description: 'Ta clé **' + PRODUIT + '** :\n```' + lic.cle + '```\nDans Velox : onglet **Premium**, bouton **« J\'ai une clé »**, puis colle-la. Elle marche sur ' + LIMITE_PC + ' PC.',
+    footer: { text: 'Garde-la pour toi : elle ne sera jamais demandée par le support.' },
+  };
+}
+
+async function discord(requete, env) {
+  const corps = await requete.text();
+  if (!await signatureDiscord(requete, corps, env)) return new Response('signature invalide', { status: 401 });
+  const i = JSON.parse(corps);
+  if (i.type === 1) return json({ type: 1 });                        // vérification de l'adresse par Discord
+  if (i.type !== 2) return reponse('Action inconnue.');
+  const membre = i.member || {}, utilisateur = membre.user || i.user || {};
+  const id = String(utilisateur.id || '');
+  if (!/^\d{15,22}$/.test(id)) return reponse('Utilisateur inconnu.');
+  const nom = (i.data && i.data.name) || '';
+
+  if (nom === 'premium') {
+    if (!env.LIEN_PAIEMENT) return reponse('La boutique n\'est pas encore ouverte. Reste connecté au salon des annonces !');
+    // référence de l'achat : l'identifiant Discord (pour envoyer la clé ici) + un nombre au hasard
+    const ref = 'discord_' + id + '_' + hex(crypto.getRandomValues(new Uint8Array(8)));
+    const lien = env.LIEN_PAIEMENT + (env.LIEN_PAIEMENT.includes('?') ? '&' : '?') + 'client_reference_id=' + ref;
+    return reponse({
+      embeds: [{
+        title: PRODUIT + ' · 9,99 € une seule fois', color: MAGENTA,
+        description: '19 outils de pro débloqués d\'un coup : gardien en temps réel, mode jeu automatique, preuve en FPS, moniteur en direct, sauvegarde automatique…\n\n' +
+          '• Paiement sécurisé par **Stripe**\n• Ta clé arrive ici **en message privé** juste après le paiement, et sur la page de confirmation\n• Valable sur ' + LIMITE_PC + ' PC, sans abonnement\n• Satisfait ou remboursé 14 jours',
+      }],
+      components: [{ type: 1, components: [{ type: 2, style: 5, label: 'Acheter Premium · 9,99 €', url: lien }, { type: 2, style: 5, label: 'Voir le site', url: SITE }] }],
+    });
+  }
+
+  if (nom === 'ma-cle') {
+    const liste = JSON.parse(await env.LICENCES.get('discord:' + id) || '[]');
+    if (liste.length === 0) return reponse('Aucune clé liée à ton compte Discord. Si tu as acheté sur le site, ta clé est dans l\'e-mail de Stripe ; sinon écris à ' + CONTACT + '.');
+    const embeds = [];
+    for (const c of liste.slice(-5)) {
+      const lic = await lire(env, 'lic:' + c);
+      if (lic) embeds.push(carteCle(lic, lic.statut === 'active' ? 'Ta clé Premium' : 'Clé désactivée (' + (lic.raison || lic.statut) + ')'));
+    }
+    return reponse({ embeds });
+  }
+
+  if (nom === 'telecharger') {
+    return reponse({ content: 'Télécharge **Velox** (gratuit, Windows 10 et 11) :', components: [{ type: 1, components: [{ type: 2, style: 5, label: 'Télécharger Velox', url: SITE }] }] });
+  }
+
+  if (nom === 'cle-offerte') {
+    // réservé aux administrateurs du serveur (vérifié ici, pas seulement par Discord)
+    let droits = 0n;
+    try { droits = BigInt(membre.permissions || '0'); } catch (e) { droits = 0n; }
+    if (!i.guild_id || (droits & ADMINISTRATEUR) !== ADMINISTRATEUR) return reponse('Commande réservée aux administrateurs du serveur.');
+    const opts = (i.data.options || []);
+    const cible = String((opts.find((o) => o.name === 'membre') || {}).value || '');
+    const raison = String((opts.find((o) => o.name === 'raison') || {}).value || 'clé offerte').slice(0, 100);
+    if (!/^\d{15,22}$/.test(cible)) return reponse('Membre inconnu.');
+    const lic = {
+      cle: crypto.randomUUID().toUpperCase(), statut: 'active', raison: '', email: '', nom: 'Discord ' + cible, session: '', paiement: '', ref: '',
+      montant: 0, devise: 'eur', test: false, offerte: raison, offertePar: id, creee: new Date().toISOString(), activations: [],
+    };
+    await ecrire(env, lic);
+    const envoyee = await donnerSurDiscord(env, cible, lic, 'offerte');
+    return reponse('Clé offerte à <@' + cible + '> (' + raison + ').' + (envoyee ? ' Elle lui a été envoyée en message privé.' : ' Ses messages privés sont fermés : voici la clé à lui transmettre toi-même :\n```' + lic.cle + '```'));
+  }
+  return reponse('Commande inconnue.');
+}
+
+async function appelDiscord(env, methode, chemin, corps) {
+  if (!env.DISCORD_BOT_TOKEN) return null;
+  try {
+    const r = await fetch(API_DISCORD + chemin, {
+      method: methode, headers: { Authorization: 'Bot ' + env.DISCORD_BOT_TOKEN, 'Content-Type': 'application/json', 'X-Audit-Log-Reason': 'Velox Premium' },
+      body: corps === undefined ? undefined : JSON.stringify(corps),
+    });
+    if (!r.ok) { console.log('discord', methode, chemin, r.status); return null; }
+    return r.status === 204 ? {} : await r.json();
+  } catch (e) { console.log('discord', e); return null; }
+}
+
+async function roleDiscord(env, id, donner) {
+  if (!env.DISCORD_GUILD_ID || !env.DISCORD_ROLE_PREMIUM) return;
+  await appelDiscord(env, donner ? 'PUT' : 'DELETE', '/guilds/' + env.DISCORD_GUILD_ID + '/members/' + id + '/roles/' + env.DISCORD_ROLE_PREMIUM);
+}
+
+/** Lie la clé au compte Discord, donne le rôle Premium et envoie la clé en message privé (vrai si le message est parti). */
+async function donnerSurDiscord(env, id, lic, origine) {
+  lic.discord = id; await ecrire(env, lic);
+  const liste = JSON.parse(await env.LICENCES.get('discord:' + id) || '[]');
+  if (!liste.includes(lic.cle)) { liste.push(lic.cle); await env.LICENCES.put('discord:' + id, JSON.stringify(liste)); }
+  await roleDiscord(env, id, true);
+  const canal = await appelDiscord(env, 'POST', '/users/@me/channels', { recipient_id: id });
+  if (!canal || !canal.id) return false;
+  const titre = origine === 'offerte' ? 'Tu as reçu une clé Velox Premium !' : 'Merci pour ton achat !';
+  return !!await appelDiscord(env, 'POST', '/channels/' + canal.id + '/messages', { embeds: [carteCle(lic, titre)], allowed_mentions: { parse: [] } });
+}
+
+async function installerCommandes(env) {
+  if (!env.DISCORD_APP_ID || !env.DISCORD_BOT_TOKEN) return 'DISCORD_APP_ID ou DISCORD_BOT_TOKEN manquant.';
+  const commandes = [
+    { name: 'premium', description: 'Acheter Velox Premium (9,99 € une fois) : ta clé arrive en message privé', type: 1 },
+    { name: 'ma-cle', description: 'Revoir ta clé Velox Premium (visible seulement par toi)', type: 1 },
+    { name: 'telecharger', description: 'Télécharger Velox (gratuit)', type: 1 },
+    { name: 'cle-offerte', description: 'Admin : offrir une clé Velox Premium à un membre', type: 1, default_member_permissions: '8', dm_permission: false,
+      options: [{ type: 6, name: 'membre', description: 'Le membre qui reçoit la clé', required: true }, { type: 3, name: 'raison', description: 'Concours, partenariat…', required: false, max_length: 100 }] },
+  ];
+  const r = await appelDiscord(env, 'PUT', '/applications/' + env.DISCORD_APP_ID + '/commands', commandes);
+  return r ? commandes.length + ' commandes installées (/premium, /ma-cle, /telecharger, /cle-offerte).' : 'échec : vérifie DISCORD_APP_ID et DISCORD_BOT_TOKEN.';
 }
