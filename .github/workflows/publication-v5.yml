@@ -84,6 +84,9 @@ jobs:
           $f = "NettoyagePC-Setup-${{ steps.version.outputs.version }}.exe"
           $h = (Get-FileHash $f -Algorithm SHA256).Hash.ToUpper()
           Set-Content "NettoyagePC-Setup-${{ steps.version.outputs.version }}.sha256" "$h  $f" -Encoding ascii
+          # même installateur sous le nom Velox (celui que donnent winget, le site et la mise à jour de la 5.9.5 et plus)
+          Copy-Item $f "Velox-Setup-${{ steps.version.outputs.version }}.exe" -Force
+          Set-Content "Velox-Setup-${{ steps.version.outputs.version }}.sha256" "$h  Velox-Setup-${{ steps.version.outputs.version }}.exe" -Encoding ascii
           Write-Host "SHA256 : $h"
           # copie au nom fixe (bouton « Télécharger » du site) : seulement pour une version normale
           if ('${{ steps.version.outputs.beta }}' -ne 'true') { Copy-Item $f NettoyagePC-Setup.exe }
@@ -133,6 +136,8 @@ jobs:
           path: |
             NettoyagePC-Setup-*.exe
             NettoyagePC-Setup-*.sha256
+            Velox-Setup-*.exe
+            Velox-Setup-*.sha256
 
       # Fichiers pour une publication à la main (branche fabrication-5) : chiffrés, rien n'est publié en clair
       - name: Fichiers chiffrés pour l'éditeur
@@ -159,7 +164,7 @@ jobs:
           openssl enc -aes-256-cbc -pbkdf2 -salt -in "NettoyagePC-Setup-$v.exe" -out chiffre/setup.chiffre -pass file:cle.txt
           openssl pkeyutl -encrypt -pubin -inkey publique.pem -pkeyopt rsa_padding_mode:oaep -in cle.txt -out chiffre/cle.chiffree
           rm -f cle.txt
-          cp "NettoyagePC-Setup-$v.sha256" chiffre/
+          cp "NettoyagePC-Setup-$v.sha256" "Velox-Setup-$v.sha256" chiffre/
           echo "$v" > chiffre/version.txt
           echo "$GITHUB_SHA" > chiffre/commit.txt
           cd chiffre
@@ -194,6 +199,8 @@ jobs:
           prerelease: ${{ steps.version.outputs.beta == 'true' }}
           body_path: NOTES-${{ steps.version.outputs.version }}.txt
           files: |
+            Velox-Setup-${{ steps.version.outputs.version }}.exe
+            Velox-Setup-${{ steps.version.outputs.version }}.sha256
             NettoyagePC-Setup-${{ steps.version.outputs.version }}.exe
             NettoyagePC-Setup-${{ steps.version.outputs.version }}.sha256
             NettoyagePC-Setup.exe

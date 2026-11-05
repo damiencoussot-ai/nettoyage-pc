@@ -183,8 +183,10 @@ jobs:
           Copy-Item publie\NettoyagePC.exe . -Force
           & $mk /V2 /DV5 "/DVERSION=5.9.6" "/DVERSION4=5.9.6.0" installateur.nsi
           if ($LASTEXITCODE -ne 0) { throw "makensis a échoué" }
-          $setup5 = (Resolve-Path 'NettoyagePC-Setup-5.2.exe').Path
-          Noter ("installateur 5.0 : {0:N1} Mo" -f ((Get-Item $setup5).Length / 1MB))
+          # nom tiré de la version réellement fabriquée (avant : un nom figé « 5.2 » faisait échouer cet essai en silence)
+          $setup5 = (Get-ChildItem 'NettoyagePC-Setup-5*.exe' | Sort-Object LastWriteTime -Descending | Select-Object -First 1).FullName
+          if (-not $setup5) { throw "installateur introuvable" }
+          Noter ("installateur {0} : {1:N1} Mo" -f (Split-Path $setup5 -Leaf), ((Get-Item $setup5).Length / 1MB))
           $dossier = Join-Path $env:ProgramFiles 'Nettoyage PC'
           $exe = Join-Path $dossier 'NettoyagePC.exe'
 
@@ -241,8 +243,8 @@ jobs:
         if: steps.installation.outcome == 'success'
         uses: actions/upload-artifact@v4
         with:
-          name: NettoyagePC-Setup-5.2-apercu
-          path: NettoyagePC-Setup-5.2.exe
+          name: NettoyagePC-Setup-apercu
+          path: NettoyagePC-Setup-5*.exe
 
       - name: Résultats sur la branche captures-avalonia-windows
         if: always()

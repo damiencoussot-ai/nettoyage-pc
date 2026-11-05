@@ -4,9 +4,12 @@ Corrections :
 - Profil Gamer : le bouton BOOST marche aussi quand le PC est déjà en « Performances élevées »
   (avant, la cinématique, le rapport de session, la quête « boost » et le bouton « Terminer » ne se déclenchaient pas).
 - Overlay : le raccourci Ctrl+Alt+O se libère bien quand tu quittes le profil Gamer, même si tu changes de profil très vite.
+- Fin du mode jeu : si le mode d'alimentation d'avant n'est pas connu, Velox revient au mode « Équilibré » de Windows.
 - Onglet Premium : la fenêtre d'achat explique l'abonnement par le serveur Discord (clé en message privé).
 
 Contient aussi tout ce qui est arrivé depuis la 5.9 (5.9.1 à 5.9.5) : abonnement Premium via Discord à 4,99 €/mois,
 tâches « Velox - … », clés Discord, correction de l'enregistrement des statistiques et de l'historique.
+
+L'installateur est publié sous les deux noms : Velox-Setup-5.9.6.exe (winget, site) et NettoyagePC-Setup-5.9.6.exe (mise à jour des anciennes versions).
 
 SHA256 de Velox-Setup-5.9.6.exe : voir le fichier Velox-Setup-5.9.6.sha256

@@ -95,6 +95,8 @@ namespace NettoyagePC
                 if (!Regex.IsMatch(avant, @"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")) avant = "";
                 if (avant != "" && avant.Equals(Alimentation.Performances, StringComparison.OrdinalIgnoreCase)) Ecrire("  Le PC était déjà en « Performances élevées » avant le mode jeu : rien à rétablir.");
                 else if (avant != "" && Alimentation.Activer(avant)) Ecrire("  OK : mode d'alimentation précédent rétabli.");
+                // mode d'avant pas lu au lancement (ou plus présent) : retour au mode « Équilibré », celui de Windows par défaut
+                else if (Alimentation.Activer(Alimentation.Equilibre)) Ecrire("  Le mode d'avant n'est pas connu : retour au mode « Équilibré » (celui de Windows par défaut).");
                 else Ecrire("  Mode précédent introuvable : passe en « Mode équilibré » depuis la page Optimisation.");
                 if (!Admin || Protection.CheminSansLien(FichierModeJeu)) { try { File.Delete(FichierModeJeu); } catch { } }
                 Historique.MarquerAnnulees(m => m.Type == "alimentation" && m.Titre.StartsWith("Mode jeu"));
