@@ -1,0 +1,10 @@
+Velox 5.9.3 : clés Premium du serveur Discord, et statistiques de nouveau enregistrées
+
+- Les clés Velox Premium données sur le serveur Discord officiel s'activent dans Velox
+  (onglet Premium > « J'ai une clé »).
+- Correction importante : sur certains PC, les statistiques de nettoyage, l'indice du PC, l'historique des
+  modifications et le journal du profil Gamer n'étaient plus enregistrés (une vérification de sécurité
+  lisait mal une information de Windows). Ta série, tes défis et ton XP se remettent à compter.
+- Température de la carte graphique : une deuxième méthode de lecture si la première ne répond pas.
+
+SHA256 de Velox-Setup-5.9.3.exe : voir le fichier Velox-Setup-5.9.3.sha256

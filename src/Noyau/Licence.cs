@@ -22,7 +22,7 @@ namespace NettoyagePC
         private const long IdBoutiqueIntegre = 0;
         private const long IdProduitIntegre = 0;
         private const string UrlAchatIntegree = "";
-        private const string ServeurLicencesIntegre = "";
+        private const string ServeurLicencesIntegre = "https://velox-licences.nettoyagepcai.workers.dev";   // service de licences de l'éditeur (clés Discord, puis Stripe)
         public const string Prix = "9,99 €";
         public const int NombrePc = 3;
 

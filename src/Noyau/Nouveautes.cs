@@ -7,6 +7,8 @@ namespace NettoyagePC
     {
         public static readonly List<KeyValuePair<string, string[]>> Liste = new List<KeyValuePair<string, string[]>>
         {
+            N("5.9.3", "Les clés Premium du serveur Discord officiel s'activent dans Velox.",
+                "Correction : les statistiques de nettoyage, l'indice du PC et l'historique s'enregistrent de nouveau sur tous les PC (ta série et tes défis se remettent à compter)."),
             N("5.9.2", "Les tâches planifiées de l'entretien automatique s'appellent maintenant « Velox - … » (remplacées automatiquement, mêmes horaires)."),
             N("5.9.1", "Corrections du profil Gamer : le mode jeu lancé depuis un favori compte pour les défis et le rapport de session, raccourci de l'overlay Ctrl+Alt+O (seulement avec le profil Gamer)."),
             N("5.9", "Profil Gamer : rangs de Bronze à Légende avec emblème, animation de niveau supérieur, défis du jour et série de jours.",
