@@ -1,0 +1,7 @@
+Velox 5.9.5 : l'abonnement Premium passe par le serveur Discord
+
+- Le bouton « S'abonner » de l'onglet Premium ouvre le serveur Discord officiel de Velox
+  (https://discord.gg/RjUawE3SXY) : dans #acheter-premium, tape /premium, et ta clé arrive en message privé.
+- Le reste ne change pas : 4,99 € par mois sans engagement, et Premium à vie pour ceux qui l'ont acheté en une fois.
+
+SHA256 de Velox-Setup-5.9.5.exe : voir le fichier Velox-Setup-5.9.5.sha256

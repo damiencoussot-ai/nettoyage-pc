@@ -7,6 +7,7 @@ namespace NettoyagePC
     {
         public static readonly List<KeyValuePair<string, string[]>> Liste = new List<KeyValuePair<string, string[]>>
         {
+            N("5.9.5", "L'abonnement Premium se prend sur le serveur Discord officiel de Velox (/premium) : ta clé arrive en message privé."),
             N("5.9.4", "Premium passe en abonnement à 4,99 € par mois, sans engagement. Si tu l'as déjà acheté en une fois, il reste à vie."),
             N("5.9.3", "Les clés Premium du serveur Discord officiel s'activent dans Velox.",
                 "Correction : les statistiques de nettoyage, l'indice du PC et l'historique s'enregistrent de nouveau sur tous les PC (ta série et tes défis se remettent à compter)."),

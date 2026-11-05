@@ -348,6 +348,14 @@ namespace NettoyagePC.Nouveau
         private void Acheter()
         {
             if (conditions.IsChecked != true) return;
+            // l'abonnement se prend sur le serveur Discord officiel : /premium, puis la clé arrive en message privé
+            if (Boutique.UrlDiscord != "")
+            {
+                try { Programmes.Ouvrir(Boutique.UrlDiscord); } catch { }
+                Message(Langue.T("Le serveur Discord de Velox s'ouvre : dans le salon #acheter-premium, tape /premium puis clique sur « S'abonner ». Ta clé arrive en message privé : colle-la ci-dessous."), Habillage.P.Accent);
+                zone.Focus();
+                return;
+            }
             if (Boutique.UrlAchat == "") { F.Demander("La boutique ouvre bientôt", "En attendant, tu peux essayer Premium gratuitement, ou demander une clé à l'éditeur.", "Compris", null, r => { }); return; }
             Programmes.Ouvrir(Licence.AdresseAchat());
             if (Boutique.AchatAutomatique)

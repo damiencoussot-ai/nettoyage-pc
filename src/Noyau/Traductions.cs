@@ -2772,6 +2772,8 @@ namespace NettoyagePC
             "{0} TTC par mois · sans engagement · {1} PC", "{0} incl. VAT per month · no commitment · {1} PCs", "{0} IVA incl. al mes · sin permanencia · {1} PC",
             "S'abonner ({0} TTC / mois)", "Subscribe ({0} incl. VAT / month)", "Suscribirse ({0} IVA incl. / mes)",
             "Premium passe en abonnement à 4,99 € par mois, sans engagement. Si tu l'as déjà acheté en une fois, il reste à vie.", "Premium becomes a subscription at €4.99 per month, no commitment. If you already bought it in one payment, it stays yours for life.", "Premium pasa a suscripción por 4,99 € al mes, sin permanencia. Si ya lo compraste en un solo pago, es tuyo para siempre.",
+            "Le serveur Discord de Velox s'ouvre : dans le salon #acheter-premium, tape /premium puis clique sur « S'abonner ». Ta clé arrive en message privé : colle-la ci-dessous.", "The Velox Discord server opens: in the #acheter-premium channel, type /premium then click \"S'abonner\". Your key arrives by direct message: paste it below.", "Se abre el servidor de Discord de Velox: en el canal #acheter-premium, escribe /premium y haz clic en «S'abonner». Tu clave llega por mensaje privado: pégala abajo.",
+            "L'abonnement Premium se prend sur le serveur Discord officiel de Velox (/premium) : ta clé arrive en message privé.", "The Premium subscription is taken on the official Velox Discord server (/premium): your key arrives by direct message.", "La suscripción Premium se hace en el servidor oficial de Discord de Velox (/premium): tu clave llega por mensaje privado.",
         };
         private static readonly string[] Prefixes =
         {

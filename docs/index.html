@@ -224,6 +224,7 @@ mark.a-completer { background: var(--orange); color: var(--sur-accent); padding:
       <a href="#premium">Premium</a>
       <a href="#securite">Sécurité</a>
       <a href="#questions">Questions</a>
+      <a href="https://discord.gg/RjUawE3SXY" target="_blank" rel="noopener">Discord</a>
     </nav>
     <a class="bouton principal" href="https://github.com/damiencoussot-ai/nettoyage-pc/releases/latest" data-telecharger>Télécharger</a>
   </div>
@@ -393,8 +394,8 @@ mark.a-completer { background: var(--orange); color: var(--sur-accent); padding:
             <li>Paiement sécurisé par Stripe</li>
           </ul>
           <label class="accord" for="accord"><input type="checkbox" id="accord"><span>J'ai lu et j'accepte les <a href="conditions-de-vente.html">conditions de vente</a> et le <a href="licence.html">contrat de licence</a>.</span></label>
-          <a class="bouton principal" id="bouton-achat" href="#acheter" aria-disabled="true" data-actif="non">Achat bientôt disponible</a>
-          <p class="note" id="note-achat">La boutique ouvre bientôt. En attendant, l'essai gratuit de 7 jours est dans l'application, onglet Premium.</p>
+          <a class="bouton principal" id="bouton-achat" href="https://discord.gg/RjUawE3SXY" target="_blank" rel="noopener" aria-disabled="true" data-actif="oui">S'abonner sur Discord</a>
+          <p class="note" id="note-achat">L'abonnement se prend uniquement sur le serveur Discord officiel de Velox : dans #acheter-premium, tapez /premium puis « S'abonner ». Votre clé arrive en message privé. L'essai gratuit de 7 jours est dans l'application, onglet Premium.</p>
         </div>
       </div>
 
@@ -479,7 +480,7 @@ mark.a-completer { background: var(--orange); color: var(--sur-accent); padding:
       <div class="questions">
         <details><summary>La version gratuite est-elle vraiment gratuite ?</summary><div class="reponse"><p>Oui. Le nettoyage, l'accélération, la protection et les outils restent gratuits, sans publicité et sans limite de durée. Premium ajoute 19 outils pour ceux qui veulent aller plus loin. Le profil Gamer (BOOST, overlay, niveaux et défis) est gratuit.</p></div></details>
         <details><summary>Premium, c'est un abonnement ?</summary><div class="reponse"><p>Oui : <strong>4,99 € TTC par mois, sans engagement</strong>. Vous résiliez quand vous voulez, en un clic, depuis le lien reçu par e-mail ; Premium reste actif jusqu'à la fin du mois payé. La licence vaut sur 3 ordinateurs à la fois. Si vous avez acheté Premium en une seule fois avant le passage à l'abonnement, votre licence reste valable sans limite de durée. Le bouton « Retirer la licence de ce PC » libère une place.</p></div></details>
-        <details><summary>Comment je reçois ma clé ?</summary><div class="reponse"><p>Juste après le paiement sur la page sécurisée de Stripe, votre clé s'affiche à l'écran. <strong>Si vous achetez depuis Velox, Premium s'active tout seul</strong> : il suffit de revenir dans l'application.</p><p>Sur un autre PC, collez la clé dans l'onglet Premium, bouton « J'ai une clé ». Gardez-la bien. Le reçu et la facture arrivent par e-mail, envoyés par Link, le service de paiement de Stripe.</p></div></details>
+        <details><summary>Comment je reçois ma clé ?</summary><div class="reponse"><p>L'abonnement se prend sur le <a href="https://discord.gg/RjUawE3SXY" target="_blank" rel="noopener">serveur Discord officiel de Velox</a> : dans le salon #acheter-premium, tapez <code>/premium</code> puis « S'abonner ». Après le paiement sur la page sécurisée de Stripe, <strong>votre clé arrive en message privé sur Discord</strong> et s'affiche aussi à l'écran. Dans Velox : onglet Premium, « J'ai une clé », collez-la. La commande <code>/ma-cle</code> vous la remontre à tout moment.</p></div></details>
         <details><summary>Faut-il Internet ?</summary><div class="reponse"><p>Pour activer la clé, oui. Elle est ensuite revérifiée environ une fois par semaine et reste active 45 jours sans Internet. Les fonctions gratuites marchent sans Internet, sauf la recherche des mises à jour et les tests du réseau.</p></div></details>
         <details><summary>Windows affiche « Windows a protégé votre ordinateur ». C'est normal ?</summary><div class="reponse"><p>Oui. Ce message apparaît pour les programmes qui ne sont pas encore signés par un éditeur connu de Microsoft. Cliquez sur <strong>Informations complémentaires</strong>, puis sur <strong>Exécuter quand même</strong>.</p><p>Pour vérifier que le fichier est bien l'original, comparez son empreinte avec le fichier <code>.sha256</code> publié avec chaque version sur la <a href="https://github.com/damiencoussot-ai/nettoyage-pc/releases">page des versions</a>. Dans PowerShell : <code>Get-FileHash Velox-Setup.exe</code>.</p></div></details>
         <details><summary>Qu'est-ce qui part sur Internet ?</summary><div class="reponse"><p>Presque rien : la recherche des mises à jour (auprès de GitHub), la vérification d'une clé Premium achetée (la clé et un identifiant anonyme du PC, du type « PC-1A2B3C4D », envoyés au service de licences de l'éditeur), et les tests du réseau que vous lancez vous-même. Tout est détaillé dans la <a href="confidentialite.html">politique de confidentialité</a>.</p></div></details>
