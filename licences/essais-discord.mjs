@@ -61,5 +61,7 @@ ok(appels.some((a) => a.startsWith('DELETE /api/v10/guilds/')), 'remboursement :
 r = await mf.dispatchFetch(B + '/admin', { method: 'POST', body: new URLSearchParams({ jeton: ADMIN, action: 'commandes-discord' }).toString(), headers: { 'Content-Type': 'application/x-www-form-urlencoded' } });
 const h = await r.text(); ok(/4 commandes installées/.test(h), 'installation des commandes depuis /admin');
 console.log(appels.map(a=>a.slice(0,140)).join('\n'));
+r = await interaction({ type: 2, guild_id: '888888888888888888', member: { user: { id: ADM }, permissions: '8' }, data: { name: 'cle-offerte', options: [{ name: 'membre', value: '777777777777777777' }] } });
+j = await r.json(); ok(/serveur officiel/.test(j.data.content), '/cle-offerte refusée sur un autre serveur');
 await mf.dispose();
 console.log(echecs === 0 ? 'TOUT OK (' + n + ')' : echecs + ' échec(s) sur ' + n);

@@ -387,7 +387,9 @@ async function discord(requete, env) {
     // réservé aux administrateurs du serveur (vérifié ici, pas seulement par Discord)
     let droits = 0n;
     try { droits = BigInt(membre.permissions || '0'); } catch (e) { droits = 0n; }
-    if (!i.guild_id || (droits & ADMINISTRATEUR) !== ADMINISTRATEUR) return reponse('Commande réservée aux administrateurs du serveur.');
+    // seulement sur TON serveur (DISCORD_GUILD_ID) : même si le bot était ajouté ailleurs, personne d'autre ne peut créer de clés
+    if (!env.DISCORD_GUILD_ID || i.guild_id !== env.DISCORD_GUILD_ID) return reponse('Commande réservée au serveur officiel de Velox.');
+    if ((droits & ADMINISTRATEUR) !== ADMINISTRATEUR) return reponse('Commande réservée aux administrateurs du serveur.');
     const opts = (i.data.options || []);
     const cible = String((opts.find((o) => o.name === 'membre') || {}).value || '');
     const raison = String((opts.find((o) => o.name === 'raison') || {}).value || 'clé offerte').slice(0, 100);
