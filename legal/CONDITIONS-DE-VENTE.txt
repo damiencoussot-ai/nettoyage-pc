@@ -1,5 +1,5 @@
 ﻿CONDITIONS DE VENTE DE VELOX PREMIUM
-Version du 24 octobre 2026
+Version du 5 novembre 2026
 
 
 1. LES PARTIES
@@ -35,7 +35,7 @@ Velox Premium est une licence logicielle qui débloque, dans Velox, les outils s
 - Thèmes de couleur exclusifs.
 Les nouveaux outils Premium ajoutés dans les versions 4 et 5 sont inclus sans supplément.
 
-Durée et étendue : la licence est payée une seule fois. Elle est valable sans limite de durée pour toutes les versions 4 et 5 de Velox, sur 3 ordinateurs au plus en même temps.
+Durée et étendue : Velox Premium est un abonnement mensuel. La licence est valable tant que l'abonnement est en cours, pour toutes les versions de Velox, sur 3 ordinateurs au plus en même temps. Les licences achetées en un seul paiement avant le passage à l'abonnement restent valables sans limite de durée pour toutes les versions 4 et 5.
 
 Configuration nécessaire et fonctionnement :
 - Windows 10 ou Windows 11, 64 bits (rien d'autre à installer) ;
@@ -49,12 +49,12 @@ Essai gratuit : avant d'acheter, vous pouvez essayer Premium gratuitement pendan
 
 3. PRIX
 
-Le prix est de 9,99 € TTC (toutes taxes comprises), payé une seule fois. Le prix final, taxes comprises selon votre pays, est affiché sur la page de paiement avant validation. Il n'y a ni abonnement ni renouvellement automatique.
+Le prix est de 4,99 € TTC (toutes taxes comprises) par mois. L'abonnement se renouvelle automatiquement chaque mois, à la date anniversaire de la souscription, jusqu'à sa résiliation. Il est sans engagement : vous pouvez le résilier à tout moment, en un clic, depuis le lien de gestion reçu par e-mail de la part de Stripe ou en écrivant à l'Éditeur ; la résiliation prend effet à la fin du mois déjà payé, sans autres frais, et Premium reste actif jusque-là. Le prix final, taxes comprises selon votre pays, est affiché sur la page de paiement avant validation. En cas d'échec du paiement mensuel, Stripe réessaie pendant quelques jours ; sans paiement, l'abonnement prend fin et la clé est désactivée.
 
 
 4. COMMANDE ET PAIEMENT
 
-1) Dans Velox (onglet Premium) ou sur le site officiel (https://damiencoussot-ai.github.io/nettoyage-pc/), cliquez sur « Acheter » après avoir accepté les présentes conditions et le contrat de licence.
+1) Dans Velox (onglet Premium) ou sur le site officiel (https://damiencoussot-ai.github.io/nettoyage-pc/), cliquez sur « S'abonner » (ou « Acheter ») après avoir accepté les présentes conditions et le contrat de licence.
 2) La page de paiement sécurisée de Stripe s'ouvre dans votre navigateur. Vous y indiquez votre adresse e-mail et payez (carte bancaire, Apple Pay, Google Pay, Link ou autres moyens proposés).
 3) Juste après le paiement, votre clé de licence s'affiche à l'écran. Si vous avez acheté depuis Velox, Premium s'active en plus automatiquement sur cet ordinateur.
 4) Link vous envoie par e-mail le reçu et la facture.
@@ -69,13 +69,13 @@ La clé de licence s'affiche à l'écran juste après le paiement. Pour un achat
 
 6. SATISFAIT OU REMBOURSÉ 14 JOURS ET DROIT DE RÉTRACTATION
 
-6.1 L'Éditeur vous rembourse intégralement si vous en faites la demande dans les 14 jours qui suivent l'achat, sans avoir à donner de raison, même si vous avez déjà activé et utilisé Premium. Cet engagement vaut pour tous les acheteurs, consommateurs ou non.
+6.1 L'Éditeur vous rembourse intégralement le premier paiement si vous en faites la demande dans les 14 jours qui suivent la souscription, sans avoir à donner de raison, même si vous avez déjà activé et utilisé Premium. Cet engagement vaut pour tous les acheteurs, consommateurs ou non.
 
 6.2 Si vous êtes un consommateur, cet engagement vous permet en pratique d'exercer votre droit de rétractation de 14 jours (article L. 221-18 du code de la consommation) : vous n'avez pas à y renoncer pour recevoir votre clé tout de suite.
 
 6.3 Comment faire : envoyez votre demande à nettoyagepcai@gmail.com, en indiquant l'adresse e-mail utilisée pour l'achat (et si possible le numéro de commande). Vous pouvez utiliser le formulaire ci-dessous, mais ce n'est pas obligatoire : un simple message suffit.
 
-6.4 Le remboursement est fait sur le moyen de paiement utilisé lors de l'achat, au plus tard 14 jours après la réception de votre demande, sans frais. La clé de licence est alors désactivée : les outils Premium se verrouillent, et toutes les fonctions gratuites continuent de fonctionner.
+6.4 Le remboursement est fait sur le moyen de paiement utilisé lors de l'achat, au plus tard 14 jours après la réception de votre demande, sans frais. L'abonnement est alors résilié et la clé de licence désactivée : les outils Premium se verrouillent, et toutes les fonctions gratuites continuent de fonctionner.
 
 Formulaire de rétractation (à compléter et à renvoyer uniquement si vous souhaitez vous rétracter) :
 ---------------------------------------------------------------------

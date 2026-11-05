@@ -14,7 +14,8 @@
 //   Variable      LIENS_PAIEMENT           (facultatif : identifiants plink_… acceptés, séparés par des virgules)
 //
 // Adresses :
-//   POST /stripe                    webhook Stripe (événements checkout.session.*, charge.refunded, charge.dispute.created)
+//   POST /stripe                    webhook Stripe (événements checkout.session.*, customer.subscription.updated|deleted,
+//                                   charge.refunded, charge.dispute.created)
 //   GET  /merci?session_id=cs_…     page affichée après le paiement (lien « après paiement » du lien Stripe)
 //   GET  /v1/achats/<référence>     l'application récupère la clé de l'achat qu'elle a lancé
 //   POST /v1/licenses/activate|validate|deactivate   vérifications de l'application
@@ -25,7 +26,8 @@
 //   Variable      DISCORD_APP_ID           (« Application ID » de l'application Discord)
 //   Variable      DISCORD_PUBLIC_KEY       (« Public Key » de l'application Discord)
 //   Secret        DISCORD_BOT_TOKEN        (jeton du bot : messages privés et rôle Premium)
-//   Variable      LIEN_PAIEMENT            (lien de paiement Stripe « https://buy.stripe.com/… »)
+//   Variable      LIEN_PAIEMENT            (lien de paiement Stripe « https://buy.stripe.com/… », abonnement 4,99 €/mois)
+//   Variable      LIEN_GESTION             (facultatif : portail client Stripe « https://billing.stripe.com/p/login/… » pour résilier)
 //   Variable      DISCORD_GUILD_ID         (facultatif : identifiant du serveur, pour donner le rôle)
 //   Variable      DISCORD_ROLE_PREMIUM     (facultatif : identifiant du rôle « Premium »)
 //   Dans le portail Discord : « Interactions Endpoint URL » = https://<ce worker>/discord
@@ -33,6 +35,7 @@
 
 const LIMITE_PC = 3;
 const PRODUIT = 'Velox Premium';
+const PRIX = '4,99 € par mois';
 const CONTACT = 'nettoyagepcai@gmail.com';
 const SITE = 'https://damiencoussot-ai.github.io/nettoyage-pc/';
 const ENTETES_PAGE = {
@@ -111,6 +114,10 @@ async function webhook(requete, env) {
     case 'checkout.session.async_payment_succeeded':
       if (o.payment_status === 'paid' && lienAccepte(o, env)) await creerLicence(env, o);
       break;
+    case 'customer.subscription.updated':
+    case 'customer.subscription.deleted':
+      await suivreAbonnement(env, o, ev.type);
+      break;
     case 'charge.refunded':
       if (o.refunded === true || (o.amount_refunded >= o.amount && o.amount > 0)) await desactiverParPaiement(env, o.payment_intent, 'remboursée');
       break;
@@ -135,9 +142,11 @@ async function creerLicence(env, s) {
     cle, statut: 'active', raison: '', email: String(client.email || '').toLowerCase(), nom: client.name || '',
     session: s.id, paiement: s.payment_intent || '', ref: formatRef(s.client_reference_id) ? s.client_reference_id : '',
     montant: s.amount_total, devise: s.currency || '', test: s.livemode === false, creee: new Date().toISOString(), activations: [],
+    abonnement: s.mode === 'subscription' && s.subscription ? String(s.subscription) : '',
   };
   await ecrire(env, lic);
   await env.LICENCES.put('ses:' + s.id, cle);
+  if (lic.abonnement) await env.LICENCES.put('sub:' + lic.abonnement, cle);
   if (lic.paiement) await env.LICENCES.put('pi:' + lic.paiement, cle);
   if (lic.ref) await env.LICENCES.put('ref:' + lic.ref, cle, { expirationTtl: 90 * 86400 });
   if (lic.email) await env.LICENCES.put('mail:' + lic.email + ':' + cle, '1');
@@ -145,6 +154,26 @@ async function creerLicence(env, s) {
   const idDiscord = /^discord_(\d{15,22})_/.exec(lic.ref || '');
   if (idDiscord && (!lic.test || env.ACCEPTER_TEST === 'oui')) await donnerSurDiscord(env, idDiscord[1], lic, 'achat');
   return cle;
+}
+
+/** Abonnement : la clé reste active tant qu'il est payé ; résilié ou impayé, elle se désactive (et le rôle Discord est retiré).
+ *  « past_due » (paiement en retard, Stripe réessaie) garde la clé active quelques jours. */
+async function suivreAbonnement(env, sub, type) {
+  const cle = sub && sub.id ? await env.LICENCES.get('sub:' + sub.id) : null;
+  if (!cle) return;
+  const lic = await lire(env, 'lic:' + cle);
+  if (!lic) return;
+  const fini = type === 'customer.subscription.deleted' || ['canceled', 'unpaid', 'incomplete_expired'].includes(sub.status);
+  const actif = !fini && ['active', 'trialing', 'past_due'].includes(sub.status);
+  if (fini && lic.statut === 'active') {
+    lic.statut = 'disabled'; lic.raison = 'abonnement terminé'; lic.modifiee = new Date().toISOString();
+    await ecrire(env, lic);
+    if (lic.discord) await roleDiscord(env, lic.discord, false);
+  } else if (actif && lic.statut === 'disabled' && lic.raison === 'abonnement terminé') {
+    lic.statut = 'active'; lic.raison = ''; lic.modifiee = new Date().toISOString();
+    await ecrire(env, lic);
+    if (lic.discord) await roleDiscord(env, lic.discord, true);
+  }
 }
 
 async function desactiverParPaiement(env, paiement, raison) {
@@ -360,11 +389,11 @@ async function discord(requete, env, ctx) {
     const lien = env.LIEN_PAIEMENT + (env.LIEN_PAIEMENT.includes('?') ? '&' : '?') + 'client_reference_id=' + ref;
     return reponse({
       embeds: [{
-        title: PRODUIT + ' · 9,99 € une seule fois', color: MAGENTA,
+        title: PRODUIT + ' · ' + PRIX, color: MAGENTA,
         description: '19 outils de pro débloqués d\'un coup : gardien en temps réel, mode jeu automatique, preuve en FPS, moniteur en direct, sauvegarde automatique…\n\n' +
-          '• Paiement sécurisé par **Stripe**\n• Ta clé arrive ici **en message privé** juste après le paiement, et sur la page de confirmation\n• Valable sur ' + LIMITE_PC + ' PC, sans abonnement\n• Satisfait ou remboursé 14 jours',
+          '• Paiement sécurisé par **Stripe**, **sans engagement** : tu arrêtes quand tu veux\n• Ta clé arrive ici **en message privé** juste après le paiement\n• Valable sur ' + LIMITE_PC + ' PC tant que l\'abonnement est actif\n• Rétractation possible pendant 14 jours',
       }],
-      components: [{ type: 1, components: [{ type: 2, style: 5, label: 'Acheter Premium · 9,99 €', url: lien }, { type: 2, style: 5, label: 'Voir le site', url: SITE }] }],
+      components: [{ type: 1, components: [{ type: 2, style: 5, label: 'S\'abonner · 4,99 €/mois', url: lien }, { type: 2, style: 5, label: 'Voir le site', url: SITE }] }],
     });
   }
 
@@ -376,7 +405,8 @@ async function discord(requete, env, ctx) {
       const lic = await lire(env, 'lic:' + c);
       if (lic) embeds.push(carteCle(lic, lic.statut === 'active' ? 'Ta clé Premium' : 'Clé désactivée (' + (lic.raison || lic.statut) + ')'));
     }
-    return reponse({ embeds });
+    const gestion = env.LIEN_GESTION ? [{ type: 1, components: [{ type: 2, style: 5, label: 'Gérer ou résilier mon abonnement', url: env.LIEN_GESTION }] }] : [];
+    return reponse({ embeds, components: gestion });
   }
 
   if (nom === 'telecharger') {
@@ -454,7 +484,7 @@ async function donnerSurDiscord(env, id, lic, origine) {
 async function installerCommandes(env) {
   if (!env.DISCORD_APP_ID || !env.DISCORD_BOT_TOKEN) return 'DISCORD_APP_ID ou DISCORD_BOT_TOKEN manquant.';
   const commandes = [
-    { name: 'premium', description: 'Acheter Velox Premium (9,99 € une fois) : ta clé arrive en message privé', type: 1 },
+    { name: 'premium', description: 'S\'abonner à Velox Premium (4,99 €/mois, sans engagement) : clé en message privé', type: 1 },
     { name: 'ma-cle', description: 'Revoir ta clé Velox Premium (visible seulement par toi)', type: 1 },
     { name: 'telecharger', description: 'Télécharger Velox (gratuit)', type: 1 },
     { name: 'cle-offerte', description: 'Admin : offrir une clé Velox Premium à un membre', type: 1, default_member_permissions: '8', dm_permission: false,

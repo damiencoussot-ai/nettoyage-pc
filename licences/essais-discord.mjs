@@ -1,4 +1,4 @@
-// Essais de la partie Discord du service de licences (Miniflare, appels à Discord simulés) : node licences/essais-discord.mjs licences/worker.js
+// Essais de la partie Discord et abonnement du service de licences (Miniflare, appels simulés) : node licences/essais-discord.mjs licences/worker.js
 import { Miniflare, createFetchMock } from 'miniflare';
 import crypto from 'node:crypto';
 const W = process.argv[2];
@@ -66,5 +66,26 @@ const h = await r.text(); ok(/4 commandes installées/.test(h), 'installation de
 console.log(appels.map(a=>a.slice(0,140)).join('\n'));
 r = await interaction({ type: 2, guild_id: '888888888888888888', member: { user: { id: ADM }, permissions: '8' }, data: { name: 'cle-offerte', options: [{ name: 'membre', value: '777777777777777777' }] } });
 j = await r.json(); ok(/serveur officiel/.test(j.data.content), '/cle-offerte refusée sur un autre serveur');
+
+// abonnement : création, résiliation, réactivation
+const sess2 = { id: 'cs_live_Abonnement123456789', mode: 'subscription', subscription: 'sub_ABC', payment_status: 'paid', livemode: true, payment_intent: null, client_reference_id: 'discord_' + U + '_0123456789abcdef', customer_details: { email: 'abo@b.fr', name: 'Abonné' }, amount_total: 499, currency: 'eur' };
+const signe = (o) => { const c = JSON.stringify(o), tt = Math.floor(Date.now() / 1000); return [c, 't=' + tt + ',v1=' + crypto.createHmac('sha256', SECRET).update(tt + '.' + c).digest('hex')]; };
+let [cA, sA] = signe({ id: 'evt_a', type: 'checkout.session.completed', livemode: true, data: { object: sess2 } });
+await mf.dispatchFetch(B + '/stripe', { method: 'POST', body: cA, headers: { 'Stripe-Signature': sA } });
+r = await interaction({ type: 2, guild_id: '222222222222222222', member: { user: { id: U }, permissions: '0' }, data: { name: 'ma-cle' } });
+j = await r.json(); const cleAbo = /```([A-F0-9-]{36})```/.exec(j.data.embeds[j.data.embeds.length - 1].description)[1];
+const valider = async (c) => (await (await mf.dispatchFetch(B + '/v1/licenses/validate', { method: 'POST', body: new URLSearchParams({ license_key: c }).toString(), headers: { 'Content-Type': 'application/x-www-form-urlencoded' } })).json());
+ok((await valider(cleAbo)).valid === true, 'abonnement : clé valide après le paiement');
+[cA, sA] = signe({ id: 'evt_b', type: 'customer.subscription.updated', livemode: true, data: { object: { id: 'sub_ABC', status: 'past_due' } } });
+await mf.dispatchFetch(B + '/stripe', { method: 'POST', body: cA, headers: { 'Stripe-Signature': sA } });
+ok((await valider(cleAbo)).valid === true, 'abonnement en retard de paiement : clé encore valide');
+const avant = appels.length;
+[cA, sA] = signe({ id: 'evt_c', type: 'customer.subscription.deleted', livemode: true, data: { object: { id: 'sub_ABC', status: 'canceled' } } });
+await mf.dispatchFetch(B + '/stripe', { method: 'POST', body: cA, headers: { 'Stripe-Signature': sA } });
+ok((await valider(cleAbo)).valid === false, 'abonnement résilié : clé désactivée');
+ok(appels.slice(avant).some((a) => a.startsWith('DELETE /api/v10/guilds/')), 'abonnement résilié : rôle Premium retiré');
+[cA, sA] = signe({ id: 'evt_d', type: 'customer.subscription.updated', livemode: true, data: { object: { id: 'sub_ABC', status: 'active' } } });
+await mf.dispatchFetch(B + '/stripe', { method: 'POST', body: cA, headers: { 'Stripe-Signature': sA } });
+ok((await valider(cleAbo)).valid === true, 'abonnement repris : clé réactivée');
 await mf.dispose();
 console.log(echecs === 0 ? 'TOUT OK (' + n + ')' : echecs + ' échec(s) sur ' + n);

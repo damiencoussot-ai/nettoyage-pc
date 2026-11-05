@@ -65,7 +65,7 @@ namespace NettoyagePC.Nouveau
             foreach (var q in new[]
             {
                 new[] { "Et si ça ne me convient pas ?", "Essaie d'abord gratuitement 7 jours. Après l'achat, tu es satisfait ou remboursé pendant 14 jours, sans justification." },
-                new[] { "Est-ce un abonnement ?", Langue.F("Non : tu payes {0} une seule fois, et Premium reste actif pour toutes les versions 4 et 5.", Boutique.Prix) },
+                new[] { "Est-ce un abonnement ?", Langue.F("Oui : {0} par mois, sans engagement. Tu arrêtes quand tu veux (lien dans l'e-mail de Stripe) ; Premium reste actif jusqu'à la fin du mois payé. Si tu as acheté Premium en une fois avant, il reste à vie.", Boutique.Prix) },
                 new[] { "Sur combien de PC ?", Langue.F("{0} en même temps. Avant de donner un PC, « Gérer la licence » libère sa place.", Boutique.NombrePc) },
                 new[] { "Faut-il Internet ?", "Pour activer la clé, puis une petite vérification par semaine. Sans Internet, Premium reste actif 45 jours." },
                 new[] { "Qu'est-ce qui reste gratuit ?", "Tout le reste : nettoyage, sécurité, mises à jour, sauvegarde, jeux, aide à distance." },
@@ -125,7 +125,7 @@ namespace NettoyagePC.Nouveau
                 {
                     pastille = Licence.JoursEssaiRestants <= 1 ? Langue.T("ESSAI GRATUIT  ·  DERNIER JOUR") : Langue.F("ESSAI GRATUIT  ·  {0} JOURS RESTANTS", Licence.JoursEssaiRestants);
                     titre = "Tu essaies Premium";
-                    texte = "Tous les outils sont débloqués pendant l'essai. Ensuite, ils se verrouillent simplement : rien n'est facturé. Pour les garder, achète Premium une seule fois.";
+                    texte = "Tous les outils sont débloqués pendant l'essai. Ensuite, ils se verrouillent simplement : rien n'est facturé. Pour les garder, abonne-toi à Premium (sans engagement).";
                 }
                 else
                 {
@@ -140,7 +140,7 @@ namespace NettoyagePC.Nouveau
                     e.Clic += () => Achat5.LancerEssai(F);
                     boutons.Add(e);
                 }
-                var a = new BoutonNoyau(Langue.F("Acheter  ·  {0}", Boutique.Prix), boutons.Count == 0, 0, 42) { TaillePolice = 14 };
+                var a = new BoutonNoyau(Langue.F("S'abonner  ·  {0} / mois", Boutique.Prix), boutons.Count == 0, 0, 42) { TaillePolice = 14 };
                 a.Clic += () => Achat5.Ouvrir(F);
                 boutons.Add(a);
                 var c = new BoutonNoyau("J'ai une clé", false, 0, 42) { TaillePolice = 14 };
@@ -164,7 +164,7 @@ namespace NettoyagePC.Nouveau
             {
                 var prix = new StackPanel { VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(24, 0, 10, 0) };
                 prix.Children.Add(new TextBlock { Text = Boutique.Prix, FontFamily = Habillage.Affichage, FontSize = 40, FontWeight = FontWeight.SemiBold, Foreground = Habillage.Pinceau(P.Accent), HorizontalAlignment = HorizontalAlignment.Right });
-                prix.Children.Add(new TextBlock { Text = Langue.T("TTC, une seule fois"), FontFamily = Habillage.Corps, FontSize = 12.5, Foreground = Habillage.Pinceau(P.Discret), HorizontalAlignment = HorizontalAlignment.Right });
+                prix.Children.Add(new TextBlock { Text = Langue.T("TTC par mois, sans engagement"), FontFamily = Habillage.Corps, FontSize = 12.5, Foreground = Habillage.Pinceau(P.Discret), HorizontalAlignment = HorizontalAlignment.Right });
                 Grid.SetColumn(prix, 1); g2.Children.Add(prix);
             }
             return new Border
@@ -183,7 +183,7 @@ namespace NettoyagePC.Nouveau
         {
             var P = Habillage.P;
             var w = new WrapPanel { Orientation = Orientation.Horizontal };
-            foreach (var t in new[] { "Paiement sécurisé (Stripe)", "Satisfait ou remboursé 14 jours", "Sans abonnement", "3 PC, toutes les versions 4 et 5", "Ni publicité, ni pistage" })
+            foreach (var t in new[] { "Paiement sécurisé (Stripe)", "Satisfait ou remboursé 14 jours", "Sans engagement, résiliable à tout moment", "3 PC, toutes les versions", "Ni publicité, ni pistage" })
                 w.Children.Add(new Border
                 {
                     Child = new TextBlock { Text = "✔  " + Langue.T(t), FontFamily = Habillage.Corps, FontSize = 12.5, Foreground = Habillage.Pinceau(P.Texte) },
@@ -296,7 +296,7 @@ namespace NettoyagePC.Nouveau
             F = f;
             var P = Habillage.P;
             Spacing = 12;
-            Children.Add(new TextBlock { Text = Langue.F("{0} TTC une seule fois · sans abonnement · toutes les versions 4 et 5 · {1} PC", Boutique.Prix, Boutique.NombrePc), FontFamily = Habillage.Affichage, FontSize = 15, FontWeight = FontWeight.SemiBold, Foreground = Habillage.Pinceau(P.Accent), TextWrapping = TextWrapping.Wrap });
+            Children.Add(new TextBlock { Text = Langue.F("{0} TTC par mois · sans engagement · {1} PC", Boutique.Prix, Boutique.NombrePc), FontFamily = Habillage.Affichage, FontSize = 15, FontWeight = FontWeight.SemiBold, Foreground = Habillage.Pinceau(P.Accent), TextWrapping = TextWrapping.Wrap });
             Children.Add(new TextBlock
             {
                 Text = Langue.T("✦  Gardien en temps réel, avec nettoyage léger automatique quand le disque se remplit\n" +
@@ -322,7 +322,7 @@ namespace NettoyagePC.Nouveau
             lLic.Clic += () => PageReglages5.Legal5(F, "LICENCE");
             liens.Children.Add(lCgv); liens.Children.Add(lLic);
             Children.Add(liens);
-            bAcheter = new BoutonNoyau(Langue.F("Acheter ({0} TTC)", Boutique.Prix), true, 0, 42) { TaillePolice = 14.5, IsEnabled = false, HorizontalAlignment = HorizontalAlignment.Left, Margin = new Thickness(0, 4, 0, 0) };
+            bAcheter = new BoutonNoyau(Langue.F("S'abonner ({0} TTC / mois)", Boutique.Prix), true, 0, 42) { TaillePolice = 14.5, IsEnabled = false, HorizontalAlignment = HorizontalAlignment.Left, Margin = new Thickness(0, 4, 0, 0) };
             conditions.IsCheckedChanged += (s, e) => bAcheter.IsEnabled = conditions.IsChecked == true;
             bAcheter.Clic += Acheter;
             Children.Add(bAcheter);

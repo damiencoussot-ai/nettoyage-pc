@@ -1,0 +1,8 @@
+Velox 5.9.4 : Premium passe en abonnement sans engagement
+
+- Velox Premium devient un abonnement à 4,99 € par mois, sans engagement : tu arrêtes quand tu veux
+  (lien dans l'e-mail de Stripe), et Premium reste actif jusqu'à la fin du mois payé.
+- Si tu as déjà acheté Premium en une seule fois, rien ne change : ta licence reste valable à vie.
+- Conditions de vente mises à jour (version du 5 novembre 2026).
+
+SHA256 de Velox-Setup-5.9.4.exe : voir le fichier Velox-Setup-5.9.4.sha256
