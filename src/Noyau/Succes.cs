@@ -59,7 +59,8 @@ namespace NettoyagePC
                     string jour = DateTime.Now.ToString("yyyy-MM-dd");
                     if (type == "ouverture" && Lire().Any(e => e.Item2 == "ouverture" && e.Item1.ToString("yyyy-MM-dd") == jour)) return;
                     Chemins.CreerDonnees();
-                    FichierSur.AjouterLigne(Fichier, DateTime.Now.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture) + ";" + type);
+                    string ligne = DateTime.Now.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture) + ";" + type;
+                    for (int essai = 0; essai < 5 && !FichierSur.AjouterLigne(Fichier, ligne); essai++) System.Threading.Thread.Sleep(300);
                 }
             }
             catch { }

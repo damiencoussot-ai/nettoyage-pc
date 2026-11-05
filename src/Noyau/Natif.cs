@@ -143,14 +143,17 @@ namespace NettoyagePC
         public static extern SafeFileHandle CreateFile(string nom, uint acces, uint partage, IntPtr securite, uint creation, uint attributs, IntPtr modele);
         [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
         private static extern uint GetFinalPathNameByHandle(SafeFileHandle h, StringBuilder tampon, uint taille, uint options);
-        [StructLayout(LayoutKind.Sequential)]
+        // BY_HANDLE_FILE_INFORMATION : les dates (FILETIME) sont alignées sur 4 octets, pas 8. Sans Pack = 4, chaque champ
+        // était lu 4 octets trop loin : « NombreLiens » lisait en fait le haut du numéro de fichier, souvent supérieur à 1,
+        // et les écritures sûres (statistiques, indices, historique, journal Gamer) étaient refusées.
+        [StructLayout(LayoutKind.Sequential, Pack = 4)]
         private struct InfoFichierHandle
         {
             public uint Attributs; public long Creation, Acces, Ecriture; public uint NumeroVolume, TailleHaut, TailleBas, NombreLiens, IndexHaut, IndexBas;
         }
         [DllImport("kernel32.dll", SetLastError = true)] private static extern bool GetFileInformationByHandle(SafeFileHandle h, out InfoFichierHandle info);
 
-        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 4)]   // WIN32_FIND_DATA : alignement sur 4 octets
         private struct DonneesRecherche
         {
             public uint Attributs; public long Creation, Acces, Ecriture; public uint TailleHaut, TailleBas, Reserve0, Reserve1;
