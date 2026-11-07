@@ -181,7 +181,7 @@ jobs:
           $mk = 'C:\Program Files (x86)\NSIS\makensis.exe'
           if (-not (Test-Path $mk)) { choco install nsis -y --no-progress | Out-Null }
           Copy-Item publie\NettoyagePC.exe . -Force
-          & $mk /V2 /DV5 "/DVERSION=5.9.9" "/DVERSION4=5.9.9.0" installateur.nsi
+          & $mk /V2 /DV5 "/DVERSION=5.9.10" "/DVERSION4=5.9.10.0" installateur.nsi
           if ($LASTEXITCODE -ne 0) { throw "makensis a échoué" }
           # nom tiré de la version réellement fabriquée (avant : un nom figé « 5.2 » faisait échouer cet essai en silence)
           $setup5 = (Get-ChildItem 'NettoyagePC-Setup-5*.exe' | Sort-Object LastWriteTime -Descending | Select-Object -First 1).FullName

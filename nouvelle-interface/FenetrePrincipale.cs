@@ -404,6 +404,9 @@ namespace NettoyagePC.Nouveau
             };
             // le bouclier anti-arnaque est gratuit
             if (cle == "bouclier") { Bouclier5.Ouvrir(this); return true; }
+            // outils gratuits ouverts par une clé (bouton « Réglages des jeux » du QG Gamer : rien ne s'ouvrait avant la 5.9.10)
+            if (cle == "reglagesjeux") { ReglagesWindows5.Jeux(this); return true; }
+            if (cle == "tempsdemarrage") { TempsDemarrage5.Ouvrir(this); return true; }
             Action ouvrir;
             if (!outils.TryGetValue(cle, out ouvrir)) return false;
             if (!Licence.Premium) { Achat5.Ouvrir(this); return true; }

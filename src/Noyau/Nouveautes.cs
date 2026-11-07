@@ -7,6 +7,7 @@ namespace NettoyagePC
     {
         public static readonly List<KeyValuePair<string, string[]>> Liste = new List<KeyValuePair<string, string[]>>
         {
+            N("5.9.10", "Correction : le bouton « Réglages des jeux » du QG Gamer ouvre bien les réglages (il ne faisait rien)."),
             N("5.9.9", "Réglages jeu par jeu (Premium) : mode jeu automatique ou non, priorité haute, OneDrive en pause, pour chaque jeu.",
                 "Temps de démarrage : un graphique sur 30 jours, du bouton marche jusqu'au bureau (Accélérer).",
                 "QG Gamer : l'âge du pilote de la carte graphique, avec un clic pour le mettre à jour.",

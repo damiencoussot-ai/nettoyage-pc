@@ -1,0 +1,10 @@
+Velox 5.9.10 : correction
+
+- QG Gamer : le bouton « Réglages des jeux » (sous « Preuve en FPS ») ouvre bien les réglages des jeux ; avant, il ne faisait rien.
+
+Contient aussi tout ce qui est arrivé dans la 5.9.9 : réglages jeu par jeu, temps de démarrage sur 30 jours, âge du pilote graphique,
+premier lancement en 3 étapes, mises à jour protégées.
+
+L'installateur est publié sous les deux noms : Velox-Setup-5.9.10.exe (winget, site) et NettoyagePC-Setup-5.9.10.exe (mise à jour des anciennes versions).
+
+SHA256 de Velox-Setup-5.9.10.exe : voir le fichier Velox-Setup-5.9.10.sha256

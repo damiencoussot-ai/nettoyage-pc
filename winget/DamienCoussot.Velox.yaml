@@ -1,6 +1,6 @@
 # yaml-language-server: $schema=https://aka.ms/winget-manifest.version.1.6.0.schema.json
 PackageIdentifier: DamienCoussot.Velox
-PackageVersion: 5.9.9
+PackageVersion: 5.9.10
 DefaultLocale: fr-FR
 ManifestType: version
 ManifestVersion: 1.6.0
