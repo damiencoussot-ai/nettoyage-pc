@@ -1,11 +1,11 @@
 ﻿POLITIQUE DE CONFIDENTIALITÉ DE VELOX
-Version du 22 octobre 2026
+Version du 7 novembre 2026
 
 
 EN BREF
 
 - Velox fonctionne sur votre ordinateur. Il n'y a ni compte à créer, ni publicité, ni pistage, ni télémétrie, ni cookies.
-- Le site officiel n'utilise ni cookie, ni traceur, ni mesure d'audience.
+- Le site officiel n'utilise ni cookie ni traceur publicitaire ; il compte seulement les visites, de façon anonyme et sans cookie (Cloudflare Web Analytics).
 - Vos fichiers, journaux et réglages restent sur votre ordinateur. Ils ne sont jamais envoyés à l'Éditeur.
 - Le logiciel n'utilise Internet que pour : vérifier les mises à jour, vérifier une licence Premium achetée, télécharger l'outil de mesure PresentMon si vous utilisez la « Preuve en FPS », et les tests de connexion que vous lancez vous-même.
 - L'assistant local et ses réponses fonctionnent sur votre ordinateur (logiciel Ollama) : vos questions ne sont envoyées ni à l'Éditeur, ni sur Internet.
@@ -71,7 +71,7 @@ Certains boutons ouvrent un site dans votre navigateur (pilotes AMD, NVIDIA ou I
 Les messages que vous envoyez à l'Éditeur (assistance, remboursement) et les fichiers que vous y joignez sont utilisés uniquement pour vous répondre.
 
 3.8 Le site officiel
-Le site officiel de Velox (https://damiencoussot-ai.github.io/nettoyage-pc/) n'utilise ni cookie, ni traceur, ni outil de mesure d'audience, et ne charge aucun contenu depuis un autre site. Il est hébergé par GitHub (service GitHub Pages) qui, comme pour tout site web, reçoit l'adresse IP des visiteurs pour faire fonctionner et sécuriser le service. Le bouton « Télécharger » récupère l'installateur sur GitHub ; le bouton « Acheter » ouvre la page de paiement de Stripe (voir 3.3).
+Le site officiel de Velox (https://damiencoussot-ai.github.io/nettoyage-pc/) n'utilise ni cookie ni traceur publicitaire. Pour savoir combien de personnes le visitent, il utilise Cloudflare Web Analytics (Cloudflare, Inc.) : un petit script compte les pages vues, le pays, le type d'appareil et le site d'où vient le visiteur, sans cookie, sans identifiant et sans suivre la personne d'un site à l'autre ; les résultats ne sont vus que sous forme de totaux. Base légale : l'intérêt légitime de mesurer l'audience du site. Politique de Cloudflare : https://www.cloudflare.com/privacypolicy/ . Le site est hébergé par GitHub (service GitHub Pages) qui, comme pour tout site web, reçoit l'adresse IP des visiteurs pour faire fonctionner et sécuriser le service. Le bouton « Télécharger » récupère l'installateur sur GitHub ; le bouton « Acheter » ouvre la page de paiement de Stripe (voir 3.3).
 
 
 4. DURÉE DE CONSERVATION
@@ -83,7 +83,7 @@ Le site officiel de Velox (https://damiencoussot-ai.github.io/nettoyage-pc/) n'u
 
 5. DESTINATAIRES ET TRANSFERTS HORS DE L'UNION EUROPÉENNE
 
-Les seuls prestataires concernés sont GitHub (site officiel et mises à jour), Stripe, Link et leurs prestataires de paiement (achat), et Cloudflare (service de licences, et test de débit à votre demande). Certains sont situés aux États-Unis ; ils encadrent les transferts de données selon leurs propres engagements (par exemple le cadre de protection des données UE - États-Unis ou les clauses contractuelles types de la Commission européenne), décrits dans leurs politiques de confidentialité.
+Les seuls prestataires concernés sont GitHub (site officiel et mises à jour), Stripe, Link et leurs prestataires de paiement (achat), et Cloudflare (service de licences, mesure d'audience du site, et test de débit à votre demande). Certains sont situés aux États-Unis ; ils encadrent les transferts de données selon leurs propres engagements (par exemple le cadre de protection des données UE - États-Unis ou les clauses contractuelles types de la Commission européenne), décrits dans leurs politiques de confidentialité.
 
 
 6. VOS DROITS
