@@ -2779,6 +2779,17 @@ namespace NettoyagePC
             "Correction : le raccourci Ctrl+Alt+O de l'overlay se libère bien quand tu quittes le profil Gamer.", "Fix: the overlay's Ctrl+Alt+O shortcut is properly released when you leave the Gamer profile.", "Corrección: el atajo Ctrl+Alt+O del overlay se libera correctamente al salir del perfil Gamer.",
             "Le PC était déjà en « Performances élevées » avant le mode jeu : rien à rétablir.", "The PC was already on \"High performance\" before game mode: nothing to restore.", "El PC ya estaba en «Alto rendimiento» antes del modo juego: nada que restablecer.",
             "Le mode d'avant n'est pas connu : retour au mode « Équilibré » (celui de Windows par défaut).", "The previous mode is unknown: back to \"Balanced\" mode (the Windows default).", "El modo anterior es desconocido: vuelta al modo «Equilibrado» (el predeterminado de Windows).",
+            "Partager sur Discord", "Share on Discord", "Compartir en Discord",
+            "Code copié : sur Discord, dans #tes-captures, tape /score puis colle-le (Ctrl+V).", "Code copied: on Discord, in #tes-captures, type /score then paste it (Ctrl+V).", "Código copiado: en Discord, en #tes-captures, escribe /score y pégalo (Ctrl+V).",
+            "Copie ton code de joueur et ouvre le Discord de Velox : tape /score dans #tes-captures et colle-le pour afficher ton rang.", "Copies your player code and opens the Velox Discord: type /score in #tes-captures and paste it to show your rank.", "Copia tu código de jugador y abre el Discord de Velox: escribe /score en #tes-captures y pégalo para mostrar tu rango.",
+            "Communauté Discord", "Discord community", "Comunidad de Discord",
+            "Le serveur officiel de Velox : aide rapide, nouveautés en avant-première, concours et partage de ton rang de joueur.", "The official Velox server: quick help, early news, contests and sharing your player rank.", "El servidor oficial de Velox: ayuda rápida, novedades en primicia, concursos y compartir tu rango de jugador.",
+            "Rejoindre le Discord", "Join the Discord", "Unirse al Discord",
+            "Le serveur officiel de Velox : aide, nouveautés, concours", "The official Velox server: help, news, contests", "El servidor oficial de Velox: ayuda, novedades, concursos",
+            "Partager mon rang sur Discord", "Share my rank on Discord", "Compartir mi rango en Discord",
+            "Copie ton code de joueur pour la commande /score", "Copies your player code for the /score command", "Copia tu código de jugador para el comando /score",
+            "Partage ton rang de joueur sur Discord : QG Gamer, « Partager sur Discord », puis /score dans #tes-captures.", "Share your player rank on Discord: Gamer HQ, \"Share on Discord\", then /score in #tes-captures.", "Comparte tu rango de jugador en Discord: Cuartel Gamer, «Compartir en Discord», y luego /score en #tes-captures.",
+            "Le serveur Discord officiel de Velox est accessible depuis les Outils et la recherche (Ctrl+K).", "The official Velox Discord server is reachable from Tools and search (Ctrl+K).", "El servidor oficial de Discord de Velox está disponible desde Herramientas y la búsqueda (Ctrl+K).",
         };
         private static readonly string[] Prefixes =
         {

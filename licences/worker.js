@@ -62,6 +62,10 @@ export default {
       return json({ error: 'internal error' }, 500);
     }
   },
+  // déclencheur Cron de Cloudflare (toutes les heures) : annonce une nouvelle version de Velox sur Discord
+  async scheduled(evenement, env, ctx) {
+    ctx.waitUntil(annoncerVersion(env, false).then((t) => console.log('annonce', t)).catch((e) => console.log('annonce', e)));
+  },
 };
 
 // ------------------------------------------------------------ outils
@@ -333,10 +337,13 @@ async function admin(requete, env) {
   const formRecherche = '<form method="post">' + champ('jeton', jeton) + '<p><label>E-mail de l\'acheteur ou clé<br><input name="recherche" value="' + echapper(recherche) + '" style="font-size:1rem;padding:8px;width:100%"></label></p><p><button>Chercher</button></p></form>';
   // Discord : installer (ou mettre à jour) les commandes du bot
   if (action === 'commandes-discord') message = '<p><b>Discord :</b> ' + echapper(await installerCommandes(env)) + '</p>';
+  if (action === 'annoncer-version') message = '<p><b>Annonce :</b> ' + echapper(await annoncerVersion(env, true)) + '</p>';
   if (action === 'organiser-discord') message = '<p><b>Serveur Discord :</b></p><pre style="white-space:pre-wrap">' + echapper(await organiserServeur(env)) + '</pre>';
   const formDiscord = env.DISCORD_APP_ID ? '<form method="post" style="margin-top:24px">' + champ('jeton', jeton) + champ('action', 'commandes-discord') + '<button>Installer les commandes Discord</button></form>' +
     (env.DISCORD_GUILD_ID ? '<form method="post" style="margin-top:12px">' + champ('jeton', jeton) + champ('action', 'organiser-discord') + '<button>Organiser le serveur Discord</button>' +
-      '<p class="petit">Range les salons en catégories, crée les règles, la bienvenue, les rôles à choisir et les messages Premium. Rien n\'est supprimé ; tu peux recliquer sans risque (ça met à jour au lieu de dupliquer).</p></form>' : '') : '';
+      '<p class="petit">Range les salons en catégories, crée les règles, la bienvenue, les rôles à choisir et les messages Premium. Rien n\'est supprimé ; tu peux recliquer sans risque (ça met à jour au lieu de dupliquer).</p></form>' +
+      '<form method="post" style="margin-top:12px">' + champ('jeton', jeton) + champ('action', 'annoncer-version') + '<button>Annoncer la dernière version maintenant</button>' +
+      '<p class="petit">Normalement automatique (toutes les heures, avec le déclencheur Cron) : à utiliser pour réannoncer à la main.</p></form>' : '') : '';
   return page('Administration', message + formRecherche + resultats + formDiscord);
 }
 
@@ -385,7 +392,7 @@ async function discord(requete, env, ctx) {
   if (!/^\d{15,22}$/.test(id)) return reponse('Utilisateur inconnu.');
   // type 2 : commande « / » ; type 3 : bouton d'un message du bot (seulement les boutons connus)
   const bouton = i.type === 3 ? String((i.data && i.data.custom_id) || '') : '';
-  const nom = i.type === 2 ? ((i.data && i.data.name) || '') : (['premium', 'ma-cle', 'telecharger'].includes(bouton) ? bouton : '');
+  const nom = i.type === 2 ? ((i.data && i.data.name) || '') : (['premium', 'ma-cle', 'telecharger', 'essai'].includes(bouton) ? bouton : '');
   if (bouton.startsWith('role:')) return await basculerRole(env, i, id, bouton.slice(5));
 
   if (nom === 'premium') {
@@ -417,6 +424,36 @@ async function discord(requete, env, ctx) {
 
   if (nom === 'telecharger') {
     return reponse({ content: 'Télécharge **Velox** (gratuit, Windows 10 et 11) :', components: [{ type: 1, components: [{ type: 2, style: 5, label: 'Télécharger Velox', url: SITE }] }] });
+  }
+
+  if (nom === 'essai') {
+    return reponse({
+      embeds: [{
+        title: '🎁 Essai gratuit de Velox Premium · 7 jours', color: OR,
+        description: 'L\'essai est **intégré à Velox**, sans carte bancaire et sans inscription :\n\n1. Télécharge et ouvre **Velox**\n2. Onglet **Premium**\n3. Clique sur **« Essayer gratuitement 7 jours »**\n\nTous les outils Premium sont débloqués tout de suite. Ça te plaît ? Garde-les avec `/premium` (4,99 €/mois, sans engagement).',
+      }],
+      components: [{ type: 1, components: [{ type: 2, style: 5, label: 'Télécharger Velox', url: SITE }, { type: 2, style: 3, label: 'S\'abonner', custom_id: 'premium' }] }],
+    });
+  }
+
+  if (nom === 'score') {
+    const code = String(((i.data.options || []).find((o) => o.name === 'code') || {}).value || '').trim();
+    const s = lireCodeJoueur(code);
+    if (!s) return reponse('Code invalide. Dans Velox : **QG Gamer → « Partager sur Discord »** copie ton code, puis tape `/score` ici et colle-le (Ctrl+V).');
+    const rang = rangJeu(s.niveau), pseudo = utilisateur.global_name || utilisateur.username || 'Joueur';
+    // réponse publique : tout le salon voit la carte
+    return json({ type: 4, data: { allowed_mentions: { parse: [] }, embeds: [{
+      author: { name: pseudo + ' · profil Gamer Velox' },
+      title: rang.emoji + ' Rang ' + rang.nom + ' · niveau ' + s.niveau, color: rang.couleur,
+      description: barre(s.avancement) + '\n',
+      fields: [
+        { name: '⚡ XP', value: s.xp.toLocaleString('fr-FR'), inline: true },
+        { name: '🏆 Succès', value: s.succes + ' / ' + s.total, inline: true },
+        { name: '🔥 Meilleure série', value: s.serie + ' jour' + (s.serie > 1 ? 's' : ''), inline: true },
+        { name: '🎯 Défis réussis', value: String(s.defis), inline: true },
+        { name: '📈 Prochain rang', value: rang.suivant ? rang.suivant + ' au niveau ' + rang.niveauSuivant : 'Rang maximum !', inline: true },
+      ],
+      footer: { text: 'Toi aussi : QG Gamer → « Partager sur Discord », puis /score' } }] } });
   }
 
   if (nom === 'cle-offerte') {
@@ -487,17 +524,82 @@ async function donnerSurDiscord(env, id, lic, origine) {
   return !!await appelDiscord(env, 'POST', '/channels/' + canal.id + '/messages', { embeds: [carteCle(lic, titre)], allowed_mentions: { parse: [] } });
 }
 
+// ------------------------------------------------------------ /score : code de joueur copié depuis Velox
+const RANGS_JEU = [
+  { nom: 'Bronze', niveau: 1, couleur: 0xe8a060, emoji: '🥉' }, { nom: 'Argent', niveau: 5, couleur: 0xecf2fa, emoji: '🥈' },
+  { nom: 'Or', niveau: 10, couleur: 0xffde66, emoji: '🥇' }, { nom: 'Platine', niveau: 15, couleur: 0x96fff0, emoji: '💠' },
+  { nom: 'Diamant', niveau: 20, couleur: 0x8cd2ff, emoji: '💎' }, { nom: 'Légende', niveau: 30, couleur: 0xff2bd6, emoji: '👑' },
+];
+function rangJeu(niveau) {
+  let k = 0; RANGS_JEU.forEach((r, j) => { if (niveau >= r.niveau) k = j; });
+  const s = RANGS_JEU[k + 1];
+  return Object.assign({}, RANGS_JEU[k], { suivant: s ? s.nom : '', niveauSuivant: s ? s.niveau : 0 });
+}
+/** Même contrôle que Velox (Succes.Controle) : FNV-1a 32 bits de « velox|corps », 6 premiers chiffres hexadécimaux. */
+function controleJoueur(corps) {
+  let h = 2166136261;
+  for (const o of enc('velox|' + corps)) { h ^= o; h = Math.imul(h, 16777619) >>> 0; }
+  return h.toString(16).padStart(8, '0').slice(0, 6);
+}
+function lireCodeJoueur(code) {
+  const m = /^VLX1-(\d{1,4})-(\d{1,8})-(\d{1,3})-(\d{1,3})-(\d{1,4})-(\d{1,6})-([0-9a-f]{6})$/i.exec(code || '');
+  if (!m) return null;
+  const corps = m.slice(1, 7).join('-');
+  if (controleJoueur(corps) !== m[7].toLowerCase()) return null;
+  const [niveau, xp, succes, total, serie, defis] = m.slice(1, 7).map(Number);
+  if (niveau < 1 || succes > total || total > 200) return null;
+  const r = rangJeu(niveau);
+  const avancement = r.niveauSuivant ? Math.min(1, (niveau - r.niveau) / (r.niveauSuivant - r.niveau)) : 1;
+  return { niveau, xp, succes, total, serie, defis, avancement };
+}
+const barre = (x) => '`' + '█'.repeat(Math.round(x * 16)) + '░'.repeat(16 - Math.round(x * 16)) + '` ' + Math.round(x * 100) + ' % vers le rang suivant';
+
+// ------------------------------------------------------------ annonce automatique des nouvelles versions (GitHub)
+// Appelée toutes les heures par le déclencheur Cron de Cloudflare (et par le bouton de /admin). Une version n'est annoncée qu'une fois.
+const DEPOT = 'damiencoussot-ai/nettoyage-pc';
+async function annoncerVersion(env, forcer) {
+  const etat = JSON.parse(await env.LICENCES.get('serveur') || '{}');
+  const salon = (etat.salons || {}).maj;
+  if (!salon) return 'Salon #mises-à-jour inconnu : clique d\'abord sur « Organiser le serveur Discord ».';
+  let rel;
+  try {
+    const r = await fetch('https://api.github.com/repos/' + DEPOT + '/releases/latest', { headers: { 'User-Agent': 'velox-licences', Accept: 'application/vnd.github+json' } });
+    if (!r.ok) return 'GitHub ne répond pas (' + r.status + ').';
+    rel = await r.json();
+  } catch (e) { return 'GitHub injoignable.'; }
+  const tag = String(rel.tag_name || '');
+  if (!tag) return 'Aucune version publiée.';
+  if (!forcer && await env.LICENCES.get('annonce:derniere') === tag) return 'La version ' + tag + ' est déjà annoncée.';
+  const version = tag.replace(/^v/i, '');
+  const exe = (rel.assets || []).find((a) => /^Velox-Setup-[\d.]+\.exe$/i.test(a.name)) || (rel.assets || []).find((a) => /\.exe$/i.test(a.name));
+  let notes = String(rel.body || '').replace(/\r/g, '').replace(/^SHA256.*$/gim, '').trim();
+  if (notes.length > 3500) notes = notes.slice(0, 3500).replace(/\n[^\n]*$/, '') + '\n…';
+  const role = (etat.roles || {}).annonces;
+  const msg = {
+    content: role ? '<@&' + role + '>' : '', allowed_mentions: { parse: [], roles: role ? [role] : [] },
+    embeds: [{ title: '🆕 Velox ' + version + ' est disponible !', url: rel.html_url || SITE, color: MAGENTA, description: notes || 'Nouvelle version de Velox.',
+      footer: { text: 'Velox se met à jour tout seul, ou télécharge-le ci-dessous.' }, timestamp: rel.published_at || new Date().toISOString() }],
+    components: [{ type: 1, components: [{ type: 2, style: 5, label: 'Télécharger Velox ' + version, url: exe ? exe.browser_download_url : SITE }].concat(rel.html_url ? [{ type: 2, style: 5, label: 'Voir sur GitHub', url: rel.html_url }] : []) }],
+  };
+  const m = await appelDiscord(env, 'POST', '/channels/' + salon + '/messages', msg);
+  if (!m) return 'Discord a refusé le message (le bot a-t-il le droit d\'écrire dans #mises-à-jour ?).';
+  await env.LICENCES.put('annonce:derniere', tag);
+  return 'Version ' + version + ' annoncée dans #mises-à-jour.';
+}
+
 async function installerCommandes(env) {
   if (!env.DISCORD_APP_ID || !env.DISCORD_BOT_TOKEN) return 'DISCORD_APP_ID ou DISCORD_BOT_TOKEN manquant.';
   const commandes = [
     { name: 'premium', description: 'S\'abonner à Velox Premium (4,99 €/mois, sans engagement) : clé en message privé', type: 1 },
     { name: 'ma-cle', description: 'Revoir ta clé Velox Premium (visible seulement par toi)', type: 1 },
     { name: 'telecharger', description: 'Télécharger Velox (gratuit)', type: 1 },
+    { name: 'essai', description: 'Essayer Velox Premium gratuitement pendant 7 jours', type: 1 },
+    { name: 'score', description: 'Montrer ton rang de joueur Velox (code copié depuis le QG Gamer)', type: 1, options: [{ type: 3, name: 'code', description: 'Ton code VLX1-… (Velox : QG Gamer → Partager sur Discord)', required: true, max_length: 60 }] },
     { name: 'cle-offerte', description: 'Admin : offrir une clé Velox Premium à un membre', type: 1, default_member_permissions: '8', dm_permission: false,
       options: [{ type: 6, name: 'membre', description: 'Le membre qui reçoit la clé', required: true }, { type: 3, name: 'raison', description: 'Concours, partenariat…', required: false, max_length: 100 }] },
   ];
   const r = await appelDiscord(env, 'PUT', '/applications/' + env.DISCORD_APP_ID + '/commands', commandes);
-  return r ? commandes.length + ' commandes installées (/premium, /ma-cle, /telecharger, /cle-offerte).' : 'échec : vérifie DISCORD_APP_ID et DISCORD_BOT_TOKEN.';
+  return r ? commandes.length + ' commandes installées (/premium, /ma-cle, /telecharger, /essai, /score, /cle-offerte).' : 'échec : vérifie DISCORD_APP_ID et DISCORD_BOT_TOKEN.';
 }
 
 // ------------------------------------------------------------ organisation du serveur Discord (bouton de /admin)
@@ -657,7 +759,7 @@ function messagesServeur(env, etat) {
     ['bienvenue', 'bienvenue', { allowed_mentions: sansMention, embeds: [{
       title: '👋 Bienvenue sur le serveur officiel de Velox !', color: VIOLET,
       description: '**Velox** nettoie, accélère et protège ton PC Windows : gratuit, sans pub, et rien n\'est supprimé sans ton accord.\n\n' +
-        '**Par où commencer ?**\n📜 Lis les ' + m('regles') + '\n🎭 Choisis tes rôles dans ' + m('roles') + '\n💬 Présente-toi dans ' + m('general') + '\n📸 Montre ton score dans ' + m('captures') + '\n💎 Débloque tout avec Premium dans ' + m('acheter') + '\n🛟 Une question ? ' + m('support'),
+        '**Par où commencer ?**\n📜 Lis les ' + m('regles') + '\n🎭 Choisis tes rôles dans ' + m('roles') + '\n💬 Présente-toi dans ' + m('general') + '\n🏆 Montre ton rang de joueur : `/score` dans ' + m('captures') + '\n💎 Débloque tout avec Premium dans ' + m('acheter') + '\n🛟 Une question ? ' + m('support'),
       footer: { text: 'Velox · Windows 10 et 11' } }],
       components: [{ type: 1, components: [
         { type: 2, style: 5, label: 'Télécharger Velox', emoji: { name: '⬇️' }, url: SITE },
@@ -677,6 +779,7 @@ function messagesServeur(env, etat) {
       footer: { text: 'Sans engagement · rétractation 14 jours · clé valable sur ' + LIMITE_PC + ' PC' } }],
       components: [{ type: 1, components: [
         { type: 2, style: 3, label: 'S\'abonner', emoji: { name: '💎' }, custom_id: 'premium' },
+        { type: 2, style: 1, label: 'Essai gratuit 7 jours', emoji: { name: '🎁' }, custom_id: 'essai' },
         { type: 2, style: 2, label: 'Ma clé', emoji: { name: '🔑' }, custom_id: 'ma-cle' },
         { type: 2, style: 5, label: 'Voir le site', url: SITE }] }] }],
     ['salon-premium', 'salon-premium', { allowed_mentions: sansMention, embeds: [{

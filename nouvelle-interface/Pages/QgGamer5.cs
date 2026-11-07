@@ -140,6 +140,10 @@ namespace NettoyagePC.Nouveau
             bOverlay.Clic += () => Overlay5.Basculer(F, false);
             options.Children.Add(bSons); options.Children.Add(bOverlay);
             c.Children.Add(options);
+            var bDiscord = new BoutonNoyau("Partager sur Discord", false, 0, 32) { TaillePolice = 11.5, Capitales = true, HorizontalAlignment = HorizontalAlignment.Stretch };
+            ToolTip.SetTip(bDiscord, Langue.T("Copie ton code de joueur et ouvre le Discord de Velox : tape /score dans #tes-captures et colle-le pour afficher ton rang."));
+            bDiscord.Clic += () => Progression5.PartagerDiscord(F);
+            c.Children.Add(bDiscord);
             Grid.SetColumn(c, 4); g.Children.Add(c);
 
             Child = new StackPanel { Children = { g, zoneDefis } };

@@ -1,0 +1,12 @@
+Velox 5.9.7 : Velox et Discord, ensemble
+
+- QG Gamer : nouveau bouton « Partager sur Discord ». Il copie ton code de joueur et ouvre le serveur Discord de Velox :
+  dans #tes-captures, tape /score et colle-le, et ta carte (rang, niveau, XP, succès, série) s'affiche pour tout le serveur.
+- Même bouton dans la fenêtre « Carte de joueur », à côté de « Enregistrer l'image ».
+- Outils : nouvelle carte « Communauté Discord » ; et « Rejoindre le Discord » dans la recherche (Ctrl+K).
+
+Sur le serveur Discord : /essai (essai Premium de 7 jours), /score, et chaque nouvelle version annoncée automatiquement.
+
+L'installateur est publié sous les deux noms : Velox-Setup-5.9.7.exe (winget, site) et NettoyagePC-Setup-5.9.7.exe (mise à jour des anciennes versions).
+
+SHA256 de Velox-Setup-5.9.7.exe : voir le fichier Velox-Setup-5.9.7.sha256

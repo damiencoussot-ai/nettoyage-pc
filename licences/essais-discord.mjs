@@ -72,7 +72,7 @@ const c2 = JSON.stringify({ id: 'evt_2', type: 'charge.refunded', livemode: true
 await mf.dispatchFetch(B + '/stripe', { method: 'POST', body: c2, headers: { 'Stripe-Signature': 't=' + t + ',v1=' + sig2 } });
 ok(appels.some((a) => a.startsWith('DELETE /api/v10/guilds/')), 'remboursement : rôle Premium retiré');
 r = await mf.dispatchFetch(B + '/admin', { method: 'POST', body: new URLSearchParams({ jeton: ADMIN, action: 'commandes-discord' }).toString(), headers: { 'Content-Type': 'application/x-www-form-urlencoded' } });
-const h = await r.text(); ok(/4 commandes installées/.test(h), 'installation des commandes depuis /admin');
+const h = await r.text(); ok(/6 commandes installées/.test(h), 'installation des commandes depuis /admin');
 console.log(appels.map(a=>a.slice(0,140)).join('\n'));
 r = await interaction({ type: 2, guild_id: '888888888888888888', member: { user: { id: ADM }, permissions: '8' }, data: { name: 'cle-offerte', options: [{ name: 'membre', value: '777777777777777777' }] } });
 j = await r.json(); ok(/serveur officiel/.test(j.data.content), '/cle-offerte refusée sur un autre serveur');
@@ -150,5 +150,31 @@ r = await interaction({ type: 3, guild_id: GU, member: { user: { id: U }, roles:
 j = await r.json(); ok(/client_reference_id=discord_/.test(j.data.components[0].components[0].url), 'bouton S\'abonner = /premium');
 r = await interaction({ type: 3, guild_id: GU, member: { user: { id: ADM }, roles: [], permissions: '8' }, data: { custom_id: 'cle-offerte' } });
 j = await r.json(); ok(/inconnue/.test(j.data.content), 'bouton inventé « cle-offerte » refusé');
+
+// /score : code de joueur (même calcul que Velox, refait ici indépendamment)
+const fnv = (s) => { let h = 2166136261; for (const o of Buffer.from('velox|' + s, 'utf8')) { h ^= o; h = Math.imul(h, 16777619) >>> 0; } return h.toString(16).padStart(8, '0').slice(0, 6); };
+const corpsJ = '12-3450-9-22-7-15', codeJ = 'VLX1-' + corpsJ + '-' + fnv(corpsJ);
+r = await interaction({ type: 2, guild_id: GU, member: { user: { id: U, username: 'flyZ20' }, permissions: '0' }, data: { name: 'score', options: [{ name: 'code', value: codeJ }] } });
+j = await r.json(); ok(!j.data.flags && /Or · niveau 12/.test(j.data.embeds[0].title) && j.data.embeds[0].fields[1].value === '9 / 22', '/score : carte publique, rang Or niveau 12');
+r = await interaction({ type: 2, guild_id: GU, member: { user: { id: U }, permissions: '0' }, data: { name: 'score', options: [{ name: 'code', value: 'VLX1-99-3450-9-22-7-15-' + fnv(corpsJ) }] } });
+j = await r.json(); ok(j.data.flags === 64 && /invalide/.test(j.data.content), '/score : code trafiqué refusé');
+r = await interaction({ type: 2, guild_id: GU, member: { user: { id: U }, permissions: '0' }, data: { name: 'essai' } });
+j = await r.json(); ok(j.data.flags === 64 && /7 jours/.test(j.data.embeds[0].title), '/essai : explique l\'essai de 7 jours');
+r = await interaction({ type: 3, guild_id: GU, member: { user: { id: U }, roles: [] }, data: { custom_id: 'essai' } });
+j = await r.json(); ok(/7 jours/.test(j.data.embeds[0].title), 'bouton Essai gratuit');
+// annonce de version (GitHub simulé)
+const gh = fetchMock.get('https://api.github.com');
+gh.intercept({ method: 'GET', path: '/repos/damiencoussot-ai/nettoyage-pc/releases/latest' }).reply(200, { tag_name: 'v5.9.7', html_url: 'https://github.com/damiencoussot-ai/nettoyage-pc/releases/tag/v5.9.7', body: 'Velox 5.9.7\n\n- Nouveau\n\nSHA256 de Velox-Setup-5.9.7.exe : voir', published_at: '2026-11-07T12:00:00Z', assets: [{ name: 'NettoyagePC-Setup-5.9.7.exe', browser_download_url: 'https://x/n.exe' }, { name: 'Velox-Setup-5.9.7.exe', browser_download_url: 'https://x/v.exe' }] }).persist();
+enreg('POST', /\/api\/v10\/channels\/\d+\/messages$/, { id: 'annonce1' });
+const annoncer = async () => (await (await mf.dispatchFetch(B + '/admin', { method: 'POST', body: new URLSearchParams({ jeton: ADMIN, action: 'annoncer-version' }).toString(), headers: { 'Content-Type': 'application/x-www-form-urlencoded' } })).text());
+const nAv = appels.length;
+ok(/5\.9\.7 annoncée/.test(await annoncer()), 'annonce : version 5.9.7 postée dans #mises-à-jour');
+const posted = appels.slice(nAv).find((a) => a.startsWith('POST /api/v10/channels/' + serveur.salons.find((x) => x.name === '🆕・mises-à-jour').id));
+ok(!!posted, 'annonce : dans le bon salon');
+await mf.dispatchFetch(B + '/'); // le Cron ne réannonce pas la même version :
+const sched = await mf.getWorker(); const nAv2 = appels.length;
+try { await sched.scheduled({ cron: '0 * * * *' }); } catch (e) { console.log('scheduled', e.message); }
+await new Promise((x) => setTimeout(x, 300));
+ok(appels.length === nAv2, 'Cron : pas de deuxième annonce pour la même version');
 await mf.dispose(); srv.close();
 console.log(echecs === 0 ? 'TOUT OK (' + n + ')' : echecs + ' échec(s) sur ' + n);

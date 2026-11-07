@@ -161,6 +161,7 @@ namespace NettoyagePC.Nouveau
             Children.Add(Cartes.Page(f, null, new[]
             {
                 CarteAction.Code("Résumé de ce PC", "Windows, processeur, mémoire, disques, carte graphique et problèmes détectés : copié en un clic, à coller dans un message pour la personne qui t'aide.", "Copier le résumé", CopierResume, true),
+                CarteAction.Code("Communauté Discord", "Le serveur officiel de Velox : aide rapide, nouveautés en avant-première, concours et partage de ton rang de joueur.", "Rejoindre le Discord", () => { try { Programmes.Ouvrir(Boutique.UrlDiscord); } catch { } }),
                 CarteAction.Code("Signaler un problème", "Un bogue, une fenêtre qui se ferme ? Envoie un rapport anonyme à l'éditeur : tu le vois en entier avant l'envoi.", "Signaler", () => Signaler5.Ouvrir(F)),
                 CarteAction.Code("Aider quelqu'un", "Pour dépanner un proche : ouvre l'Assistance rapide, clique sur « Aider quelqu'un » (compte Microsoft demandé), puis donne-lui le code.", "Ouvrir l'Assistance rapide", OuvrirAssistance),
                 CarteAction.Code("Journal de démarrage", "Si Velox se ferme ou affiche une erreur, ce fichier explique pourquoi : envoie-le à la personne qui t'aide.", "Montrer le fichier", () =>

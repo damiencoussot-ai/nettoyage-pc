@@ -136,8 +136,10 @@ namespace NettoyagePC.Nouveau
             var zone = new Panel { Height = 330 };
             s.Children.Add(new TextBlock { Text = Langue.T("Ta carte de joueur, à partager sur Discord ou sur tes réseaux. Elle ne contient que ton pseudo, ta progression et le nom de ton processeur et de ta carte graphique."), FontFamily = Habillage.Corps, FontSize = 13, Foreground = Habillage.Pinceau(P.Discret), TextWrapping = TextWrapping.Wrap });
             s.Children.Add(zone);
-            var bouton = new BoutonNoyau("Enregistrer l'image", true, 0, 42) { TaillePolice = 14, Capitales = true, HorizontalAlignment = HorizontalAlignment.Left, IsEnabled = false };
-            s.Children.Add(bouton);
+            var bouton = new BoutonNoyau("Enregistrer l'image", true, 0, 42) { TaillePolice = 14, Capitales = true, IsEnabled = false };
+            var partager = new BoutonNoyau("Partager sur Discord", false, 0, 42) { TaillePolice = 14, Capitales = true, Margin = new Thickness(10, 0, 0, 0) };
+            partager.Clic += () => PartagerDiscord(f);
+            s.Children.Add(new StackPanel { Orientation = Orientation.Horizontal, Children = { bouton, partager } });
             f.Ouvrir("Carte de joueur", s, 760);
             Action<ProgressionJeu, string, string> afficher = (p, cpu, gpu) =>
             {
@@ -171,6 +173,21 @@ namespace NettoyagePC.Nouveau
                 try { var m = MonPc.Lire(); cpu = m.Pieces.Where(x => x.Categorie == "Processeur").Select(x => x.Nom).FirstOrDefault() ?? ""; gpu = m.Pieces.Where(x => x.Categorie == "Carte graphique").Select(x => x.Nom).FirstOrDefault() ?? ""; } catch { }
                 return Tuple.Create(p, cpu, gpu);
             }).ContinueWith(t => { if (!t.IsFaulted) Avalonia.Threading.Dispatcher.UIThread.Post(() => afficher(t.Result.Item1, t.Result.Item2, t.Result.Item3)); });
+        }
+
+        /// <summary>Copie le code de progression et ouvre le serveur Discord de Velox : dans #tes-captures, « /score » puis Ctrl+V.</summary>
+        public static void PartagerDiscord(FenetrePrincipale f)
+        {
+            System.Threading.Tasks.Task.Run(() => Succes.CodePartage(QgGamer5.Exemple ?? Succes.Calculer())).ContinueWith(t =>
+            {
+                if (t.IsFaulted) return;
+                Avalonia.Threading.Dispatcher.UIThread.Post(async () =>
+                {
+                    try { if (f.Clipboard != null) await f.Clipboard.SetTextAsync(t.Result); } catch { }
+                    f.Statut(Langue.T("Code copié : sur Discord, dans #tes-captures, tape /score puis colle-le (Ctrl+V)."));
+                    try { Programmes.Ouvrir(Boutique.UrlDiscord); } catch { }
+                });
+            });
         }
 
         // ------------------------------------------------------------ niveau supérieur

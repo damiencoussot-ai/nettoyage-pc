@@ -7,6 +7,8 @@ namespace NettoyagePC
     {
         public static readonly List<KeyValuePair<string, string[]>> Liste = new List<KeyValuePair<string, string[]>>
         {
+            N("5.9.7", "Partage ton rang de joueur sur Discord : QG Gamer, « Partager sur Discord », puis /score dans #tes-captures.",
+                "Le serveur Discord officiel de Velox est accessible depuis les Outils et la recherche (Ctrl+K)."),
             N("5.9.6", "Correction : le bouton BOOST du profil Gamer marche aussi quand le PC est déjà en « Performances élevées » (cinématique, rapport de session et bouton « Terminer »).",
                 "Correction : le raccourci Ctrl+Alt+O de l'overlay se libère bien quand tu quittes le profil Gamer."),
             N("5.9.5", "L'abonnement Premium se prend sur le serveur Discord officiel de Velox (/premium) : ta clé arrive en message privé."),

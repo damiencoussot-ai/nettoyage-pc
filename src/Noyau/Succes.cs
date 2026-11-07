@@ -174,6 +174,22 @@ namespace NettoyagePC
 
         public static ProgressionJeu Calculer() { return Construire(Lire(), DateTime.Now); }
 
+        /// <summary>Code à coller sur Discord (/score) : niveau, XP, succès, meilleure série, défis + contrôle anti-faute de frappe.
+        /// Ex. « VLX1-12-3450-9-22-7-15-a1b2c3 ». Ne contient rien de personnel.</summary>
+        public static string CodePartage(ProgressionJeu p)
+        {
+            string corps = string.Join("-", new[] { p.Niveau, p.Xp, p.Succes.Count(s => s.Obtenu), p.Succes.Count, p.MeilleureSerie, p.DefisFaits }.Select(n => Math.Max(0, n).ToString(CultureInfo.InvariantCulture)));
+            return "VLX1-" + corps + "-" + Controle(corps);
+        }
+
+        /// <summary>FNV-1a 32 bits de « velox|corps », 6 chiffres hexadécimaux (même calcul que le bot Discord).</summary>
+        public static string Controle(string corps)
+        {
+            uint h = 2166136261;
+            foreach (byte o in System.Text.Encoding.UTF8.GetBytes("velox|" + corps)) { h ^= o; h *= 16777619; }
+            return h.ToString("x8").Substring(0, 6);
+        }
+
         /// <summary>(captures) progression d'exemple : deux semaines d'utilisation réaliste.</summary>
         public static ProgressionJeu Exemple()
         {

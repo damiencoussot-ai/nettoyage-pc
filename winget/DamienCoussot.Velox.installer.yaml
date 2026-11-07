@@ -1,6 +1,6 @@
 # yaml-language-server: $schema=https://aka.ms/winget-manifest.installer.1.6.0.schema.json
 PackageIdentifier: DamienCoussot.Velox
-PackageVersion: 5.9.6
+PackageVersion: 5.9.7
 InstallerType: nullsoft
 Scope: machine
 InstallModes:
@@ -16,7 +16,7 @@ AppsAndFeaturesEntries:
     ProductCode: NettoyagePC
 Installers:
   - Architecture: x64
-    InstallerUrl: https://github.com/damiencoussot-ai/nettoyage-pc/releases/download/v5.9.6/Velox-Setup-5.9.6.exe
+    InstallerUrl: https://github.com/damiencoussot-ai/nettoyage-pc/releases/download/v5.9.7/Velox-Setup-5.9.7.exe
     InstallerSha256: 2E11F2F926A80C6B5F28D83D8CF6589DF68E9C530EBCCA117CCD5F66342AAC18
 ManifestType: installer
 ManifestVersion: 1.6.0
