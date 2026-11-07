@@ -333,7 +333,10 @@ async function admin(requete, env) {
   const formRecherche = '<form method="post">' + champ('jeton', jeton) + '<p><label>E-mail de l\'acheteur ou clé<br><input name="recherche" value="' + echapper(recherche) + '" style="font-size:1rem;padding:8px;width:100%"></label></p><p><button>Chercher</button></p></form>';
   // Discord : installer (ou mettre à jour) les commandes du bot
   if (action === 'commandes-discord') message = '<p><b>Discord :</b> ' + echapper(await installerCommandes(env)) + '</p>';
-  const formDiscord = env.DISCORD_APP_ID ? '<form method="post" style="margin-top:24px">' + champ('jeton', jeton) + champ('action', 'commandes-discord') + '<button>Installer les commandes Discord</button></form>' : '';
+  if (action === 'organiser-discord') message = '<p><b>Serveur Discord :</b></p><pre style="white-space:pre-wrap">' + echapper(await organiserServeur(env)) + '</pre>';
+  const formDiscord = env.DISCORD_APP_ID ? '<form method="post" style="margin-top:24px">' + champ('jeton', jeton) + champ('action', 'commandes-discord') + '<button>Installer les commandes Discord</button></form>' +
+    (env.DISCORD_GUILD_ID ? '<form method="post" style="margin-top:12px">' + champ('jeton', jeton) + champ('action', 'organiser-discord') + '<button>Organiser le serveur Discord</button>' +
+      '<p class="petit">Range les salons en catégories, crée les règles, la bienvenue, les rôles à choisir et les messages Premium. Rien n\'est supprimé ; tu peux recliquer sans risque (ça met à jour au lieu de dupliquer).</p></form>' : '') : '';
   return page('Administration', message + formRecherche + resultats + formDiscord);
 }
 
@@ -376,11 +379,14 @@ async function discord(requete, env, ctx) {
   if (!await signatureDiscord(requete, corps, env)) return new Response('signature invalide', { status: 401 });
   const i = JSON.parse(corps);
   if (i.type === 1) return json({ type: 1 });                        // vérification de l'adresse par Discord
-  if (i.type !== 2) return reponse('Action inconnue.');
+  if (i.type !== 2 && i.type !== 3) return reponse('Action inconnue.');
   const membre = i.member || {}, utilisateur = membre.user || i.user || {};
   const id = String(utilisateur.id || '');
   if (!/^\d{15,22}$/.test(id)) return reponse('Utilisateur inconnu.');
-  const nom = (i.data && i.data.name) || '';
+  // type 2 : commande « / » ; type 3 : bouton d'un message du bot (seulement les boutons connus)
+  const bouton = i.type === 3 ? String((i.data && i.data.custom_id) || '') : '';
+  const nom = i.type === 2 ? ((i.data && i.data.name) || '') : (['premium', 'ma-cle', 'telecharger'].includes(bouton) ? bouton : '');
+  if (bouton.startsWith('role:')) return await basculerRole(env, i, id, bouton.slice(5));
 
   if (nom === 'premium') {
     if (!env.LIEN_PAIEMENT) return reponse('La boutique n\'est pas encore ouverte. Reste connecté au salon des annonces !');
@@ -492,4 +498,200 @@ async function installerCommandes(env) {
   ];
   const r = await appelDiscord(env, 'PUT', '/applications/' + env.DISCORD_APP_ID + '/commands', commandes);
   return r ? commandes.length + ' commandes installées (/premium, /ma-cle, /telecharger, /cle-offerte).' : 'échec : vérifie DISCORD_APP_ID et DISCORD_BOT_TOKEN.';
+}
+
+// ------------------------------------------------------------ organisation du serveur Discord (bouton de /admin)
+// Range les salons en catégories, crée ce qui manque, met les droits (lecture seule, salon Premium) et publie les
+// messages du bot. Rien n'est supprimé. Peut être relancé : ce qui existe déjà est retrouvé (par son nom) et mis à jour.
+const VOIR = 0x400n, ECRIRE = 0x800n, FILS = 0x4000000000n | 0x800000000n, CONNECTER = 0x100000n, PARLER = 0x200000n;
+const OR = 0xffc83d, VIOLET = 0x7c5cff;
+const ROLES_CHOIX = [
+  { cle: 'gamer', nom: '🎮 Gamer', couleur: MAGENTA, texte: 'tu joues sur PC : salon gaming, sessions entre joueurs, astuces FPS' },
+  { cle: 'travail', nom: '💼 Travail', couleur: 0x4f8cff, texte: 'PC de travail : astuces de vitesse et de sauvegarde' },
+  { cle: 'famille', nom: '🏠 Famille', couleur: 0x2ecc71, texte: 'PC de la maison : protection et entretien simple' },
+  { cle: 'annonces', nom: '🔔 Annonces', couleur: 0xf1c40f, texte: 'être prévenu à chaque nouvelle version de Velox', mention: true },
+];
+const PLAN_SERVEUR = [
+  { cle: 'cat-bienvenue', nom: '👋 BIENVENUE', salons: [
+    { cle: 'regles', nom: '📜・règles', alias: ['regles', 'reglement', 'rules'], lecture: true, sujet: 'Les règles du serveur Velox' },
+    { cle: 'bienvenue', nom: '👋・bienvenue', alias: ['bienvenue', 'welcome', 'accueil'], lecture: true, sujet: 'Bienvenue ! Par où commencer' },
+    { cle: 'annonces', nom: '📢・annonces', alias: ['annonce', 'annonces'], lecture: true, sujet: 'Les nouveautés de Velox' },
+    { cle: 'maj', nom: '🆕・mises-à-jour', alias: ['mises-a-jour', 'mise-a-jour', 'maj'], lecture: true, sujet: 'Chaque nouvelle version de Velox' }] },
+  { cle: 'cat-velox', nom: '⚡ VELOX', salons: [
+    { cle: 'general', nom: '💬・général', alias: ['general', 'discussion'], sujet: 'Discute de tout avec la communauté' },
+    { cle: 'gaming', nom: '🎮・gaming', alias: ['gaming', 'jeux'], sujet: 'Tes jeux, tes FPS, tes réglages' },
+    { cle: 'captures', nom: '📸・tes-captures', alias: ['tes-captures', 'captures'], sujet: 'Montre ton score Velox, ta carte de joueur, ton setup' },
+    { cle: 'roles', nom: '🎭・rôles', alias: ['roles'], lecture: true, sujet: 'Choisis tes rôles en un clic' }] },
+  { cle: 'cat-premium', nom: '💎 PREMIUM', salons: [
+    { cle: 'acheter', nom: '💎・acheter-premium', alias: ['acheter-premium', 'premium-boutique', 'boutique'], lecture: true, sujet: 'Velox Premium : 4,99 €/mois sans engagement' },
+    { cle: 'salon-premium', nom: '👑・salon-premium', alias: ['salon-premium'], premium: true, sujet: 'Réservé aux membres Premium' }] },
+  { cle: 'cat-aide', nom: '🛟 AIDE', salons: [
+    { cle: 'support', nom: '🛟・support', alias: ['support', 'aide'], sujet: 'Un souci avec Velox ? Explique-le ici (ne donne jamais ta clé)' },
+    { cle: 'idees', nom: '💡・idées', alias: ['idees', 'suggestions'], sujet: 'Tes idées pour les prochaines versions' }] },
+  { cle: 'cat-vocal', nom: '🔊 VOCAL', salons: [
+    { cle: 'v-general', nom: '🔊 Général', type: 2, alias: ['general'] },
+    { cle: 'v-gaming', nom: '🎮 Gaming', type: 2, alias: ['gaming'] },
+    { cle: 'v-gaming2', nom: '🎮 Gaming 2', type: 2, alias: ['gaming2', 'gaming-2'] },
+    { cle: 'v-premium', nom: '💎 Premium', type: 2, alias: ['premium'], premium: true }] },
+];
+const normal = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9-]/g, '').replace(/^-+|-+$/g, '');
+
+async function organiserServeur(env) {
+  const G = env.DISCORD_GUILD_ID;
+  if (!G || !env.DISCORD_BOT_TOKEN) return 'DISCORD_GUILD_ID ou DISCORD_BOT_TOKEN manquant.';
+  let appels = 0; const journal = [], erreurs = [];
+  // adresse de Discord (les essais automatiques la remplacent par un faux Discord local ; seulement en http://127.0.0.1)
+  const base = /^http:\/\/127\.0\.0\.1:\d+\/api\/v10$/.test(env.DISCORD_API_ESSAI || '') ? env.DISCORD_API_ESSAI : API_DISCORD;
+  // appel à Discord avec un budget (Cloudflare gratuit : 50 appels par clic) et une attente si Discord demande de ralentir
+  const api = async (m, chemin, corps) => {
+    for (let essai = 0; essai < 2; essai++) {
+      if (appels >= 46) throw new Error('budget');
+      appels++;
+      const r = await fetch(base + chemin, { method: m, headers: { Authorization: 'Bot ' + env.DISCORD_BOT_TOKEN, 'Content-Type': 'application/json', 'X-Audit-Log-Reason': 'Organisation Velox' }, body: corps === undefined ? undefined : JSON.stringify(corps) });
+      if (r.status === 429 && essai === 0) { let s = 2; try { s = Math.min(5, Number((await r.json()).retry_after) || 2); } catch (e) { /* 2 s */ } await new Promise((x) => setTimeout(x, s * 1000)); continue; }
+      if (!r.ok) { erreurs.push(m + ' ' + chemin.replace(/\d{15,22}/g, '…') + ' → ' + r.status); return null; }
+      return r.status === 204 ? {} : await r.json();
+    }
+    return null;
+  };
+  const etat = JSON.parse(await env.LICENCES.get('serveur') || '{}');
+  etat.roles = etat.roles || {}; etat.salons = etat.salons || {}; etat.messages = etat.messages || {};
+  try {
+    const salons = await api('GET', '/guilds/' + G + '/channels'), roles = await api('GET', '/guilds/' + G + '/roles');
+    if (!salons || !roles) return 'Le bot ne peut pas lire le serveur. Dans Discord : Paramètres du serveur → Rôles → rôle « Velox » → coche « Administrateur », puis reclique.\n' + erreurs.join('\n');
+    // 1. rôles à choisir + rôle Premium mis en avant (doré, affiché à part)
+    for (const ro of ROLES_CHOIX) {
+      let r = roles.find((x) => x.id === etat.roles[ro.cle]) || roles.find((x) => normal(x.name) === normal(ro.nom));
+      if (!r) { r = await api('POST', '/guilds/' + G + '/roles', { name: ro.nom, color: ro.couleur, mentionable: !!ro.mention }); if (r) journal.push('rôle créé : ' + ro.nom); }
+      if (r) etat.roles[ro.cle] = r.id;
+    }
+    const prem = roles.find((x) => x.id === env.DISCORD_ROLE_PREMIUM);
+    if (prem && (prem.color !== OR || !prem.hoist)) { if (await api('PATCH', '/guilds/' + G + '/roles/' + prem.id, { color: OR, hoist: true })) journal.push('rôle Premium : doré et affiché à part'); }
+    // 2. catégories et salons
+    const pris = new Set();
+    const trouver = (type, cleEtat, alias) => {
+      let s = salons.find((x) => x.id === etat.salons[cleEtat] && !pris.has(x.id));
+      if (!s) s = salons.find((x) => x.type === type && !pris.has(x.id) && alias.includes(normal(x.name)));
+      if (s) pris.add(s.id);
+      return s;
+    };
+    const positions = [];
+    for (let ci = 0; ci < PLAN_SERVEUR.length; ci++) {
+      const c = PLAN_SERVEUR[ci];
+      let cat = trouver(4, c.cle, [normal(c.nom)]);
+      if (!cat) { cat = await api('POST', '/guilds/' + G + '/channels', { name: c.nom, type: 4 }); if (cat) { journal.push('catégorie créée : ' + c.nom); salons.push(cat); pris.add(cat.id); } }
+      if (!cat) continue;
+      etat.salons[c.cle] = cat.id; positions.push({ id: cat.id, position: ci });
+      for (let si = 0; si < c.salons.length; si++) {
+        const p = c.salons[si], type = p.type || 0;
+        // droits : lecture seule pour tout le monde, ou visible seulement avec le rôle Premium
+        let droits = null;
+        if (p.lecture) droits = [{ id: G, type: 0, deny: String(ECRIRE | FILS), allow: '0' }];
+        if (p.premium && env.DISCORD_ROLE_PREMIUM) {
+          const base = type === 2 ? VOIR | CONNECTER : VOIR;
+          droits = [{ id: G, type: 0, deny: String(base), allow: '0' }, { id: env.DISCORD_ROLE_PREMIUM, type: 0, allow: String(type === 2 ? base | PARLER : base | ECRIRE), deny: '0' }];
+        }
+        let s = trouver(type, p.cle, p.alias.concat([normal(p.nom)]));
+        if (s) {
+          const modif = {};
+          if (s.name !== p.nom) modif.name = p.nom;
+          if (s.parent_id !== cat.id) modif.parent_id = cat.id;
+          if (type === 0 && p.sujet && s.topic !== p.sujet) modif.topic = p.sujet;
+          if (droits) {
+            const gardes = (s.permission_overwrites || []).filter((o) => !droits.some((d) => d.id === o.id));
+            const voulu = gardes.concat(droits);
+            const pareil = (s.permission_overwrites || []).length === voulu.length && droits.every((d) => (s.permission_overwrites || []).some((o) => o.id === d.id && String(o.allow) === d.allow && String(o.deny) === d.deny));
+            if (!pareil) modif.permission_overwrites = voulu;
+          }
+          if (Object.keys(modif).length) { if (await api('PATCH', '/channels/' + s.id, modif)) journal.push('salon rangé : ' + p.nom); }
+        } else {
+          const corps = { name: p.nom, type, parent_id: cat.id };
+          if (type === 0 && p.sujet) corps.topic = p.sujet;
+          if (droits) corps.permission_overwrites = droits;
+          s = await api('POST', '/guilds/' + G + '/channels', corps);
+          if (s) { journal.push('salon créé : ' + p.nom); salons.push(s); pris.add(s.id); }
+        }
+        if (s) { etat.salons[p.cle] = s.id; positions.push({ id: s.id, position: si }); }
+      }
+    }
+    // les anciennes catégories (vides) passent en bas ; elles ne sont pas supprimées
+    salons.filter((x) => x.type === 4 && !pris.has(x.id)).forEach((x, k) => positions.push({ id: x.id, position: 20 + k }));
+    if (positions.length) await api('PATCH', '/guilds/' + G + '/channels', positions);
+    // 3. message automatique de Discord à chaque arrivée : dans #bienvenue
+    if (etat.salons.bienvenue) await api('PATCH', '/guilds/' + G, { system_channel_id: etat.salons.bienvenue });
+    await env.LICENCES.put('serveur', JSON.stringify(etat));
+    // 4. messages du bot (modifiés s'ils existent déjà)
+    for (const [cle, salon, contenu] of messagesServeur(env, etat)) {
+      if (!etat.salons[salon]) continue;
+      const ancien = etat.messages[cle];
+      let m = null;
+      if (ancien && ancien.canal === etat.salons[salon]) m = await api('PATCH', '/channels/' + ancien.canal + '/messages/' + ancien.id, contenu);
+      if (!m) { m = await api('POST', '/channels/' + etat.salons[salon] + '/messages', contenu); if (m) journal.push('message publié : ' + cle); }
+      if (m && m.id) etat.messages[cle] = { canal: etat.salons[salon], id: m.id };
+    }
+  } catch (e) {
+    await env.LICENCES.put('serveur', JSON.stringify(etat));
+    if (e.message === 'budget') return journal.concat(['', 'Pas tout à fait fini (limite d\'appels de Cloudflare) : reclique sur « Organiser le serveur Discord » pour terminer.']).concat(erreurs).join('\n');
+    return 'Erreur : ' + e.message;
+  }
+  await env.LICENCES.put('serveur', JSON.stringify(etat));
+  return (journal.length ? journal.join('\n') : 'Tout était déjà en place (messages mis à jour).') + '\n\nTerminé.' +
+    (erreurs.length ? '\nProblèmes (donne la permission « Administrateur » au rôle du bot si besoin) :\n' + erreurs.join('\n') : '') +
+    '\nLes anciennes catégories vides (« Salons textuels », « Salons vocaux ») sont descendues en bas : tu peux les supprimer toi-même.';
+}
+
+function messagesServeur(env, etat) {
+  const G = env.DISCORD_GUILD_ID, s = etat.salons, lien = (c) => 'https://discord.com/channels/' + G + '/' + c;
+  const m = (c) => (s[c] ? '<#' + s[c] + '>' : '#' + c);
+  const sansMention = { parse: [] };
+  return [
+    ['regles', 'regles', { allowed_mentions: sansMention, embeds: [{
+      title: '📜 Règles du serveur Velox', color: MAGENTA,
+      description: '**1. Respect.** Pas d\'insultes, de harcèlement ni de propos haineux.\n' +
+        '**2. Pas de spam ni de pub** pour d\'autres serveurs ou produits sans accord.\n' +
+        '**3. Rien de choquant ou d\'illégal** (cracks, liens douteux, contenu NSFW).\n' +
+        '**4. Ta clé Premium est secrète.** Ne la poste jamais : le staff ne te la demandera **jamais**.\n' +
+        '**5. Un souci avec Velox ?** Va dans ' + m('support') + ', avec une capture si possible.\n' +
+        '**6. Pseudo et avatar corrects.**\n\nLe staff peut retirer un message ou un membre qui ne respecte pas ces règles.',
+      footer: { text: 'En restant sur le serveur, tu acceptes ces règles.' } }] }],
+    ['bienvenue', 'bienvenue', { allowed_mentions: sansMention, embeds: [{
+      title: '👋 Bienvenue sur le serveur officiel de Velox !', color: VIOLET,
+      description: '**Velox** nettoie, accélère et protège ton PC Windows : gratuit, sans pub, et rien n\'est supprimé sans ton accord.\n\n' +
+        '**Par où commencer ?**\n📜 Lis les ' + m('regles') + '\n🎭 Choisis tes rôles dans ' + m('roles') + '\n💬 Présente-toi dans ' + m('general') + '\n📸 Montre ton score dans ' + m('captures') + '\n💎 Débloque tout avec Premium dans ' + m('acheter') + '\n🛟 Une question ? ' + m('support'),
+      footer: { text: 'Velox · Windows 10 et 11' } }],
+      components: [{ type: 1, components: [
+        { type: 2, style: 5, label: 'Télécharger Velox', emoji: { name: '⬇️' }, url: SITE },
+        { type: 2, style: 1, label: 'Velox Premium', emoji: { name: '💎' }, custom_id: 'premium' },
+      ].concat(s.roles ? [{ type: 2, style: 5, label: 'Choisir mes rôles', emoji: { name: '🎭' }, url: lien(s.roles) }] : []) }] }],
+    ['roles', 'roles', { allowed_mentions: sansMention, embeds: [{
+      title: '🎭 Choisis tes rôles', color: MAGENTA,
+      description: 'Clique sur un bouton pour **ajouter** le rôle, reclique pour **l\'enlever**.\n\n' + ROLES_CHOIX.map((r) => '**' + r.nom + '** : ' + r.texte).join('\n') +
+        '\n\n**💎 Premium** est donné automatiquement quand tu t\'abonnes.' }],
+      components: [{ type: 1, components: ROLES_CHOIX.map((r) => ({ type: 2, style: 2, label: r.nom.replace(/^\S+\s/, ''), emoji: { name: r.nom.split(' ')[0] }, custom_id: 'role:' + r.cle })) }] }],
+    ['acheter', 'acheter', { allowed_mentions: sansMention, embeds: [{
+      title: '💎 Velox Premium · 4,99 €/mois', color: OR,
+      description: '**19 outils de pro débloqués d\'un coup :**\n' +
+        '🛡️ Gardien en temps réel (alerte quand un programme abuse)\n🎮 Mode jeu automatique dès que tu lances un jeu\n📈 Preuve en FPS avant / après\n' +
+        '📊 Moniteur en direct (processeur, carte graphique, températures)\n💾 Sauvegarde automatique de tes dossiers\n🔄 Mise à jour automatique de tes applications\n…et bien plus.\n\n' +
+        '**Comment ça marche ?**\n1. Clique sur **S\'abonner** (ou tape `/premium`)\n2. Paie en toute sécurité avec **Stripe**\n3. Ta clé arrive **en message privé** + le rôle 💎 Premium\n4. Dans Velox : onglet **Premium** → **J\'ai une clé**',
+      footer: { text: 'Sans engagement · rétractation 14 jours · clé valable sur ' + LIMITE_PC + ' PC' } }],
+      components: [{ type: 1, components: [
+        { type: 2, style: 3, label: 'S\'abonner', emoji: { name: '💎' }, custom_id: 'premium' },
+        { type: 2, style: 2, label: 'Ma clé', emoji: { name: '🔑' }, custom_id: 'ma-cle' },
+        { type: 2, style: 5, label: 'Voir le site', url: SITE }] }] }],
+    ['salon-premium', 'salon-premium', { allowed_mentions: sansMention, embeds: [{
+      title: '👑 Bienvenue dans le salon Premium', color: OR,
+      description: 'Merci de soutenir Velox ! Ici : **aide prioritaire**, **avant-premières** des prochaines versions et un vocal réservé.\n\nTa clé à tout moment : `/ma-cle` (visible seulement par toi).' }] }],
+  ];
+}
+
+async function basculerRole(env, i, id, cle) {
+  if (!env.DISCORD_GUILD_ID || i.guild_id !== env.DISCORD_GUILD_ID) return reponse('Ce bouton marche seulement sur le serveur officiel de Velox.');
+  const etat = JSON.parse(await env.LICENCES.get('serveur') || '{}');
+  const role = (etat.roles || {})[cle], info = ROLES_CHOIX.find((r) => r.cle === cle);
+  if (!role || !info) return reponse('Ce rôle n\'existe plus : préviens le staff.');
+  const a = ((i.member || {}).roles || []).includes(role);
+  const ok = await appelDiscord(env, a ? 'DELETE' : 'PUT', '/guilds/' + env.DISCORD_GUILD_ID + '/members/' + id + '/roles/' + role);
+  if (!ok) return reponse('Impossible de changer ton rôle pour le moment. Réessaie dans un instant.');
+  return reponse(a ? 'Rôle **' + info.nom + '** retiré.' : 'Rôle **' + info.nom + '** ajouté !');
 }

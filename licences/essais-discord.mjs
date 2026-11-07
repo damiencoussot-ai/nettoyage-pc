@@ -15,9 +15,19 @@ enreg('PUT', /\/api\/v10\/guilds\/.*\/roles\/.*/, '', 204);
 enreg('DELETE', /\/api\/v10\/guilds\/.*\/roles\/.*/, '', 204);
 enreg('PUT', '/api/v10/applications/111111111111111111/commands', []);
 enreg('PATCH', /\/api\/v10\/webhooks\/111111111111111111\/.*\/messages\/@original/, {});
+import http from 'node:http';
+const fauxDiscord = { gerer: () => undefined };
+const srv = http.createServer((q, s) => { let b = ''; q.on('data', (x) => { b += x; }); q.on('end', () => {
+  const chemin = q.url.replace(/^\/api\/v10/, ''); let c = null; try { c = b ? JSON.parse(b) : null; } catch (e) { c = null; }
+  const rep = fauxDiscord.gerer(q.method, chemin, c);
+  if (rep === undefined) { s.writeHead(404); s.end('{}'); return; }
+  if (rep === null) { s.writeHead(204); s.end(); return; }
+  s.writeHead(200, { 'Content-Type': 'application/json' }); s.end(JSON.stringify(rep)); }); });
+await new Promise((x) => srv.listen(0, '127.0.0.1', x));
+const PORT = srv.address().port; fetchMock.enableNetConnect('127.0.0.1:' + PORT);
 const SECRET = 'whsec_essai', ADMIN = 'motdepasse-admin-essai';
 const mf = new Miniflare({ modules: true, scriptPath: W, kvNamespaces: ['LICENCES'], compatibilityDate: '2025-06-01', fetchMock,
-  bindings: { STRIPE_WEBHOOK_SECRET: SECRET, ADMIN_TOKEN: ADMIN, DISCORD_PUBLIC_KEY: pk, DISCORD_APP_ID: '111111111111111111', DISCORD_BOT_TOKEN: 'jeton-bot', LIEN_PAIEMENT: 'https://buy.stripe.com/test_abc', DISCORD_GUILD_ID: '222222222222222222', DISCORD_ROLE_PREMIUM: '333333333333333333' } });
+  bindings: { STRIPE_WEBHOOK_SECRET: SECRET, ADMIN_TOKEN: ADMIN, DISCORD_PUBLIC_KEY: pk, DISCORD_APP_ID: '111111111111111111', DISCORD_BOT_TOKEN: 'jeton-bot', LIEN_PAIEMENT: 'https://buy.stripe.com/test_abc', DISCORD_GUILD_ID: '222222222222222222', DISCORD_ROLE_PREMIUM: '333333333333333333', DISCORD_API_ESSAI: 'http://127.0.0.1:' + PORT + '/api/v10' } });
 const B = 'https://licences.exemple';
 function interaction(obj, sigOk = true) {
   const corps = JSON.stringify(obj), ts = String(Math.floor(Date.now() / 1000));
@@ -87,5 +97,58 @@ ok(appels.slice(avant).some((a) => a.startsWith('DELETE /api/v10/guilds/')), 'ab
 [cA, sA] = signe({ id: 'evt_d', type: 'customer.subscription.updated', livemode: true, data: { object: { id: 'sub_ABC', status: 'active' } } });
 await mf.dispatchFetch(B + '/stripe', { method: 'POST', body: cA, headers: { 'Stripe-Signature': sA } });
 ok((await valider(cleAbo)).valid === true, 'abonnement repris : clé réactivée');
-await mf.dispose();
+
+// organisation du serveur (bouton de /admin) : serveur simulé comme celui de Damien
+const GU = '222222222222222222';
+let id0 = 900000000000000000n; const nid = () => String(++id0);
+const serveur = { salons: [
+  { id: nid(), type: 4, name: 'Salons textuels', permission_overwrites: [] }, { id: nid(), type: 4, name: 'Salons vocaux', permission_overwrites: [] },
+  { id: nid(), type: 0, name: 'annonce', permission_overwrites: [] }, { id: nid(), type: 0, name: 'mises-à-jour', permission_overwrites: [] },
+  { id: nid(), type: 0, name: 'général', permission_overwrites: [] }, { id: nid(), type: 0, name: 'acheter-premium', permission_overwrites: [] },
+  { id: nid(), type: 0, name: 'support', permission_overwrites: [] }, { id: nid(), type: 0, name: 'tes-captures', permission_overwrites: [] },
+  { id: nid(), type: 2, name: 'Général', permission_overwrites: [] }],
+  roles: [{ id: GU, name: '@everyone', color: 0, hoist: false }, { id: '333333333333333333', name: 'Premium', color: 0, hoist: false }], messages: 0, systeme: null };
+const appelsOrg = [];
+const route = (m, chemin, c) => {
+  let x;
+  if (m === 'GET' && chemin === '/guilds/' + GU + '/channels') return serveur.salons;
+  if (m === 'GET' && chemin === '/guilds/' + GU + '/roles') return serveur.roles;
+  if (m === 'POST' && chemin === '/guilds/' + GU + '/roles') { x = Object.assign({ id: nid() }, c); serveur.roles.push(x); return x; }
+  if (m === 'PATCH' && (x = /^\/guilds\/\d+\/roles\/(\d+)$/.exec(chemin))) return Object.assign(serveur.roles.find((r) => r.id === x[1]), c);
+  if (m === 'POST' && chemin === '/guilds/' + GU + '/channels') { x = Object.assign({ id: nid(), permission_overwrites: [] }, c); serveur.salons.push(x); return x; }
+  if (m === 'PATCH' && chemin === '/guilds/' + GU + '/channels') { c.forEach((p) => { serveur.salons.find((s) => s.id === p.id).position = p.position; }); return null; }
+  if (m === 'PATCH' && chemin === '/guilds/' + GU) { serveur.systeme = c.system_channel_id; return {}; }
+  if (m === 'POST' && /^\/channels\/\d+\/messages$/.test(chemin)) { serveur.messages++; return { id: nid() }; }
+  if (m === 'PATCH' && /^\/channels\/\d+\/messages\/\d+$/.test(chemin)) return { id: chemin.split('/').pop() };
+  if (m === 'PATCH' && (x = /^\/channels\/(\d+)$/.exec(chemin))) return Object.assign(serveur.salons.find((s) => s.id === x[1]), c);
+  return undefined;
+};
+fauxDiscord.gerer = (m, ch, c) => { appelsOrg.push(m + ' ' + ch); return route(m, ch, c); };
+const organiser = async () => (await (await mf.dispatchFetch(B + '/admin', { method: 'POST', body: new URLSearchParams({ jeton: ADMIN, action: 'organiser-discord' }).toString(), headers: { 'Content-Type': 'application/x-www-form-urlencoded' } })).text());
+let page1 = await organiser();
+ok(/Terminé/.test(page1), 'organiser : terminé en un clic (' + appelsOrg.length + ' appels, budget 46)');
+const nomS = (n) => serveur.salons.find((x) => x.name === n);
+ok(nomS('📢・annonces') && nomS('📢・annonces').id === serveur.salons[2].id, 'organiser : « annonce » renommé et rangé (pas recréé)');
+ok(serveur.salons.filter((x) => x.type === 0).length === 12 && serveur.salons.filter((x) => x.type === 4).length === 7, 'organiser : 12 salons texte, 5 catégories en plus des 2 anciennes (rien supprimé)');
+const cat = nomS('👋 BIENVENUE'); ok(nomS('📜・règles').parent_id === cat.id && nomS('💬・général').parent_id === nomS('⚡ VELOX').id, 'organiser : salons dans les bonnes catégories');
+ok(nomS('📜・règles').permission_overwrites.some((o) => o.id === GU && o.deny !== '0'), 'organiser : règles en lecture seule');
+const sp = nomS('👑・salon-premium').permission_overwrites;
+ok(sp.some((o) => o.id === GU && (BigInt(o.deny) & 0x400n)) && sp.some((o) => o.id === '333333333333333333' && (BigInt(o.allow) & 0x400n)), 'organiser : salon Premium visible seulement avec le rôle');
+ok(serveur.systeme === nomS('👋・bienvenue').id, 'organiser : arrivées annoncées dans #bienvenue');
+ok(serveur.roles.length === 6 && serveur.roles.find((r) => r.id === '333333333333333333').hoist === true, 'organiser : 4 rôles à choisir + Premium doré mis en avant');
+ok(serveur.messages === 5, 'organiser : 5 messages du bot publiés');
+const nb1 = serveur.salons.length, msg1 = serveur.messages; appelsOrg.length = 0;
+const page2 = await organiser();
+ok(serveur.salons.length === nb1 && serveur.messages === msg1 && /Terminé/.test(page2), 'organiser relancé : rien en double, messages mis à jour (' + appelsOrg.length + ' appels)');
+// bouton de rôle
+const roleGamer = serveur.roles.find((r) => r.name === '🎮 Gamer').id;
+r = await interaction({ type: 3, guild_id: GU, member: { user: { id: U }, roles: [], permissions: '0' }, data: { custom_id: 'role:gamer' } });
+j = await r.json(); ok(j.data.flags === 64 && /ajouté/.test(j.data.content) && appels.some((a) => a.startsWith('PUT /api/v10/guilds/' + GU + '/members/' + U + '/roles/' + roleGamer)), 'bouton rôle : ajouté');
+r = await interaction({ type: 3, guild_id: GU, member: { user: { id: U }, roles: [roleGamer], permissions: '0' }, data: { custom_id: 'role:gamer' } });
+j = await r.json(); ok(/retiré/.test(j.data.content), 'bouton rôle : reclic = retiré');
+r = await interaction({ type: 3, guild_id: GU, member: { user: { id: U }, roles: [], permissions: '0' }, data: { custom_id: 'premium' } });
+j = await r.json(); ok(/client_reference_id=discord_/.test(j.data.components[0].components[0].url), 'bouton S\'abonner = /premium');
+r = await interaction({ type: 3, guild_id: GU, member: { user: { id: ADM }, roles: [], permissions: '8' }, data: { custom_id: 'cle-offerte' } });
+j = await r.json(); ok(/inconnue/.test(j.data.content), 'bouton inventé « cle-offerte » refusé');
+await mf.dispose(); srv.close();
 console.log(echecs === 0 ? 'TOUT OK (' + n + ')' : echecs + ' échec(s) sur ' + n);
