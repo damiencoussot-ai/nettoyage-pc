@@ -54,6 +54,44 @@ namespace NettoyagePC.Nouveau
 
         public static void Ouvrir(FenetrePrincipale f) { FenetreInterieure fen = null; var c = new ModeJeu5(f, () => fen); fen = f.Ouvrir("Mode jeu automatique", c, 860); }
 
+        /// <summary>(captures) jeux d'exemple.</summary>
+        public static List<Jeu> ExempleJeux;
+
+        private static void RemplirJeux(StackPanel zone, List<Jeu> jeux)
+        {
+            var P = Habillage.P;
+            zone.Children.Clear();
+            if (jeux.Count == 0) { zone.Children.Add(Premium5.Intro("Aucun jeu trouvé (Steam, Epic, Xbox, Riot, Ubisoft, EA, Battle.net, GOG).")); return; }
+            var profils = ModeJeuAuto.Profils();
+            Action enregistrer = () => { try { ModeJeuAuto.EnregistrerProfils(profils.Values); } catch (Exception ex) { JournalDemarrage.Erreur("profils de jeux", ex); } };
+            foreach (var j in jeux.Take(60))
+            {
+                string exe = Path.GetFileName(j.Exe);
+                ProfilJeu p;
+                if (!profils.TryGetValue(exe, out p)) { p = new ProfilJeu { Exe = exe }; }
+                p.Nom = j.Nom;
+                var pp = p;
+                Action garder = () => { profils[pp.Exe] = pp; enregistrer(); };
+                var g = new Grid { ColumnDefinitions = new ColumnDefinitions("1.3*,2.7*") };
+                var nom = new StackPanel { Spacing = 2, VerticalAlignment = VerticalAlignment.Center };
+                nom.Children.Add(new TextBlock { Text = j.Nom, FontFamily = Habillage.Affichage, FontSize = 14.5, FontWeight = FontWeight.SemiBold, Foreground = Habillage.Pinceau(P.Texte), TextTrimming = TextTrimming.CharacterEllipsis });
+                nom.Children.Add(new TextBlock { Text = (j.Plateforme != "" ? j.Plateforme + " · " : "") + exe, FontFamily = Habillage.Console, FontSize = 11, Foreground = Habillage.Pinceau(P.Discret), TextTrimming = TextTrimming.CharacterEllipsis });
+                g.Children.Add(nom);
+                var cases = new WrapPanel { VerticalAlignment = VerticalAlignment.Center };
+                Func<string, bool, Action<bool>, CheckBox> cas = (texte, v, ch) => { var c = OutilsPremium2.Case(texte, v, ch); c.Margin = new Thickness(0, 0, 14, 0); return c; };
+                CheckBox cPerf = null, cPrio = null, cOd = null;
+                var cAuto = cas("Mode jeu auto", p.Auto, v => { pp.Auto = v; cPerf.IsEnabled = cPrio.IsEnabled = cOd.IsEnabled = v; garder(); });
+                cPerf = cas("Performances élevées", p.Performances, v => { pp.Performances = v; garder(); });
+                cPrio = cas("Priorité haute", p.Priorite, v => { pp.Priorite = v; garder(); });
+                cOd = cas("OneDrive en pause", p.OneDrive, v => { pp.OneDrive = v; garder(); });
+                ToolTip.SetTip(cPrio, Langue.T("Windows donne plus de temps de processeur au jeu. Elle revient à la normale toute seule quand le jeu se ferme."));
+                cPerf.IsEnabled = cPrio.IsEnabled = cOd.IsEnabled = p.Auto;
+                cases.Children.Add(cAuto); cases.Children.Add(cPerf); cases.Children.Add(cPrio); cases.Children.Add(cOd);
+                Grid.SetColumn(cases, 1); g.Children.Add(cases);
+                zone.Children.Add(new Border { Child = g, Padding = new Thickness(14, 10), CornerRadius = new CornerRadius(4), Background = Habillage.Pinceau(P.Carte), BorderBrush = Habillage.Pinceau(P.Bordure), BorderThickness = new Thickness(1) });
+            }
+        }
+
         private ModeJeu5(FenetrePrincipale f, Func<FenetreInterieure> fen)
         {
             var P = Habillage.P;
@@ -68,6 +106,18 @@ namespace NettoyagePC.Nouveau
             s.Children.Add(new TextBlock { Text = etat, FontFamily = Habillage.Corps, FontSize = 12.5, Foreground = Habillage.Pinceau(ModeJeuAuto.Actif ? P.Vert : P.Discret), TextWrapping = TextWrapping.Wrap });
             Children.Add(Premium5.Carte(s, Habillage.Alpha(P.Accent, 90)));
             Children.Add(OutilsPremium2.NoteGardien(f, fen()));
+            // ---- réglages jeu par jeu (5.9.9)
+            Children.Add(Premium5.Titre("Réglages jeu par jeu"));
+            Children.Add(Premium5.Intro("Pour chaque jeu installé : mode jeu automatique ou non, « Performances élevées », priorité haute pour le jeu, OneDrive en pause. Rien n'est fermé ; tout revient comme avant quand le jeu se ferme."));
+            var parJeu = new StackPanel { Spacing = 6 };
+            parJeu.Children.Add(new TextBlock { Text = Langue.T("Recherche des jeux installés…"), FontFamily = Habillage.Corps, FontSize = 13, Foreground = Habillage.Pinceau(P.Discret) });
+            Children.Add(parJeu);
+            Task.Run(() =>
+            {
+                if (ExempleJeux != null) return ExempleJeux;
+                try { return DetectionJeux.Lister().Where(j => j.Exe != "").GroupBy(j => Path.GetFileName(j.Exe), StringComparer.OrdinalIgnoreCase).Select(g => g.First()).OrderBy(j => j.Nom).ToList(); }
+                catch { return new List<Jeu>(); }
+            }).ContinueWith(tj => Dispatcher.UIThread.Post(() => RemplirJeux(parJeu, tj.Result ?? new List<Jeu>())));
             Children.Add(Premium5.Titre("Dernières parties"));
             var t = new Tableau(false, false, new Colonne("Jeu", "2.2*"), new Colonne("Date", "140", false, true, o => ((SessionJeu)o).Debut), new Colonne("Durée", "90", true, true, o => ((SessionJeu)o).Duree), new Colonne("Ce qui a été fait", "2*"));
             t.HauteurListe = 260;

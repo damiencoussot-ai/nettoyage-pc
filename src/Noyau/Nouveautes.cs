@@ -7,6 +7,11 @@ namespace NettoyagePC
     {
         public static readonly List<KeyValuePair<string, string[]>> Liste = new List<KeyValuePair<string, string[]>>
         {
+            N("5.9.9", "Réglages jeu par jeu (Premium) : mode jeu automatique ou non, priorité haute, OneDrive en pause, pour chaque jeu.",
+                "Temps de démarrage : un graphique sur 30 jours, du bouton marche jusqu'au bureau (Accélérer).",
+                "QG Gamer : l'âge du pilote de la carte graphique, avec un clic pour le mettre à jour.",
+                "Premier lancement en 3 étapes : pseudo, profil (Gamer, Travail, Famille), puis première analyse.",
+                "Mises à jour plus sûres : Velox refuse un fichier publié qui n'est pas celui de la version annoncée."),
             N("5.9.8", "Correction : dans le QG Gamer, les lignes de « Prêt pour jouer » ne débordent plus sur le niveau quand la fenêtre est étroite.",
                 "Température de la carte graphique : deuxième méthode de lecture, et la raison notée dans le journal si elle reste illisible."),
             N("5.9.7", "Partage ton rang de joueur sur Discord : QG Gamer, « Partager sur Discord », puis /score dans #tes-captures.",

@@ -18,8 +18,50 @@ namespace NettoyagePC
         public TimeSpan Duree { get { return Fin > Debut ? Fin - Debut : TimeSpan.Zero; } }
     }
 
+    /// <summary>Réglages d'un jeu pour le mode jeu automatique (5.9.9) : rien n'est fermé, tout revient comme avant à la fin.</summary>
+    internal class ProfilJeu
+    {
+        public string Exe = "", Nom = "";
+        public bool Auto = true;          // mode jeu automatique pour ce jeu
+        public bool Performances = true;  // mode d'alimentation « Performances élevées »
+        public bool Priorite;             // priorité haute pour le jeu (rendue par Windows à la fermeture du jeu)
+        public bool OneDrive = true;      // OneDrive en pause (si l'option générale du gardien est cochée)
+    }
+
     internal static class ModeJeuAuto
     {
+        private static string FichierProfils { get { return Path.Combine(Chemins.Local, "profils-jeux.json"); } }
+        /// <summary>Programme (« cod.exe ») et numéro du dernier jeu trouvé par JeuEnCours.</summary>
+        public static string DernierExe = "";
+        private static int dernierPid;
+
+        /// <summary>Profils enregistrés, par programme (« cod.exe »).</summary>
+        public static Dictionary<string, ProfilJeu> Profils()
+        {
+            var d = new Dictionary<string, ProfilJeu>(StringComparer.OrdinalIgnoreCase);
+            try
+            {
+                foreach (var x in Json.Objets(Json.LireFichier(FichierProfils)))
+                {
+                    var p = new ProfilJeu { Exe = Json.Texte(x, "Exe"), Nom = Json.Texte(x, "Nom"), Auto = Json.Bool(x, "Auto"), Performances = Json.Bool(x, "Performances"), Priorite = Json.Bool(x, "Priorite"), OneDrive = Json.Bool(x, "OneDrive") };
+                    if (p.Exe != "") d[p.Exe] = p;
+                }
+            }
+            catch { }
+            return d;
+        }
+
+        public static ProfilJeu ProfilPour(string exe)
+        {
+            ProfilJeu p; return exe != null && Profils().TryGetValue(exe, out p) ? p : new ProfilJeu { Exe = exe ?? "" };
+        }
+
+        public static void EnregistrerProfils(IEnumerable<ProfilJeu> l)
+        {
+            Directory.CreateDirectory(Chemins.Local);
+            File.WriteAllText(FichierProfils, Json.Ecrire(l.Where(p => p.Exe != "").Select(p => (object)new Dictionary<string, object>
+                { { "Exe", p.Exe }, { "Nom", p.Nom }, { "Auto", p.Auto }, { "Performances", p.Performances }, { "Priorite", p.Priorite }, { "OneDrive", p.OneDrive } }).ToList()));
+        }
         private static string FichierEtat { get { return Path.Combine(Chemins.Local, "modejeu-auto.json"); } }
         private static string FichierSessions { get { return Path.Combine(Chemins.Local, "modejeu-sessions.json"); } }
 
@@ -29,6 +71,7 @@ namespace NettoyagePC
         /// <summary>Jeu ouvert en ce moment (titre de sa fenêtre), ou null : programme d'un jeu détecté (Steam, Epic...).</summary>
         public static string JeuEnCours()
         {
+            var profils = Profils();
             if (exesJeux == null || (DateTime.Now - exesLus).TotalHours >= 1)
             {
                 try { exesJeux = new HashSet<string>(DetectionJeux.Lister().Where(j => j.Exe != "").Select(j => Path.GetFileName(j.Exe)), StringComparer.OrdinalIgnoreCase); }
@@ -49,7 +92,10 @@ namespace NettoyagePC
                         string chemin = ""; try { chemin = p.MainModule.FileName; } catch { }
                         jeu = Regex.IsMatch(chemin, @"steamapps\\common|\\Epic Games\\|\\XboxGames\\|\\Riot Games\\|Ubisoft Game Launcher\\games|\\EA Games\\|GOG Galaxy\\Games", RegexOptions.IgnoreCase);
                     }
-                    if (jeu) { string t = (p.MainWindowTitle ?? "").Trim(); return t != "" ? t : p.ProcessName; }
+                    // jeu exclu par son profil : le mode jeu automatique ne se déclenche pas pour lui
+                    ProfilJeu pj;
+                    if (jeu && profils.TryGetValue(exe, out pj) && !pj.Auto) jeu = false;
+                    if (jeu) { DernierExe = exe; dernierPid = p.Id; string t = (p.MainWindowTitle ?? "").Trim(); return t != "" ? t : p.ProcessName; }
                 }
                 catch { }
                 finally { p.Dispose(); }
@@ -71,8 +117,25 @@ namespace NettoyagePC
             if (Actif) return "";
             var faits = new List<string>();
             string avant = "", oneDrive = "";
+            var profil = ProfilPour(DernierExe);
+            pauseOneDrive = pauseOneDrive && profil.OneDrive;
+            if (profil.Priorite && dernierPid > 0)
+            {
+                // priorité du jeu lui-même (seulement si c'est toujours le même programme) ; Windows la remet à la fermeture du jeu
+                try
+                {
+                    using (var p = Process.GetProcessById(dernierPid))
+                        if ((p.ProcessName + ".exe").Equals(DernierExe, StringComparison.OrdinalIgnoreCase))
+                        {
+                            try { p.PriorityClass = ProcessPriorityClass.High; faits.Add(Langue.T("priorité haute pour le jeu")); }
+                            catch { p.PriorityClass = ProcessPriorityClass.AboveNormal; faits.Add(Langue.T("priorité plus haute pour le jeu")); }
+                        }
+                }
+                catch { }
+            }
             try
             {
+                if (!profil.Performances) throw new OperationCanceledException();
                 avant = Alimentation.PlanActif();
                 if (avant != "" && avant != Alimentation.Performances && Alimentation.Liste().Contains(Alimentation.Performances) && Alimentation.Activer(Alimentation.Performances))
                     faits.Add(Langue.T("mode « Performances élevées »"));

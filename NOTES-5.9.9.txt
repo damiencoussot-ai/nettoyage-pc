@@ -1,0 +1,15 @@
+Velox 5.9.9 : réglages par jeu, temps de démarrage, premier lancement guidé
+
+- Réglages jeu par jeu (Premium, Mode jeu automatique) : pour chaque jeu installé, mode jeu automatique ou non,
+  « Performances élevées », priorité haute pour le jeu, OneDrive en pause. Rien n'est fermé ; tout revient comme avant.
+- Temps de démarrage (Accélérer) : graphique sur 30 jours du temps entre le bouton marche et le bureau, avec la moyenne
+  et le gain depuis les premières mesures.
+- QG Gamer : âge du pilote de la carte graphique ; un clic ouvre « Windows et pilotes » pour le mettre à jour.
+- Premier lancement en 3 étapes : pseudo et mode, profil (Gamer, Travail, Famille), puis première analyse sans rien modifier.
+- Après deux semaines, une seule fois : « Velox te plaît ? » pour donner ton avis sur le Discord.
+- Mises à jour plus sûres : si la page d'une version contient les fichiers d'une autre version, Velox n'installe rien
+  (plus de mise à jour qui se redemande en boucle), et vérifie aussi le numéro écrit dans l'installateur.
+
+L'installateur est publié sous les deux noms : Velox-Setup-5.9.9.exe (winget, site) et NettoyagePC-Setup-5.9.9.exe (mise à jour des anciennes versions).
+
+SHA256 de Velox-Setup-5.9.9.exe : voir le fichier Velox-Setup-5.9.9.sha256

@@ -571,7 +571,9 @@ async function annoncerVersion(env, forcer) {
   if (!tag) return 'Aucune version publiée.';
   if (!forcer && await env.LICENCES.get('annonce:derniere') === tag) return 'La version ' + tag + ' est déjà annoncée.';
   const version = tag.replace(/^v/i, '');
-  const exe = (rel.assets || []).find((a) => /^Velox-Setup-[\d.]+\.exe$/i.test(a.name)) || (rel.assets || []).find((a) => /\.exe$/i.test(a.name));
+  // l'installateur doit être celui de CETTE version (sinon, erreur de publication : on n'annonce pas)
+  const exe = (rel.assets || []).find((a) => a.name === 'Velox-Setup-' + version + '.exe') || (rel.assets || []).find((a) => a.name === 'NettoyagePC-Setup-' + version + '.exe');
+  if (!exe) return 'La version ' + version + ' ne contient pas son installateur (Velox-Setup-' + version + '.exe) : annonce suspendue. Vérifie les fichiers joints sur GitHub.';
   let notes = String(rel.body || '').replace(/\r/g, '').replace(/^SHA256.*$/gim, '').trim();
   if (notes.length > 3500) notes = notes.slice(0, 3500).replace(/\n[^\n]*$/, '') + '\n…';
   const role = (etat.roles || {}).annonces;
@@ -623,6 +625,7 @@ const PLAN_SERVEUR = [
     { cle: 'general', nom: '💬・général', alias: ['general', 'discussion'], sujet: 'Discute de tout avec la communauté' },
     { cle: 'gaming', nom: '🎮・gaming', alias: ['gaming', 'jeux'], sujet: 'Tes jeux, tes FPS, tes réglages' },
     { cle: 'captures', nom: '📸・tes-captures', alias: ['tes-captures', 'captures'], sujet: 'Montre ton score Velox, ta carte de joueur, ton setup' },
+    { cle: 'avis', nom: '⭐・avis', alias: ['avis', 'reviews'], sujet: 'Ton avis sur Velox : ce que tu aimes, ce qui manque' },
     { cle: 'roles', nom: '🎭・rôles', alias: ['roles'], lecture: true, sujet: 'Choisis tes rôles en un clic' }] },
   { cle: 'cat-premium', nom: '💎 PREMIUM', salons: [
     { cle: 'acheter', nom: '💎・acheter-premium', alias: ['acheter-premium', 'premium-boutique', 'boutique'], lecture: true, sujet: 'Velox Premium : 4,99 €/mois sans engagement' },
@@ -759,7 +762,7 @@ function messagesServeur(env, etat) {
     ['bienvenue', 'bienvenue', { allowed_mentions: sansMention, embeds: [{
       title: '👋 Bienvenue sur le serveur officiel de Velox !', color: VIOLET,
       description: '**Velox** nettoie, accélère et protège ton PC Windows : gratuit, sans pub, et rien n\'est supprimé sans ton accord.\n\n' +
-        '**Par où commencer ?**\n📜 Lis les ' + m('regles') + '\n🎭 Choisis tes rôles dans ' + m('roles') + '\n💬 Présente-toi dans ' + m('general') + '\n🏆 Montre ton rang de joueur : `/score` dans ' + m('captures') + '\n💎 Débloque tout avec Premium dans ' + m('acheter') + '\n🛟 Une question ? ' + m('support'),
+        '**Par où commencer ?**\n📜 Lis les ' + m('regles') + '\n🎭 Choisis tes rôles dans ' + m('roles') + '\n💬 Présente-toi dans ' + m('general') + '\n⭐ Donne ton avis dans ' + m('avis') + '\n🏆 Montre ton rang de joueur : `/score` dans ' + m('captures') + '\n💎 Débloque tout avec Premium dans ' + m('acheter') + '\n🛟 Une question ? ' + m('support'),
       footer: { text: 'Velox · Windows 10 et 11' } }],
       components: [{ type: 1, components: [
         { type: 2, style: 5, label: 'Télécharger Velox', emoji: { name: '⬇️' }, url: SITE },

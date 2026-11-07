@@ -97,6 +97,7 @@ namespace NettoyagePC.Nouveau
             int ie = Array.IndexOf(args, "--essai-demarrage");
             if (ie >= 0 && ie + 1 < args.Length) App.FichierEssaiDemarrage = Path.GetFullPath(args[ie + 1]);
             JournalDemarrage.Noter("--- Démarrage de Velox " + Appli.Version + (Installation5.Apercu ? " (aperçu)" : "") + " : Windows " + Environment.OSVersion.Version + ", .NET " + Environment.Version + ", dossier " + Chemins.Ici);
+            if (!Installation5.Apercu) System.Threading.Tasks.Task.Run(() => TempsDemarrage.Noter());   // temps « allumage → bureau » si Velox se lance au démarrage
             // toujours avec les droits normaux : lancée en administrateur, l'application se relance par l'Explorateur
             if (Appli.EstAdmin && Natif.EstWindows && App.FichierEssaiDemarrage == null && Demarrage.RelancerSansAdmin()) return 0;
             // une seule fenêtre (programme installé ou portable) : un deuxième lancement ramène la fenêtre ouverte et lui
@@ -608,9 +609,19 @@ namespace NettoyagePC.Nouveau
                     new SessionJeu { Jeu = "Counter-Strike 2", Debut = maintenant.AddDays(-1).AddHours(-1.1), Fin = maintenant.AddDays(-1), Performances = true, OneDrive = true },
                     new SessionJeu { Jeu = "Fortnite", Debut = maintenant.AddDays(-2).AddMinutes(-48), Fin = maintenant.AddDays(-2), Performances = true },
                 };
+                ModeJeu5.ExempleJeux = new System.Collections.Generic.List<Jeu>
+                {
+                    new Jeu { Nom = "Call of Duty", Plateforme = "Steam", Exe = @"C:\Jeux\cod.exe" },
+                    new Jeu { Nom = "Forza Horizon 6", Plateforme = "Xbox", Exe = @"C:\Jeux\ForzaHorizon6.exe" },
+                    new Jeu { Nom = "Overwatch", Plateforme = "Battle.net", Exe = @"C:\Jeux\Overwatch.exe" },
+                };
                 ModeJeu5.Ouvrir(f);
                 Capturer(f, dossier, "sombre-modejeu.png", rapport, ref erreurs);
-                f.ViderCalques(); ModeJeu5.Exemple = null;
+                f.ViderCalques(); ModeJeu5.Exemple = null; ModeJeu5.ExempleJeux = null;
+                TempsDemarrage5.Exemple = Enumerable.Range(0, 30).Select(i => Tuple.Create(new DateTime(2026, 10, 8).AddDays(i), 36.0 - i * 0.45 + (i % 4 == 1 ? 4 : i % 5 == 3 ? -2 : 0))).ToList();
+                TempsDemarrage5.Ouvrir(f);
+                Capturer(f, dossier, "sombre-temps-demarrage.png", rapport, ref erreurs);
+                f.ViderCalques(); TempsDemarrage5.Exemple = null;
 
                 MajApps5.Exemple = new System.Collections.Generic.List<AppAMettreAJour>
                 {

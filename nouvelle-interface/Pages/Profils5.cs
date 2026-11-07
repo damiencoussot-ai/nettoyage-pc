@@ -116,6 +116,21 @@ namespace NettoyagePC.Nouveau
             f.Demander(Langue.F("Choisir le profil « {0} » ?", Langue.T(p.Nom)), texte, "Choisir", "Annuler", oui =>
             {
                 if (!oui) return;
+                fermer();
+                AppliquerSansQuestion(f, p);
+            });
+        }
+
+        /// <summary>Applique un profil sans redemander (premier lancement : la personne vient de le choisir).</summary>
+        public static void Appliquer(FenetrePrincipale f, string cle)
+        {
+            var p = Liste.FirstOrDefault(x => x.Cle == cle);
+            if (p != null) AppliquerSansQuestion(f, p);
+        }
+
+        private static void AppliquerSansQuestion(FenetrePrincipale f, Profil p)
+        {
+            {
                 Favoris5.Remplacer(f, p.Favoris);
                 if (Licence.Premium && !f.Source.Immediat)
                 {
@@ -123,7 +138,6 @@ namespace NettoyagePC.Nouveau
                     catch (Exception ex) { JournalDemarrage.Erreur("profil " + p.Cle, ex); }
                 }
                 f.EnregistrerReglage(r => r.ProfilUsage = p.Cle);
-                fermer();
                 // profil Gamer : look néon, ligne RGB, QG GAMER, niveaux et succès (l'interface est reconstruite)
                 bool etaitGamer = Habillage.Gamer;
                 Habillage.Gamer = p.Cle == "gamer";
@@ -132,7 +146,7 @@ namespace NettoyagePC.Nouveau
                 f.ChangerTheme(Habillage.P.Sombre);
                 f.Statut(Habillage.Gamer && !etaitGamer ? Langue.T("Mode Gamer activé : look néon, QG GAMER sur l'accueil, niveaux et succès. GG !")
                     : Langue.F("Profil « {0} » appliqué : tes favoris sont sur l'accueil.", Langue.T(p.Nom)));
-            });
+            }
         }
     }
 }

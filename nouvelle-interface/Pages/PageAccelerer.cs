@@ -37,6 +37,7 @@ namespace NettoyagePC.Nouveau
                 modeJeu
                     ? CarteAction.A("Mode jeu (actif)", "Le mode jeu est en cours : performances maximales. Termine-le après ta partie pour revenir comme avant.", "Terminer le mode jeu", "finmodejeu", true)
                     : CarteAction.A("Mode jeu", "Avant de jouer : performances maximales et mémoire vive libérée. Un clic pour revenir comme avant après ta partie. Avec Premium, le mode jeu automatique le fait tout seul à chaque jeu.", "Activer le mode jeu", "modejeu", true),
+                CarteAction.Code("Temps de démarrage", "Le temps que met ton PC entre le bouton marche et le bureau, jour après jour, sur 30 jours : tu vois si ça s'améliore.", "Voir le graphique", () => TempsDemarrage5.Ouvrir(f)),
                 CarteAction.A("Bilan d'optimisation", "Durée du démarrage, programmes au démarrage, mode d'alimentation, mises à jour disponibles : des conseils concrets, sans rien modifier.", "Lancer le bilan", "optim", true),
                 CarteAction.Code("Mettre à jour les applications", "Liste tes logiciels qui ont une nouvelle version (winget, l'outil officiel de Microsoft) : tu choisis lesquels mettre à jour, avec le résultat pour chacun. Avec Premium, c'est automatique chaque semaine.", "Voir les mises à jour", () => MajApplis5.Ouvrir(f)),
                 CarteAction.A("Mode d'alimentation", (alim != "" ? Langue.F("Mode actuel : {0}.", Langue.T(alim)) + " " : "") + (perf ? "Équilibré consomme moins (conseillé sur portable)." : "Performances élevées rend le PC plus réactif."),

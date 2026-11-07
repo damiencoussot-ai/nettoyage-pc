@@ -17,7 +17,7 @@ namespace NettoyagePC
 #if !NET5_0_OR_GREATER
         public static readonly string Version = "4.6";   // version 4 (lu par la fabrication : .github/workflows/fabrication.yml)
 #else
-        public static readonly string Version = "5.9.8";   // version 5
+        public static readonly string Version = "5.9.9";   // version 5
 #endif
         public const string Depot = "damiencoussot-ai/nettoyage-pc";
 
@@ -573,7 +573,9 @@ namespace NettoyagePC
         public bool SonsGamer;     // profil Gamer : petits sons (BOOST, succès) ; coupés par défaut
         public bool OverlayJeu;    // profil Gamer : overlay en jeu affiché (Ctrl+Alt+O)
         public string SuccesVus;   // profil Gamer : succès déjà annoncés (noms séparés par « | ») ; null = jamais regardé
-        public string ResumeSemaine = "";   // date du dernier résumé de la semaine montré à l'ouverture (aaaa-mm-jj)
+        public string ResumeSemaine = "";
+        public string PremiereUtilisation = "";   // 5.9.9 : date de la première ouverture vue (aaaa-mm-jj), pour la demande d'avis
+        public bool AvisDemande;                  // 5.9.9 : « Velox te plaît ? » déjà demandé (une seule fois)   // date du dernier résumé de la semaine montré à l'ouverture (aaaa-mm-jj)
         public string Favoris;   // outils favoris de l'accueil (version 5), dans l'ordre ; null = jamais choisis (favoris proposés)
         // Profil : pseudo affiché à l'accueil. Tout reste sur ce PC.
         public string Pseudo = "";

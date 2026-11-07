@@ -13,6 +13,8 @@ namespace NettoyagePC
     internal class VersionPubliee
     {
         public string Version = "", Notes = "", UrlSetup = "", UrlHash = "", Page = "", NomSetup = "";
+        /// <summary>La version publiée contient l'installateur d'une AUTRE version (erreur de publication) : pas d'installation automatique.</summary>
+        public string AutreVersion = "";
         public DateTime? Date;
     }
 
@@ -63,23 +65,28 @@ namespace NettoyagePC
             {
                 if (Json.Bool(r, "draft") || Json.Bool(r, "prerelease")) continue;
                 var assets = Json.Objets(Json.Valeur(r, "assets"));
-                // nouveau nom (Velox-Setup) en priorité, l'ancien (NettoyagePC-Setup) sinon
-                var setup = assets.FirstOrDefault(a => Regex.IsMatch(Json.Texte(a, "name"), @"^Velox-Setup-[\d.]+\.exe$", RegexOptions.IgnoreCase))
-                    ?? assets.FirstOrDefault(a => Regex.IsMatch(Json.Texte(a, "name"), @"^NettoyagePC-Setup-[\d.]+\.exe$", RegexOptions.IgnoreCase));
-                Dictionary<string, object> hash = null;
-                if (setup != null) { string nh = Regex.Replace(Json.Texte(setup, "name"), @"\.exe$", ".sha256", RegexOptions.IgnoreCase); hash = assets.FirstOrDefault(a => Json.Texte(a, "name") == nh); }
                 string num = null;
-                foreach (var source in new[] { Json.Texte(r, "tag_name"), Json.Texte(r, "name"), setup == null ? "" : Json.Texte(setup, "name") })
+                foreach (var source in new[] { Json.Texte(r, "tag_name"), Json.Texte(r, "name") })
                 {
                     var m = Regex.Match(source, @"(\d+\.\d+(\.\d+){0,2})");
                     if (m.Success) { num = m.Groups[1].Value; break; }
                 }
-                if (num == null) continue;
+                // installateur de CETTE version seulement (nouveau nom Velox-Setup en priorité, l'ancien NettoyagePC-Setup sinon) :
+                // si la page « 5.9.8 » contient les fichiers de la 5.9.7, on n'installe rien (sinon la mise à jour tournerait en boucle)
+                var setups = assets.Where(a => Regex.IsMatch(Json.Texte(a, "name"), @"^(Velox|NettoyagePC)-Setup-[\d.]+\.exe$", RegexOptions.IgnoreCase)).ToList();
+                if (num == null && setups.Count > 0) num = Regex.Match(Json.Texte(setups[0], "name"), @"\d+(\.\d+){1,3}").Value;
+                if (string.IsNullOrEmpty(num)) continue;
+                Func<Dictionary<string, object>, bool> cetteVersion = a => Comparer(Regex.Match(Json.Texte(a, "name"), @"\d+(\.\d+){1,3}").Value, num) == 0;
+                var setup = setups.FirstOrDefault(a => cetteVersion(a) && Json.Texte(a, "name").StartsWith("Velox", StringComparison.OrdinalIgnoreCase))
+                    ?? setups.FirstOrDefault(a => cetteVersion(a));
+                string autre = setup == null && setups.Count > 0 ? Regex.Match(Json.Texte(setups[0], "name"), @"\d+(\.\d+){1,3}").Value : "";
+                Dictionary<string, object> hash = null;
+                if (setup != null) { string nh = Regex.Replace(Json.Texte(setup, "name"), @"\.exe$", ".sha256", RegexOptions.IgnoreCase); hash = assets.FirstOrDefault(a => Json.Texte(a, "name") == nh); }
                 var v = new VersionPubliee
                 {
                     Version = num, Notes = Json.Texte(r, "body"), Page = Json.Texte(r, "html_url"),
                     UrlSetup = setup == null ? "" : Json.Texte(setup, "browser_download_url"), NomSetup = setup == null ? "" : Json.Texte(setup, "name"),
-                    UrlHash = hash == null ? "" : Json.Texte(hash, "browser_download_url")
+                    UrlHash = hash == null ? "" : Json.Texte(hash, "browser_download_url"), AutreVersion = autre
                 };
                 DateTime d; if (DateTime.TryParse(Json.Texte(r, "published_at"), null, System.Globalization.DateTimeStyles.RoundtripKind, out d)) v.Date = d.ToLocalTime();
                 l.Add(v);
@@ -107,6 +114,8 @@ namespace NettoyagePC
         public static string Telecharger(VersionPubliee v, out string empreinte)
         {
             empreinte = null;
+            if (v.AutreVersion != "")
+                throw new InvalidOperationException(string.Format("la page de la version {0} contient l'installateur de la version {1} (erreur de publication). Mise à jour annulée : rien n'a changé sur ton PC, réessaie plus tard.", v.Version, v.AutreVersion));
             if (string.IsNullOrEmpty(v.UrlHash) || !UrlOfficielle(v.UrlSetup) || !UrlOfficielle(v.UrlHash) || !Regex.IsMatch(v.Version, @"^\d+(\.\d+){1,3}$"))
                 throw new InvalidOperationException("cette version ne peut pas être installée automatiquement : son empreinte de sécurité (fichier .sha256) est absente ou elle ne vient pas de la page officielle.");
             string dossier = Path.Combine(Path.GetTempPath(), "NettoyagePC-maj-" + Guid.NewGuid().ToString("N").Substring(0, 12));
@@ -124,6 +133,19 @@ namespace NettoyagePC
                 try { File.Delete(cible); } catch { }
                 throw new InvalidOperationException("le fichier téléchargé ne correspond pas à l'empreinte publiée (téléchargement corrompu ou modifié). Mise à jour annulée par sécurité.");
             }
+            // deuxième sécurité : le numéro de version écrit DANS l'installateur doit être celui annoncé
+            try
+            {
+                string interne = (FileVersionInfo.GetVersionInfo(cible).ProductVersion ?? FileVersionInfo.GetVersionInfo(cible).FileVersion ?? "").Trim();
+                var mv = Regex.Match(interne, @"\d+(\.\d+){1,3}");
+                if (mv.Success && Comparer(mv.Value, v.Version) != 0)
+                {
+                    try { File.Delete(cible); } catch { }
+                    throw new InvalidOperationException(string.Format("le fichier publié pour la version {0} est en réalité la version {1} (erreur de publication). Mise à jour annulée : rien n'a changé sur ton PC.", v.Version, mv.Value));
+                }
+            }
+            catch (InvalidOperationException) { throw; }
+            catch (Exception ex) { JournalDemarrage.Noter("Mise à jour : version interne de l'installateur non lue (" + ex.GetType().Name + ")"); }
             empreinte = attendu;
             return cible;
         }

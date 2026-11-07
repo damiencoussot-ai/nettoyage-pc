@@ -26,6 +26,7 @@ namespace NettoyagePC.Nouveau
             try { if (!nouveautes) nouveautes = Annonce5.SiBesoin(f, profilCree); } catch (Exception ex) { JournalDemarrage.Erreur("annonce du nouveau look (version 5)", ex); }
             try { if (!nouveautes) nouveautes = profilCree && MontrerNouveautes(f); } catch (Exception ex) { JournalDemarrage.Erreur("nouveautés (version 5)", ex); }
             try { ResumeAOuverture(f); } catch (Exception ex) { JournalDemarrage.Erreur("résumé de la semaine (version 5)", ex); }
+            try { if (!nouveautes && profilCree) nouveautes = DemanderAvis(f); } catch (Exception ex) { JournalDemarrage.Erreur("demande d'avis (version 5)", ex); }
             Parametres p;
             try { p = Parametres.Lire(); } catch { p = new Parametres(); }
             if (!p.VerifAuto) return;
@@ -34,6 +35,25 @@ namespace NettoyagePC.Nouveau
             minuteur = new DispatcherTimer { Interval = TimeSpan.FromHours(6) };
             minuteur.Tick += (s, e) => Chercher(f);
             minuteur.Start();
+        }
+
+        /// <summary>
+        /// Une seule fois, après 14 jours d'utilisation : « Velox te plaît ? » avec le serveur Discord pour donner son avis.
+        /// Jamais pendant une autre annonce ; « Non merci » ne redemande jamais.
+        /// </summary>
+        private static bool DemanderAvis(FenetrePrincipale f)
+        {
+            var p = Parametres.Lire();
+            if (p.AvisDemande) return false;
+            DateTime premiere;
+            if (!DateTime.TryParseExact(p.PremiereUtilisation ?? "", "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out premiere))
+            { f.EnregistrerReglage(r => r.PremiereUtilisation = DateTime.Now.ToString("yyyy-MM-dd")); return false; }
+            if ((DateTime.Now - premiere).TotalDays < 14) return false;
+            f.EnregistrerReglage(r => r.AvisDemande = true);
+            f.Demander(Langue.T("Velox te plaît ?"),
+                Langue.T("Tu utilises Velox depuis deux semaines. Ton avis compte vraiment : dis-nous ce que tu aimes et ce qui manque dans le salon #avis du serveur Discord officiel. Ça aide aussi d'autres joueurs à découvrir Velox.\n\nCette question ne reviendra pas."),
+                "Donner mon avis", "Non merci", oui => { if (oui) { try { Programmes.Ouvrir(Boutique.UrlDiscord); } catch { } } });
+            return true;
         }
 
         /// <summary>Une fois par semaine, à l'ouverture : le résumé de la semaine dans la barre du bas (sans fenêtre qui gêne).</summary>

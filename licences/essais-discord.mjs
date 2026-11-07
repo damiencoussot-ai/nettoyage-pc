@@ -129,7 +129,7 @@ let page1 = await organiser();
 ok(/Terminé/.test(page1), 'organiser : terminé en un clic (' + appelsOrg.length + ' appels, budget 46)');
 const nomS = (n) => serveur.salons.find((x) => x.name === n);
 ok(nomS('📢・annonces') && nomS('📢・annonces').id === serveur.salons[2].id, 'organiser : « annonce » renommé et rangé (pas recréé)');
-ok(serveur.salons.filter((x) => x.type === 0).length === 12 && serveur.salons.filter((x) => x.type === 4).length === 7, 'organiser : 12 salons texte, 5 catégories en plus des 2 anciennes (rien supprimé)');
+ok(serveur.salons.filter((x) => x.type === 0).length === 13 && serveur.salons.filter((x) => x.type === 4).length === 7, 'organiser : 13 salons texte, 5 catégories en plus des 2 anciennes (rien supprimé)');
 const cat = nomS('👋 BIENVENUE'); ok(nomS('📜・règles').parent_id === cat.id && nomS('💬・général').parent_id === nomS('⚡ VELOX').id, 'organiser : salons dans les bonnes catégories');
 ok(nomS('📜・règles').permission_overwrites.some((o) => o.id === GU && o.deny !== '0'), 'organiser : règles en lecture seule');
 const sp = nomS('👑・salon-premium').permission_overwrites;

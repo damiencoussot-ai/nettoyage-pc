@@ -95,6 +95,7 @@ namespace NettoyagePC
                 try
                 {
                     if (n % 360 == 0) { Licence.VerifierSiBesoin(); Licence.Reevaluer(); if (!Licence.Premium) { S.SurUi(() => Notifier("Gardien arrêté", "Premium n'est plus actif sur ce PC : le gardien s'arrête. Tu peux le réactiver depuis l'onglet Premium.", 0, () => OuvrirAppli("--page Premium"))); Thread.Sleep(16000); S.SurUi(S.Quitter); return; } }
+                    if (n == 1) TempsDemarrage.Noter();
                     if (R.Memoire) VerifierMemoire();
                     if (R.Temperature) VerifierTemperature();
                     if (R.Demarrage && n % 2 == 1) VerifierDemarrage();

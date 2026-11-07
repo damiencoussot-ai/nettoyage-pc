@@ -33,6 +33,8 @@ namespace NettoyagePC.Nouveau
         private bool premiereListe = true;
         private double avancement;
         private double memoire = -1, temperature = -1, gpu = -1; private int indice = -1;
+        private int moisPilote = -1;   // âge du pilote de la carte graphique (mois), -1 = inconnu
+        private static int moisPiloteCache = -2; private static DateTime piloteLu = DateTime.MinValue;
 
         public QgGamer5(FenetrePrincipale f)
         {
@@ -209,6 +211,7 @@ namespace NettoyagePC.Nouveau
                 Tuple.Create(temperature > 0 ? Langue.F("Processeur : {0} °C", Math.Round(temperature)) : Langue.T("Température : non lue"), temperature > 0 && temperature < 80, temperature > 0),
                 Tuple.Create(gpu > 0 ? Langue.F("Carte graphique : {0} °C", Math.Round(gpu)) : Langue.T("Carte graphique : non lue"), gpu > 0 && gpu < 85, gpu > 0),
                 Tuple.Create(indice >= 0 ? Langue.F("Indice du PC : {0} / 100", indice) : Langue.T("Indice du PC : analyse…"), indice >= 80, indice >= 0),
+                Tuple.Create(moisPilote < 0 ? Langue.T("Pilote graphique") : moisPilote < 1 ? Langue.T("Pilote graphique : récent") : Langue.F("Pilote graphique : {0} mois", moisPilote), moisPilote >= 0 && moisPilote < 4, moisPilote >= 0),
             };
             var connus = points.Where(x => x.Item3).ToList();
             int score = connus.Count == 0 ? 0 : (int)Math.Round(100.0 * connus.Count(x => x.Item2) / connus.Count);
@@ -224,13 +227,37 @@ namespace NettoyagePC.Nouveau
                 var tp = new TextBlock { Text = p.Item1, FontFamily = Habillage.Corps, FontSize = 12.5, Foreground = Habillage.Pinceau(p.Item3 ? P.Texte : P.Discret), VerticalAlignment = VerticalAlignment.Center, TextTrimming = TextTrimming.CharacterEllipsis };
                 ToolTip.SetTip(tp, p.Item1);
                 Grid.SetColumn(tp, 1); l.Children.Add(tp);
+                if (p.Item1.StartsWith(Langue.T("Pilote graphique")))
+                {
+                    // clic : page « Windows et pilotes » (outil officiel du fabricant pour mettre le pilote à jour)
+                    l.Background = Brushes.Transparent; l.Cursor = new Avalonia.Input.Cursor(Avalonia.Input.StandardCursorType.Hand);
+                    ToolTip.SetTip(tp, Langue.T("Un pilote récent donne souvent plus d'images par seconde. Clique pour le mettre à jour avec l'outil officiel du fabricant."));
+                    l.PointerReleased += (o, e) => { F.SousPage("MisesAJour", "Pilotes"); F.Afficher("MisesAJour", true); };
+                }
                 checklist.Children.Add(l);
             }
             if (premiereListe && !F.Source.Immediat) { premiereListe = false; Habillage.Cascade(checklist.Children.OfType<Control>(), 70, 280); }
         }
 
+        /// <summary>Âge du pilote de la carte graphique (lu au plus une fois par heure) : plus de 4 mois = à mettre à jour.</summary>
+        private void ChargerPilote()
+        {
+            if (Exemple != null) { moisPilote = 1; return; }
+            if (moisPiloteCache > -2 && (DateTime.Now - piloteLu).TotalHours < 1) { moisPilote = moisPiloteCache; return; }
+            Task.Run(() =>
+            {
+                try
+                {
+                    var g = InfosPc.CartesGraphiques().FirstOrDefault(x => x.DatePilote.HasValue);
+                    return g == null ? -1 : (int)Math.Floor((DateTime.Now - g.DatePilote.Value).TotalDays / 30.4);
+                }
+                catch { return -1; }
+            }).ContinueWith(t => Dispatcher.UIThread.Post(() => { moisPiloteCache = moisPilote = t.Result; piloteLu = DateTime.Now; Recalculer(); }));
+        }
+
         private void ChargerProgression()
         {
+            ChargerPilote();
             if (Exemple != null) { Afficher(Exemple); return; }
             Task.Run(() => Succes.Calculer()).ContinueWith(t => { if (!t.IsFaulted) Dispatcher.UIThread.Post(() => Afficher(t.Result)); });
         }
