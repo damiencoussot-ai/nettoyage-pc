@@ -1,0 +1,10 @@
+Velox 5.9.8 : corrections vues sur un vrai PC
+
+- QG Gamer : les lignes de « Prêt pour jouer » ne débordent plus sur le niveau quand la fenêtre est étroite
+  (le texte trop long est coupé avec « … », et s'affiche en entier au survol).
+- Température de la carte graphique : deuxième méthode de lecture, et si elle reste illisible, la raison est notée
+  dans le journal de démarrage (Outils > Aide > Journal de démarrage) pour pouvoir la corriger.
+
+L'installateur est publié sous les deux noms : Velox-Setup-5.9.8.exe (winget, site) et NettoyagePC-Setup-5.9.8.exe (mise à jour des anciennes versions).
+
+SHA256 de Velox-Setup-5.9.8.exe : voir le fichier Velox-Setup-5.9.8.sha256

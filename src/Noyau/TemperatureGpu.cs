@@ -35,6 +35,10 @@ namespace NettoyagePC
         [StructLayout(LayoutKind.Sequential)]
         private struct OPENADAPTERFROMLUID { public uint LuidBas; public int LuidHaut; public uint hAdapter; }
         [DllImport("gdi32.dll")] private static extern int D3DKMTOpenAdapterFromLuid(ref OPENADAPTERFROMLUID o);
+        // ancienne énumération (Windows 7+) : 16 cartes au plus, tableau fixe dans la structure
+        [StructLayout(LayoutKind.Sequential)]
+        private struct ENUMADAPTERS1 { public uint NumAdapters; [MarshalAs(UnmanagedType.ByValArray, SizeConst = 16)] public ADAPTERINFO[] Adapters; }
+        [DllImport("gdi32.dll")] private static extern int D3DKMTEnumAdapters(ref ENUMADAPTERS1 e);
         private static bool journalise;
 
         private const int KMTQAITYPE_ADAPTERPERFDATA = 62;
@@ -52,27 +56,67 @@ namespace NettoyagePC
                 if ((DateTime.Now - derniere).TotalMilliseconds < 1000) return valeur;
                 derniere = DateTime.Now;
                 try { valeur = Mesurer(); }
-                catch (DllNotFoundException) { indisponible = true; valeur = -1; }
-                catch (EntryPointNotFoundException) { indisponible = true; valeur = -1; }
-                catch { valeur = -1; }
+                catch (DllNotFoundException ex) { indisponible = true; valeur = -1; Diagnostic("gdi32 introuvable : " + ex.Message); }
+                catch (EntryPointNotFoundException ex) { indisponible = true; valeur = -1; Diagnostic("fonction absente : " + ex.Message); }
+                catch (Exception ex) { valeur = -1; Diagnostic(ex.GetType().Name + " : " + ex.Message); }
                 return valeur;
             }
         }
 
+        /// <summary>Note une seule fois, dans le journal de démarrage, pourquoi la température n'a pas pu être lue.</summary>
+        private static void Diagnostic(string texte)
+        {
+            if (journalise) return;
+            journalise = true;
+            JournalDemarrage.Noter("Température GPU non lue : " + texte);
+        }
+
+        /// <summary>Liste des cartes : d'abord D3DKMTEnumAdapters2, sinon l'ancienne D3DKMTEnumAdapters.</summary>
+        private static ADAPTERINFO[] Cartes(out string etat)
+        {
+            etat = "";
+            try
+            {
+                var e = new ENUMADAPTERS2();
+                int st = D3DKMTEnumAdapters2(ref e);
+                if (st == 0 && e.NumAdapters > 0 && e.NumAdapters <= 32)
+                {
+                    int taille = Marshal.SizeOf<ADAPTERINFO>();
+                    e.pAdapters = Marshal.AllocHGlobal(taille * (int)e.NumAdapters);
+                    try
+                    {
+                        st = D3DKMTEnumAdapters2(ref e);
+                        if (st == 0)
+                        {
+                            var l = new ADAPTERINFO[e.NumAdapters];
+                            for (int i = 0; i < l.Length; i++) l[i] = Marshal.PtrToStructure<ADAPTERINFO>(e.pAdapters + i * taille);
+                            return l;
+                        }
+                    }
+                    finally { Marshal.FreeHGlobal(e.pAdapters); }
+                }
+                etat = string.Format("EnumAdapters2 0x{0:X8} ({1} carte(s))", st, e.NumAdapters);
+            }
+            catch (EntryPointNotFoundException) { etat = "EnumAdapters2 absente"; }
+            var v1 = new ENUMADAPTERS1 { Adapters = new ADAPTERINFO[16] };
+            int s1 = D3DKMTEnumAdapters(ref v1);
+            if (s1 == 0 && v1.NumAdapters > 0 && v1.NumAdapters <= 16) { var l = new ADAPTERINFO[v1.NumAdapters]; Array.Copy(v1.Adapters, l, l.Length); return l; }
+            etat += string.Format(" ; EnumAdapters 0x{0:X8}", s1);
+            return null;
+        }
+
         private static double Mesurer()
         {
-            var e = new ENUMADAPTERS2();
-            if (D3DKMTEnumAdapters2(ref e) != 0 || e.NumAdapters == 0 || e.NumAdapters > 32) return -1;
-            int taille = Marshal.SizeOf<ADAPTERINFO>();
-            e.pAdapters = Marshal.AllocHGlobal(taille * (int)e.NumAdapters);
+            string etatListe;
+            var cartes = Cartes(out etatListe);
+            if (cartes == null) { Diagnostic(etatListe); return -1; }
             IntPtr perf = Marshal.AllocHGlobal(Marshal.SizeOf<ADAPTERPERFDATA>());
             double max = -1;
             try
             {
-                if (D3DKMTEnumAdapters2(ref e) != 0) return -1;
-                for (int i = 0; i < e.NumAdapters; i++)
+                for (int i = 0; i < cartes.Length; i++)
                 {
-                    var a = Marshal.PtrToStructure<ADAPTERINFO>(e.pAdapters + i * taille);
+                    var a = cartes[i];
                     try
                     {
                         // d'abord avec la poignée de l'énumération, sinon en rouvrant la carte par son identifiant (LUID),
@@ -87,12 +131,12 @@ namespace NettoyagePC
                                 var fo = new CLOSEADAPTER { hAdapter = o.hAdapter }; try { D3DKMTCloseAdapter(ref fo); } catch { }
                             }
                         }
-                        if (!journalise) JournalDemarrage.Noter(string.Format("Température GPU : carte {0}/{1}, état 0x{2:X8} puis 0x{3:X8}", i + 1, e.NumAdapters, st1, st2));
+                        if (!journalise) JournalDemarrage.Noter(string.Format("Température GPU : carte {0}/{1}, état 0x{2:X8} puis 0x{3:X8}", i + 1, cartes.Length, st1, st2));
                     }
                     finally { var f = new CLOSEADAPTER { hAdapter = a.hAdapter }; try { D3DKMTCloseAdapter(ref f); } catch { } }
                 }
             }
-            finally { Marshal.FreeHGlobal(e.pAdapters); Marshal.FreeHGlobal(perf); }
+            finally { Marshal.FreeHGlobal(perf); }
             if (!journalise) { journalise = true; JournalDemarrage.Noter("Température GPU lue : " + (max > 0 ? max + " °C" : "non disponible")); }
             return max;
         }

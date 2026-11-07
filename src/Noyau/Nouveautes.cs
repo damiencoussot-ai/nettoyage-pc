@@ -7,6 +7,8 @@ namespace NettoyagePC
     {
         public static readonly List<KeyValuePair<string, string[]>> Liste = new List<KeyValuePair<string, string[]>>
         {
+            N("5.9.8", "Correction : dans le QG Gamer, les lignes de « Prêt pour jouer » ne débordent plus sur le niveau quand la fenêtre est étroite.",
+                "Température de la carte graphique : deuxième méthode de lecture, et la raison notée dans le journal si elle reste illisible."),
             N("5.9.7", "Partage ton rang de joueur sur Discord : QG Gamer, « Partager sur Discord », puis /score dans #tes-captures.",
                 "Le serveur Discord officiel de Velox est accessible depuis les Outils et la recherche (Ctrl+K)."),
             N("5.9.6", "Correction : le bouton BOOST du profil Gamer marche aussi quand le PC est déjà en « Performances élevées » (cinématique, rapport de session et bouton « Terminer »).",

@@ -207,7 +207,7 @@ namespace NettoyagePC.Nouveau
                 Tuple.Create(Licence.Premium ? Langue.T("Mode jeu automatique (gardien)") : Langue.T("Mode jeu automatique (Premium)"), auto, true),
                 Tuple.Create(memoire >= 0 ? Langue.F("Mémoire vive : {0} % utilisée", Math.Round(memoire)) : Langue.T("Mémoire vive"), memoire >= 0 && memoire < 70, memoire >= 0),
                 Tuple.Create(temperature > 0 ? Langue.F("Processeur : {0} °C", Math.Round(temperature)) : Langue.T("Température : non lue"), temperature > 0 && temperature < 80, temperature > 0),
-                Tuple.Create(gpu > 0 ? Langue.F("Carte graphique : {0} °C", Math.Round(gpu)) : Langue.T("Carte graphique : température non lue"), gpu > 0 && gpu < 85, gpu > 0),
+                Tuple.Create(gpu > 0 ? Langue.F("Carte graphique : {0} °C", Math.Round(gpu)) : Langue.T("Carte graphique : non lue"), gpu > 0 && gpu < 85, gpu > 0),
                 Tuple.Create(indice >= 0 ? Langue.F("Indice du PC : {0} / 100", indice) : Langue.T("Indice du PC : analyse…"), indice >= 80, indice >= 0),
             };
             var connus = points.Where(x => x.Item3).ToList();
@@ -217,10 +217,13 @@ namespace NettoyagePC.Nouveau
             checklist.Children.Clear();
             foreach (var p in points)
             {
-                var l = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
+                // grille (et non pile horizontale) : le texte est coupé avec « … » au lieu de déborder sur la colonne voisine
+                var l = new Grid { ColumnDefinitions = new ColumnDefinitions("22,*") };
                 Color coul = !p.Item3 ? P.Discret : p.Item2 ? P.Vert : P.Orange;
-                l.Children.Add(new TextBlock { Text = !p.Item3 ? "·" : p.Item2 ? "✔" : "✖", Width = 14, FontSize = 12.5, Foreground = Habillage.Pinceau(coul), VerticalAlignment = VerticalAlignment.Center });
-                l.Children.Add(new TextBlock { Text = p.Item1, FontFamily = Habillage.Corps, FontSize = 12.5, Foreground = Habillage.Pinceau(p.Item3 ? P.Texte : P.Discret), VerticalAlignment = VerticalAlignment.Center, TextTrimming = TextTrimming.CharacterEllipsis });
+                l.Children.Add(new TextBlock { Text = !p.Item3 ? "·" : p.Item2 ? "✔" : "✖", FontSize = 12.5, Foreground = Habillage.Pinceau(coul), VerticalAlignment = VerticalAlignment.Center });
+                var tp = new TextBlock { Text = p.Item1, FontFamily = Habillage.Corps, FontSize = 12.5, Foreground = Habillage.Pinceau(p.Item3 ? P.Texte : P.Discret), VerticalAlignment = VerticalAlignment.Center, TextTrimming = TextTrimming.CharacterEllipsis };
+                ToolTip.SetTip(tp, p.Item1);
+                Grid.SetColumn(tp, 1); l.Children.Add(tp);
                 checklist.Children.Add(l);
             }
             if (premiereListe && !F.Source.Immediat) { premiereListe = false; Habillage.Cascade(checklist.Children.OfType<Control>(), 70, 280); }
