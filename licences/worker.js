@@ -290,6 +290,21 @@ async function licences(action, requete, env) {
 }
 
 // ------------------------------------------------------------ page de l'éditeur
+// ------------------------------------------------------------ téléchargements (compteurs publics de GitHub)
+// Chaque installateur publié a un compteur. Les mises à jour automatiques de Velox comptent aussi (un PC qui se met à jour = 1).
+async function statsTelechargements() {
+  try {
+    const r = await fetch('https://api.github.com/repos/' + DEPOT + '/releases?per_page=100', { headers: { 'User-Agent': 'velox-licences', Accept: 'application/vnd.github+json' } });
+    if (!r.ok) return '';
+    const versions = (await r.json()).map((v) => ({ tag: v.tag_name, date: (v.published_at || '').slice(0, 10), n: (v.assets || []).filter((a) => /\.exe$/i.test(a.name)).reduce((s, a) => s + (a.download_count || 0), 0) }));
+    const total = versions.reduce((s, v) => s + v.n, 0);
+    const lignes = versions.slice(0, 8).map((v) => '<tr><td>' + echapper(v.tag) + '</td><td>' + echapper(v.date) + '</td><td style="text-align:right"><b>' + v.n + '</b></td></tr>').join('');
+    return '<h2 style="margin-top:8px">Téléchargements</h2><p><b style="font-size:28px">' + total + '</b> au total (' + versions.length + ' versions)</p>' +
+      '<table style="border-collapse:collapse;min-width:320px"><tr><th style="text-align:left">Version</th><th style="text-align:left">Publiée</th><th style="text-align:right">Téléchargements</th></tr>' + lignes + '</table>' +
+      '<p class="petit">Compteurs de GitHub : installateur téléchargé depuis le site, winget ou la mise à jour automatique de Velox (tes propres installations comptent aussi).</p>';
+  } catch (e) { return ''; }
+}
+
 async function admin(requete, env) {
   if (!env.ADMIN_TOKEN || env.ADMIN_TOKEN.length < 12) return page('Administration', '<p>La page d\'administration n\'est pas activée (secret ADMIN_TOKEN absent ou trop court).</p>', 403);
   let jeton = '', recherche = '', action = '', cible = '';
@@ -344,7 +359,7 @@ async function admin(requete, env) {
       '<p class="petit">Range les salons en catégories, crée les règles, la bienvenue, les rôles à choisir et les messages Premium. Rien n\'est supprimé ; tu peux recliquer sans risque (ça met à jour au lieu de dupliquer).</p></form>' +
       '<form method="post" style="margin-top:12px">' + champ('jeton', jeton) + champ('action', 'annoncer-version') + '<button>Annoncer la dernière version maintenant</button>' +
       '<p class="petit">Normalement automatique (toutes les heures, avec le déclencheur Cron) : à utiliser pour réannoncer à la main.</p></form>' : '') : '';
-  return page('Administration', message + formRecherche + resultats + formDiscord);
+  return page('Administration', message + (await statsTelechargements()) + formRecherche + resultats + formDiscord);
 }
 
 // ------------------------------------------------------------ Discord
