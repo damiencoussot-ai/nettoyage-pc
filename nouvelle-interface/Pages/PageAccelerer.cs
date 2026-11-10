@@ -38,14 +38,11 @@ namespace NettoyagePC.Nouveau
                     ? CarteAction.A("Mode jeu (actif)", "Le mode jeu est en cours : performances maximales. Termine-le après ta partie pour revenir comme avant.", "Terminer le mode jeu", "finmodejeu", true)
                     : CarteAction.A("Mode jeu", "Avant de jouer : performances maximales et mémoire vive libérée. Un clic pour revenir comme avant après ta partie. Avec Premium, le mode jeu automatique le fait tout seul à chaque jeu.", "Activer le mode jeu", "modejeu", true),
                 CarteAction.Code("Temps de démarrage", "Le temps que met ton PC entre le bouton marche et le bureau, jour après jour, sur 30 jours : tu vois si ça s'améliore.", "Voir le graphique", () => TempsDemarrage5.Ouvrir(f)),
-                CarteAction.Code("Minuteur d'extinction", "Éteins ou redémarre le PC tout seul dans 15 minutes à 3 heures, le temps de finir un téléchargement. Annulable à tout moment.", "Régler le minuteur", () => Extinction5.Ouvrir(f)),
                 CarteAction.A("Bilan d'optimisation", "Durée du démarrage, programmes au démarrage, mode d'alimentation, mises à jour disponibles : des conseils concrets, sans rien modifier.", "Lancer le bilan", "optim", true),
                 CarteAction.Code("Mettre à jour les applications", "Liste tes logiciels qui ont une nouvelle version (winget, l'outil officiel de Microsoft) : tu choisis lesquels mettre à jour, avec le résultat pour chacun. Avec Premium, c'est automatique chaque semaine.", "Voir les mises à jour", () => MajApplis5.Ouvrir(f)),
                 CarteAction.A("Mode d'alimentation", (alim != "" ? Langue.F("Mode actuel : {0}.", Langue.T(alim)) + " " : "") + (perf ? "Équilibré consomme moins (conseillé sur portable)." : "Performances élevées rend le PC plus réactif."),
                     perf ? "Revenir en Équilibré" : "Passer en Performances", perf ? "equilibre" : "perf"),
-                CarteAction.A("Libérer la RAM", "Libère la mémoire vive inutilisée, idéal juste avant un jeu ou une application gourmande. Effet temporaire.", "Libérer", "ramlib").Plus(),
-                CarteAction.A("Infos mémoire vive", "Tes barrettes (capacité, type, vitesse), applications les plus gourmandes et erreurs matérielles.", "Afficher", "raminfo").Plus(),
-                CarteAction.A("Tester les barrettes", "Lance le Diagnostic de mémoire Windows pour détecter une barrette défectueuse. Demande un redémarrage.", "Tester", "ramtest").Plus(),
+                CarteAction.A("Libérer la RAM", "Libère la mémoire vive inutilisée, idéal juste avant un jeu ou une application gourmande. Effet temporaire. « Infos » montre tes barrettes et les applications les plus gourmandes.", "Libérer", "ramlib").Aussi("Infos", "raminfo").Plus(),
             }, "Optimisation");
         }
 
@@ -312,7 +309,9 @@ namespace NettoyagePC.Nouveau
                     if (Regex.IsMatch(cmd, "msiexec", RegexOptions.IgnoreCase)) cmd = Regex.Replace(cmd, @"/I\s*\{", "/X{", RegexOptions.IgnoreCase);
                     // les désinstallateurs demandent eux-mêmes l'autorisation de Windows s'ils en ont besoin
                     Programmes.LancerCommande(cmd);
-                    F.Statut(Langue.F("Désinstallation de « {0} » lancée. Clique sur « Actualiser » quand elle est terminée.", a.Nom));
+                    F.Statut(Langue.F("Désinstallation de « {0} » lancée : termine les étapes dans sa fenêtre. Velox te montrera ensuite ce qu'il a laissé.", a.Nom));
+                    // quand le programme a disparu de la liste de Windows : liste rafraîchie, puis ses restes proposés à la corbeille
+                    Restes5.Suivre(F, a, applications.ToList(), Charger);
                 }, true);
         }
     }

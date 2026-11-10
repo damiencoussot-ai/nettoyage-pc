@@ -63,7 +63,6 @@ namespace NettoyagePC.Nouveau
             O("reglagesjeux", "Accelerer", "Réglages des jeux", "Mode jeu de Windows, GPU, jeux en fenêtré.", f => ReglagesWindows5.Jeux(f)),
             O("pingjeu", "Accelerer", "Ping des serveurs de jeu", "Latence vers les régions de serveurs.", f => PingJeu5.Ouvrir(f)),
             O("mesjeux", "Accelerer", "Mes jeux", "Tes jeux installés et la place qu'ils prennent.", f => MesJeux5.Ouvrir(f)),
-            O("extinction", "Accelerer", "Minuteur d'extinction", "Éteindre le PC dans un moment.", f => Extinction5.Ouvrir(f)),
             O("tempsdemarrage", "Accelerer", "Temps de démarrage", "Du bouton marche au bureau, sur 30 jours.", f => TempsDemarrage5.Ouvrir(f)),
 
             O("secu", "Proteger", "Bilan de sécurité", "Antivirus, pare-feu, Secure Boot, mises à jour.", Act("secu")),
@@ -82,6 +81,8 @@ namespace NettoyagePC.Nouveau
             O("potentiel", "Outils", "Plein potentiel", "Les réglages qui brident ton matériel.", Page("Outils", "Potentiel")),
             O("reseau", "Outils", "Test de la connexion", "Débit, serveurs DNS et réseau.", Page("Outils", "Reseau")),
             O("aide", "Outils", "Aide à distance", "Recevoir de l'aide d'un proche, en sécurité.", Page("Outils", "Aide")),
+            O("wifi", "Outils", "Test du Wi-Fi", "Signal, bande, canal et conseils.", f => Wifi5.Ouvrir(f)),
+            O("extinction", "Outils", "Minuteur d'extinction", "Éteindre le PC dans un moment.", f => Extinction5.Ouvrir(f)),
             O("compat", "Outils", "Compatibilité de ce PC", "Windows 11, TPM, Secure Boot, virtualisation.", Act("compat")),
 
             O("gardien", "Premium", "Gardien en temps réel", "Veille sur ton PC en continu.", Outil("gardien"), true),

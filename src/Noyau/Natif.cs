@@ -291,8 +291,18 @@ namespace NettoyagePC
         [DllImport("gdi32.dll")] private static extern int D3DKMTQueryAdapterInfo(ref QUERYADAPTERINFO q);
         [DllImport("gdi32.dll")] private static extern int D3DKMTCloseAdapter(ref CLOSEADAPTER c);
 
-        /// <summary>Température la plus haute des cartes graphiques, en °C (-1 si indisponible).</summary>
+        /// <summary>Température la plus haute des cartes graphiques, en °C (-1 si indisponible).
+        /// Si la lecture habituelle échoue, la deuxième méthode (TemperatureGpu : autre énumération des cartes) est essayée.</summary>
         public static double TemperatureCarteGraphique()
+        {
+            double t = TemperatureDirecte();
+#if NET5_0_OR_GREATER
+            if (t < 0) { try { t = TemperatureGpu.Lire(); } catch { t = -1; } }
+#endif
+            return t;
+        }
+
+        private static double TemperatureDirecte()
         {
             if (!EstWindows || SansEchec || Build < 19041) return -1;
             double max = -1;

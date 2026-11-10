@@ -313,6 +313,8 @@ namespace NettoyagePC
                         return Reseau.ChangerDnsAdmin(args);
                     case "mesurer-fps":   // source|- empreinte processus.exe secondes délai (PresentMon, voir Fps)
                         return Fps.MesurerEnAdmin(args);
+                    case "fps-direct":   // source|- empreinte : images par seconde en direct pour l'overlay (PresentMon, voir Fps)
+                        return Fps.DirectEnAdmin(args);
                     case "redemarrer-bios":   // redémarrage vers les réglages du BIOS / UEFI (dans 15 s, annulable avec shutdown /a)
                         {
                             int code;

@@ -25,6 +25,12 @@ namespace NettoyagePC.Nouveau
         { return new CarteAction { Titre = titre, Texte = texte, Bouton = bouton, Faire = faire, Principal = principal }; }
 
         public CarteAction Plus() { EnPlus = true; return this; }
+
+        // deuxième bouton, plus discret, sur la même carte (5.11 : deux outils voisins = une seule carte)
+        public string Bouton2, Cible2;
+        public Action Faire2;
+        public CarteAction Aussi(string bouton, string action) { Bouton2 = bouton; Cible2 = "action:" + action; return this; }
+        public CarteAction Aussi(string bouton, Action faire) { Bouton2 = bouton; Faire2 = faire; return this; }
     }
 
     internal static class Cartes
@@ -61,8 +67,24 @@ namespace NettoyagePC.Nouveau
                 if (c.Faire != null) { try { c.Faire(); } catch (Exception ex) { JournalDemarrage.Erreur("carte " + c.Titre, ex); f.Statut(Langue.T("Une erreur s'est produite :") + " " + ex.Message, true); } }
                 else f.Executer(c.Cible, c.Bouton);
             };
-            DockPanel.SetDock(bouton, Dock.Bottom);
-            d.Children.Add(bouton);
+            if (c.Bouton2 != null)
+            {
+                var second = new BoutonNoyau(c.Bouton2, false, Math.Max(120, Math.Min(240, c.Bouton2.Length * 7.6 + 40)), 36) { TaillePolice = 13, HorizontalAlignment = HorizontalAlignment.Left, Margin = new Thickness(8, 14, 0, 0) };
+                second.Clic += () =>
+                {
+                    if (c.Faire2 != null) { try { c.Faire2(); } catch (Exception ex) { JournalDemarrage.Erreur("carte " + c.Titre, ex); f.Statut(Langue.T("Une erreur s'est produite :") + " " + ex.Message, true); } }
+                    else f.Executer(c.Cible2, c.Bouton2);
+                };
+                var rangee = new WrapPanel { Orientation = Orientation.Horizontal };
+                rangee.Children.Add(bouton); rangee.Children.Add(second);
+                DockPanel.SetDock(rangee, Dock.Bottom);
+                d.Children.Add(rangee);
+            }
+            else
+            {
+                DockPanel.SetDock(bouton, Dock.Bottom);
+                d.Children.Add(bouton);
+            }
             var s = new StackPanel { Spacing = 6 };
             if (c.Principal && !Habillage.Hud) s.Children.Add(new Border { Height = 2, Width = 36, HorizontalAlignment = HorizontalAlignment.Left, Background = Habillage.DegradeAccent(), Margin = new Thickness(0, 0, 0, 4) });
             var titre = new TextBlock { Text = Langue.T(c.Titre), FontFamily = Habillage.Affichage, FontSize = 16.5, FontWeight = FontWeight.SemiBold, Foreground = Habillage.Pinceau(P.Texte), TextWrapping = TextWrapping.Wrap };

@@ -143,10 +143,17 @@ namespace NettoyagePC.Nouveau
             bOverlay.PointerPressed += (o, e) => { if (e.GetCurrentPoint(bOverlay).Properties.IsRightButtonPressed) { e.Handled = true; Overlay5.ChangerCoin(F); } };
             options.Children.Add(bSons); options.Children.Add(bOverlay);
             c.Children.Add(options);
-            var bDiscord = new BoutonNoyau("Partager sur Discord", false, 0, 32) { TaillePolice = 11.5, Capitales = true, HorizontalAlignment = HorizontalAlignment.Stretch };
+            // FPS en direct dans l'overlay (Premium) : une autorisation de Windows, s'arrête à la fermeture de Velox
+            var options2 = new Avalonia.Controls.Primitives.UniformGrid { Columns = 2, Margin = new Thickness(0, 6, 0, 0) };
+            var bFps = new BoutonNoyau(Fps.DirectActif ? "FPS : oui" : "FPS en direct", false, 0, 32) { TaillePolice = 11.5, Capitales = true, HorizontalAlignment = HorizontalAlignment.Stretch, Margin = new Thickness(0, 0, 6, 0) };
+            ToolTip.SetTip(bFps, Langue.T("Premium : le nombre d'images par seconde de ton jeu, en direct dans l'overlay. Windows demande une autorisation au démarrage."));
+            bFps.Clic += () => Overlay5.BasculerFps(F, actif => bFps.Changer(actif ? "FPS : oui" : "FPS en direct"));
+            options2.Children.Add(bFps);
+            var bDiscord = new BoutonNoyau("Discord", false, 0, 32) { TaillePolice = 11.5, Capitales = true, HorizontalAlignment = HorizontalAlignment.Stretch };
             ToolTip.SetTip(bDiscord, Langue.T("Copie ton code de joueur et ouvre le Discord de Velox : tape /score dans #tes-captures et colle-le pour afficher ton rang."));
             bDiscord.Clic += () => Progression5.PartagerDiscord(F);
-            c.Children.Add(bDiscord);
+            options2.Children.Add(bDiscord);
+            c.Children.Add(options2);
             Grid.SetColumn(c, 4); g.Children.Add(c);
 
             Child = new StackPanel { Children = { g, zoneDefis } };

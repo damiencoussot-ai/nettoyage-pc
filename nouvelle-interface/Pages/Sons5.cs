@@ -23,6 +23,14 @@ namespace NettoyagePC.Nouveau
         /// <summary>Arpège montant (niveau supérieur).</summary>
         public static void Niveau() { Jouer(niveau ?? (niveau = Synthe(0.9, (t, d) => Note(t, 523.3, 0, 0.3) + Note(t, 659.3, 0.1, 0.3) + Note(t, 784.0, 0.2, 0.3) + Note(t, 1046.5, 0.3, 0.5)))); }
 
+        private static byte[] alerte;
+        /// <summary>Deux bips graves (surchauffe en jeu). Jouée même si les sons d'ambiance sont coupés : c'est une alerte.</summary>
+        public static void Alerte()
+        {
+            if (!OperatingSystem.IsWindows() || !Habillage.Animations) return;
+            try { if (alerte == null) alerte = Synthe(0.8, (t, d) => Note(t, 392.0, 0.0, 0.28) + Note(t, 392.0, 0.38, 0.28)); enCours = alerte; PlaySound(alerte, IntPtr.Zero, SND_ASYNC | SND_MEMORY | SND_NODEFAULT); } catch { }
+        }
+
         private static void Jouer(byte[] son)
         {
             if (!Actifs || !Habillage.Animations || !OperatingSystem.IsWindows()) return;

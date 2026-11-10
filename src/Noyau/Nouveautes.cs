@@ -7,6 +7,11 @@ namespace NettoyagePC
     {
         public static readonly List<KeyValuePair<string, string[]>> Liste = new List<KeyValuePair<string, string[]>>
         {
+            N("5.11", "Overlay en jeu : l'utilisation de la carte graphique en %, et avec Premium les FPS en direct (bouton « FPS en direct » du QG Gamer).",
+                "Alerte de surchauffe en jeu : cadre rouge, bip et message si le processeur ou la carte graphique chauffe trop.",
+                "Nouveau : Test du Wi-Fi (Outils > Réseau). Signal, bande, canal, réseaux voisins et conseils.",
+                "Applications : après une désinstallation, Velox montre ce que le programme a laissé et propose de l'envoyer à la corbeille.",
+                "Pages plus simples : les outils voisins sont regroupés sur une même carte, avec deux boutons."),
             N("5.10", "Nouveau : Ping des serveurs de jeu (Accélérer > Jeux). Le temps de réponse vers 12 régions de serveurs, pour choisir la plus rapide dans tes jeux.",
                 "Nouveau : Mes jeux. Tous tes jeux installés, toutes plateformes, avec la place qu'ils prennent ; tu peux les lancer d'ici.",
                 "Nouveau : Minuteur d'extinction. Éteins ou redémarre le PC tout seul dans 15 minutes à 3 heures, annulable à tout moment.",

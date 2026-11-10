@@ -30,11 +30,9 @@ namespace NettoyagePC.Nouveau
         {
             return Cartes.Page(f, null, new[]
             {
-                CarteAction.A("Nettoyage rapide", "Fichiers temporaires, caches de Windows, des navigateurs et des applications, corbeille, vieux téléchargements rangés à part.", "Nettoyer", "standard", true),
-                CarteAction.A("Nettoyage profond", "Tout le nettoyage rapide, plus Windows Update, Nettoyage de disque Windows et DISM, avec un point de restauration avant.", "Nettoyer en profondeur", "complet"),
+                CarteAction.A("Nettoyage rapide", "Fichiers temporaires, caches de Windows, des navigateurs et des applications, corbeille, vieux téléchargements rangés à part. « En profondeur » ajoute Windows Update, le Nettoyage de disque de Windows et DISM, avec un point de restauration avant.", "Nettoyer", "standard", true).Aussi("En profondeur", "complet"),
                 CarteAction.A("Voir ce qui serait nettoyé", "Analyse tout ce que l'optimisation complète ferait et affiche l'espace récupérable, sans rien supprimer.", "Analyser", "analyse"),
                 CarteAction.Code("Anciens pilotes", "Windows garde les anciennes versions de chaque pilote (souvent plusieurs Go pour la carte graphique). Tu choisis lesquelles retirer.", "Voir les anciens pilotes", () => AnciensPilotes5.Ouvrir(f)).Plus(),
-                CarteAction.A("Rapport complet du PC", "Espace disque, gros fichiers, doublons, dossiers lourds, programmes volumineux. Enregistré dans tes Documents.", "Générer le rapport", "rapport").Plus(),
                 CarteAction.Code("Téléchargements à vérifier", "Les téléchargements de plus de 90 jours sont rangés ici au lieu d'être supprimés. Garde ou supprime-les toi-même.", "Ouvrir le dossier", () => OuvrirAVerifier(f)).Plus(),
             }, "Nettoyage");
         }
@@ -51,8 +49,7 @@ namespace NettoyagePC.Nouveau
             var pile = new StackPanel { Spacing = 18 };
             pile.Children.Add(Cartes.Grille(f, new[]
             {
-                CarteAction.A("Optimiser les disques", "Santé SMART, usure et température, TRIM, ReTrim des SSD (jamais de défragmentation), défragmentation des disques durs.", "Optimiser", "disques", true),
-                CarteAction.A("Vérifier les disques", "Comme « Optimiser », plus l'analyse du système de fichiers de chaque disque, en lecture seule.", "Vérifier", "verifier"),
+                CarteAction.A("Optimiser les disques", "Santé SMART, usure et température, TRIM, ReTrim des SSD (jamais de défragmentation), défragmentation des disques durs. « Vérifier aussi » ajoute l'analyse du système de fichiers de chaque disque, en lecture seule.", "Optimiser", "disques", true).Aussi("Vérifier aussi", "verifier"),
                 CarteAction.Code("Carte de l'espace disque", "Chaque dossier est un rectangle proportionnel à sa taille : tu vois d'un coup d'œil ce qui remplit ton disque.", "Afficher la carte", () => CarteEspace5.Ouvrir(f)),
             }));
             pile.Children.Add(new GrosFichiers(f));

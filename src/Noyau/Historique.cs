@@ -209,12 +209,13 @@ namespace NettoyagePC
                     if (string.IsNullOrEmpty(orig) || !restants.Contains(orig)) continue;
                     if (Protection.CheminProtege(orig)) continue;   // jamais de restauration dans un dossier du système
                     string contenu = Path.Combine(dossier, "$R" + Path.GetFileName(fiche).Substring(2));
-                    if (!File.Exists(contenu)) continue;
-                    if (File.Exists(orig)) { restants.Remove(orig); continue; }
+                    bool estDossier = Directory.Exists(contenu);   // un dossier entier mis à la corbeille (restes d'un programme)
+                    if (!estDossier && !File.Exists(contenu)) continue;
+                    if (File.Exists(orig) || Directory.Exists(orig)) { restants.Remove(orig); continue; }
                     try
                     {
                         Directory.CreateDirectory(Path.GetDirectoryName(orig));
-                        File.Move(contenu, orig);
+                        if (estDossier) Directory.Move(contenu, orig); else File.Move(contenu, orig);
                         try { File.Delete(fiche); } catch { }
                         restants.Remove(orig);
                         ok++;

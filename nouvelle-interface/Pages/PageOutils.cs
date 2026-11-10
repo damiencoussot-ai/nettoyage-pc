@@ -31,9 +31,10 @@ namespace NettoyagePC.Nouveau
         {
             return Cartes.Page(f, null, new[]
             {
-                CarteAction.Code("Mémoire vive et BIOS", "Vitesse réelle des barrettes comparée à leur vitesse prévue (profil EXPO / XMP), avec le guide du BIOS de ta carte mère.", "Voir le détail", () => Memoire5.Ouvrir(f), true),
+                CarteAction.Code("Mémoire vive et BIOS", "Vitesse réelle des barrettes comparée à leur vitesse prévue (profil EXPO / XMP), avec le guide du BIOS de ta carte mère. « Tester » lance le Diagnostic de mémoire de Windows (redémarrage demandé).", "Voir le détail", () => Memoire5.Ouvrir(f), true).Aussi("Tester", "ramtest"),
                 CarteAction.A("Santé détaillée des disques", "Usure, température, erreurs et heures de fonctionnement de chaque disque, d'après leurs capteurs (SMART).", "Analyser", "santedisques"),
                 CarteAction.A("Rapport du PC", "Espace disque, gros fichiers, doublons, dossiers lourds, programmes volumineux. Enregistré dans tes Documents.", "Générer le rapport", "rapport"),
+                CarteAction.Code("Minuteur d'extinction", "Éteins ou redémarre le PC tout seul dans 15 minutes à 3 heures, le temps de finir un téléchargement. Annulable à tout moment.", "Régler le minuteur", () => Extinction5.Ouvrir(f)),
                 CarteAction.A("Compatibilité de ce PC", "Ce que ton matériel permet : Windows 11, TPM, Secure Boot, virtualisation.", "Vérifier", "compat").Plus(),
                 CarteAction.Code("Analyse des plantages", "Écrans bleus, redémarrages brutaux et applications qui se ferment : les causes probables, d'après les journaux de Windows.", "Analyser", () => f.OuvrirOutil("plantages")).Plus(),
             }, "Materiel");
@@ -46,7 +47,7 @@ namespace NettoyagePC.Nouveau
             s.Children.Add(new Reseau5(f));
             s.Children.Add(Cartes.Page(f, null, new[]
             {
-                CarteAction.Code("Paramètres réseau de Windows", "Wi-Fi, Ethernet, VPN, mode avion : les réglages de Windows.", "Ouvrir", () => Programmes.Ouvrir("ms-settings:network")),
+                CarteAction.Code("Test du Wi-Fi", "Force du signal, bande (2,4 ou 5 GHz), canal et réseaux voisins qui gênent, avec des conseils pour une connexion plus rapide. Lecture seule.", "Tester le Wi-Fi", () => Wifi5.Ouvrir(f), true).Aussi("Réglages de Windows", () => Programmes.Ouvrir("ms-settings:network")),
             }, "Reseau"));
             return s;
         }
@@ -164,12 +165,11 @@ namespace NettoyagePC.Nouveau
                 CarteAction.Code("Communauté Discord", "Le serveur officiel de Velox : aide rapide, nouveautés en avant-première, concours et partage de ton rang de joueur.", "Rejoindre le Discord", () => { try { Programmes.Ouvrir(Boutique.UrlDiscord); } catch { } }),
                 CarteAction.Code("Signaler un problème", "Un bogue, une fenêtre qui se ferme ? Envoie un rapport anonyme à l'éditeur : tu le vois en entier avant l'envoi.", "Signaler", () => Signaler5.Ouvrir(F)),
                 CarteAction.Code("Aider quelqu'un", "Pour dépanner un proche : ouvre l'Assistance rapide, clique sur « Aider quelqu'un » (compte Microsoft demandé), puis donne-lui le code.", "Ouvrir l'Assistance rapide", OuvrirAssistance),
-                CarteAction.Code("Journal de démarrage", "Si Velox se ferme ou affiche une erreur, ce fichier explique pourquoi : envoie-le à la personne qui t'aide.", "Montrer le fichier", () =>
+                CarteAction.Code("Journal de démarrage", "Si Velox se ferme ou affiche une erreur, ce fichier explique pourquoi : envoie-le à la personne qui t'aide. « Journaux des actions » ouvre le détail de chaque nettoyage et de chaque bilan (gardés 60 jours).", "Montrer le fichier", () =>
                 {
                     if (File.Exists(JournalDemarrage.Fichier)) Programmes.MontrerDansExplorateur(JournalDemarrage.Fichier);
                     else F.Demander("Journal de démarrage", "Le journal de démarrage est vide pour l'instant.", "Compris", null, r => { });
-                }).Plus(),
-                CarteAction.Code("Journaux des actions", "Le détail de chaque nettoyage et de chaque bilan, dans Documents\\NettoyagePC (gardés 60 jours).", "Ouvrir le dossier", () => { Chemins.CreerDonnees(); Programmes.Ouvrir(Chemins.Donnees); }).Plus(),
+                }).Aussi("Journaux des actions", () => { Chemins.CreerDonnees(); Programmes.Ouvrir(Chemins.Donnees); }).Plus(),
             }, "Aide"));
         }
 

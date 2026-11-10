@@ -196,6 +196,8 @@ namespace NettoyagePC.Nouveau
             l.Add(new EntreeCommande { Titre = Langue.T("Ping des serveurs de jeu"), Detail = Langue.T("Latence vers les régions de serveurs."), Type = "Action", Faire = () => PingJeu5.Ouvrir(this) });
             l.Add(new EntreeCommande { Titre = Langue.T("Mes jeux"), Detail = Langue.T("Tes jeux installés et la place qu'ils prennent."), Type = "Action", Faire = () => MesJeux5.Ouvrir(this) });
             l.Add(new EntreeCommande { Titre = Langue.T("Minuteur d'extinction"), Detail = Langue.T("Éteindre le PC dans un moment."), Type = "Action", Faire = () => Extinction5.Ouvrir(this) });
+            l.Add(new EntreeCommande { Titre = Langue.T("Test du Wi-Fi"), Detail = Langue.T("Signal, bande, canal et conseils."), Type = "Action", Faire = () => Wifi5.Ouvrir(this) });
+            l.Add(new EntreeCommande { Titre = Langue.T("FPS en direct dans l'overlay"), Detail = Langue.T("Premium : les images par seconde de ton jeu, en direct"), Type = "Action", Faire = () => Overlay5.BasculerFps(this, null) });
             l.Add(new EntreeCommande { Titre = Langue.T("Overlay : changer de coin"), Detail = Langue.T("Haut gauche, haut droite, bas droite, bas gauche"), Type = "Action", Faire = () => Overlay5.ChangerCoin(this) });
             l.Add(new EntreeCommande { Titre = Langue.T("Rejoindre le Discord"), Detail = Langue.T("Le serveur officiel de Velox : aide, nouveautés, concours"), Type = "Action", Faire = () => { try { Programmes.Ouvrir(Boutique.UrlDiscord); } catch { } } });
             l.Add(new EntreeCommande { Titre = Langue.T("Partager mon rang sur Discord"), Detail = Langue.T("Copie ton code de joueur pour la commande /score"), Type = "Action", Faire = () => Progression5.PartagerDiscord(this) });
@@ -414,6 +416,7 @@ namespace NettoyagePC.Nouveau
             if (cle == "pingjeu") { PingJeu5.Ouvrir(this); return true; }
             if (cle == "mesjeux") { MesJeux5.Ouvrir(this); return true; }
             if (cle == "extinction") { Extinction5.Ouvrir(this); return true; }
+            if (cle == "wifi") { Wifi5.Ouvrir(this); return true; }
             Action ouvrir;
             if (!outils.TryGetValue(cle, out ouvrir))
             {

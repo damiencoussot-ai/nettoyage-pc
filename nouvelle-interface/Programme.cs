@@ -253,6 +253,54 @@ namespace NettoyagePC.Nouveau
                     rapport.AppendLine("Jeux détectés : " + jeux.Count);
                     rapport.AppendLine("Extinction prévue : " + (Extinction.Prevue() == null ? "aucune" : "oui"));
                     rapport.AppendLine("Démarrages notés : " + TempsDemarrage.Lire().Count + " ; code de joueur : " + Succes.CodePartage(Succes.Exemple()));
+                    // ---- 5.11
+                    double u1 = UsageGpu.Lire(); System.Threading.Thread.Sleep(1700); double u2 = UsageGpu.Lire();
+                    rapport.AppendLine("Utilisation GPU : " + u1 + " puis " + u2 + " (−1 = pas de compteur sur cette machine)");
+                    var wifi = Wifi.Lire(); string vw; int nw; var cw = Wifi.Conseils(wifi, out vw, out nw);
+                    rapport.AppendLine("Wi-Fi : disponible " + wifi.Disponible + ", connecté " + wifi.Connecte + ", erreur « " + wifi.Erreur + " » ; verdict : " + vw + " (" + cw.Count + " conseil(s))");
+                    double bande; int canal = Wifi.CanalDepuisFrequence(5180000, out bande);
+                    if (canal != 36 || bande != 5 || Wifi.CanalDepuisFrequence(2437000, out bande) != 6 || bande != 2.4 || Wifi.CanalDepuisFrequence(5955000, out bande) != 1 || bande != 6)
+                    { erreurs++; rapport.AppendLine("ERREUR : canaux Wi-Fi mal calculés"); }
+                    var progs = ProgrammesInstalles.Lister();
+                    rapport.AppendLine("Programmes installés : " + progs.Count);
+                    if (Desinstalleur.NomSimple("Mon Appli 2.4.1 (x64)") != "Mon Appli" || Desinstalleur.NomSimple("Outil (64-bit)") != "Outil") { erreurs++; rapport.AppendLine("ERREUR : nom simplifié : " + Desinstalleur.NomSimple("Mon Appli 2.4.1 (x64)") + " / " + Desinstalleur.NomSimple("Outil (64-bit)")); }
+                    // restes : un faux programme « VeloxEssaiRestes » avec un dossier de réglages et un raccourci, créés puis retirés ici
+                    string nomEssai = "VeloxEssaiRestes";
+                    string dRoaming = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), nomEssai);
+                    string lnk = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory), nomEssai + ".lnk");
+                    Directory.CreateDirectory(dRoaming); File.WriteAllText(Path.Combine(dRoaming, "reglages.txt"), new string('x', 5000));
+                    Directory.CreateDirectory(Path.GetDirectoryName(lnk)); File.WriteAllText(lnk, "essai");
+                    var restes = Desinstalleur.ChercherRestes(new ProgrammeInstalle { Nom = nomEssai + " 1.2.3", Dossier = "" }, progs);
+                    rapport.AppendLine("Restes trouvés : " + string.Join(" | ", restes.Select(x => x.Genre + " " + x.Chemin + " (" + x.Taille + " o, protégé " + x.Protege + ")")));
+                    if (restes.Count != 2 || restes.Any(x => x.Protege)) { erreurs++; rapport.AppendLine("ERREUR : restes attendus : 2, non protégés"); }
+                    int retires = restes.Count(Desinstalleur.Retirer);
+                    rapport.AppendLine("Restes mis à la corbeille : " + retires + " ; dossier encore là : " + Directory.Exists(dRoaming) + " ; raccourci encore là : " + File.Exists(lnk));
+                    if (Directory.Exists(dRoaming) || File.Exists(lnk))
+                    {
+                        // sur une machine sans corbeille (serveur d'essai), Windows refuse : ce n'est pas une erreur de Velox, on nettoie
+                        rapport.AppendLine("  (corbeille refusée sur cette machine : nettoyage direct de l'essai)");
+                        try { Directory.Delete(dRoaming, true); } catch { } try { File.Delete(lnk); } catch { }
+                    }
+                    else
+                    {
+                        int okR, perdus; Historique.RestaurerCorbeille(new[] { dRoaming, lnk }, out okR, out perdus);
+                        rapport.AppendLine("Restauration depuis la corbeille : " + okR + " remis, " + perdus + " introuvable(s) ; dossier revenu : " + Directory.Exists(dRoaming));
+                        if (okR != 2 || !File.Exists(Path.Combine(dRoaming, "reglages.txt"))) { erreurs++; rapport.AppendLine("ERREUR : restauration des restes"); }
+                        try { Directory.Delete(dRoaming, true); } catch { } try { File.Delete(lnk); } catch { }
+                    }
+                    // FPS en direct : lecture d'un fichier de mesures fabriqué (2 programmes, 100 puis 50 images)
+                    string csv = Path.Combine(Path.GetTempPath(), "velox-essai-fps.csv");
+                    var sb = new System.Text.StringBuilder("Application,ProcessID,SwapChainAddress,PresentRuntime,MsBetweenPresents\r\n");
+                    for (int i = 0; i < 100; i++) sb.Append("jeu.exe,4242,0x1,DXGI,10.0\r\n");
+                    for (int i = 0; i < 30; i++) sb.Append("dwm.exe,900,0x2,DXGI,16.6\r\n");
+                    File.WriteAllText(csv, sb.ToString());
+                    string app; double fps1 = Fps.LireDirect(csv, 0, out app);
+                    sb.Clear(); for (int i = 0; i < 50; i++) sb.Append("jeu.exe,4242,0x1,DXGI,20.0\r\n");
+                    File.AppendAllText(csv, sb.ToString());
+                    string app2; double fps2 = Fps.LireDirect(csv, 4242, out app2);
+                    rapport.AppendLine("FPS en direct (fichier d'essai) : " + Math.Round(fps1) + " (" + app + ") puis " + Math.Round(fps2) + " (" + app2 + ")");
+                    if (Math.Abs(fps1 - 100) > 0.5 || Math.Abs(fps2 - 50) > 0.5 || app != "jeu.exe") { erreurs++; rapport.AppendLine("ERREUR : calcul des FPS en direct"); }
+                    try { File.Delete(csv); } catch { }
                 }
                 catch (Exception ex) { erreurs++; rapport.AppendLine("ERREUR : essais 5.10 : " + ex); }
             }
@@ -667,6 +715,18 @@ namespace NettoyagePC.Nouveau
                 Extinction5.Ouvrir(f);
                 Capturer(f, dossier, "sombre-extinction.png", rapport, ref erreurs);
                 f.ViderCalques(); Extinction5.Exemple = false;
+                // ---- 5.11 : test du Wi-Fi, restes d'un programme désinstallé
+                Wifi5.Exemple = new EtatWifi
+                {
+                    Disponible = true, Connecte = true, Nom = "Livebox-A4F2", Carte = "Intel Wi-Fi 6E AX211", Norme = "Wi-Fi 6 (802.11ax)", Signal = 62, Canal = 6, Bande = 2.4, DebitMbps = 144, VoisinsLus = true, Genants = 5, BandeRapideDisponible = true,
+                    Voisins = Enumerable.Range(0, 9).Select(i => new ReseauVoisin { Nom = "Box-" + i, Signal = 40 + i * 3, Canal = i < 5 ? 6 : 11, Bande = 2.4 }).ToList(),
+                };
+                Wifi5.Ouvrir(f);
+                Capturer(f, dossier, "sombre-wifi.png", rapport, ref erreurs);
+                f.ViderCalques(); Wifi5.Exemple = null;
+                Restes5.OuvrirExemple(f);
+                Capturer(f, dossier, "sombre-restes.png", rapport, ref erreurs);
+                f.ViderCalques(); Restes5.Exemple = false;
 
                 MajApps5.Exemple = new System.Collections.Generic.List<AppAMettreAJour>
                 {

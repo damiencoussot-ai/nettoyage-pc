@@ -36,7 +36,45 @@ namespace NettoyagePC.Nouveau
         private static Window fenetre;
         private static FenetrePrincipale principale;
         private static bool raccourci;
-        private static TextBlock tCpu, tGpu, tRam, tHeure;
+        private static TextBlock tCpu, tGpu, tRam, tHeure, tFps;
+        private static StackPanel zoneFps;
+        private static Border cadreOverlay;
+        private static int chaud;                                   // relevés chauds d'affilée
+        private static DateTime derniereAlerte = DateTime.MinValue;
+        [DllImport("user32.dll")] private static extern IntPtr GetForegroundWindow();
+        [DllImport("user32.dll")] private static extern uint GetWindowThreadProcessId(IntPtr h, out uint pid);
+        private static readonly Color Rose = Color.FromArgb(170, 255, 43, 214), Rouge = Color.FromRgb(255, 70, 90);
+
+        /// <summary>FPS en direct (Premium) : démarre ou arrête le compteur d'images de l'overlay. Une autorisation de Windows au démarrage.</summary>
+        public static void BasculerFps(FenetrePrincipale f, Action<bool> fini)
+        {
+            if (Fps.DirectActif)
+            {
+                Fps.ArreterDirect();
+                if (zoneFps != null) zoneFps.IsVisible = false;
+                f.Statut(Langue.T("FPS en direct arrêtés."));
+                if (fini != null) fini(false);
+                return;
+            }
+            if (!Licence.Premium) { Achat5.Ouvrir(f); if (fini != null) fini(false); return; }
+            f.Demander(Langue.T("Afficher les FPS en direct ?"),
+                Langue.T("Velox compte les images affichées avec PresentMon (outil libre d'Intel, téléchargé depuis sa page officielle et vérifié). Windows demande une autorisation une seule fois. Le compteur s'arrête tout seul quand tu fermes Velox."),
+                "Afficher les FPS", "Annuler", oui =>
+            {
+                if (!oui) { if (fini != null) fini(false); return; }
+                f.Statut(Langue.T("Préparation des FPS en direct…"));
+                Task.Run(() => Fps.DemarrerDirect(t => Dispatcher.UIThread.Post(() => f.Statut(t)))).ContinueWith(t => Dispatcher.UIThread.Post(() =>
+                {
+                    string err = t.IsFaulted ? Langue.T("FPS en direct impossibles : ") + (t.Exception.InnerException ?? t.Exception).Message : t.Result;
+                    if (err != "") { f.Statut(err, true); if (fini != null) fini(false); return; }
+                    if (fenetre == null) Basculer(f, true);
+                    if (zoneFps != null) zoneFps.IsVisible = true;
+                    f.Statut(Langue.T("FPS en direct : le compteur apparaît dans l'overlay dès qu'un jeu affiche des images."));
+                    Task.Run(() => JournalJeu.Noter("fpsdirect"));
+                    if (fini != null) fini(true);
+                }));
+            });
+        }
         private static DispatcherTimer minuteur;
         private static bool mesureEnCours;
 
@@ -105,7 +143,7 @@ namespace NettoyagePC.Nouveau
             if (fenetre != null) { fenetre.Close(); f.EnregistrerReglage(r => r.OverlayJeu = false); return; }
             Ouvrir(f);
             f.EnregistrerReglage(r => r.OverlayJeu = true);
-            if (!parRaccourci) f.Statut(Langue.T("Overlay en jeu affiché en haut à gauche de l'écran : Ctrl+Alt+O pour l'afficher ou le cacher."));
+            if (!parRaccourci) f.Statut(Langue.T("Overlay en jeu affiché : Ctrl+Alt+O pour l'afficher ou le cacher."));
         }
 
         private static TextBlock Valeur() { return new TextBlock { FontFamily = Habillage.Console, FontSize = 13, Foreground = Brushes.White, VerticalAlignment = VerticalAlignment.Center }; }
@@ -113,10 +151,14 @@ namespace NettoyagePC.Nouveau
 
         private static void Ouvrir(FenetrePrincipale f)
         {
-            tCpu = Valeur(); tGpu = Valeur(); tRam = Valeur(); tHeure = Valeur();
-            tCpu.Text = tGpu.Text = tRam.Text = "…"; tHeure.Text = DateTime.Now.ToString("HH:mm");
+            tCpu = Valeur(); tGpu = Valeur(); tRam = Valeur(); tHeure = Valeur(); tFps = Valeur();
+            tCpu.Text = tGpu.Text = tRam.Text = "…"; tHeure.Text = DateTime.Now.ToString("HH:mm"); tFps.Text = "…";
+            tFps.FontSize = 15; tFps.FontWeight = FontWeight.Bold; tFps.Foreground = new SolidColorBrush(Color.FromRgb(120, 255, 170));
+            zoneFps = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 4, IsVisible = Fps.DirectActif, Children = { Nom("FPS"), tFps, new Border { Width = 14 } } };
+            chaud = 0;
             var ligne = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 4 };
             ligne.Children.Add(new TextBlock { Text = "V//", FontFamily = Habillage.Affichage, FontSize = 13, FontWeight = FontWeight.Bold, Foreground = new SolidColorBrush(Color.FromRgb(34, 230, 255)), VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 8, 0) });
+            ligne.Children.Add(zoneFps);
             ligne.Children.Add(Nom("CPU")); ligne.Children.Add(tCpu);
             ligne.Children.Add(new Border { Width = 14 });
             ligne.Children.Add(Nom("GPU")); ligne.Children.Add(tGpu);
@@ -125,6 +167,7 @@ namespace NettoyagePC.Nouveau
             ligne.Children.Add(new Border { Width = 14 });
             ligne.Children.Add(tHeure);
             var cadre = new Border { Child = ligne, Padding = new Thickness(12, 6), Background = new SolidColorBrush(Color.FromArgb(185, 8, 3, 20)), BorderBrush = new SolidColorBrush(Color.FromArgb(170, 255, 43, 214)), BorderThickness = new Thickness(1) };
+            cadreOverlay = cadre;   // gardé pour le passer en rouge en cas de surchauffe
             var w = new Window
             {
                 SizeToContent = SizeToContent.WidthAndHeight, SystemDecorations = SystemDecorations.None, Topmost = true, CanResize = false, ShowInTaskbar = false, ShowActivated = false,
@@ -192,22 +235,44 @@ namespace NettoyagePC.Nouveau
             mesureEnCours = true;
             Task.Run(() =>
             {
-                Mesures m = null; double g = -1;
+                Mesures m = null; double g = -1, usage = -1, fps = -1;
                 try { m = f.Source.Mesurer(true); } catch { }
                 try { g = TemperatureGpu.Lire(); } catch { }
-                return Tuple.Create(m, g);
+                try { usage = UsageGpu.Lire(); } catch { }
+                if (Fps.DirectActif)
+                {
+                    try { uint pid; GetWindowThreadProcessId(GetForegroundWindow(), out pid); string app; fps = Fps.LireDirect(Fps.CsvDirect, (int)pid, out app); } catch { fps = -1; }
+                }
+                return Tuple.Create(m, g, usage, fps);
             }).ContinueWith(t => Dispatcher.UIThread.Post(() =>
             {
                 mesureEnCours = false;
                 if (fenetre == null || t.IsFaulted) return;
-                var m = t.Result.Item1; double g = t.Result.Item2;
+                var m = t.Result.Item1; double g = t.Result.Item2, usage = t.Result.Item3, fps = t.Result.Item4;
+                if (zoneFps != null)
+                {
+                    bool actif = Fps.DirectActif;
+                    if (zoneFps.IsVisible != actif) { zoneFps.IsVisible = actif; Dispatcher.UIThread.Post(() => { try { if (fenetre != null) Placer(fenetre); } catch { } }, DispatcherPriority.Background); }
+                    if (actif && fps > -2) tFps.Text = fps > 0 ? Math.Round(fps).ToString() : "—";   // -2 : pas de nouvelle image depuis une seconde, on garde l'affichage
+                }
+                // surchauffe : cadre rouge tout de suite, alerte (message + son) après 5 secondes d'affilée, au plus toutes les 10 minutes
+                bool tropChaud = (m != null && m.Temperature >= 92) || g >= 90;
+                chaud = tropChaud ? chaud + 1 : 0;
+                if (cadreOverlay != null) cadreOverlay.BorderBrush = new SolidColorBrush(tropChaud ? Rouge : Rose);
+                if (chaud == 5 && (DateTime.Now - derniereAlerte).TotalMinutes >= 10)
+                {
+                    derniereAlerte = DateTime.Now;
+                    f.Statut(Langue.F("Surchauffe : {0}. Baisse les réglages graphiques du jeu ou vérifie les ventilateurs.", g >= 90 ? Langue.F("carte graphique à {0} °C", Math.Round(g)) : Langue.F("processeur à {0} °C", Math.Round(m.Temperature))), true);
+                    try { Sons5.Alerte(); } catch { }
+                    Task.Run(() => JournalJeu.Noter("surchauffe"));
+                }
                 if (m != null)
                 {
                     tCpu.Text = (m.Processeur >= 0 ? Math.Round(m.Processeur) + "%" : "—") + (m.Temperature > 0 ? " " + Math.Round(m.Temperature) + "°" : "");
                     tRam.Text = m.Memoire >= 0 ? Math.Round(m.Memoire) + "%" : "—";
                     tCpu.Foreground = new SolidColorBrush(m.Temperature >= 85 ? Color.FromRgb(255, 122, 138) : Colors.White);
                 }
-                tGpu.Text = g > 0 ? Math.Round(g) + "°" : "—";
+                tGpu.Text = (usage >= 0 ? Math.Round(usage) + "%" : "") + (g > 0 ? (usage >= 0 ? " " : "") + Math.Round(g) + "°" : usage >= 0 ? "" : "—");
                 tGpu.Foreground = new SolidColorBrush(g >= 85 ? Color.FromRgb(255, 122, 138) : Colors.White);
                 tHeure.Text = DateTime.Now.ToString("HH:mm");
             }));
@@ -249,6 +314,8 @@ namespace NettoyagePC.Nouveau
                     if (m.Temperature > 0) TempMax = Math.Max(TempMax, m.Temperature);
                     if (t.Result.Item2 > 0) GpuMax = Math.Max(GpuMax, t.Result.Item2);
                     if (m.Memoire >= 0) RamMax = Math.Max(RamMax, m.Memoire);
+                    // surchauffe pendant une partie alors que l'overlay est caché : il s'affiche (cadre rouge), pour que ça se voie en jeu
+                    if ((m.Temperature >= 92 || t.Result.Item2 >= 90) && !Overlay5.Ouvert && OperatingSystem.IsWindows() && !f.Source.Immediat) { try { Overlay5.Basculer(f, true); } catch { } }
                     if (NbMesures % 3 == 0) Enregistrer();
                 }));
         }
