@@ -160,6 +160,7 @@ namespace NettoyagePC.Nouveau
 
         private static void Capturer(FenetrePrincipale f, string dossier, string nom, System.Text.StringBuilder rapport, ref int erreurs)
         {
+            Console.Error.WriteLine("capture : " + nom); Console.Error.Flush();   // pour situer un arrêt brutal du rendu
             for (int k = 0; k < 6; k++) { Dispatcher.UIThread.RunJobs(); AvaloniaHeadlessPlatform.ForceRenderTimerTick(); }
             var image = f.CaptureRenderedFrame();
             if (image == null) { erreurs++; rapport.AppendLine("ERREUR : capture vide " + nom); return; }
