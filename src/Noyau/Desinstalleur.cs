@@ -57,6 +57,10 @@ namespace NettoyagePC
             string roaming = dossier("ApplicationData"), local = dossier("LocalApplicationData"), commun = dossier("CommonApplicationData"),
                    pf = dossier("ProgramFiles"), pf86 = dossier("ProgramFilesX86"), menu = dossier("Programs"), menuCommun = dossier("CommonPrograms"),
                    bureau = dossier("DesktopDirectory"), profil = dossier("UserProfile");
+            // dossiers personnels et dossiers connus : jamais eux-mêmes, jamais un dossier qui les contient
+            var intouchables = new List<string> { roaming, local, commun, pf, pf86, menu, menuCommun, bureau, profil,
+                dossier("MyDocuments"), dossier("MyPictures"), dossier("MyMusic"), dossier("MyVideos"), dossier("Desktop"), dossier("Windows"), dossier("CommonDocuments"),
+                profil == "" ? "" : Path.Combine(profil, "Downloads"), profil == "" ? "" : Path.Combine(profil, "OneDrive") };
             var vus = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             Action<string, string> ajouter = (chemin, genre) =>
             {
@@ -68,8 +72,10 @@ namespace NettoyagePC
                     if (!estDossier && !File.Exists(plein)) return;
                     if (plein.Length < 12 || !vus.Add(plein)) return;
                     // jamais la racine d'un dossier connu, ni un lien, ni un dossier où un autre programme est installé
-                    foreach (string r in new[] { roaming, local, commun, pf, pf86, menu, menuCommun, bureau, profil })
-                        if (r != "" && plein.Equals(r.TrimEnd('\\'), StringComparison.OrdinalIgnoreCase)) return;
+                    foreach (string r in intouchables)
+                        if (r != "" && (r.TrimEnd('\\') + "\\").StartsWith(plein + "\\", StringComparison.OrdinalIgnoreCase)) return;
+                    // un dossier directement à la racine d'un disque (« D:\\Jeux ») peut contenir autre chose : jamais proposé
+                    if (estDossier && plein.Split('\\').Length < 3) return;
                     if (Natif.EstLien(plein)) return;
                     if (estDossier && autres.Any(a => !string.IsNullOrEmpty(a.Dossier) && (a.Dossier.TrimEnd('\\') + "\\").StartsWith(plein + "\\", StringComparison.OrdinalIgnoreCase))) return;
                     bool protege = Protection.RacinesProtegees().Any(r => Protection.SousRacine(plein, r));

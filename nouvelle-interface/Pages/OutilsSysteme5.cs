@@ -138,6 +138,8 @@ namespace NettoyagePC.Nouveau
         /// <summary>Surveille la disparition du programme de la liste de Windows (20 minutes au plus), puis cherche ses restes.</summary>
         public static void Suivre(FenetrePrincipale f, ProgrammeInstalle p, List<ProgrammeInstalle> tous, Action fini)
         {
+            string cle = (p.Cle ?? "") + "|" + (p.Nom ?? "");
+            if (!suivis.Add(cle)) return;   // déjà surveillé (deux clics sur « Désinstaller »)
             var limite = DateTime.Now.AddMinutes(20);
             var minuteur = new DispatcherTimer { Interval = TimeSpan.FromSeconds(2) };
             bool enCours = false;
@@ -152,6 +154,7 @@ namespace NettoyagePC.Nouveau
                     bool encore = t.IsFaulted || t.Result;
                     if (encore && !expire) return;
                     minuteur.Stop();
+                    suivis.Remove(cle);
                     if (encore) { if (fini != null) fini(); return; }
                     f.Statut(Langue.F("« {0} » est désinstallé. Recherche de ce qu'il a laissé…", p.Nom));
                     var autres = tous.Where(x => x != p).ToList();
@@ -166,6 +169,8 @@ namespace NettoyagePC.Nouveau
             };
             minuteur.Start();
         }
+
+        private static readonly HashSet<string> suivis = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
         public static void Ouvrir(FenetrePrincipale f, string nom, List<Reste> restes)
         {

@@ -41,6 +41,17 @@ namespace NettoyagePC.Nouveau
         private static Border cadreOverlay;
         private static int chaud;                                   // relevés chauds d'affilée
         private static DateTime derniereAlerte = DateTime.MinValue;
+        private static double seuilCpu;                             // 0 = pas encore déterminé
+        public const double SeuilGpu = 90;
+        /// <summary>Température à partir de laquelle le processeur est jugé trop chaud : 92 °C, mais 87 °C pour les Ryzen X3D
+        /// (leur limite est 89 °C : ils ralentissent avant d'atteindre 92). Lu une fois, hors du fil de l'interface.</summary>
+        public static double SeuilCpu()
+        {
+            if (seuilCpu > 0) return seuilCpu;
+            string nom = "";
+            try { nom = InfosPc.Processeur() ?? ""; } catch { }
+            return seuilCpu = nom.IndexOf("X3D", StringComparison.OrdinalIgnoreCase) >= 0 ? 87 : 92;
+        }
         [DllImport("user32.dll")] private static extern IntPtr GetForegroundWindow();
         [DllImport("user32.dll")] private static extern uint GetWindowThreadProcessId(IntPtr h, out uint pid);
         private static readonly Color Rose = Color.FromArgb(170, 255, 43, 214), Rouge = Color.FromRgb(255, 70, 90);
@@ -243,6 +254,7 @@ namespace NettoyagePC.Nouveau
                 {
                     try { uint pid; GetWindowThreadProcessId(GetForegroundWindow(), out pid); string app; fps = Fps.LireDirect(Fps.CsvDirect, (int)pid, out app); } catch { fps = -1; }
                 }
+                try { SeuilCpu(); } catch { }
                 return Tuple.Create(m, g, usage, fps);
             }).ContinueWith(t => Dispatcher.UIThread.Post(() =>
             {
@@ -256,13 +268,13 @@ namespace NettoyagePC.Nouveau
                     if (actif && fps > -2) tFps.Text = fps > 0 ? Math.Round(fps).ToString() : "—";   // -2 : pas de nouvelle image depuis une seconde, on garde l'affichage
                 }
                 // surchauffe : cadre rouge tout de suite, alerte (message + son) après 5 secondes d'affilée, au plus toutes les 10 minutes
-                bool tropChaud = (m != null && m.Temperature >= 92) || g >= 90;
+                bool tropChaud = (m != null && m.Temperature >= (seuilCpu > 0 ? seuilCpu : 92)) || g >= SeuilGpu;
                 chaud = tropChaud ? chaud + 1 : 0;
                 if (cadreOverlay != null) cadreOverlay.BorderBrush = new SolidColorBrush(tropChaud ? Rouge : Rose);
                 if (chaud == 5 && (DateTime.Now - derniereAlerte).TotalMinutes >= 10)
                 {
                     derniereAlerte = DateTime.Now;
-                    f.Statut(Langue.F("Surchauffe : {0}. Baisse les réglages graphiques du jeu ou vérifie les ventilateurs.", g >= 90 ? Langue.F("carte graphique à {0} °C", Math.Round(g)) : Langue.F("processeur à {0} °C", Math.Round(m.Temperature))), true);
+                    f.Statut(Langue.F("Surchauffe : {0}. Baisse les réglages graphiques du jeu ou vérifie les ventilateurs.", g >= SeuilGpu ? Langue.F("carte graphique à {0} °C", Math.Round(g)) : Langue.F("processeur à {0} °C", Math.Round(m.Temperature))), true);
                     try { Sons5.Alerte(); } catch { }
                     Task.Run(() => JournalJeu.Noter("surchauffe"));
                 }
@@ -285,6 +297,7 @@ namespace NettoyagePC.Nouveau
     {
         private static DispatcherTimer minuteur;
         private static bool enCours;
+        private static DateTime overlayForce = DateTime.MinValue;   // dernière fois que la surchauffe a affiché l'overlay
         public static double CpuMoyen, CpuMax, TempMax = -1, GpuMax = -1, RamMax; public static int NbMesures;
         private static string Fichier { get { return Chemins.Fichier("session-jeu.json"); } }
 
@@ -304,7 +317,7 @@ namespace NettoyagePC.Nouveau
         {
             if (enCours || !Gamer5.ModeJeuActif()) return;
             enCours = true;
-            Task.Run(() => { Mesures m = null; double g = -1; try { m = f.Source.Mesurer(true); } catch { } try { g = TemperatureGpu.Lire(); } catch { } return Tuple.Create(m, g); })
+            Task.Run(() => { Mesures m = null; double g = -1; try { m = f.Source.Mesurer(true); } catch { } try { g = TemperatureGpu.Lire(); } catch { } try { Overlay5.SeuilCpu(); } catch { } return Tuple.Create(m, g); })
                 .ContinueWith(t => Dispatcher.UIThread.Post(() =>
                 {
                     enCours = false;
@@ -315,7 +328,9 @@ namespace NettoyagePC.Nouveau
                     if (t.Result.Item2 > 0) GpuMax = Math.Max(GpuMax, t.Result.Item2);
                     if (m.Memoire >= 0) RamMax = Math.Max(RamMax, m.Memoire);
                     // surchauffe pendant une partie alors que l'overlay est caché : il s'affiche (cadre rouge), pour que ça se voie en jeu
-                    if ((m.Temperature >= 92 || t.Result.Item2 >= 90) && !Overlay5.Ouvert && OperatingSystem.IsWindows() && !f.Source.Immediat) { try { Overlay5.Basculer(f, true); } catch { } }
+                    // (au plus une fois toutes les 10 minutes : si tu le caches, il ne revient pas aussitôt)
+                    if ((m.Temperature >= Overlay5.SeuilCpu() || t.Result.Item2 >= Overlay5.SeuilGpu) && !Overlay5.Ouvert && OperatingSystem.IsWindows() && !f.Source.Immediat && (DateTime.Now - overlayForce).TotalMinutes >= 10)
+                    { overlayForce = DateTime.Now; try { Overlay5.Basculer(f, true); } catch { } }
                     if (NbMesures % 3 == 0) Enregistrer();
                 }));
         }

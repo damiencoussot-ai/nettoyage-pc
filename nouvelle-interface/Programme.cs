@@ -301,6 +301,33 @@ namespace NettoyagePC.Nouveau
                     rapport.AppendLine("FPS en direct (fichier d'essai) : " + Math.Round(fps1) + " (" + app + ") puis " + Math.Round(fps2) + " (" + app2 + ")");
                     if (Math.Abs(fps1 - 100) > 0.5 || Math.Abs(fps2 - 50) > 0.5 || app != "jeu.exe") { erreurs++; rapport.AppendLine("ERREUR : calcul des FPS en direct"); }
                     try { File.Delete(csv); } catch { }
+                    string appVide; Fps.LireDirect(csv, 0, out appVide);   // fichier absent : la lecture repart de zéro
+                    // FPS en direct pour de vrai : PresentMon officiel téléchargé, lancé comme le fait le processus administrateur,
+                    // et son fichier de mesures lu PENDANT qu'il tourne ; puis arrêt dès que le témoin disparaît.
+                    try
+                    {
+                        string emp = null, ver, src = "-";
+                        if (Fps.OutilPresent) emp = Moteur.Empreinte(Fps.Exe); else src = Fps.Telecharger(out emp, out ver);
+                        var tem = new System.Threading.Mutex(false, @"Local\VeloxFpsDirect");
+                        var tache = System.Threading.Tasks.Task.Run(() => Fps.DirectEnAdmin(new[] { "fps-direct", src, emp }));
+                        bool lisible = false; long taille = -1; double vu = -1; string appVue = ""; int lectures = 0;
+                        for (int i = 0; i < 12 && !tache.IsCompleted; i++)
+                        {
+                            System.Threading.Thread.Sleep(1000);
+                            try { using (var fs = new FileStream(Fps.CsvDirect, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete)) { lisible = true; taille = fs.Length; } } catch { }
+                            string a2; double v = Fps.LireDirect(Fps.CsvDirect, 0, out a2); lectures++;
+                            if (v > 0) { vu = v; appVue = a2; }
+                        }
+                        bool finiTropTot = tache.IsCompleted;
+                        string fin = finiTropTot ? (tache.IsFaulted ? "exception " + tache.Exception.InnerException : "code " + tache.Result) : "en marche";
+                        tem.Dispose();
+                        bool arrete = false; try { arrete = tache.Wait(25000); } catch { arrete = true; }
+                        bool reste = File.Exists(Fps.CsvDirect);
+                        rapport.AppendLine("FPS en direct (PresentMon réel) : fichier lisible pendant la mesure " + lisible + " (" + taille + " o), " + lectures + " lecture(s), FPS vus " + Math.Round(vu) + " (" + appVue + "), état avant l'arrêt : " + fin + ", arrêté après le témoin : " + arrete + ", fichier laissé : " + reste);
+                        if (finiTropTot && tache.IsFaulted && tache.Exception.InnerException is System.Net.WebException) rapport.AppendLine("(réseau indisponible : essai non concluant)");
+                        else if (!lisible || finiTropTot || !arrete || reste) { erreurs++; rapport.AppendLine("ERREUR : FPS en direct avec le vrai PresentMon"); }
+                    }
+                    catch (System.Net.WebException ex) { rapport.AppendLine("FPS en direct (PresentMon réel) : non essayé, téléchargement impossible : " + ex.Message); }
                 }
                 catch (Exception ex) { erreurs++; rapport.AppendLine("ERREUR : essais 5.10 : " + ex); }
             }

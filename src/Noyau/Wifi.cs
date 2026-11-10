@@ -21,6 +21,8 @@ namespace NettoyagePC
         public double Bande;             // 2.4, 5 ou 6 (GHz) ; 0 = inconnue
         public double DebitMbps = -1;
         public bool VoisinsLus;
+        /// <summary>Windows a refusé de donner les détails (depuis Windows 11 24H2, il faut l'autorisation « Localisation »).</summary>
+        public bool Refuse;
         public List<ReseauVoisin> Voisins = new List<ReseauVoisin>();
         /// <summary>Autres réseaux qui gênent le canal utilisé (même canal en 5/6 GHz, canaux qui se chevauchent en 2,4 GHz).</summary>
         public int Genants;
@@ -95,7 +97,9 @@ namespace NettoyagePC
                 if (e.Connecte)
                 {
                     uint taille; IntPtr donnees;
-                    if (WlanQueryInterface(client, ref guid, 7, IntPtr.Zero, out taille, out donnees, IntPtr.Zero) == 0 && donnees != IntPtr.Zero)   // connexion en cours
+                    uint rc = WlanQueryInterface(client, ref guid, 7, IntPtr.Zero, out taille, out donnees, IntPtr.Zero);   // connexion en cours
+                    if (rc == 5) e.Refuse = true;   // accès refusé
+                    if (rc == 0 && donnees != IntPtr.Zero)
                     {
                         try
                         {
@@ -162,6 +166,13 @@ namespace NettoyagePC
             niveau = 0;
             if (!e.Disponible) { verdict = "Ce PC n'a pas de Wi-Fi (ou il est désactivé)."; c.Add("Si ton PC est branché à la box par un câble réseau, c'est la meilleure connexion possible pour jouer : rien à faire."); return c; }
             if (!e.Connecte) { verdict = "Le Wi-Fi n'est connecté à aucun réseau."; c.Add("Si tu es en câble réseau, c'est parfait : le Wi-Fi n'est pas utilisé."); return c; }
+            if (e.Signal < 0)
+            {
+                verdict = "Wi-Fi connecté, mais Windows ne laisse pas lire le signal."; niveau = 1;
+                c.Add("Windows 11 demande l'autorisation « Localisation » pour montrer les informations Wi-Fi : ouvre Paramètres > Confidentialité et sécurité > Localisation, active « Services de localisation » et « Autoriser les applications de bureau à accéder à votre position », puis rouvre ce test.");
+                c.Add("Velox ne lit jamais ta position : Windows range simplement les noms des réseaux Wi-Fi dans cette autorisation.");
+                return c;
+            }
             if (e.Signal >= 75) verdict = "Signal excellent.";
             else if (e.Signal >= 55) { verdict = "Signal correct."; niveau = 1; }
             else { verdict = "Signal faible : c'est lui qui ralentit ta connexion."; niveau = 2; }

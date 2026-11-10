@@ -196,18 +196,42 @@ namespace NettoyagePC
         // ------------------------------------------------------------ FPS en direct (overlay, 5.11)
         // Une seule autorisation de Windows au démarrage : un petit processus administrateur de Velox fait tourner PresentMon
         // tant que Velox garde le « témoin » (un mutex nommé). Dès que Velox le lâche ou se ferme, tout s'arrête tout seul.
+        // PresentMon écrit ses mesures sur sa sortie (une ligne par image, tout de suite) ; le processus administrateur les
+        // recopie dans un fichier que Velox peut lire en même temps (un fichier écrit par PresentMon lui-même est verrouillé).
         public static string CsvDirect { get { return Path.Combine(DossierOutils, "mesures", "direct.csv"); } }
         private const string Temoin = @"Local\VeloxFpsDirect";
+        private const string SessionDirect = "NettoyagePC-direct";
         private static System.Threading.Mutex temoin;
+        private static Process aideDirect;
         private static long positionDirect; private static string resteDirect = ""; private static int[] colonnesDirect; private static int videsDirect;
 
-        public static bool DirectActif { get { return temoin != null; } }
+        /// <summary>Les FPS en direct tournent (le processus administrateur est vivant).</summary>
+        public static bool DirectActif
+        {
+            get
+            {
+                if (temoin == null) return false;
+                try { var a = aideDirect; if (a != null && a.HasExited) { ArreterDirect(); return false; } } catch { }
+                return true;
+            }
+        }
 
         private static bool TemoinPresent()
         {
             try { System.Threading.Mutex m; if (System.Threading.Mutex.TryOpenExisting(Temoin, out m)) { m.Dispose(); return true; } return false; }
             catch (UnauthorizedAccessException) { return true; }   // il existe, mais appartient à un autre compte : Velox tourne
             catch { return false; }
+        }
+
+        /// <summary>Arrête la session de mesure de Windows laissée par PresentMon (elle survit à son arrêt forcé).</summary>
+        private static void ArreterSessionDirect()
+        {
+            try
+            {
+                var psi = new ProcessStartInfo(Exe, Elevation.Joindre(new[] { "--terminate_existing_session", "--session_name", SessionDirect })) { UseShellExecute = false, CreateNoWindow = true, WorkingDirectory = DossierOutils };
+                using (var p = Process.Start(psi)) { if (!p.WaitForExit(10000)) { try { p.Kill(); } catch { } } }
+            }
+            catch { }
         }
 
         /// <summary>fps-direct source|- empreinte : (administrateur) fait tourner PresentMon tant que le témoin existe.</summary>
@@ -222,22 +246,50 @@ namespace NettoyagePC
             var attente = DateTime.Now.AddSeconds(20);
             while (!TemoinPresent() && DateTime.Now < attente) System.Threading.Thread.Sleep(250);
             var fin = DateTime.Now.AddHours(8);   // jamais plus de 8 heures d'affilée
-            while (TemoinPresent() && DateTime.Now < fin)
+            int echecs = 0;
+            try
             {
-                try { if (File.Exists(CsvDirect)) File.Delete(CsvDirect); } catch { }
-                // par tranches de 10 minutes : le fichier de mesures ne grossit jamais beaucoup
-                var psi = new ProcessStartInfo(Exe, Elevation.Joindre(new[]
+                while (TemoinPresent() && DateTime.Now < fin)
                 {
-                    "--output_file", CsvDirect, "--timed", "600", "--terminate_after_timed", "--session_name", "NettoyagePC-direct", "--stop_existing_session", "--no_console_stats"
-                })) { UseShellExecute = false, CreateNoWindow = true, WorkingDirectory = DossierOutils };
-                using (var p = Process.Start(psi))
-                {
-                    var limite = DateTime.Now.AddSeconds(640);
-                    while (!p.HasExited && DateTime.Now < limite && TemoinPresent()) p.WaitForExit(1000);
-                    if (!p.HasExited) { try { p.Kill(); p.WaitForExit(5000); } catch { } }
+                    var debut = DateTime.Now;
+                    var recu = new StringBuilder();
+                    string entete = null; long ecrit = 0;
+                    var psi = new ProcessStartInfo(Exe, Elevation.Joindre(new[] { "--output_stdout", "--session_name", SessionDirect, "--stop_existing_session", "--no_console_stats" }))
+                    { UseShellExecute = false, CreateNoWindow = true, RedirectStandardOutput = true, WorkingDirectory = DossierOutils };
+                    using (var p = Process.Start(psi))
+                    using (var fs = new FileStream(CsvDirect, FileMode.Create, FileAccess.Write, FileShare.Read | FileShare.Delete))
+                    {
+                        p.OutputDataReceived += (s, e) => { if (e.Data != null) lock (recu) recu.Append(e.Data).Append('\n'); };
+                        p.BeginOutputReadLine();
+                        while (!p.HasExited && TemoinPresent() && DateTime.Now < fin)
+                        {
+                            p.WaitForExit(250);
+                            string t;
+                            lock (recu) { t = recu.ToString(); recu.Clear(); }
+                            if (t.Length == 0) continue;
+                            if (entete == null)
+                            {
+                                foreach (string l in t.Split('\n')) if (l.TrimStart('\uFEFF').StartsWith("Application,", StringComparison.OrdinalIgnoreCase)) { entete = l.TrimStart('\uFEFF') + "\n"; break; }
+                            }
+                            // le fichier ne grossit jamais beaucoup : au-delà de 8 Mo il repart de zéro (avec sa ligne d'en-tête)
+                            if (ecrit > 8 * 1024 * 1024)
+                            {
+                                fs.SetLength(0); fs.Position = 0; ecrit = 0;
+                                if (entete != null) { var o = Encoding.UTF8.GetBytes(entete); fs.Write(o, 0, o.Length); ecrit = o.Length; }
+                            }
+                            var octets = Encoding.UTF8.GetBytes(t);
+                            fs.Write(octets, 0, octets.Length); fs.Flush();
+                            ecrit += octets.Length;
+                        }
+                        if (!p.HasExited) { try { p.Kill(); p.WaitForExit(5000); } catch { } }
+                    }
+                    ArreterSessionDirect();
+                    // PresentMon qui s'arrête tout de suite, trois fois de suite : on abandonne (jamais de relance en boucle)
+                    if ((DateTime.Now - debut).TotalSeconds < 5 && TemoinPresent()) { if (++echecs >= 3) return 5; System.Threading.Thread.Sleep(1000); }
+                    else echecs = 0;
                 }
             }
-            try { if (File.Exists(CsvDirect)) File.Delete(CsvDirect); } catch { }
+            finally { try { if (File.Exists(CsvDirect)) File.Delete(CsvDirect); } catch { } }
             return 0;
         }
 
@@ -260,15 +312,14 @@ namespace NettoyagePC
                 {
                     var psi = new ProcessStartInfo(Chemins.Exe, "--commande " + Elevation.Joindre(new[] { "fps-direct", source, empreinte }.Concat(Elevation.ArgumentsUtilisateur())))
                     { UseShellExecute = true, Verb = "runas", WindowStyle = ProcessWindowStyle.Hidden, WorkingDirectory = Chemins.Ici };
-                    using (var p = Process.Start(psi))
+                    var p = Process.Start(psi);
+                    aideDirect = p;
+                    // s'il s'arrête tout de suite, c'est un refus (PresentMon non vérifié…) : on le dit
+                    if (p != null && p.WaitForExit(telecharger ? 15000 : 6000))
                     {
-                        // s'il s'arrête tout de suite, c'est un refus (PresentMon non vérifié…) : on le dit
-                        if (p.WaitForExit(telecharger ? 12000 : 4000))
-                        {
-                            int code = 1; try { code = p.ExitCode; } catch { }
-                            ArreterDirect();
-                            return code == 4 ? Langue.T("PresentMon n'a pas pu être vérifié comme version officielle : rien n'a été installé.") : Langue.F("Les FPS en direct n'ont pas pu démarrer (code {0}).", code);
-                        }
+                        int code = 1; try { code = p.ExitCode; } catch { }
+                        ArreterDirect();
+                        return code == 4 ? Langue.T("PresentMon n'a pas pu être vérifié comme version officielle : rien n'a été installé.") : Langue.F("Les FPS en direct n'ont pas pu démarrer (code {0}).", code);
                     }
                 }
                 catch (System.ComponentModel.Win32Exception ex) when (ex.NativeErrorCode == 1223) { ArreterDirect(); return Langue.T("FPS en direct annulés : l'autorisation de Windows a été refusée."); }
@@ -282,6 +333,8 @@ namespace NettoyagePC
         {
             var m = temoin; temoin = null;
             try { if (m != null) m.Dispose(); } catch { }
+            var a = aideDirect; aideDirect = null;
+            try { if (a != null) a.Dispose(); } catch { }
         }
 
         /// <summary>
@@ -314,9 +367,9 @@ namespace NettoyagePC
                     string l = brute.TrimEnd('\r');
                     if (l.Length == 0) continue;
                     var c = l.Split(',');
-                    if (colonnesDirect == null || c[0].Equals("Application", StringComparison.OrdinalIgnoreCase))
+                    if (colonnesDirect == null || c[0].TrimStart('\uFEFF').Equals("Application", StringComparison.OrdinalIgnoreCase))
                     {
-                        var entete = c.Select(x => x.Trim()).ToList();
+                        var entete = c.Select(x => x.Trim().TrimStart('\uFEFF')).ToList();
                         int it = -1;
                         foreach (var n in new[] { "MsBetweenPresents", "FrameTime", "MsBetweenDisplayChange" }) { it = entete.FindIndex(x => x.Equals(n, StringComparison.OrdinalIgnoreCase)); if (it >= 0) break; }
                         if (it >= 0) colonnesDirect = new[] { it, entete.IndexOf("Application"), entete.IndexOf("ProcessID"), entete.IndexOf("SwapChainAddress") };
@@ -356,7 +409,7 @@ namespace NettoyagePC
         {
             var lignes = File.ReadAllLines(fichier);
             if (lignes.Length < 3) return null;
-            var entete = lignes[0].Split(',').Select(x => x.Trim()).ToList();
+            var entete = lignes[0].Split(',').Select(x => x.Trim().TrimStart('\uFEFF')).ToList();
             int iTemps = -1;
             foreach (var n in new[] { "MsBetweenPresents", "FrameTime", "MsBetweenDisplayChange" })
             {
