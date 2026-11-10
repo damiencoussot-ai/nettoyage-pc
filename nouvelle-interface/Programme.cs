@@ -622,6 +622,27 @@ namespace NettoyagePC.Nouveau
                 TempsDemarrage5.Ouvrir(f);
                 Capturer(f, dossier, "sombre-temps-demarrage.png", rapport, ref erreurs);
                 f.ViderCalques(); TempsDemarrage5.Exemple = null;
+                // ---- 5.10 : ping des serveurs de jeu, mes jeux, minuteur d'extinction
+                double[] ms = { 9, 14, 17, 22, 27, 21, 34, 92, 158, 214, 248, 196 };
+                PingJeu5.Exemple = Reseau.RegionsJeu.Select((r, i) => new ResultatPing { Cible = Reseau.HoteRegion(r[2]), Nom = r[0], Min = ms[i], Moyenne = ms[i] + 2, Max = ms[i] + 6, Gigue = 1 + i % 4, Perte = 0 }).ToList();
+                PingJeu5.Ouvrir(f);
+                Capturer(f, dossier, "sombre-ping-jeu.png", rapport, ref erreurs);
+                f.ViderCalques(); PingJeu5.Exemple = null;
+                MesJeux5.Exemple = new System.Collections.Generic.List<Jeu>
+                {
+                    new Jeu { Nom = "Call of Duty", Plateforme = "Steam", Dossier = @"D:\Jeux\Call of Duty", Lancer = "steam://rungameid/1938090", Taille = 231.4 * 1073741824.0 },
+                    new Jeu { Nom = "Forza Horizon 6", Plateforme = "Xbox", Dossier = @"C:\XboxGames\Forza Horizon 6", Lancer = "x", Taille = 148.2 * 1073741824.0 },
+                    new Jeu { Nom = "Euro Truck Simulator 2", Plateforme = "Steam", Dossier = @"D:\Jeux\Euro Truck Simulator 2", Lancer = "x", Taille = 24.7 * 1073741824.0 },
+                    new Jeu { Nom = "Overwatch", Plateforme = "Battle.net", Dossier = @"D:\Jeux\Overwatch", Lancer = "x", Taille = 61.3 * 1073741824.0 },
+                    new Jeu { Nom = "Call of Duty: Black Ops II", Plateforme = "Steam", Dossier = @"D:\Jeux\Black Ops II", Lancer = "x", Taille = 16.9 * 1073741824.0 },
+                };
+                MesJeux5.Ouvrir(f);
+                Capturer(f, dossier, "sombre-mes-jeux.png", rapport, ref erreurs);
+                f.ViderCalques(); MesJeux5.Exemple = null;
+                Extinction5.Exemple = true;
+                Extinction5.Ouvrir(f);
+                Capturer(f, dossier, "sombre-extinction.png", rapport, ref erreurs);
+                f.ViderCalques(); Extinction5.Exemple = false;
 
                 MajApps5.Exemple = new System.Collections.Generic.List<AppAMettreAJour>
                 {

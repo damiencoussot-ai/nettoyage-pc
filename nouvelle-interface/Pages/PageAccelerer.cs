@@ -38,6 +38,7 @@ namespace NettoyagePC.Nouveau
                     ? CarteAction.A("Mode jeu (actif)", "Le mode jeu est en cours : performances maximales. Termine-le après ta partie pour revenir comme avant.", "Terminer le mode jeu", "finmodejeu", true)
                     : CarteAction.A("Mode jeu", "Avant de jouer : performances maximales et mémoire vive libérée. Un clic pour revenir comme avant après ta partie. Avec Premium, le mode jeu automatique le fait tout seul à chaque jeu.", "Activer le mode jeu", "modejeu", true),
                 CarteAction.Code("Temps de démarrage", "Le temps que met ton PC entre le bouton marche et le bureau, jour après jour, sur 30 jours : tu vois si ça s'améliore.", "Voir le graphique", () => TempsDemarrage5.Ouvrir(f)),
+                CarteAction.Code("Minuteur d'extinction", "Éteins ou redémarre le PC tout seul dans 15 minutes à 3 heures, le temps de finir un téléchargement. Annulable à tout moment.", "Régler le minuteur", () => Extinction5.Ouvrir(f)),
                 CarteAction.A("Bilan d'optimisation", "Durée du démarrage, programmes au démarrage, mode d'alimentation, mises à jour disponibles : des conseils concrets, sans rien modifier.", "Lancer le bilan", "optim", true),
                 CarteAction.Code("Mettre à jour les applications", "Liste tes logiciels qui ont une nouvelle version (winget, l'outil officiel de Microsoft) : tu choisis lesquels mettre à jour, avec le résultat pour chacun. Avec Premium, c'est automatique chaque semaine.", "Voir les mises à jour", () => MajApplis5.Ouvrir(f)),
                 CarteAction.A("Mode d'alimentation", (alim != "" ? Langue.F("Mode actuel : {0}.", Langue.T(alim)) + " " : "") + (perf ? "Équilibré consomme moins (conseillé sur portable)." : "Performances élevées rend le PC plus réactif."),
@@ -68,6 +69,8 @@ namespace NettoyagePC.Nouveau
             {
                 CarteAction.Code("Preuve en FPS", "Mesure les images par seconde réelles d'un jeu, avant puis après un réglage : tu vois le vrai gain, en chiffres (PresentMon, l'outil gratuit d'Intel).", "Mesurer un jeu", () => Fps5.OuvrirPremium(f), true),
                 CarteAction.Code("Réglages des jeux", "Mode jeu de Windows, planification matérielle du GPU, optimisations pour le jeu en fenêtré : l'état de chacun et un conseil.", "Voir les réglages", () => ReglagesWindows5.Jeux(f)),
+                CarteAction.Code("Ping des serveurs de jeu", "Le temps de réponse entre ton PC et les grandes régions de serveurs (Paris, Francfort, Londres, États-Unis…) : choisis la région la plus rapide dans tes jeux.", "Mesurer le ping", () => PingJeu5.Ouvrir(f)),
+                CarteAction.Code("Mes jeux", "Tous tes jeux installés (Steam, Epic, Xbox, Battle.net…) et la place qu'ils prennent : repère les plus gros quand le disque est plein, lance-les d'ici.", "Voir mes jeux", () => MesJeux5.Ouvrir(f)),
             }, "Jeux");
         }
     }

@@ -1,5 +1,5 @@
 ﻿POLITIQUE DE CONFIDENTIALITÉ DE VELOX
-Version du 7 novembre 2026
+Version du 10 novembre 2026
 
 
 EN BREF
@@ -57,6 +57,7 @@ L'Éditeur reçoit de Stripe le nom, l'adresse e-mail, le pays et les informatio
 - Test de débit : téléchargement et envoi de données de test vers les serveurs de Cloudflare (speed.cloudflare.com), qui reçoivent votre adresse IP.
 - Comparaison des serveurs DNS : quelques demandes de résolution envoyées aux serveurs testés (votre fournisseur d'accès, Cloudflare, Google, Quad9).
 - Mesure du ping vers votre box et vers Internet.
+- Ping des serveurs de jeu : ouverture de connexions vers les centres de données d'Amazon Web Services (Amazon) de chaque région mesurée, qui reçoivent votre adresse IP ; rien d'autre ne leur est envoyé.
 Ces tests ne transmettent aucune information personnelle en dehors de votre adresse IP.
 
 3.5 Outils de Windows lancés à votre demande
@@ -73,6 +74,11 @@ Les messages que vous envoyez à l'Éditeur (assistance, remboursement) et les f
 3.8 Le site officiel
 Le site officiel de Velox (https://damiencoussot-ai.github.io/nettoyage-pc/) n'utilise ni cookie ni traceur publicitaire. Pour savoir combien de personnes le visitent, il utilise Cloudflare Web Analytics (Cloudflare, Inc.) : un petit script compte les pages vues, le pays, le type d'appareil et le site d'où vient le visiteur, sans cookie, sans identifiant et sans suivre la personne d'un site à l'autre ; les résultats ne sont vus que sous forme de totaux. Base légale : l'intérêt légitime de mesurer l'audience du site. Politique de Cloudflare : https://www.cloudflare.com/privacypolicy/ . Le site est hébergé par GitHub (service GitHub Pages) qui, comme pour tout site web, reçoit l'adresse IP des visiteurs pour faire fonctionner et sécuriser le service. Le bouton « Télécharger » récupère l'installateur sur GitHub ; le bouton « Acheter » ouvre la page de paiement de Stripe (voir 3.3).
 
+3.9 Le serveur Discord et l'achat par Discord
+Le serveur Discord officiel de Velox est hébergé par Discord (Discord Inc. et Discord Netherlands B.V.), qui applique sa propre politique de confidentialité à tout ce que vous y écrivez : https://discord.com/privacy
+Le robot « Velox » du serveur ne lit pas les messages : il répond seulement aux commandes (/premium, /ma-cle, /score, /essai, /telecharger) et aux boutons que vous utilisez vous-même. Pour répondre, il reçoit de Discord votre identifiant de compte Discord (un numéro) et votre pseudo.
+Si vous achetez Premium par Discord, ou si une clé vous est offerte, le service de licences de l'Éditeur (hébergé par Cloudflare) enregistre votre identifiant de compte Discord avec votre clé. Il sert uniquement à vous envoyer la clé en message privé, à vous la redonner (/ma-cle), à vous attribuer le rôle « Premium » sur le serveur et à le retirer si l'abonnement s'arrête ou est remboursé. Base légale : l'exécution du contrat. Il est conservé aussi longtemps que la licence (voir 4).
+La commande /score affiche dans le salon, à la vue de tous les membres, votre pseudo Discord et les chiffres contenus dans le code que vous collez (niveau, points, succès du profil Gamer). Ce code est créé par Velox à votre demande et ne contient aucune information personnelle ni aucune information sur votre ordinateur.
 
 4. DURÉE DE CONSERVATION
 
@@ -83,7 +89,7 @@ Le site officiel de Velox (https://damiencoussot-ai.github.io/nettoyage-pc/) n'u
 
 5. DESTINATAIRES ET TRANSFERTS HORS DE L'UNION EUROPÉENNE
 
-Les seuls prestataires concernés sont GitHub (site officiel et mises à jour), Stripe, Link et leurs prestataires de paiement (achat), et Cloudflare (service de licences, mesure d'audience du site, et test de débit à votre demande). Certains sont situés aux États-Unis ; ils encadrent les transferts de données selon leurs propres engagements (par exemple le cadre de protection des données UE - États-Unis ou les clauses contractuelles types de la Commission européenne), décrits dans leurs politiques de confidentialité.
+Les seuls prestataires concernés sont GitHub (site officiel et mises à jour), Stripe, Link et leurs prestataires de paiement (achat), Cloudflare (service de licences, mesure d'audience du site, et test de débit à votre demande), Discord (serveur officiel, si vous le rejoignez) et Amazon Web Services (ping des serveurs de jeu, à votre demande). Certains sont situés aux États-Unis ; ils encadrent les transferts de données selon leurs propres engagements (par exemple le cadre de protection des données UE - États-Unis ou les clauses contractuelles types de la Commission européenne), décrits dans leurs politiques de confidentialité.
 
 
 6. VOS DROITS

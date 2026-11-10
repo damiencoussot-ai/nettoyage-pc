@@ -138,8 +138,9 @@ namespace NettoyagePC.Nouveau
                 if (v) Sons5.Succes();
             };
             var bOverlay = new BoutonNoyau("Overlay", false, 0, 32) { TaillePolice = 11.5, Capitales = true, HorizontalAlignment = HorizontalAlignment.Stretch };
-            ToolTip.SetTip(bOverlay, Langue.T("Processeur, carte graphique et mémoire par-dessus tes jeux. Ctrl+Alt+O pour l'afficher ou le cacher, même en jeu."));
+            ToolTip.SetTip(bOverlay, Langue.T("Processeur, carte graphique et mémoire par-dessus tes jeux. Ctrl+Alt+O pour l'afficher ou le cacher, même en jeu. Clic droit : changer de coin de l'écran."));
             bOverlay.Clic += () => Overlay5.Basculer(F, false);
+            bOverlay.PointerPressed += (o, e) => { if (e.GetCurrentPoint(bOverlay).Properties.IsRightButtonPressed) { e.Handled = true; Overlay5.ChangerCoin(F); } };
             options.Children.Add(bSons); options.Children.Add(bOverlay);
             c.Children.Add(options);
             var bDiscord = new BoutonNoyau("Partager sur Discord", false, 0, 32) { TaillePolice = 11.5, Capitales = true, HorizontalAlignment = HorizontalAlignment.Stretch };

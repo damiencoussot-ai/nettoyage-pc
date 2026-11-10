@@ -60,7 +60,7 @@ namespace NettoyagePC.Nouveau
                 Color c = j.Item2 <= moy * 0.9 ? P.Vert : j.Item2 >= moy * 1.25 ? P.Orange : P.Accent;
                 var colonne = new Grid { RowDefinitions = new RowDefinitions("*,Auto,Auto"), Margin = new Thickness(2, 0) };
                 var barre = new Border { Height = Math.Max(4, 140 * j.Item2 / max), VerticalAlignment = VerticalAlignment.Bottom, Background = Habillage.Pinceau(c, 210), CornerRadius = new CornerRadius(2, 2, 0, 0) };
-                ToolTip.SetTip(barre, j.Item1.ToString("dddd dd/MM") + " : " + Math.Round(j.Item2) + " s");
+                ToolTip.SetTip(barre, j.Item1.ToString("dddd dd/MM", Langue.Culture) + " : " + Math.Round(j.Item2) + " s");
                 colonne.Children.Add(barre);
                 if (jours.Count <= 12 || i % 3 == 0 || i == jours.Count - 1)
                 {

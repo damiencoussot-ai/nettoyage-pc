@@ -1,0 +1,20 @@
+Velox 5.10 : trois nouveaux outils gratuits et une grande vérification
+
+Nouveaux outils (Accélérer) :
+- Ping des serveurs de jeu : le temps de réponse entre ton PC et 12 régions de serveurs (Paris, Francfort, Londres,
+  États-Unis, Asie…), avec la stabilité et un verdict, pour choisir la région la plus rapide dans tes jeux.
+- Mes jeux : tous tes jeux installés (Steam, Epic, Xbox, Riot, Ubisoft, EA, Battle.net, GOG), la place qu'ils prennent,
+  le plus gros en un coup d'œil ; tu peux les lancer ou ouvrir leur dossier. Velox ne supprime aucun jeu.
+- Minuteur d'extinction : éteins ou redémarre le PC tout seul dans 15 minutes à 3 heures, annulable à tout moment.
+
+Améliorations :
+- Overlay en jeu : tu choisis son coin de l'écran (clic droit sur le bouton Overlay du QG Gamer, ou Ctrl+K).
+- Traductions complétées en anglais et en espagnol (mise à jour, premier lancement, demande d'avis).
+- Un outil introuvable est maintenant signalé au lieu de ne rien faire.
+- Comparaison des numéros de version plus sûre pour les mises à jour.
+- Conditions de vente et politique de confidentialité mises à jour : achat par le serveur Discord, robot Discord,
+  ping des serveurs de jeu.
+
+L'installateur est publié sous les deux noms : Velox-Setup-5.10.exe (winget, site) et NettoyagePC-Setup-5.10.exe (mise à jour des anciennes versions).
+
+SHA256 de Velox-Setup-5.10.exe : voir le fichier Velox-Setup-5.10.sha256

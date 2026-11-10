@@ -193,6 +193,10 @@ namespace NettoyagePC.Nouveau
             l.Add(new EntreeCommande { Titre = Langue.T("Profil d'utilisation"), Detail = Langue.T("Gamer, Bureautique ou PC familial"), Type = "Action", Faire = () => Profils5.Ouvrir(this) });
             l.Add(new EntreeCommande { Titre = Langue.T("Temps de démarrage"), Detail = Langue.T("Graphique sur 30 jours, du bouton marche au bureau"), Type = "Action", Faire = () => TempsDemarrage5.Ouvrir(this) });
             l.Add(new EntreeCommande { Titre = Langue.T("Réglages jeu par jeu"), Detail = Langue.T("Mode jeu automatique, priorité haute, OneDrive en pause, pour chaque jeu"), Type = "Action", Faire = () => ModeJeu5.Ouvrir(this) });
+            l.Add(new EntreeCommande { Titre = Langue.T("Ping des serveurs de jeu"), Detail = Langue.T("Latence vers les régions de serveurs."), Type = "Action", Faire = () => PingJeu5.Ouvrir(this) });
+            l.Add(new EntreeCommande { Titre = Langue.T("Mes jeux"), Detail = Langue.T("Tes jeux installés et la place qu'ils prennent."), Type = "Action", Faire = () => MesJeux5.Ouvrir(this) });
+            l.Add(new EntreeCommande { Titre = Langue.T("Minuteur d'extinction"), Detail = Langue.T("Éteindre le PC dans un moment."), Type = "Action", Faire = () => Extinction5.Ouvrir(this) });
+            l.Add(new EntreeCommande { Titre = Langue.T("Overlay : changer de coin"), Detail = Langue.T("Haut gauche, haut droite, bas droite, bas gauche"), Type = "Action", Faire = () => Overlay5.ChangerCoin(this) });
             l.Add(new EntreeCommande { Titre = Langue.T("Rejoindre le Discord"), Detail = Langue.T("Le serveur officiel de Velox : aide, nouveautés, concours"), Type = "Action", Faire = () => { try { Programmes.Ouvrir(Boutique.UrlDiscord); } catch { } } });
             l.Add(new EntreeCommande { Titre = Langue.T("Partager mon rang sur Discord"), Detail = Langue.T("Copie ton code de joueur pour la commande /score"), Type = "Action", Faire = () => Progression5.PartagerDiscord(this) });
             l.Add(new EntreeCommande { Titre = Langue.T("Signaler un problème"), Detail = Langue.T("Rapport anonyme, montré avant l'envoi"), Type = "Action", Faire = () => Signaler5.Ouvrir(this) });
@@ -407,8 +411,17 @@ namespace NettoyagePC.Nouveau
             // outils gratuits ouverts par une clé (bouton « Réglages des jeux » du QG Gamer : rien ne s'ouvrait avant la 5.9.10)
             if (cle == "reglagesjeux") { ReglagesWindows5.Jeux(this); return true; }
             if (cle == "tempsdemarrage") { TempsDemarrage5.Ouvrir(this); return true; }
+            if (cle == "pingjeu") { PingJeu5.Ouvrir(this); return true; }
+            if (cle == "mesjeux") { MesJeux5.Ouvrir(this); return true; }
+            if (cle == "extinction") { Extinction5.Ouvrir(this); return true; }
             Action ouvrir;
-            if (!outils.TryGetValue(cle, out ouvrir)) return false;
+            if (!outils.TryGetValue(cle, out ouvrir))
+            {
+                // jamais de bouton qui ne fait rien : l'erreur est dite et notée (pour la corriger)
+                JournalDemarrage.Noter("Outil inconnu demandé : " + cle);
+                Statut(Langue.T("Cet outil n'est pas disponible dans cette version."), true);
+                return false;
+            }
             if (!Licence.Premium) { Achat5.Ouvrir(this); return true; }
             ouvrir();
             return true;

@@ -7,6 +7,11 @@ namespace NettoyagePC
     {
         public static readonly List<KeyValuePair<string, string[]>> Liste = new List<KeyValuePair<string, string[]>>
         {
+            N("5.10", "Nouveau : Ping des serveurs de jeu (Accélérer > Jeux). Le temps de réponse vers 12 régions de serveurs, pour choisir la plus rapide dans tes jeux.",
+                "Nouveau : Mes jeux. Tous tes jeux installés, toutes plateformes, avec la place qu'ils prennent ; tu peux les lancer d'ici.",
+                "Nouveau : Minuteur d'extinction. Éteins ou redémarre le PC tout seul dans 15 minutes à 3 heures, annulable à tout moment.",
+                "Overlay en jeu : choisis son coin de l'écran (clic droit sur le bouton Overlay du QG Gamer).",
+                "Finitions : traductions complétées en anglais et en espagnol, conditions de vente et confidentialité mises à jour (achat par Discord)."),
             N("5.9.10", "Correction : le bouton « Réglages des jeux » du QG Gamer ouvre bien les réglages (il ne faisait rien)."),
             N("5.9.9", "Réglages jeu par jeu (Premium) : mode jeu automatique ou non, priorité haute, OneDrive en pause, pour chaque jeu.",
                 "Temps de démarrage : un graphique sur 30 jours, du bouton marche jusqu'au bureau (Accélérer).",

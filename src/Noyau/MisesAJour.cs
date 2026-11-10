@@ -53,7 +53,13 @@ namespace NettoyagePC
             if (!Version.TryParse(Normaliser(b), out vb)) vb = new Version(0, 0);
             return va.CompareTo(vb);
         }
-        private static string Normaliser(string v) { v = (v ?? "").Trim(); return v.Contains('.') ? v : v + ".0"; }
+        // toujours 4 nombres (« 5.10 » = « 5.10.0.0 ») : sinon .NET range « 5.10 » avant « 5.10.0 »
+        private static string Normaliser(string v)
+        {
+            var p = (v ?? "").Trim().Split('.').ToList();
+            while (p.Count < 4) p.Add("0");
+            return string.Join(".", p.Take(4));
+        }
 
         /// <summary>Versions publiées, la plus récente d'abord. Exception si GitHub ne répond pas.</summary>
         public static List<VersionPubliee> Verifier()
@@ -115,7 +121,7 @@ namespace NettoyagePC
         {
             empreinte = null;
             if (v.AutreVersion != "")
-                throw new InvalidOperationException(string.Format("la page de la version {0} contient l'installateur de la version {1} (erreur de publication). Mise à jour annulée : rien n'a changé sur ton PC, réessaie plus tard.", v.Version, v.AutreVersion));
+                throw new InvalidOperationException(Langue.F("la page de la version {0} contient l'installateur de la version {1} (erreur de publication). Mise à jour annulée : rien n'a changé sur ton PC, réessaie plus tard.", v.Version, v.AutreVersion));
             if (string.IsNullOrEmpty(v.UrlHash) || !UrlOfficielle(v.UrlSetup) || !UrlOfficielle(v.UrlHash) || !Regex.IsMatch(v.Version, @"^\d+(\.\d+){1,3}$"))
                 throw new InvalidOperationException("cette version ne peut pas être installée automatiquement : son empreinte de sécurité (fichier .sha256) est absente ou elle ne vient pas de la page officielle.");
             string dossier = Path.Combine(Path.GetTempPath(), "NettoyagePC-maj-" + Guid.NewGuid().ToString("N").Substring(0, 12));
@@ -141,7 +147,7 @@ namespace NettoyagePC
                 if (mv.Success && Comparer(mv.Value, v.Version) != 0)
                 {
                     try { File.Delete(cible); } catch { }
-                    throw new InvalidOperationException(string.Format("le fichier publié pour la version {0} est en réalité la version {1} (erreur de publication). Mise à jour annulée : rien n'a changé sur ton PC.", v.Version, mv.Value));
+                    throw new InvalidOperationException(Langue.F("le fichier publié pour la version {0} est en réalité la version {1} (erreur de publication). Mise à jour annulée : rien n'a changé sur ton PC.", v.Version, mv.Value));
                 }
             }
             catch (InvalidOperationException) { throw; }

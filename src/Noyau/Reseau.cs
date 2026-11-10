@@ -226,5 +226,72 @@ namespace NettoyagePC
             if (valeur != "auto" && valeur.Split(',').Any(x => !Ipv4.IsMatch(x.Trim()))) return "entrée de l'historique invalide (refusée par sécurité)";
             return Elevation.Commande(60, "dns", index.ToString(), valeur) ? "" : "autorisation de Windows refusée";
         }
+
+        // ------------------------------------------------------------ ping des régions de jeu (5.10)
+        /// <summary>Grandes régions de centres de données (Amazon Web Services), où sont hébergés de nombreux jeux en ligne.</summary>
+        public static readonly string[][] RegionsJeu =
+        {
+            new[] { "Paris", "Europe", "eu-west-3" }, new[] { "Francfort", "Europe", "eu-central-1" }, new[] { "Londres", "Europe", "eu-west-2" },
+            new[] { "Irlande", "Europe", "eu-west-1" }, new[] { "Espagne", "Europe", "eu-south-2" }, new[] { "Milan", "Europe", "eu-south-1" },
+            new[] { "Stockholm", "Europe", "eu-north-1" }, new[] { "Virginie (États-Unis Est)", "Amérique", "us-east-1" },
+            new[] { "Oregon (États-Unis Ouest)", "Amérique", "us-west-2" }, new[] { "São Paulo", "Amérique", "sa-east-1" },
+            new[] { "Tokyo", "Asie", "ap-northeast-1" }, new[] { "Singapour", "Asie", "ap-southeast-1" },
+        };
+
+        public static string HoteRegion(string region) { return "dynamodb." + region + ".amazonaws.com"; }
+
+        /// <summary>
+        /// Latence vers un serveur, mesurée par le temps d'ouverture d'une connexion (TCP 443) : un aller-retour réseau,
+        /// comme un ping, mais qui passe aussi quand le serveur ne répond pas aux pings classiques. Rien n'est envoyé
+        /// au serveur (la connexion est refermée aussitôt). Le premier essai (mise en route) n'est pas compté.
+        /// </summary>
+        public static ResultatPing PingTcp(string hote, string nom, int nombre = 6, int port = 443)
+        {
+            var r = new ResultatPing { Cible = hote, Nom = nom };
+            var temps = new List<double>();
+            int perdus = 0;
+            IPAddress ip = null;
+            try { ip = Dns.GetHostAddresses(hote).FirstOrDefault(a => a.AddressFamily == AddressFamily.InterNetwork) ?? Dns.GetHostAddresses(hote).FirstOrDefault(); } catch { }
+            if (ip == null) { r.Perte = 100; return r; }
+            for (int i = 0; i <= nombre; i++)
+            {
+                try
+                {
+                    using (var s = new Socket(ip.AddressFamily, SocketType.Stream, ProtocolType.Tcp) { NoDelay = true })
+                    {
+                        var chrono = Stopwatch.StartNew();
+                        var res = s.BeginConnect(new IPEndPoint(ip, port), null, null);
+                        bool ok = res.AsyncWaitHandle.WaitOne(2000) && s.Connected;
+                        chrono.Stop();
+                        if (ok) { try { s.EndConnect(res); } catch { ok = false; } }
+                        if (i == 0) continue;
+                        if (ok) temps.Add(chrono.Elapsed.TotalMilliseconds); else perdus++;
+                    }
+                }
+                catch { if (i > 0) perdus++; }
+                Thread.Sleep(60);
+            }
+            r.Perte = (int)Math.Round(100.0 * perdus / Math.Max(1, nombre));
+            if (temps.Count > 0)
+            {
+                // la plus petite mesure est la plus proche du vrai temps réseau ; la moyenne et la gigue disent la stabilité
+                r.Moyenne = temps.Average(); r.Min = temps.Min(); r.Max = temps.Max();
+                double g = 0; for (int i = 1; i < temps.Count; i++) g += Math.Abs(temps[i] - temps[i - 1]);
+                r.Gigue = temps.Count > 1 ? g / (temps.Count - 1) : 0;
+            }
+            return r;
+        }
+
+        /// <summary>Phrase de verdict pour une latence (ms) et une gigue : ce qu'on peut jouer confortablement.</summary>
+        public static string VerdictJeu(double ms, double gigue, int perte)
+        {
+            if (ms < 0) return "Injoignable";
+            if (perte >= 20) return "Connexion instable (pertes)";
+            if (ms <= 30 && gigue <= 8) return "Excellent : jeux compétitifs";
+            if (ms <= 60) return "Très bon : tous les jeux en ligne";
+            if (ms <= 100) return "Correct : un léger retard en compétitif";
+            if (ms <= 160) return "Moyen : retard sensible";
+            return "Trop loin pour jouer confortablement";
+        }
     }
 }

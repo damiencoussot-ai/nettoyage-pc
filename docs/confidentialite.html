@@ -48,7 +48,7 @@ mark.a-completer { background: var(--orange); color: var(--sur-accent); padding:
 <main class="enveloppe">
   <span class="etiquette">// Informations légales</span>
   <h1>Politique de confidentialité de Velox</h1>
-  <p class="date">Version du 7 novembre 2026</p>
+  <p class="date">Version du 10 novembre 2026</p>
   <p class="avis">Les passages surlignés seront complétés avec les coordonnées de l'éditeur avant l'ouverture de la boutique Premium. D'ici là, rien n'est vendu : seule la version gratuite est proposée.</p>
   <h2>EN BREF</h2>
 <ul>
@@ -97,6 +97,7 @@ mark.a-completer { background: var(--orange); color: var(--sur-accent); padding:
 <li>Test de débit : téléchargement et envoi de données de test vers les serveurs de Cloudflare (speed.cloudflare.com), qui reçoivent votre adresse IP.</li>
 <li>Comparaison des serveurs DNS : quelques demandes de résolution envoyées aux serveurs testés (votre fournisseur d'accès, Cloudflare, Google, Quad9).</li>
 <li>Mesure du ping vers votre box et vers Internet.</li>
+<li>Ping des serveurs de jeu : ouverture de connexions vers les centres de données d'Amazon Web Services (Amazon) de chaque région mesurée, qui reçoivent votre adresse IP ; rien d'autre ne leur est envoyé.</li>
 </ul>
 <p>Ces tests ne transmettent aucune information personnelle en dehors de votre adresse IP.</p>
 <h3 id="article-3-5">3.5 Outils de Windows lancés à votre demande</h3>
@@ -108,6 +109,11 @@ mark.a-completer { background: var(--orange); color: var(--sur-accent); padding:
 <p>Les messages que vous envoyez à l'Éditeur (assistance, remboursement) et les fichiers que vous y joignez sont utilisés uniquement pour vous répondre.</p>
 <h3 id="article-3-8">3.8 Le site officiel</h3>
 <p>Le site officiel de Velox (<a href="https://damiencoussot-ai.github.io/nettoyage-pc/">https://damiencoussot-ai.github.io/nettoyage-pc/</a>) n'utilise ni cookie ni traceur publicitaire. Pour savoir combien de personnes le visitent, il utilise Cloudflare Web Analytics (Cloudflare, Inc.) : un petit script compte les pages vues, le pays, le type d'appareil et le site d'où vient le visiteur, sans cookie, sans identifiant et sans suivre la personne d'un site à l'autre ; les résultats ne sont vus que sous forme de totaux. Base légale : l'intérêt légitime de mesurer l'audience du site. Politique de Cloudflare : <a href="https://www.cloudflare.com/privacypolicy/">https://www.cloudflare.com/privacypolicy/</a>. Le site est hébergé par GitHub (service GitHub Pages) qui, comme pour tout site web, reçoit l'adresse IP des visiteurs pour faire fonctionner et sécuriser le service. Le bouton « Télécharger » récupère l'installateur sur GitHub ; le bouton « Acheter » ouvre la page de paiement de Stripe (voir 3.3).</p>
+<h3 id="article-3-9">3.9 Le serveur Discord et l'achat par Discord</h3>
+<p>Le serveur Discord officiel de Velox est hébergé par Discord (Discord Inc. et Discord Netherlands B.V.), qui applique sa propre politique de confidentialité à tout ce que vous y écrivez : <a href="https://discord.com/privacy">https://discord.com/privacy</a></p>
+<p>Le robot « Velox » du serveur ne lit pas les messages : il répond seulement aux commandes (/premium, /ma-cle, /score, /essai, /telecharger) et aux boutons que vous utilisez vous-même. Pour répondre, il reçoit de Discord votre identifiant de compte Discord (un numéro) et votre pseudo.</p>
+<p>Si vous achetez Premium par Discord, ou si une clé vous est offerte, le service de licences de l'Éditeur (hébergé par Cloudflare) enregistre votre identifiant de compte Discord avec votre clé. Il sert uniquement à vous envoyer la clé en message privé, à vous la redonner (/ma-cle), à vous attribuer le rôle « Premium » sur le serveur et à le retirer si l'abonnement s'arrête ou est remboursé. Base légale : l'exécution du contrat. Il est conservé aussi longtemps que la licence (voir 4).</p>
+<p>La commande /score affiche dans le salon, à la vue de tous les membres, votre pseudo Discord et les chiffres contenus dans le code que vous collez (niveau, points, succès du profil Gamer). Ce code est créé par Velox à votre demande et ne contient aucune information personnelle ni aucune information sur votre ordinateur.</p>
 <h2 id="article-4">4. DURÉE DE CONSERVATION</h2>
 <ul>
 <li>Données de licence et d'achat : pendant la durée de la licence, puis 5 ans (délai de prescription) ; les pièces comptables : 10 ans, comme l'exige la loi.</li>
@@ -115,7 +121,7 @@ mark.a-completer { background: var(--orange); color: var(--sur-accent); padding:
 <li>Données sur votre ordinateur : jusqu'à ce que vous les supprimiez (journaux : 60 jours).</li>
 </ul>
 <h2 id="article-5">5. DESTINATAIRES ET TRANSFERTS HORS DE L'UNION EUROPÉENNE</h2>
-<p>Les seuls prestataires concernés sont GitHub (site officiel et mises à jour), Stripe, Link et leurs prestataires de paiement (achat), et Cloudflare (service de licences, mesure d'audience du site, et test de débit à votre demande). Certains sont situés aux États-Unis ; ils encadrent les transferts de données selon leurs propres engagements (par exemple le cadre de protection des données UE - États-Unis ou les clauses contractuelles types de la Commission européenne), décrits dans leurs politiques de confidentialité.</p>
+<p>Les seuls prestataires concernés sont GitHub (site officiel et mises à jour), Stripe, Link et leurs prestataires de paiement (achat), Cloudflare (service de licences, mesure d'audience du site, et test de débit à votre demande), Discord (serveur officiel, si vous le rejoignez) et Amazon Web Services (ping des serveurs de jeu, à votre demande). Certains sont situés aux États-Unis ; ils encadrent les transferts de données selon leurs propres engagements (par exemple le cadre de protection des données UE - États-Unis ou les clauses contractuelles types de la Commission européenne), décrits dans leurs politiques de confidentialité.</p>
 <h2 id="article-6">6. VOS DROITS</h2>
 <p>Vous disposez d'un droit d'accès, de rectification, d'effacement, de limitation, d'opposition et de portabilité de vos données, dans les conditions prévues par le règlement général sur la protection des données (RGPD). Pour les exercer, écrivez à nettoyagepcai@gmail.com. Une réponse vous sera apportée dans un délai d'un mois.</p>
 <p>Vous pouvez aussi introduire une réclamation auprès de la CNIL (Commission nationale de l'informatique et des libertés) : <a href="https://www.cnil.fr">https://www.cnil.fr</a></p>

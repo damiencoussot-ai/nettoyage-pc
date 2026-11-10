@@ -2951,3 +2951,97 @@ QG Gamer : l'âge du pilote de la carte graphique, avec un clic pour le mettre �
 Premier lancement en 3 étapes : pseudo, profil (Gamer, Travail, Famille), puis première analyse.	First launch in 3 steps: nickname, profile (Gamer, Work, Family), then a first scan.	Primer inicio en 3 pasos: apodo, perfil (Gamer, Trabajo, Familia) y primer análisis.
 Mises à jour plus sûres : Velox refuse un fichier publié qui n'est pas celui de la version annoncée.	Safer updates: Velox refuses a published file that isn't the announced version.	Actualizaciones más seguras: Velox rechaza un archivo publicado que no corresponde a la versión anunciada.
 Correction : le bouton « Réglages des jeux » du QG Gamer ouvre bien les réglages (il ne faisait rien).	Fix: the Gamer HQ "Game settings" button now opens the settings (it did nothing).	Corrección: el botón «Ajustes de juegos» del Cuartel Gamer ahora abre los ajustes (no hacía nada).
+Ping des serveurs de jeu	Game server ping	Ping de los servidores de juego
+Mesure le temps de réponse (ping) entre ton PC et les grandes régions de serveurs où sont hébergés de nombreux jeux en ligne. Plus le chiffre est petit, moins il y a de retard en jeu. Choisis dans tes jeux la région la plus rapide.	Measures the response time (ping) between your PC and the major server regions where many online games are hosted. The lower the number, the less lag in game. Pick the fastest region in your games.	Mide el tiempo de respuesta (ping) entre tu PC y las grandes regiones de servidores donde se alojan muchos juegos en línea. Cuanto menor es la cifra, menos retraso en el juego. Elige en tus juegos la región más rápida.
+Clique sur « Mesurer » : environ 15 secondes.	Click "Measure": about 15 seconds.	Pulsa «Medir»: unos 15 segundos.
+Mesure faite en ouvrant une connexion vers les centres de données d'Amazon Web Services de chaque région (rien d'autre n'est envoyé). Le ping réel dans un jeu dépend aussi de ses propres serveurs : sers-toi de ce tableau pour comparer les régions entre elles. En Wi-Fi, un câble réseau donne presque toujours un ping plus bas et plus stable.	Measured by opening a connection to the Amazon Web Services data centers of each region (nothing else is sent). The real ping in a game also depends on its own servers: use this table to compare regions with each other. On Wi-Fi, a network cable almost always gives a lower, steadier ping.	Se mide abriendo una conexión con los centros de datos de Amazon Web Services de cada región (no se envía nada más). El ping real en un juego también depende de sus propios servidores: usa esta tabla para comparar las regiones entre sí. Con Wi-Fi, un cable de red casi siempre da un ping más bajo y estable.
+Mesure en cours…	Measuring…	Midiendo…
+Mesurer à nouveau	Measure again	Medir de nuevo
+Aucune région n'a répondu : vérifie ta connexion Internet (ou ton pare-feu), puis réessaie.	No region answered: check your Internet connection (or your firewall), then try again.	Ninguna región respondió: comprueba tu conexión a Internet (o tu cortafuegos) y vuelve a intentarlo.
+Région la plus rapide : {0}, {1} ms.	Fastest region: {0}, {1} ms.	Región más rápida: {0}, {1} ms.
+Tous tes jeux installés, toutes plateformes confondues, avec la place qu'ils prennent sur le disque. Clique sur « Place » pour trier : les plus gros en premier, pour savoir lequel retirer quand le disque est plein.	All your installed games, across every platform, with the space they take on disk. Click "Size" to sort: biggest first, to know which one to remove when the disk is full.	Todos tus juegos instalados, de todas las plataformas, con el espacio que ocupan en el disco. Pulsa «Espacio» para ordenar: los más grandes primero, para saber cuál quitar cuando el disco esté lleno.
+Place	Size	Espacio
+Lancer le jeu	Launch the game	Iniciar el juego
+Ouvrir son dossier	Open its folder	Abrir su carpeta
+Désinstaller un jeu…	Uninstall a game…	Desinstalar un juego…
+Ouvre la liste des applications de Windows : c'est Windows (ou le lanceur du jeu) qui désinstalle proprement, Velox ne supprime aucun jeu.	Opens the Windows apps list: Windows (or the game's launcher) uninstalls cleanly, Velox never deletes a game.	Abre la lista de aplicaciones de Windows: es Windows (o el lanzador del juego) quien desinstala limpiamente, Velox no elimina ningún juego.
+Lancer {0} ?	Launch {0}?	¿Iniciar {0}?
+Le jeu s'ouvre avec son lanceur habituel.	The game opens with its usual launcher.	El juego se abre con su lanzador habitual.
+{0} se lance…	{0} is starting…	{0} se está iniciando…
+Impossible de lancer ce jeu :	Can't launch this game:	No se puede iniciar este juego:
+{0} jeu(x) installé(s) : {1} au total.	{0} game(s) installed: {1} in total.	{0} juego(s) instalado(s): {1} en total.
+Le plus gros : {0} ({1}).	The biggest: {0} ({1}).	El más grande: {0} ({1}).
+Minuteur d'extinction	Shutdown timer	Temporizador de apagado
+Éteins ou redémarre ton PC tout seul dans un moment : pratique pour laisser finir un téléchargement, une mise à jour de jeu ou un film. Tu peux annuler à tout moment, et Windows prévient avant de s'éteindre.	Shut down or restart your PC by itself in a while: handy to let a download, a game update or a movie finish. You can cancel anytime, and Windows warns before shutting down.	Apaga o reinicia tu PC solo dentro de un rato: útil para dejar terminar una descarga, una actualización de juego o una película. Puedes cancelar en cualquier momento, y Windows avisa antes de apagarse.
+Dans combien de temps ?	In how long?	¿Dentro de cuánto tiempo?
+Éteindre	Shut down	Apagar
+Programmer	Schedule	Programar
+Annuler l'extinction prévue	Cancel the planned shutdown	Cancelar el apagado previsto
+Extinction annulée : ton PC reste allumé.	Shutdown cancelled: your PC stays on.	Apagado cancelado: tu PC sigue encendido.
+Pense à enregistrer ton travail avant : à l'heure prévue, Windows ferme les applications ouvertes.	Remember to save your work first: at the planned time, Windows closes open apps.	Recuerda guardar tu trabajo antes: a la hora prevista, Windows cierra las aplicaciones abiertas.
+Aucune extinction prévue.	No shutdown planned.	Ningún apagado previsto.
+Redémarrage prévu à {0}.	Restart planned at {0}.	Reinicio previsto a las {0}.
+Extinction prévue à {0}.	Shutdown planned at {0}.	Apagado previsto a las {0}.
+Redémarrer le PC à {0} ?	Restart the PC at {0}?	¿Reiniciar el PC a las {0}?
+Éteindre le PC à {0} ?	Shut down the PC at {0}?	¿Apagar el PC a las {0}?
+Enregistre ton travail avant l'heure prévue. Tu peux annuler à tout moment depuis cette fenêtre.	Save your work before the planned time. You can cancel anytime from this window.	Guarda tu trabajo antes de la hora prevista. Puedes cancelar en cualquier momento desde esta ventana.
+Redémarrage programmé à {0}.	Restart scheduled at {0}.	Reinicio programado a las {0}.
+Extinction programmée à {0}.	Shutdown scheduled at {0}.	Apagado programado a las {0}.
+Minuteur non programmé :	Timer not scheduled:	Temporizador no programado:
+Francfort	Frankfurt	Fráncfort
+Londres	London	Londres
+Irlande	Ireland	Irlanda
+Espagne	Spain	España
+Milan	Milan	Milán
+Stockholm	Stockholm	Estocolmo
+Virginie (États-Unis Est)	Virginia (US East)	Virginia (EE. UU. Este)
+Oregon (États-Unis Ouest)	Oregon (US West)	Oregón (EE. UU. Oeste)
+Singapour	Singapore	Singapur
+Tokyo	Tokyo	Tokio
+Amérique	Americas	América
+Asie	Asia	Asia
+Injoignable	Unreachable	Inaccesible
+Connexion instable (pertes)	Unstable connection (losses)	Conexión inestable (pérdidas)
+Excellent : jeux compétitifs	Excellent: competitive games	Excelente: juegos competitivos
+Très bon : tous les jeux en ligne	Very good: all online games	Muy bueno: todos los juegos en línea
+Correct : un léger retard en compétitif	Fair: slight lag in competitive play	Correcto: un ligero retraso en competitivo
+Moyen : retard sensible	Average: noticeable lag	Regular: retraso notable
+Trop loin pour jouer confortablement	Too far to play comfortably	Demasiado lejos para jugar cómodamente
+en haut à gauche	top left	arriba a la izquierda
+en haut à droite	top right	arriba a la derecha
+en bas à droite	bottom right	abajo a la derecha
+en bas à gauche	bottom left	abajo a la izquierda
+Overlay placé {0}.	Overlay placed {0}.	Overlay colocado {0}.
+Affiche-le avec Ctrl+Alt+O (profil Gamer).	Show it with Ctrl+Alt+O (Gamer profile).	Muéstralo con Ctrl+Alt+O (perfil Gamer).
+Éteins ou redémarre le PC tout seul dans 15 minutes à 3 heures, le temps de finir un téléchargement. Annulable à tout moment.	Shut down or restart the PC by itself in 15 minutes to 3 hours, time to finish a download. Can be cancelled anytime.	Apaga o reinicia el PC solo dentro de 15 minutos a 3 horas, el tiempo de terminar una descarga. Se puede cancelar en cualquier momento.
+Régler le minuteur	Set the timer	Ajustar el temporizador
+Le temps de réponse entre ton PC et les grandes régions de serveurs (Paris, Francfort, Londres, États-Unis…) : choisis la région la plus rapide dans tes jeux.	The response time between your PC and the major server regions (Paris, Frankfurt, London, United States…): pick the fastest region in your games.	El tiempo de respuesta entre tu PC y las grandes regiones de servidores (París, Fráncfort, Londres, Estados Unidos…): elige la región más rápida en tus juegos.
+Mesurer le ping	Measure ping	Medir el ping
+Tous tes jeux installés (Steam, Epic, Xbox, Battle.net…) et la place qu'ils prennent : repère les plus gros quand le disque est plein, lance-les d'ici.	All your installed games (Steam, Epic, Xbox, Battle.net…) and the space they take: spot the biggest when the disk is full, launch them from here.	Todos tus juegos instalados (Steam, Epic, Xbox, Battle.net…) y el espacio que ocupan: localiza los más grandes cuando el disco esté lleno, inícialos desde aquí.
+Voir mes jeux	See my games	Ver mis juegos
+Latence vers les régions de serveurs.	Latency to the server regions.	Latencia hacia las regiones de servidores.
+Tes jeux installés et la place qu'ils prennent.	Your installed games and the space they take.	Tus juegos instalados y el espacio que ocupan.
+Éteindre le PC dans un moment.	Shut down the PC in a while.	Apagar el PC dentro de un rato.
+Du bouton marche au bureau, sur 30 jours.	From power button to desktop, over 30 days.	Del botón de encendido al escritorio, en 30 días.
+Overlay : changer de coin	Overlay: change corner	Overlay: cambiar de esquina
+Haut gauche, haut droite, bas droite, bas gauche	Top left, top right, bottom right, bottom left	Arriba izquierda, arriba derecha, abajo derecha, abajo izquierda
+Cet outil n'est pas disponible dans cette version.	This tool isn't available in this version.	Esta herramienta no está disponible en esta versión.
+Version installée et nouveautés.	Installed version and what's new.	Versión instalada y novedades.
+Processeur, carte graphique et mémoire par-dessus tes jeux. Ctrl+Alt+O pour l'afficher ou le cacher, même en jeu. Clic droit : changer de coin de l'écran.	Processor, graphics card and memory on top of your games. Ctrl+Alt+O to show or hide it, even in game. Right-click: change screen corner.	Procesador, tarjeta gráfica y memoria sobre tus juegos. Ctrl+Alt+O para mostrarlo u ocultarlo, incluso en el juego. Clic derecho: cambiar de esquina de la pantalla.
+la page de la version {0} contient l'installateur de la version {1} (erreur de publication). Mise à jour annulée : rien n'a changé sur ton PC, réessaie plus tard.	the page for version {0} contains the installer of version {1} (publishing mistake). Update cancelled: nothing changed on your PC, try again later.	la página de la versión {0} contiene el instalador de la versión {1} (error de publicación). Actualización cancelada: nada ha cambiado en tu PC, inténtalo más tarde.
+le fichier publié pour la version {0} est en réalité la version {1} (erreur de publication). Mise à jour annulée : rien n'a changé sur ton PC.	the file published for version {0} is actually version {1} (publishing mistake). Update cancelled: nothing changed on your PC.	el archivo publicado para la versión {0} es en realidad la versión {1} (error de publicación). Actualización cancelada: nada ha cambiado en tu PC.
+cette version ne peut pas être installée automatiquement : son empreinte de sécurité (fichier .sha256) est absente ou elle ne vient pas de la page officielle.	this version can't be installed automatically: its security fingerprint (.sha256 file) is missing or it doesn't come from the official page.	esta versión no se puede instalar automáticamente: falta su huella de seguridad (archivo .sha256) o no procede de la página oficial.
+le fichier téléchargé ne correspond pas à l'empreinte publiée (téléchargement corrompu ou modifié). Mise à jour annulée par sécurité.	the downloaded file doesn't match the published fingerprint (corrupted or altered download). Update cancelled for safety.	el archivo descargado no coincide con la huella publicada (descarga dañada o modificada). Actualización cancelada por seguridad.
+Non merci	No thanks	No, gracias
+Attends qu'elle se termine avant de mettre à jour.	Wait for it to finish before updating.	Espera a que termine antes de actualizar.
+Installer Velox {0} maintenant ?	Install Velox {0} now?	¿Instalar Velox {0} ahora?
+L'application va se fermer puis se rouvrir toute seule (moins d'une minute). Ton historique et tes réglages sont conservés.	The app will close then reopen by itself (less than a minute). Your history and settings are kept.	La aplicación se cerrará y se volverá a abrir sola (menos de un minuto). Tu historial y tus ajustes se conservan.
+Installer	Install	Instalar
+Lancer	Launch	Iniciar
+Mesures	Samples	Mediciones
+Europe	Europe	Europa
+Nouveau : Ping des serveurs de jeu (Accélérer > Jeux). Le temps de réponse vers 12 régions de serveurs, pour choisir la plus rapide dans tes jeux.	New: Game server ping (Speed up > Games). The response time to 12 server regions, to pick the fastest in your games.	Nuevo: Ping de los servidores de juego (Acelerar > Juegos). El tiempo de respuesta hacia 12 regiones de servidores, para elegir la más rápida en tus juegos.
+Nouveau : Mes jeux. Tous tes jeux installés, toutes plateformes, avec la place qu'ils prennent ; tu peux les lancer d'ici.	New: My games. All your installed games, every platform, with the space they take; you can launch them from here.	Nuevo: Mis juegos. Todos tus juegos instalados, de todas las plataformas, con el espacio que ocupan; puedes iniciarlos desde aquí.
+Nouveau : Minuteur d'extinction. Éteins ou redémarre le PC tout seul dans 15 minutes à 3 heures, annulable à tout moment.	New: Shutdown timer. Shut down or restart the PC by itself in 15 minutes to 3 hours, cancellable anytime.	Nuevo: Temporizador de apagado. Apaga o reinicia el PC solo dentro de 15 minutos a 3 horas, cancelable en cualquier momento.
+Overlay en jeu : choisis son coin de l'écran (clic droit sur le bouton Overlay du QG Gamer).	In-game overlay: choose its screen corner (right-click the Overlay button in the Gamer HQ).	Overlay en el juego: elige su esquina de la pantalla (clic derecho en el botón Overlay del Cuartel Gamer).
+Finitions : traductions complétées en anglais et en espagnol, conditions de vente et confidentialité mises à jour (achat par Discord).	Polish: English and Spanish translations completed, sales terms and privacy policy updated (purchase through Discord).	Acabados: traducciones al inglés y al español completadas, condiciones de venta y privacidad actualizadas (compra por Discord).

@@ -1,5 +1,5 @@
 ﻿CONDITIONS DE VENTE DE VELOX PREMIUM
-Version du 5 novembre 2026
+Version du 10 novembre 2026
 
 
 1. LES PARTIES
@@ -54,9 +54,9 @@ Le prix est de 4,99 € TTC (toutes taxes comprises) par mois. L'abonnement se r
 
 4. COMMANDE ET PAIEMENT
 
-1) Dans Velox (onglet Premium) ou sur le site officiel (https://damiencoussot-ai.github.io/nettoyage-pc/), cliquez sur « S'abonner » (ou « Acheter ») après avoir accepté les présentes conditions et le contrat de licence.
+1) Rejoignez le serveur Discord officiel de Velox (le bouton « S'abonner » de Velox, onglet Premium, et celui du site officiel https://damiencoussot-ai.github.io/nettoyage-pc/ y mènent). Dans le salon « acheter-premium », cliquez sur « S'abonner » ou tapez la commande /premium, après avoir accepté les présentes conditions et le contrat de licence.
 2) La page de paiement sécurisée de Stripe s'ouvre dans votre navigateur. Vous y indiquez votre adresse e-mail et payez (carte bancaire, Apple Pay, Google Pay, Link ou autres moyens proposés).
-3) Juste après le paiement, votre clé de licence s'affiche à l'écran. Si vous avez acheté depuis Velox, Premium s'active en plus automatiquement sur cet ordinateur.
+3) Juste après le paiement, votre clé de licence s'affiche à l'écran et vous est envoyée en message privé sur Discord par le robot « Velox ». Collez-la dans Velox (Premium > J'ai une clé) pour activer Premium.
 4) Link vous envoie par e-mail le reçu et la facture.
 
 Les données de paiement sont traitées uniquement par Stripe, Link et leurs prestataires : l'Éditeur n'y a jamais accès.
@@ -64,7 +64,7 @@ Les données de paiement sont traitées uniquement par Stripe, Link et leurs pre
 
 5. LIVRAISON
 
-La clé de licence s'affiche à l'écran juste après le paiement. Pour un achat fait depuis Velox, Premium s'active automatiquement sur l'ordinateur qui a lancé l'achat. Sur un autre ordinateur, collez la clé dans Velox (Premium > J'ai une clé). Conservez votre clé. Si vous ne l'avez pas obtenue ou si vous l'avez perdue, écrivez à l'Éditeur avec l'adresse e-mail utilisée pour l'achat : votre clé vous sera renvoyée, ou un remboursement vous sera proposé.
+La clé de licence s'affiche à l'écran juste après le paiement et vous est envoyée en message privé sur Discord ; la commande /ma-cle du serveur Discord officiel vous la redonne à tout moment. Collez la clé dans Velox (Premium > J'ai une clé) sur chaque ordinateur à activer. Conservez votre clé. Si vous ne l'avez pas obtenue ou si vous l'avez perdue, écrivez à l'Éditeur avec l'adresse e-mail utilisée pour l'achat : votre clé vous sera renvoyée, ou un remboursement vous sera proposé.
 
 
 6. SATISFAIT OU REMBOURSÉ 14 JOURS ET DROIT DE RÉTRACTATION

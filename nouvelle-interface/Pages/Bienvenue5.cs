@@ -73,7 +73,7 @@ namespace NettoyagePC.Nouveau
             contenu.Children.Add(Titre("Comment veux-tu utiliser Velox ?"));
             var choix = new Avalonia.Controls.Primitives.UniformGrid { Columns = 2 };
             carteSimple = Carte("Simple", "Trois gros boutons : Nettoyer, Vérifier, Appeler à l'aide. Idéal pour débuter ou pour un proche.", () => Choisir(true));
-            carteComplet = Carte("Complet", "Toutes les rubriques et les options : nettoyage, accélération, sécurité, outils. Chaque action te demande ton accord avant de se lancer.", () => Choisir(false));
+            carteComplet = Carte("Complet", "Toutes les rubriques et les outils : nettoyage, vitesse, sécurité, matériel, Premium.", () => Choisir(false));
             choix.Children.Add(carteSimple); choix.Children.Add(carteComplet);
             contenu.Children.Add(choix);
             Choisir(simple);

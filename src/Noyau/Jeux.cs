@@ -174,5 +174,30 @@ namespace NettoyagePC
             catch { }
             return jeux.OrderBy(j => j.Nom, StringComparer.CurrentCultureIgnoreCase).ToList();
         }
+
+        /// <summary>Place prise par un dossier (octets), en lecture seule ; s'arrête si « arret » le demande. -1 si illisible.</summary>
+        public static double TailleDossier(string dossier, Func<bool> arret = null)
+        {
+            if (string.IsNullOrEmpty(dossier) || !Directory.Exists(dossier)) return -1;
+            double total = 0;
+            var pile = new Stack<string>(); pile.Push(dossier);
+            while (pile.Count > 0)
+            {
+                if (arret != null && arret()) return -1;
+                string d = pile.Pop();
+                try
+                {
+                    var di = new DirectoryInfo(d);
+                    foreach (var f in di.EnumerateFiles()) { try { total += f.Length; } catch { } }
+                    foreach (var s in di.EnumerateDirectories())
+                    {
+                        // on ne suit pas les liens (jonctions) : ils pointent ailleurs et compteraient deux fois
+                        try { if ((s.Attributes & FileAttributes.ReparsePoint) == 0) pile.Push(s.FullName); } catch { }
+                    }
+                }
+                catch { }
+            }
+            return total;
+        }
     }
 }

@@ -134,8 +134,8 @@ namespace NettoyagePC.Nouveau
             {
                 try
                 {
-                    var ecran = w.Screens.Primary;
-                    if (ecran != null) w.Position = new PixelPoint(ecran.Bounds.X + (int)(12 * ecran.Scaling), ecran.Bounds.Y + (int)(12 * ecran.Scaling));
+                    Placer(w);
+                    Dispatcher.UIThread.Post(() => { try { if (fenetre == w) Placer(w); } catch { } }, DispatcherPriority.Background);   // une fois la taille connue
                     // les clics passent à travers, la fenêtre ne prend jamais le focus et n'apparaît pas dans Alt+Tab
                     var h = w.TryGetPlatformHandle();
                     if (h != null)
@@ -149,12 +149,41 @@ namespace NettoyagePC.Nouveau
             minuteur = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
             minuteur.Tick += (s, e) => Mesurer(f);
             w.Closed += (s, e) => { fenetre = null; if (minuteur != null) minuteur.Stop(); };
-            f.Closed += (s, e) => { if (fenetre != null) fenetre.Close(); };
+            if (!fermetureSuivie) { fermetureSuivie = true; f.Closed += (s, e) => { if (fenetre != null) fenetre.Close(); }; }
             fenetre = w;
             w.Show();
             Task.Run(() => JournalJeu.Noter("overlay"));
             minuteur.Start();
             Mesurer(f);
+        }
+
+        private static bool fermetureSuivie;
+        private static int coin = -1;
+        private static readonly string[] NomsCoins = { "en haut à gauche", "en haut à droite", "en bas à droite", "en bas à gauche" };
+
+        /// <summary>Place l'overlay dans le coin choisi de l'écran principal (zone de travail : jamais sous la barre des tâches).</summary>
+        private static void Placer(Window w)
+        {
+            if (coin < 0) { try { coin = Math.Max(0, Math.Min(3, Parametres.Lire().OverlayCoin)); } catch { coin = 0; } }
+            var ecran = w.Screens.Primary;
+            if (ecran == null) return;
+            var z = ecran.WorkingArea;
+            int marge = (int)(12 * ecran.Scaling);
+            int l = (int)Math.Ceiling(w.Bounds.Width * ecran.Scaling), h = (int)Math.Ceiling(w.Bounds.Height * ecran.Scaling);
+            int x = coin == 1 || coin == 2 ? z.Right - l - marge : z.X + marge;
+            int y = coin >= 2 ? z.Bottom - h - marge : z.Y + marge;
+            w.Position = new PixelPoint(x, y);
+        }
+
+        /// <summary>Passe l'overlay au coin suivant de l'écran (et retient le choix).</summary>
+        public static void ChangerCoin(FenetrePrincipale f)
+        {
+            if (coin < 0) { try { coin = Math.Max(0, Math.Min(3, Parametres.Lire().OverlayCoin)); } catch { coin = 0; } }
+            coin = (coin + 1) % 4;
+            int c = coin;
+            f.EnregistrerReglage(r => r.OverlayCoin = c);
+            if (fenetre != null) { try { Placer(fenetre); } catch { } }
+            f.Statut(Langue.F("Overlay placé {0}.", Langue.T(NomsCoins[c])) + (fenetre == null ? " " + Langue.T("Affiche-le avec Ctrl+Alt+O (profil Gamer).") : ""));
         }
 
         private static void Mesurer(FenetrePrincipale f)

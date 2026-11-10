@@ -61,6 +61,10 @@ namespace NettoyagePC.Nouveau
             O("raminfo", "Accelerer", "Infos mémoire vive", "Barrettes, applications gourmandes, erreurs.", Act("raminfo")),
             O("ramtest", "Accelerer", "Tester les barrettes", "Diagnostic de mémoire Windows (redémarrage).", Act("ramtest")),
             O("reglagesjeux", "Accelerer", "Réglages des jeux", "Mode jeu de Windows, GPU, jeux en fenêtré.", f => ReglagesWindows5.Jeux(f)),
+            O("pingjeu", "Accelerer", "Ping des serveurs de jeu", "Latence vers les régions de serveurs.", f => PingJeu5.Ouvrir(f)),
+            O("mesjeux", "Accelerer", "Mes jeux", "Tes jeux installés et la place qu'ils prennent.", f => MesJeux5.Ouvrir(f)),
+            O("extinction", "Accelerer", "Minuteur d'extinction", "Éteindre le PC dans un moment.", f => Extinction5.Ouvrir(f)),
+            O("tempsdemarrage", "Accelerer", "Temps de démarrage", "Du bouton marche au bureau, sur 30 jours.", f => TempsDemarrage5.Ouvrir(f)),
 
             O("secu", "Proteger", "Bilan de sécurité", "Antivirus, pare-feu, Secure Boot, mises à jour.", Act("secu")),
             O("antivirus", "Proteger", "Analyse antivirus rapide", "Microsoft Defender à jour, puis analyse.", Act("antivirus")),
