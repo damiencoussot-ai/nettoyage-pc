@@ -11,7 +11,7 @@
 //   Secret        STRIPE_WEBHOOK_SECRET_TEST (facultatif : « whsec_… » du webhook en mode test)
 //   Secret        ADMIN_TOKEN              (mot de passe de la page /admin, choisi par l'éditeur)
 //   Variable      ACCEPTER_TEST = oui      (facultatif, pendant les essais : accepte les clés du mode test)
-//   Variable      LIENS_PAIEMENT           (facultatif : identifiants plink_… acceptés, séparés par des virgules)
+//   Variable      LIENS_PAIEMENT           (OBLIGATOIRE : identifiants plink_… des liens de paiement Velox, séparés par des virgules ; vide = aucun paiement accepté)
 //
 // Adresses :
 //   POST /stripe                    webhook Stripe (événements checkout.session.*, customer.subscription.updated|deleted,
@@ -134,7 +134,10 @@ async function webhook(requete, env) {
 
 function lienAccepte(session, env) {
   const liste = String(env.LIENS_PAIEMENT || '').split(',').map((s) => s.trim()).filter(Boolean);
-  return liste.length === 0 || liste.includes(session.payment_link || '');
+  // aucun lien configuré : aucun paiement n'est accepté (sinon un paiement pour un autre produit du même compte Stripe
+  // créerait une licence Velox)
+  if (liste.length === 0) { console.log('Paiement ignoré : la variable LIENS_PAIEMENT est vide.'); return false; }
+  return liste.includes(session.payment_link || '');
 }
 
 async function creerLicence(env, s) {

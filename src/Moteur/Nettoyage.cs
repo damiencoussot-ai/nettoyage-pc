@@ -417,8 +417,16 @@ namespace NettoyagePC
                     foreach (var s in services) if (etaient[s]) { try { using (var sc = new ServiceController(s)) { sc.Stop(); sc.WaitForStatus(ServiceControllerStatus.Stopped, TimeSpan.FromSeconds(30)); } } catch { } }
                     Thread.Sleep(2000);
                 }
+                // le cache n'est touché que si les deux services sont vraiment arrêtés (sinon Windows Update s'en sert peut-être)
+                bool arretes = true;
+                if (!O.Simulation)
+                    foreach (var s in services) { try { using (var sc = new ServiceController(s)) { if (sc.Status != ServiceControllerStatus.Stopped) arretes = false; } } catch { } }
                 long o = 0;
-                try { o = ViderDossier(Path.Combine(win, @"SoftwareDistribution\Download"), 0, true); }
+                try
+                {
+                    if (arretes) o = ViderDossier(Path.Combine(win, @"SoftwareDistribution\Download"), 0, true);
+                    else Ecrire("  Cache de téléchargement Windows Update : ignoré, Windows Update est en cours d'utilisation (services non arrêtés).");
+                }
                 finally
                 {
                     if (!O.Simulation) foreach (var s in services) if (etaient[s]) { try { using (var sc = new ServiceController(s)) sc.Start(); } catch { } }

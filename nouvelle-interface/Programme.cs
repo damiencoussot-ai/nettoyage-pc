@@ -310,11 +310,11 @@ namespace NettoyagePC.Nouveau
                         if (Fps.OutilPresent) emp = Moteur.Empreinte(Fps.Exe); else src = Fps.Telecharger(out emp, out ver);
                         var tem = new System.Threading.Mutex(false, @"Local\VeloxFpsDirect");
                         var tache = System.Threading.Tasks.Task.Run(() => Fps.DirectEnAdmin(new[] { "fps-direct", src, emp }));
-                        bool lisible = false; long taille = -1; double vu = -1; string appVue = ""; int lectures = 0;
+                        bool lisible = false; long tailleCsv = -1; double vu = -1; string appVue = ""; int lectures = 0;
                         for (int i = 0; i < 12 && !tache.IsCompleted; i++)
                         {
                             System.Threading.Thread.Sleep(1000);
-                            try { using (var fs = new FileStream(Fps.CsvDirect, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete)) { lisible = true; taille = fs.Length; } } catch { }
+                            try { using (var fs = new FileStream(Fps.CsvDirect, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete)) { lisible = true; tailleCsv = fs.Length; } } catch { }
                             string a2; double v = Fps.LireDirect(Fps.CsvDirect, 0, out a2); lectures++;
                             if (v > 0) { vu = v; appVue = a2; }
                         }
@@ -323,7 +323,7 @@ namespace NettoyagePC.Nouveau
                         tem.Dispose();
                         bool arrete = false; try { arrete = tache.Wait(25000); } catch { arrete = true; }
                         bool reste = File.Exists(Fps.CsvDirect);
-                        rapport.AppendLine("FPS en direct (PresentMon réel) : fichier lisible pendant la mesure " + lisible + " (" + taille + " o), " + lectures + " lecture(s), FPS vus " + Math.Round(vu) + " (" + appVue + "), état avant l'arrêt : " + fin + ", arrêté après le témoin : " + arrete + ", fichier laissé : " + reste);
+                        rapport.AppendLine("FPS en direct (PresentMon réel) : fichier lisible pendant la mesure " + lisible + " (" + tailleCsv + " o), " + lectures + " lecture(s), FPS vus " + Math.Round(vu) + " (" + appVue + "), état avant l'arrêt : " + fin + ", arrêté après le témoin : " + arrete + ", fichier laissé : " + reste);
                         if (finiTropTot && tache.IsFaulted && tache.Exception.InnerException is System.Net.WebException) rapport.AppendLine("(réseau indisponible : essai non concluant)");
                         else if (!lisible || finiTropTot || !arrete || reste) { erreurs++; rapport.AppendLine("ERREUR : FPS en direct avec le vrai PresentMon"); }
                     }
