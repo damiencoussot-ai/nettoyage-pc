@@ -69,7 +69,8 @@ namespace NettoyagePC.Nouveau
             };
             if (c.Bouton2 != null)
             {
-                var second = new BoutonNoyau(c.Bouton2, false, Math.Max(120, Math.Min(240, c.Bouton2.Length * 7.6 + 40)), 36) { TaillePolice = 13, HorizontalAlignment = HorizontalAlignment.Left, Margin = new Thickness(8, 14, 0, 0) };
+                var second = new BoutonNoyau(c.Bouton2, false, Math.Max(120, Math.Min(240, c.Bouton2.Length * 7.6 + 40)), 36) { TaillePolice = 13, HorizontalAlignment = HorizontalAlignment.Left, Margin = new Thickness(0, 14, 0, 0) };
+                bouton.Margin = new Thickness(0, 14, 8, 0);   // l'écart est à droite du premier : les deux boutons restent alignés s'ils passent sur deux lignes
                 second.Clic += () =>
                 {
                     if (c.Faire2 != null) { try { c.Faire2(); } catch (Exception ex) { JournalDemarrage.Erreur("carte " + c.Titre, ex); f.Statut(Langue.T("Une erreur s'est produite :") + " " + ex.Message, true); } }
