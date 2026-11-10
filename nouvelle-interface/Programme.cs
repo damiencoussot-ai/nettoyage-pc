@@ -231,6 +231,30 @@ namespace NettoyagePC.Nouveau
                     source = figee;
                 }
                 catch (Exception ex) { erreurs++; rapport.AppendLine("ERREUR : bilan réel : " + ex); }
+                // essais réels des outils de la 5.10 (lecture seule : rien n'est programmé ni modifié)
+                try
+                {
+                    if (MisesAJour.Comparer("5.10", "5.9.10") <= 0 || MisesAJour.Comparer("5.10", "5.10.0.0") != 0 || MisesAJour.Comparer("5.9.10", "5.9.9") <= 0)
+                    { erreurs++; rapport.AppendLine("ERREUR : comparaison des versions"); }
+                    else rapport.AppendLine("Versions : 5.10 > 5.9.10 > 5.9.9, 5.10 = 5.10.0.0");
+                    int joignables = 0;
+                    foreach (var reg in new[] { "us-east-1", "eu-west-3", "eu-south-2", "ap-southeast-1" })
+                    {
+                        var r = Reseau.PingTcp(Reseau.HoteRegion(reg), reg, 3);
+                        if (r.Moyenne >= 0) joignables++;
+                        rapport.AppendLine("Ping " + reg + " : " + (r.Moyenne >= 0 ? Math.Round(r.Min) + " ms (gigue " + Math.Round(r.Gigue, 1) + ", perte " + r.Perte + " %) : " + Reseau.VerdictJeu(r.Min, r.Gigue, r.Perte) : "injoignable"));
+                    }
+                    if (joignables == 0) { erreurs++; rapport.AppendLine("ERREUR : aucune région de jeu joignable"); }
+                    string etc = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System), "drivers", "etc");
+                    double taille = DetectionJeux.TailleDossier(etc);
+                    if (taille <= 0) { erreurs++; rapport.AppendLine("ERREUR : taille de dossier illisible (" + etc + ")"); }
+                    else rapport.AppendLine("Taille de " + etc + " : " + Format.Taille(taille));
+                    var jeux = DetectionJeux.Lister();
+                    rapport.AppendLine("Jeux détectés : " + jeux.Count);
+                    rapport.AppendLine("Extinction prévue : " + (Extinction.Prevue() == null ? "aucune" : "oui"));
+                    rapport.AppendLine("Démarrages notés : " + TempsDemarrage.Lire().Count + " ; code de joueur : " + Succes.CodePartage(Succes.Exemple()));
+                }
+                catch (Exception ex) { erreurs++; rapport.AppendLine("ERREUR : essais 5.10 : " + ex); }
             }
             AppBuilder.Configure<App>().UseSkia().UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false }).SetupWithoutStarting();
             var f = new FenetrePrincipale(source) { Pseudo = "Damien" };
