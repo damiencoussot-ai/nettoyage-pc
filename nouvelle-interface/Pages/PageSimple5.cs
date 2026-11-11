@@ -30,7 +30,7 @@ namespace NettoyagePC.Nouveau
             var grille = new Avalonia.Controls.Primitives.UniformGrid { Columns = 3 };
             grille.SizeChanged += (o, a) => grille.Columns = a.NewSize.Width < 640 ? 1 : 3;
             var bNettoyer = new GrosBouton5("nettoyer", "Nettoyer mon PC", "Supprime les fichiers inutiles. Tes documents et tes photos ne sont jamais touchés.", true);
-            bNettoyer.Clic += () => F.LancerAction("standard", null, "Nettoyer le PC maintenant ?\n\nLes fichiers inutiles (temporaires, caches) sont supprimés et la corbeille est vidée. Tes documents, photos et vidéos ne sont jamais touchés.\n\nFerme ton navigateur Internet pour un meilleur résultat.");
+            bNettoyer.Clic += () => F.LancerAction("standard", null, "Nettoyer le PC maintenant ?\n\nLes fichiers inutiles (temporaires, caches) sont supprimés. La Corbeille n'est vidée que si tu l'actives dans les Réglages. Tes documents, photos et vidéos ne sont jamais touchés.\n\nFerme ton navigateur Internet pour un meilleur résultat.");
             var bVerifier = new GrosBouton5("verifier", "Vérifier mon PC", "Regarde si tout va bien : disques, antivirus, mises à jour, espace libre.", false);
             bVerifier.Clic += () => { tEtat.Text = Langue.T("Je regarde l'état de ton PC…"); tEtat.Foreground = Habillage.Pinceau(Habillage.P.Accent); F.ActualiserBilan(); };
             var bAide = new GrosBouton5("aide", "Appeler à l'aide", "Un proche voit ton écran et t'aide depuis chez lui, en toute sécurité.", false);

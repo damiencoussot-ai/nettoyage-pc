@@ -331,8 +331,20 @@ namespace NettoyagePC
             Ecrire("=== Corbeille ===");
             long elements;
             tailleCorbeille = Natif.TailleCorbeille(out elements);
-            if (!O.Simulation && elements > 0) Natif.ViderCorbeille();
-            Ecrire("  -> Environ " + T(tailleCorbeille) + " " + verbe);
+            // la Corbeille n'est vidée que si la personne l'a choisi dans les Réglages (désactivé par défaut)
+            bool vider = false;
+            try { vider = Parametres.Lire().ViderCorbeille; } catch { }
+            if (!vider)
+            {
+                Ecrire("  Corbeille non vidée (" + T(tailleCorbeille) + " à l'intérieur) : ce qu'elle contient reste récupérable.");
+                Ecrire("  Pour la vider pendant le nettoyage : Réglages > Corbeille pendant le nettoyage.");
+                tailleCorbeille = 0;
+            }
+            else
+            {
+                if (!O.Simulation && elements > 0) Natif.ViderCorbeille();
+                Ecrire("  -> Environ " + T(tailleCorbeille) + " " + verbe);
+            }
             Ecrire();
 
             RangerTelechargements();

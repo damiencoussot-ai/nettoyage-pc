@@ -575,6 +575,7 @@ namespace NettoyagePC
         public string SuccesVus;   // profil Gamer : succès déjà annoncés (noms séparés par « | ») ; null = jamais regardé
         public string ResumeSemaine = "";
         public string PremiereUtilisation = "";   // 5.9.9 : date de la première ouverture vue (aaaa-mm-jj), pour la demande d'avis
+        public bool ViderCorbeille;               // 5.11 : le nettoyage vide aussi la Corbeille (désactivé par défaut : rien n'y est supprimé sans ton accord)
         public int OverlayCoin;                   // 5.10 : coin de l'overlay en jeu (0 haut gauche, 1 haut droite, 2 bas droite, 3 bas gauche)
         public bool AvisDemande;                  // 5.9.9 : « Velox te plaît ? » déjà demandé (une seule fois)   // date du dernier résumé de la semaine montré à l'ouverture (aaaa-mm-jj)
         public string Favoris;   // outils favoris de l'accueil (version 5), dans l'ordre ; null = jamais choisis (favoris proposés)
@@ -609,6 +610,10 @@ namespace NettoyagePC
                 if (d.ContainsKey("Favoris")) { string fv = Json.Texte(d, "Favoris"); p.Favoris = System.Text.RegularExpressions.Regex.IsMatch(fv, "^[a-z0-9,]{0,600}$") ? fv : ""; }
                 p.Pseudo = Profil.Nettoyer(Json.Texte(d, "Pseudo"));
                 p.ProfilCree = Json.Bool(d, "ProfilCree");
+                p.ViderCorbeille = Json.Bool(d, "ViderCorbeille");
+                p.OverlayCoin = (int)Math.Max(0, Math.Min(3, Json.Long(d, "OverlayCoin")));
+                p.AvisDemande = Json.Bool(d, "AvisDemande");
+                string pu = Json.Texte(d, "PremiereUtilisation"); if (System.Text.RegularExpressions.Regex.IsMatch(pu, "^[0-9]{4}-[0-9]{2}-[0-9]{2}$")) p.PremiereUtilisation = pu;
             }
             return p;
         }
@@ -624,6 +629,7 @@ namespace NettoyagePC
                 d["Style"] = Style; d["AnnonceHudVue"] = AnnonceHudVue; d["AnnonceVeloxVue"] = AnnonceVeloxVue; d["Profil"] = ProfilUsage; d["ResumeSemaine"] = ResumeSemaine;
                 d["SonsGamer"] = SonsGamer; d["OverlayJeu"] = OverlayJeu;
                 if (SuccesVus != null) d["SuccesVus"] = SuccesVus;
+                d["ViderCorbeille"] = ViderCorbeille; d["OverlayCoin"] = OverlayCoin; d["AvisDemande"] = AvisDemande; d["PremiereUtilisation"] = PremiereUtilisation ?? "";
                 FichierSur.EcrireInterface(Fichier, Json.Ecrire(d));
             }
             catch { }

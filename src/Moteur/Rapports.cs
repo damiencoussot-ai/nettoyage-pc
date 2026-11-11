@@ -261,7 +261,7 @@ namespace NettoyagePC
             string utilisateur = WindowsIdentity.GetCurrent().Name;
             if (appsAnciennes) CreerTache(MajAppsAuto.Tache, "--tache applications", "Mises à jour des applications par winget, sauf celles exclues dans Velox (Premium).",
                 "<CalendarTrigger><StartBoundary>2026-01-07T19:00:00</StartBoundary><ScheduleByWeek><WeeksInterval>1</WeeksInterval><DaysOfWeek><Wednesday /></DaysOfWeek></ScheduleByWeek></CalendarTrigger>", "PT3H", utilisateur);
-            bool ok = CreerTache(TacheHebdo, "--tache hebdo", "Nettoyage standard : temporaires, caches, corbeille, vieux téléchargements.",
+            bool ok = CreerTache(TacheHebdo, "--tache hebdo", "Nettoyage standard : temporaires, caches, vieux téléchargements.",
                     "<CalendarTrigger><StartBoundary>2026-01-04T10:00:00</StartBoundary><ScheduleByWeek><WeeksInterval>1</WeeksInterval><DaysOfWeek><Sunday /></DaysOfWeek></ScheduleByWeek></CalendarTrigger>", "PT3H", utilisateur)
                 & CreerTache(TacheComplet, "--tache complet", "Nettoyage complet : standard + profond (Windows Update, DISM) + disques (santé, TRIM, optimisation) + sécurité.",
                     "<CalendarTrigger><StartBoundary>2026-01-04T11:00:00</StartBoundary><ScheduleByWeek><WeeksInterval>4</WeeksInterval><DaysOfWeek><Sunday /></DaysOfWeek></ScheduleByWeek></CalendarTrigger>", "PT6H", utilisateur)

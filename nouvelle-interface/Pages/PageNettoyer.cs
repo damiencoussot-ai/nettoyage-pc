@@ -30,7 +30,7 @@ namespace NettoyagePC.Nouveau
         {
             return Cartes.Page(f, null, new[]
             {
-                CarteAction.A("Nettoyage rapide", "Fichiers temporaires, caches de Windows, des navigateurs et des applications, corbeille, vieux téléchargements rangés à part. « En profondeur » ajoute Windows Update, le Nettoyage de disque de Windows et DISM, avec un point de restauration avant.", "Nettoyer", "standard", true).Aussi("En profondeur", "complet"),
+                CarteAction.A("Nettoyage rapide", "Fichiers temporaires, caches de Windows, des navigateurs et des applications, vieux téléchargements rangés à part. La Corbeille n'est vidée que si tu l'actives dans les Réglages. « En profondeur » ajoute Windows Update, le Nettoyage de disque de Windows et DISM, avec un point de restauration avant.", "Nettoyer", "standard", true).Aussi("En profondeur", "complet"),
                 CarteAction.A("Voir ce qui serait nettoyé", "Analyse tout ce que l'optimisation complète ferait et affiche l'espace récupérable, sans rien supprimer.", "Analyser", "analyse"),
                 CarteAction.Code("Anciens pilotes", "Windows garde les anciennes versions de chaque pilote (souvent plusieurs Go pour la carte graphique). Tu choisis lesquelles retirer.", "Voir les anciens pilotes", () => AnciensPilotes5.Ouvrir(f)).Plus(),
                 CarteAction.Code("Téléchargements à vérifier", "Les téléchargements de plus de 90 jours sont rangés ici au lieu d'être supprimés. Garde ou supprime-les toi-même.", "Ouvrir le dossier", () => OuvrirAVerifier(f)).Plus(),

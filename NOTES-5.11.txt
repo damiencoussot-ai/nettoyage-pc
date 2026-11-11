@@ -17,6 +17,11 @@ Pages plus simples :
   optimiser et vérifier les disques, créer un point de restauration et restaurer, mémoire vive et test des barrettes,
   bilan de sécurité et Sécurité Windows, journaux. Le minuteur d'extinction passe dans Outils > Matériel.
 
+Plus sûr :
+- Le nettoyage ne vide plus la Corbeille : ce que tu y as mis reste récupérable. Pour la vider à chaque nettoyage,
+  active-le dans Réglages > Corbeille pendant le nettoyage.
+- Nettoyage en profondeur : le cache de Windows Update n'est touché que si ses services sont bien arrêtés.
+
 Aussi : traductions complétées, comparaison des versions plus sûre, conditions de vente et confidentialité à jour.
 
 L'installateur est publié sous les deux noms : Velox-Setup-5.11.exe (winget, site) et NettoyagePC-Setup-5.11.exe (mise à jour des anciennes versions).

@@ -81,9 +81,11 @@ namespace NettoyagePC
                 else if (pct < 20) { Point("attention", txt + " : il commence à se remplir.", "Nettoyer", "action:standard"); }
                 else Point("ok", txt, null, null);
             }
-            long recup = d.Corbeille + d.Temp;
-            if (recup >= 1073741824L) { Point("attention", Format.Taille(recup) + " récupérables tout de suite (corbeille et fichiers temporaires).", "Nettoyer", "action:standard"); }
-            else Point("ok", "Corbeille et fichiers temporaires : " + Format.Taille(recup), null, null);
+            // la Corbeille ne compte que si le nettoyage la vide (réglage désactivé par défaut)
+            bool avecCorbeille = false; try { avecCorbeille = Parametres.Lire().ViderCorbeille; } catch { }
+            long recup = (avecCorbeille ? d.Corbeille : 0) + d.Temp;
+            if (recup >= 1073741824L) { Point("attention", Format.Taille(recup) + (avecCorbeille ? " récupérables tout de suite (corbeille et fichiers temporaires)." : " récupérables tout de suite (fichiers temporaires)."), "Nettoyer", "action:standard"); }
+            else Point("ok", (avecCorbeille ? "Corbeille et fichiers temporaires : " : "Fichiers temporaires : ") + Format.Taille(recup), null, null);
             if (!d.DernierJournal.HasValue) { Point("attention", "Aucun nettoyage effectué avec Velox pour l'instant.", "Nettoyer", "action:standard"); }
             else
             {

@@ -41,6 +41,16 @@ namespace NettoyagePC.Nouveau
                     "Choisir un profil", () => Profils5.Ouvrir(f), true),
                 CarteAction.Code("Style de l'interface", Langue.T("HUD : le look futuriste, depuis la version 5.5. Classique : l'apparence d'avant. Tes outils, tes favoris et tes réglages restent les mêmes.") + " " + Langue.F("Actuellement : {0}.", Langue.T(Habillage.Hud ? "HUD" : "Classique")),
                     Habillage.Hud ? "Passer au style classique" : "Passer au style HUD", () => { f.ChangerStyle(!Habillage.Hud); f.Afficher("Reglages", false); }, true),
+                CarteAction.Code("Corbeille pendant le nettoyage", Langue.T("Par défaut, le nettoyage ne touche pas à la Corbeille : ce que tu y as mis reste récupérable. Tu peux demander à Velox de la vider à chaque nettoyage pour libérer plus d'espace.") + " " + Langue.T(r.ViderCorbeille ? "Actuellement : la Corbeille est vidée à chaque nettoyage." : "Actuellement : la Corbeille n'est jamais vidée par Velox."),
+                    r.ViderCorbeille ? "Ne plus la vider" : "Vider la Corbeille", () =>
+                    {
+                        if (r.ViderCorbeille) { f.EnregistrerReglage(x => x.ViderCorbeille = false); f.Statut(Langue.T("Velox ne videra plus la Corbeille.")); f.Afficher("Reglages", false); return; }
+                        f.Demander("Vider la Corbeille à chaque nettoyage ?", "Tout ce qui se trouve dans la Corbeille sera supprimé définitivement à chaque nettoyage, y compris les nettoyages automatiques. Les fichiers que Velox y a mis (gros fichiers, doublons, restes de programmes) ne pourront alors plus être restaurés depuis l'Historique.", "Vider la Corbeille", "Annuler", oui =>
+                        {
+                            if (!oui) return;
+                            f.EnregistrerReglage(x => x.ViderCorbeille = true); f.Statut(Langue.T("La Corbeille sera vidée à chaque nettoyage.")); f.Afficher("Reglages", false);
+                        });
+                    }),
                 CarteAction.Code("Visite guidée", "30 secondes pour découvrir l'interface : les rubriques, l'indice du PC, l'accès rapide, les alertes et Ctrl+K.", "Lancer la visite", () => { f.Afficher("Accueil", false); Visite5.Lancer(f); }),
                 CarteAction.Code("Mode simple", "Pour un débutant (un parent, par exemple) : un seul écran avec trois gros boutons, sans les options avancées.", "Activer le mode simple", () =>
                     f.Demander("Passer au mode simple ?", "L'écran ne montrera plus que trois gros boutons : Nettoyer mon PC, Vérifier mon PC, Appeler à l'aide. Le lien « Afficher toutes les options » en bas de l'écran permet de revenir au mode complet.", "Passer au mode simple", "Annuler", oui => { if (oui) f.AppliquerModeSimple(true); })),
