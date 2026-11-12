@@ -79,9 +79,16 @@ namespace NettoyagePC.Nouveau
         }
 
         /// <summary>Note d'une entrée : titre qui commence par la recherche > mot du titre > texte qui contient tous les mots.</summary>
+        private static readonly HashSet<string> MotsVides = new HashSet<string> { "mon", "mes", "ton", "tes", "son", "ses", "est", "les", "des", "une", "que", "qui", "pas", "sur", "par", "pour", "avec", "dans", "pourquoi", "comment", "quand", "trop", "tres", "tout", "plus", "fait", "the", "why", "how", "and", "por", "que", "muy", "esta" };
         private static int Note(EntreeCommande e, string q, string[] mots)
         {
             string titre = Normaliser(e.Titre);
+            // un problème décrit avec ses mots (« pourquoi mon jeu saccade ») : il suffit qu'un mot important corresponde
+            if (e.Type == "Problème" && !mots.All(m => e.Cle.Contains(m)))
+            {
+                int k = mots.Count(m => m.Length >= 3 && !MotsVides.Contains(m) && e.Cle.Contains(m));
+                return k == 0 ? 0 : 5 + 20 * k;
+            }
             if (!mots.All(m => e.Cle.Contains(m))) return 0;
             int n = 10;
             if (titre.StartsWith(q)) n += 100;

@@ -303,6 +303,55 @@ namespace NettoyagePC.Nouveau
                     if (Math.Abs(fps1 - 100) > 0.5 || Math.Abs(fps2 - 50) > 0.5 || app != "jeu.exe") { erreurs++; rapport.AppendLine("ERREUR : calcul des FPS en direct"); }
                     try { File.Delete(csv); } catch { }
                     string appVide; Fps.LireDirect(csv, 0, out appVide);   // fichier absent : la lecture repart de zéro
+                    // ---- 5.12 : Boîte noire. D'abord la logique (partie simulée de 90 secondes à 100 imagesSim par seconde, deux saccades)
+                    {
+                        string fichierBoite = Path.Combine(Chemins.Local, "boite-noire.json");
+                        string sauvegardeBoite = File.Exists(fichierBoite) ? File.ReadAllText(fichierBoite) : null;
+                        var ancienneSim = BoiteNoire.PartieFinie;
+                        SessionBoite recueSim = null;
+                        BoiteNoire.PartieFinie = xb => recueSim = xb;
+                        BoiteNoire.SeuilCpu = 92;
+                        var debutSim = DateTime.Now.AddMinutes(-5);
+                        for (int iSim = 0; iSim < 90; iSim++)
+                        {
+                            var imagesSim = Enumerable.Repeat(10.0, 100).ToList();
+                            var etatSim = new SecondeBoite { Heure = debutSim.AddSeconds(iSim), Cpu = 40, Ram = 50, TempCpu = 60, TempGpu = 65, Disque = 5 };
+                            if (iSim == 50) { imagesSim[40] = 200; etatSim.Programme = "Discord"; etatSim.ProgrammeCoeur = 95; }
+                            if (iSim == 70) { imagesSim[10] = 150; etatSim.TempCpu = 95; }
+                            if (iSim == 80) { imagesSim[10] = 25; }   // 25 ms : trop court pour une saccade
+                            BoiteNoire.Seconde(etatSim, imagesSim, "jeu-essai.exe", 4242);
+                        }
+                        bool enCoursBoite = BoiteNoire.EnCours;
+                        BoiteNoire.Terminer();
+                        BoiteNoire.PartieFinie = ancienneSim;
+                        var relueSim = BoiteNoire.Parties().FirstOrDefault();
+                        var causesSim = recueSim != null ? BoiteNoire.Causes(recueSim) : new System.Collections.Generic.List<CauseBoite>();
+                        rapport.AppendLine("Boîte noire (partie simulée) : en cours " + enCoursBoite + ", reçue " + (recueSim != null) + (recueSim != null ? ", saccades " + recueSim.Saccades.Count + " (" + string.Join(", ", recueSim.Saccades.Select(kb => kb.Cause + ":" + kb.Programme + ":" + kb.Ms)) + "), FPS moyen " + Math.Round(recueSim.FpsMoyen, 1) + ", FPS 1 % " + Math.Round(recueSim.Fps1, 1) + ", note " + recueSim.Note + ", causesSim " + causesSim.Count : "") + ", relueSim " + (relueSim != null ? relueSim.Jeu + " " + relueSim.Saccades.Count : "non"));
+                        if (!enCoursBoite || recueSim == null || recueSim.Saccades.Count != 2 || recueSim.Saccades[0].Cause != "programme" || recueSim.Saccades[0].Programme != "Discord" || recueSim.Saccades[1].Cause != "chaleur"
+                            || recueSim.FpsMoyen < 95 || recueSim.FpsMoyen > 100.5 || recueSim.Fps1 < 90 || recueSim.Fps1 > 100.5 || recueSim.Note < 35 || recueSim.Note > 45 || causesSim.Count != 2
+                            || relueSim == null || relueSim.Jeu != "jeu-essai.exe" || relueSim.Saccades.Count != 2 || BoiteNoire.EnCours)
+                        { erreurs++; rapport.AppendLine("ERREUR : Boîte noire (partie simulée)"); }
+                        try { if (sauvegardeBoite != null) File.WriteAllText(fichierBoite, sauvegardeBoite); else File.Delete(fichierBoite); } catch { }
+                        bool reglesBoite = BoiteNoire.EstSaccade(40, 8) && !BoiteNoire.EstSaccade(30, 5) && !BoiteNoire.EstSaccade(60, 20) && !BoiteNoire.EstSaccade(4000, 10)
+                            && ActiviteProgrammes.NomSansNumero("chrome#3") == "chrome" && ActiviteProgrammes.Famille("MsMpEng") == "antivirus" && BoiteNoire5.EstUnJeu("Cyberpunk2077.exe") && !BoiteNoire5.EstUnJeu("chrome.exe") && !BoiteNoire5.EstUnJeu("dwm.exe");
+                        rapport.AppendLine("Boîte noire (règles) : " + reglesBoite);
+                        if (!reglesBoite) { erreurs++; rapport.AppendLine("ERREUR : Boîte noire (règles)"); }
+                        // puis les vrais compteurs de Windows : activité des programmes et du disque
+                        ActiviteProgrammes.Lire(); ActiviteProgrammes.Disque();
+                        var chronoSim = System.Diagnostics.Stopwatch.StartNew();
+                        while (chronoSim.ElapsedMilliseconds < 1200) { }   // ce programme travaille : il doit apparaître dans le relevé
+                        var actifsSim = ActiviteProgrammes.Lire();
+                        double occupationSim = ActiviteProgrammes.Disque();
+                        string moiNom = System.Diagnostics.Process.GetCurrentProcess().ProcessName;
+                        var moiActif = actifsSim.FirstOrDefault(xb => xb.Pid == Environment.ProcessId);
+                        rapport.AppendLine("Activité des programmes : " + actifsSim.Count + " actif(s), ce programme (" + moiNom + ") : " + (moiActif != null ? Math.Round(moiActif.Coeur) + " % d'un cœur" : "absent") + ", disque occupé à " + Math.Round(occupationSim) + " %, les plus actifsSim : " + string.Join(", ", actifsSim.OrderByDescending(xb => xb.Coeur).Take(4).Select(xb => xb.Nom + " " + Math.Round(xb.Coeur) + "%")));
+                        if (moiActif == null || moiActif.Coeur < 30 || moiActif.Coeur > 250 || occupationSim < 0) { erreurs++; rapport.AppendLine("ERREUR : activité des programmes"); }
+                        var coupableSim = Coupable.Observer(2, null, null, null);
+                        int nivC; string progC;
+                        string verdictC = Coupable.Verdict(coupableSim, out nivC, out progC);
+                        rapport.AppendLine("Qui ralentit mon PC (2 s) : " + coupableSim.Programmes.Count + " programme(s), verdict « " + verdictC + " » " + progC);
+                        if (verdictC == "") { erreurs++; rapport.AppendLine("ERREUR : Qui ralentit mon PC"); }
+                    }
                     // FPS en direct pour de vrai : PresentMon officiel téléchargé, lancé comme le fait le processus administrateur,
                     // et son fichier de mesures lu PENDANT qu'il tourne ; puis arrêt dès que le témoin disparaît.
                     try
@@ -755,6 +804,23 @@ namespace NettoyagePC.Nouveau
                 Restes5.OuvrirExemple(f);
                 Capturer(f, dossier, "sombre-restes.png", rapport, ref erreurs);
                 f.ViderCalques(); Restes5.Exemple = false;
+                // ---- 5.12 : Boîte noire du jeu, « Qui ralentit mon PC ? »
+                BoiteNoire5.Exemple = BoiteNoire.Exemple();
+                BoiteNoire5.Ouvrir(f);
+                Capturer(f, dossier, "sombre-boitenoire.png", rapport, ref erreurs);
+                f.ViderCalques(); BoiteNoire5.Exemple = null;
+                Coupable5.Exemple = new ResultatCoupable
+                {
+                    Cpu = 71, Ram = 64, Disque = 22, TempCpu = 68, Coeurs = 16,
+                    Programmes = new System.Collections.Generic.List<ProgrammeActif>
+                    {
+                        new ProgrammeActif { Nom = "MsMpEng", Coeur = 520, Disque = 41.0 * 1048576 }, new ProgrammeActif { Nom = "chrome", Coeur = 96, Disque = 0 },
+                        new ProgrammeActif { Nom = "Discord", Coeur = 38, Disque = 0 }, new ProgrammeActif { Nom = "steamwebhelper", Coeur = 21, Disque = 3.0 * 1048576 },
+                    },
+                };
+                Coupable5.Ouvrir(f);
+                Capturer(f, dossier, "sombre-coupable.png", rapport, ref erreurs);
+                f.ViderCalques(); Coupable5.Exemple = null;
 
                 MajApps5.Exemple = new System.Collections.Generic.List<AppAMettreAJour>
                 {

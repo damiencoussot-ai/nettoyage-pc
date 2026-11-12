@@ -4,6 +4,7 @@
 // mode « fenêtré plein écran » (sans bordure) ; un jeu en plein écran exclusif passe par-dessus.
 // Pendant le mode jeu, il note aussi les mesures de la session (rapport de session à la fin).
 using System;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -101,6 +102,7 @@ namespace NettoyagePC.Nouveau
             try { voulu = Parametres.Lire().OverlayJeu; } catch { }
             if (voulu && Habillage.Gamer && fenetre == null) Basculer(f, false);
             SessionJeu5.Demarrer(f);
+            BoiteNoire5.Demarrer(f);
             Task.Run(() => JournalJeu.Noter("ouverture"));   // série de jours du profil Gamer
         }
 
@@ -250,10 +252,8 @@ namespace NettoyagePC.Nouveau
                 try { m = f.Source.Mesurer(true); } catch { }
                 try { g = TemperatureGpu.Lire(); } catch { }
                 try { usage = UsageGpu.Lire(); } catch { }
-                if (Fps.DirectActif)
-                {
-                    try { uint pid; GetWindowThreadProcessId(GetForegroundWindow(), out pid); string app; fps = Fps.LireDirect(Fps.CsvDirect, (int)pid, out app); } catch { fps = -1; }
-                }
+                // les FPS sont lus une seule fois par seconde, par la Boîte noire (qui enregistre aussi la partie)
+                if (Fps.DirectActif) fps = BoiteNoire5.FpsActuel;
                 try { SeuilCpu(); } catch { }
                 return Tuple.Create(m, g, usage, fps);
             }).ContinueWith(t => Dispatcher.UIThread.Post(() =>
@@ -388,6 +388,15 @@ namespace NettoyagePC.Nouveau
                 Tuple.Create(Langue.T("TEMP. CARTE GRAPHIQUE MAX"), GpuMax > 0 ? Math.Round(GpuMax) + " °C" : "—"),
                 Tuple.Create(Langue.T("MÉMOIRE VIVE MAX"), NbMesures > 0 ? Math.Round(RamMax) + " %" : "—"),
             };
+            // la Boîte noire a suivi cette partie : FPS et saccades
+            SessionBoite boite = null;
+            try { boite = BoiteNoire.Courante ?? (debut.HasValue ? BoiteNoire.Parties().FirstOrDefault(x => x.Fin >= debut.Value) : null); } catch { }
+            if (boite != null && boite.FpsMoyen > 0)
+            {
+                lignes.Add(Tuple.Create(Langue.T("FPS MOYEN"), Math.Round(boite.FpsMoyen).ToString()));
+                lignes.Add(Tuple.Create(Langue.T("FPS MINIMUM (1 %)"), Math.Round(boite.Fps1).ToString()));
+                lignes.Add(Tuple.Create(Langue.T("SACCADES"), boite.Saccades.Count.ToString()));
+            }
             var s = new StackPanel { Spacing = 12 };
             s.Children.Add(new TextBlock { Text = "▸ " + Langue.T("SESSION TERMINÉE · GG"), FontFamily = Habillage.Console, FontSize = 12, LetterSpacing = 2, Foreground = Habillage.Pinceau(P.Accent) });
             var grille = new Avalonia.Controls.Primitives.UniformGrid { Columns = 3 };
@@ -403,7 +412,13 @@ namespace NettoyagePC.Nouveau
             string texte = "🎮 " + Langue.T("Session de jeu avec Velox") + "\n" + string.Join("\n", lignes.ConvertAll(l => "• " + l.Item1 + " : " + l.Item2)) + "\n" + Langue.T("Boosté avec Velox · damiencoussot-ai.github.io/nettoyage-pc");
             var copier = new BoutonNoyau("Copier pour Discord", true, 0, 42) { TaillePolice = 14, Capitales = true, HorizontalAlignment = HorizontalAlignment.Left };
             copier.Clic += async () => { try { if (f.Clipboard != null) await f.Clipboard.SetTextAsync(texte); f.Statut(Langue.T("Rapport copié : colle-le sur Discord avec Ctrl+V.")); } catch { } };
-            s.Children.Add(copier);
+            var boutonsFin = new WrapPanel();
+            copier.Margin = new Thickness(0, 0, 8, 0);
+            boutonsFin.Children.Add(copier);
+            var voirBoite = new BoutonNoyau("Boîte noire", false, 0, 42) { TaillePolice = 14 };
+            voirBoite.Clic += () => { f.ViderCalques(); BoiteNoire5.Ouvrir(f); };
+            boutonsFin.Children.Add(voirBoite);
+            s.Children.Add(boutonsFin);
             f.Ouvrir("Rapport de session", s, 760);
         }
     }

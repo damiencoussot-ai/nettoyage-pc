@@ -3144,3 +3144,122 @@ Velox ne videra plus la Corbeille.	Velox will no longer empty the Recycle Bin.	V
 ^(.+) récupérables tout de suite \(fichiers temporaires\)\.$	$1 recoverable right now (temporary files).	$1 recuperables ahora mismo (archivos temporales).
 ^Fichiers temporaires : (.+)$	Temporary files: $1	Archivos temporales: $1
 Le nettoyage ne vide plus la Corbeille, sauf si tu l'actives dans Réglages > Corbeille pendant le nettoyage.	Cleaning no longer empties the Recycle Bin, unless you turn it on in Settings > Recycle Bin during cleaning.	La limpieza ya no vacía la papelera, salvo que lo actives en Ajustes > Papelera durante la limpieza.
+Indexation de Windows (recherche)	Windows indexing (search)	Indexación de Windows (búsqueda)
+Diagnostic de Windows (télémétrie)	Windows diagnostics (telemetry)	Diagnóstico de Windows (telemetría)
+OBS (enregistrement)	OBS (recording)	OBS (grabación)
+Explorateur de fichiers	File Explorer	Explorador de archivos
+Service de Windows	Windows service	Servicio de Windows
+Service de Windows (WMI)	Windows service (WMI)	Servicio de Windows (WMI)
+Service de Windows (COM)	Windows service (COM)	Servicio de Windows (COM)
+Gestionnaire des tâches	Task Manager	Administrador de tareas
+carte graphique	graphics card	tarjeta gráfica
+{0} saccade(s) quand la carte graphique était trop chaude	{0} stutter(s) while the graphics card was too hot	{0} tirón(es) cuando la tarjeta gráfica estaba demasiado caliente
+{0} saccade(s) quand le processeur était trop chaud	{0} stutter(s) while the processor was too hot	{0} tirón(es) cuando el procesador estaba demasiado caliente
+{0} saccade(s) pendant que {1} travaillait	{0} stutter(s) while {1} was busy	{0} tirón(es) mientras {1} trabajaba
+{0} saccade(s) avec la mémoire vive presque pleine	{0} stutter(s) with memory almost full	{0} tirón(es) con la memoria casi llena
+{0} saccade(s) pendant que le disque était très occupé	{0} stutter(s) while the disk was very busy	{0} tirón(es) mientras el disco estaba muy ocupado
+{0} saccade(s) avec le processeur à fond	{0} stutter(s) with the processor maxed out	{0} tirón(es) con el procesador al máximo
+{0} saccade(s) sans cause extérieure trouvée	{0} stutter(s) with no outside cause found	{0} tirón(es) sin causa externa encontrada
+Au-delà de sa limite, la carte graphique ralentit pour se protéger. Dépoussière ses ventilateurs, vérifie que l'air circule dans le boîtier, ou limite les images par seconde dans le jeu.	Past its limit, the graphics card slows down to protect itself. Dust its fans, check the airflow in the case, or cap the frame rate in the game.	Pasado su límite, la tarjeta gráfica se ralentiza para protegerse. Quita el polvo de sus ventiladores, comprueba que el aire circula en la caja o limita los FPS en el juego.
+Au-delà de sa limite, le processeur ralentit pour se protéger. Dépoussière le ventirad, vérifie que son ventilateur tourne, et pense à changer la pâte thermique si le PC a plusieurs années.	Past its limit, the processor slows down to protect itself. Dust the cooler, check its fan is spinning, and consider new thermal paste if the PC is several years old.	Pasado su límite, el procesador se ralentiza para protegerse. Quita el polvo del disipador, comprueba que su ventilador gira y piensa en cambiar la pasta térmica si el PC tiene varios años.
+L'antivirus analysait des fichiers pendant la partie. Ne le désactive pas : programme plutôt son analyse à une heure où tu ne joues pas (Sécurité Windows > Protection contre les virus > Options d'analyse).	The antivirus was scanning files during the game. Don't turn it off: schedule its scan for a time when you're not playing (Windows Security > Virus protection > Scan options).	El antivirus analizaba archivos durante la partida. No lo desactives: programa su análisis a una hora en la que no juegues (Seguridad de Windows > Protección contra virus > Opciones de examen).
+Windows installait une mise à jour pendant la partie. Règle tes « heures d'activité » pour qu'il attende que tu aies fini de jouer.	Windows was installing an update during the game. Set your “active hours” so it waits until you're done playing.	Windows instalaba una actualización durante la partida. Ajusta tus «horas activas» para que espere a que termines de jugar.
+Windows mettait à jour son index de recherche. C'est passager, surtout après une grosse installation ; ça se calme tout seul.	Windows was updating its search index. It's temporary, especially after a big install; it settles by itself.	Windows actualizaba su índice de búsqueda. Es pasajero, sobre todo tras una instalación grande; se calma solo.
+La synchronisation des fichiers travaillait pendant la partie. Le mode jeu de Velox peut mettre OneDrive en pause pour chaque jeu.	File sync was working during the game. Velox's game mode can pause OneDrive for each game.	La sincronización de archivos trabajaba durante la partida. El modo juego de Velox puede pausar OneDrive para cada juego.
+Le navigateur est resté ouvert pendant la partie. Ferme-le, ou au moins les onglets avec des vidéos, avant de jouer.	The browser stayed open during the game. Close it, or at least the tabs with videos, before playing.	El navegador se quedó abierto durante la partida. Ciérralo, o al menos las pestañas con vídeos, antes de jugar.
+Le lanceur de jeux travaillait en arrière-plan, sans doute un téléchargement ou une mise à jour d'un autre jeu. Mets ses téléchargements en pause pendant que tu joues.	The game launcher was working in the background, probably downloading or updating another game. Pause its downloads while you play.	El lanzador de juegos trabajaba en segundo plano, seguramente una descarga o actualización de otro juego. Pausa sus descargas mientras juegas.
+Un service de Windows travaillait en arrière-plan. Si ça revient à chaque partie, redémarre le PC avant de jouer et vérifie que Windows a fini ses mises à jour.	A Windows service was working in the background. If it happens every game, restart the PC before playing and check Windows has finished updating.	Un servicio de Windows trabajaba en segundo plano. Si pasa en cada partida, reinicia el PC antes de jugar y comprueba que Windows ha terminado de actualizarse.
+Ce programme a pris du processeur ou du disque au moment des saccades. Ferme-le avant de jouer si tu n'en as pas besoin.	This program used the processor or the disk when the stutters happened. Close it before playing if you don't need it.	Este programa usó el procesador o el disco en el momento de los tirones. Ciérralo antes de jugar si no lo necesitas.
+Quand la mémoire vive est pleine, Windows écrit sur le disque et le jeu se fige un instant. Ferme les programmes inutiles avant de jouer, ou libère la mémoire juste avant la partie.	When memory is full, Windows writes to the disk and the game freezes for a moment. Close programs you don't need before playing, or free up memory just before the game.	Cuando la memoria está llena, Windows escribe en el disco y el juego se congela un instante. Cierra los programas que no necesites antes de jugar, o libera memoria justo antes de la partida.
+Le jeu attendait le disque, souvent en chargeant une nouvelle zone. Sur un disque dur classique c'est fréquent : installe le jeu sur un SSD si tu en as un.	The game was waiting for the disk, often while loading a new area. On a classic hard drive that's common: install the game on an SSD if you have one.	El juego esperaba al disco, a menudo al cargar una zona nueva. En un disco duro clásico es frecuente: instala el juego en un SSD si tienes uno.
+Le processeur n'arrivait plus à suivre. Baisse dans le jeu les réglages qui pèsent sur lui (distance d'affichage, foule, physique), ou ferme ce qui tourne à côté.	The processor couldn't keep up. Lower the in-game settings that weigh on it (view distance, crowds, physics), or close what's running alongside.	El procesador no daba abasto. Baja en el juego los ajustes que más le pesan (distancia de visión, multitudes, física) o cierra lo que esté abierto al lado.
+Velox n'a rien vu d'anormal sur le PC à ces instants : c'est probablement le jeu lui-même (chargement d'une zone, préparation des effets graphiques). C'est fréquent les premières minutes ou après une mise à jour du jeu.	Velox saw nothing unusual on the PC at those moments: it's probably the game itself (loading an area, preparing graphics effects). That's common in the first minutes or after a game update.	Velox no vio nada anormal en el PC en esos instantes: probablemente es el propio juego (carga de una zona, preparación de efectos gráficos). Es frecuente en los primeros minutos o tras una actualización del juego.
+Heures d'activité	Active hours	Horas activas
+Libérer la mémoire	Free up memory	Liberar memoria
+Partie parfaitement fluide : aucune saccade.	Perfectly smooth game: no stutter.	Partida perfectamente fluida: ningún tirón.
+Partie fluide : très peu de saccades.	Smooth game: very few stutters.	Partida fluida: muy pocos tirones.
+Quelques saccades pendant la partie.	A few stutters during the game.	Algunos tirones durante la partida.
+Beaucoup de saccades pendant la partie.	Many stutters during the game.	Muchos tirones durante la partida.
+{0} occupe beaucoup le processeur en ce moment.	{0} is using a lot of the processor right now.	{0} está usando mucho el procesador ahora mismo.
+{0} fait travailler le disque sans arrêt.	{0} is keeping the disk busy nonstop.	{0} hace trabajar al disco sin parar.
+La mémoire vive est presque pleine : Windows ralentit tout.	Memory is almost full: Windows is slowing everything down.	La memoria está casi llena: Windows lo ralentiza todo.
+Le disque est très occupé en ce moment.	The disk is very busy right now.	El disco está muy ocupado ahora mismo.
+Le processeur est très sollicité, par plusieurs programmes à la fois.	The processor is under heavy load, from several programs at once.	El procesador está muy cargado, por varios programas a la vez.
+Le processeur est très chaud : il ralentit pour se protéger.	The processor is very hot: it's slowing down to protect itself.	El procesador está muy caliente: se ralentiza para protegerse.
+{0} est le programme le plus actif, sans que ce soit anormal.	{0} is the most active program, though nothing abnormal.	{0} es el programa más activo, sin que sea anormal.
+Rien ne ralentit ton PC en ce moment.	Nothing is slowing your PC down right now.	Nada ralentiza tu PC ahora mismo.
+Boîte noire : partie de {0} enregistrée ({1} saccade(s), note {2}/100). Rapport dans le QG Gamer.	Black box: {0} session recorded ({1} stutter(s), score {2}/100). Report in the Gamer HQ.	Caja negra: partida de {0} grabada ({1} tirón(es), nota {2}/100). Informe en el Cuartel Gamer.
+Boîte noire du jeu	Game black box	Caja negra del juego
+Boîte noire	Black box	Caja negra
+carte graphique trop chaude	graphics card too hot	tarjeta gráfica demasiado caliente
+processeur trop chaud	processor too hot	procesador demasiado caliente
+mémoire vive pleine	memory full	memoria llena
+disque très occupé	disk very busy	disco muy ocupado
+processeur à fond	processor maxed out	procesador al máximo
+le jeu lui-même	the game itself	el propio juego
+Pendant que les FPS en direct tournent, Velox note chaque seconde de ta partie. À chaque saccade, il regarde ce qui se passait sur le PC à cet instant et te dit pourquoi. Rien n'est fermé ni modifié, et tout reste sur ton PC.	While live FPS is running, Velox logs every second of your game. At each stutter, it looks at what was happening on the PC at that instant and tells you why. Nothing is closed or changed, and everything stays on your PC.	Mientras los FPS en directo están en marcha, Velox anota cada segundo de tu partida. En cada tirón, mira qué pasaba en el PC en ese instante y te dice por qué. No se cierra ni se modifica nada, y todo se queda en tu PC.
+Enregistrement en cours : {0}, {1}, {2} saccade(s) pour l'instant.	Recording: {0}, {1}, {2} stutter(s) so far.	Grabando: {0}, {1}, {2} tirón(es) por ahora.
+Le rapport apparaîtra ici à la fin de la partie (2 minutes après avoir quitté le jeu).	The report will appear here at the end of the game (2 minutes after leaving the game).	El informe aparecerá aquí al final de la partida (2 minutos después de salir del juego).
+Les FPS en direct tournent : lance un jeu, la Boîte noire enregistre toute seule. Une partie est gardée à partir d'une minute de jeu.	Live FPS is running: start a game, the black box records by itself. A session is kept from one minute of play.	Los FPS en directo están en marcha: lanza un juego, la caja negra graba sola. Una partida se guarda a partir de un minuto de juego.
+Aucune partie enregistrée pour l'instant. Démarre les FPS en direct, puis lance ton jeu : la Boîte noire enregistre toute seule.	No session recorded yet. Start live FPS, then launch your game: the black box records by itself.	Ninguna partida grabada por ahora. Inicia los FPS en directo y lanza tu juego: la caja negra graba sola.
+Démarrer les FPS en direct	Start live FPS	Iniciar los FPS en directo
+Arrêter les FPS en direct	Stop live FPS	Detener los FPS en directo
+NOTE DE FLUIDITÉ	SMOOTHNESS SCORE	NOTA DE FLUIDEZ
+FPS MOYEN	AVERAGE FPS	FPS MEDIOS
+FPS MINIMUM (1 %)	MINIMUM FPS (1%)	FPS MÍNIMOS (1 %)
+SACCADES	STUTTERS	TIRONES
+Ce qui a fait saccader ta partie	What made your game stutter	Lo que causó los tirones de tu partida
+La plus longue : {0} ms.	Longest: {0} ms.	El más largo: {0} ms.
+Le film de la partie	The game, moment by moment	La partida, momento a momento
+… et {0} autre(s).	… and {0} more.	… y {0} más.
+Parties précédentes	Previous sessions	Partidas anteriores
+{0} saccade(s)	{0} stutter(s)	{0} tirón(es)
+Analysé par la Boîte noire de Velox · damiencoussot-ai.github.io/nettoyage-pc	Analysed by the Velox black box · damiencoussot-ai.github.io/nettoyage-pc	Analizado por la caja negra de Velox · damiencoussot-ai.github.io/nettoyage-pc
+Qui ralentit mon PC ?	What's slowing my PC down?	¿Qué ralentiza mi PC?
+Ton PC rame maintenant ? Velox l'observe 12 secondes et te dit quel programme occupe le processeur, la mémoire ou le disque en ce moment. Lecture seule : rien n'est fermé ni modifié.	PC slow right now? Velox watches it for 12 seconds and tells you which program is using the processor, memory or disk at this moment. Read-only: nothing is closed or changed.	¿Tu PC va lento ahora? Velox lo observa 12 segundos y te dice qué programa ocupa el procesador, la memoria o el disco en este momento. Solo lectura: no se cierra ni se modifica nada.
+Ton PC rame maintenant ? Velox l'observe 12 secondes et te dit quel programme occupe le processeur, la mémoire ou le disque en ce moment. Lecture seule.	PC slow right now? Velox watches it for 12 seconds and tells you which program is using the processor, memory or disk at this moment. Read-only.	¿Tu PC va lento ahora? Velox lo observa 12 segundos y te dice qué programa ocupa el procesador, la memoria o el disco en este momento. Solo lectura.
+Observation du PC…	Watching the PC…	Observando el PC…
+L'observation n'a pas abouti. Réessaie dans un instant.	The observation didn't complete. Try again in a moment.	La observación no terminó. Inténtalo de nuevo en un momento.
+Si le PC te semble lent quand même, le ralentissement vient peut-être d'un seul programme qui ne répond plus, ou de la connexion Internet.	If the PC still feels slow, the slowdown may come from a single program that stopped responding, or from the Internet connection.	Si el PC te parece lento igualmente, puede venir de un solo programa que no responde o de la conexión a Internet.
+C'est l'antivirus de Windows qui analyse des fichiers. Laisse-le finir : c'est passager, et il ne faut pas le désactiver.	It's the Windows antivirus scanning files. Let it finish: it's temporary, and it must not be turned off.	Es el antivirus de Windows analizando archivos. Déjalo terminar: es pasajero, y no hay que desactivarlo.
+Windows installe une mise à jour. Laisse-le finir, puis redémarre le PC s'il le demande.	Windows is installing an update. Let it finish, then restart the PC if it asks.	Windows está instalando una actualización. Déjalo terminar y reinicia el PC si lo pide.
+Windows met à jour son index de recherche. C'est passager, surtout après avoir copié beaucoup de fichiers.	Windows is updating its search index. It's temporary, especially after copying many files.	Windows está actualizando su índice de búsqueda. Es pasajero, sobre todo tras copiar muchos archivos.
+La synchronisation de tes fichiers travaille. Elle se calme une fois tout envoyé ; tu peux aussi la mettre en pause depuis son icône.	Your file sync is working. It settles once everything is uploaded; you can also pause it from its icon.	La sincronización de tus archivos está trabajando. Se calma cuando todo está enviado; también puedes pausarla desde su icono.
+C'est ton navigateur. Ferme les onglets dont tu n'as pas besoin, surtout ceux avec des vidéos, ou redémarre-le.	It's your browser. Close the tabs you don't need, especially those with videos, or restart it.	Es tu navegador. Cierra las pestañas que no necesites, sobre todo las que tienen vídeos, o reinícialo.
+Le lanceur de jeux télécharge ou installe sans doute quelque chose. Mets-le en pause si tu as besoin du PC maintenant.	The game launcher is probably downloading or installing something. Pause it if you need the PC now.	El lanzador de juegos seguramente está descargando o instalando algo. Páusalo si necesitas el PC ahora.
+C'est un service de Windows. Si ça dure plus de quelques minutes, redémarre le PC.	It's a Windows service. If it lasts more than a few minutes, restart the PC.	Es un servicio de Windows. Si dura más de unos minutos, reinicia el PC.
+Si tu n'as pas besoin de ce programme maintenant, ferme-le. S'il reste actif sans raison, redémarre-le.	If you don't need this program right now, close it. If it stays busy for no reason, restart it.	Si no necesitas este programa ahora, ciérralo. Si sigue activo sin motivo, reinícialo.
+processeur {0} %	processor {0}%	procesador {0} %
+mémoire vive {0} %	memory {0}%	memoria {0} %
+disque occupé à {0} %	disk {0}% busy	disco ocupado al {0} %
+Les programmes les plus actifs	Most active programs	Los programas más activos
+{0} % du processeur	{0}% of the processor	{0} % del procesador
+disque {0}/s	disk {0}/s	disco {0}/s
+Observer à nouveau	Watch again	Observar de nuevo
+Premium : pendant les FPS en direct, Velox enregistre ta partie et t'explique chaque saccade. Ici, le rapport de tes dernières parties.	Premium: during live FPS, Velox records your game and explains each stutter. Here, the report of your latest sessions.	Premium: durante los FPS en directo, Velox graba tu partida y te explica cada tirón. Aquí, el informe de tus últimas partidas.
+Premium : pourquoi ton jeu a saccadé, à la seconde près	Premium: why your game stuttered, to the second	Premium: por qué tu juego dio tirones, al segundo
+Le programme qui occupe le processeur, la mémoire ou le disque en ce moment	The program using the processor, memory or disk right now	El programa que ocupa el procesador, la memoria o el disco ahora mismo
+Problème	Problem	Problema
+Mon jeu saccade	My game stutters	Mi juego da tirones
+lag, freeze, à-coups, micro-coupures, FPS qui chutent : la Boîte noire cherche la cause	lag, freeze, hitching, micro-stutter, FPS drops: the black box finds the cause	lag, congelación, tirones, microcortes, caídas de FPS: la caja negra busca la causa
+Mon PC est lent	My PC is slow	Mi PC va lento
+rame, ralentit, se fige, met du temps : Velox cherche le programme responsable	sluggish, slow, freezing, takes ages: Velox finds the program responsible	lento, se ralentiza, se congela, tarda: Velox busca el programa responsable
+Mon PC met longtemps à démarrer	My PC takes a long time to start	Mi PC tarda mucho en arrancar
+allumage lent, démarrage long : les programmes lancés avec Windows	slow boot, long startup: the programs launched with Windows	encendido lento, arranque largo: los programas que se inician con Windows
+Je n'ai plus de place	I'm out of space	No me queda espacio
+disque plein, stockage saturé, espace insuffisant : le nettoyage et les gros fichiers	disk full, storage full, not enough space: cleaning and large files	disco lleno, almacenamiento saturado, espacio insuficiente: la limpieza y los archivos grandes
+Internet est lent	Internet is slow	Internet va lento
+connexion lente, Wi-Fi faible, ping élevé, ça coupe : les outils réseau	slow connection, weak Wi-Fi, high ping, dropouts: the network tools	conexión lenta, Wi-Fi débil, ping alto, cortes: las herramientas de red
+Mon PC chauffe ou fait du bruit	My PC runs hot or is noisy	Mi PC se calienta o hace ruido
+ventilateurs bruyants, surchauffe, température : le moniteur en direct	noisy fans, overheating, temperature: the live monitor	ventiladores ruidosos, sobrecalentamiento, temperatura: el monitor en directo
+Mon PC plante	My PC crashes	Mi PC se cuelga
+écran bleu, redémarre tout seul, se bloque : l'analyse des plantages	blue screen, restarts by itself, locks up: the crash analysis	pantalla azul, se reinicia solo, se bloquea: el análisis de cuelgues
+Pourquoi ton jeu a saccadé.	Why your game stuttered.	Por qué tu juego dio tirones.
+Le programme responsable, en 12 secondes.	The program responsible, in 12 seconds.	El programa responsable, en 12 segundos.
+Chercher le coupable	Find the culprit	Buscar al culpable
+Ton jeu saccade ? Pendant les FPS en direct (Premium), Velox enregistre ta partie et t'explique chaque saccade : un programme en arrière-plan, la chaleur, la mémoire, le disque… avec le FPS minimum et une note de fluidité.	Game stuttering? During live FPS (Premium), Velox records your game and explains each stutter: a background program, heat, memory, disk… with minimum FPS and a smoothness score.	¿Tu juego da tirones? Durante los FPS en directo (Premium), Velox graba tu partida y te explica cada tirón: un programa en segundo plano, el calor, la memoria, el disco… con los FPS mínimos y una nota de fluidez.
+Voir le rapport	See the report	Ver el informe
+Nouveau : Boîte noire du jeu (Premium). Pendant les FPS en direct, Velox enregistre ta partie et t'explique chaque saccade : programme en arrière-plan, chaleur, mémoire, disque.	New: Game black box (Premium). During live FPS, Velox records your game and explains each stutter: background program, heat, memory, disk.	Nuevo: Caja negra del juego (Premium). Durante los FPS en directo, Velox graba tu partida y te explica cada tirón: programa en segundo plano, calor, memoria, disco.
+Rapport de partie : FPS moyen, FPS minimum (1 %), nombre de saccades et note de fluidité sur 100.	Session report: average FPS, minimum FPS (1%), number of stutters and a smoothness score out of 100.	Informe de partida: FPS medios, FPS mínimos (1 %), número de tirones y nota de fluidez sobre 100.
+Nouveau et gratuit : « Qui ralentit mon PC ? » (Accélérer). 12 secondes d'observation, et Velox désigne le programme responsable.	New and free: “What's slowing my PC down?” (Speed up). 12 seconds of watching, and Velox names the program responsible.	Nuevo y gratis: «¿Qué ralentiza mi PC?» (Acelerar). 12 segundos de observación, y Velox señala el programa responsable.
+Recherche (Ctrl+K) : décris ton problème avec tes mots (« mon jeu saccade », « mon PC est lent ») et Velox ouvre le bon outil.	Search (Ctrl+K): describe your problem in your own words (“my game stutters”, “my PC is slow”) and Velox opens the right tool.	Búsqueda (Ctrl+K): describe tu problema con tus palabras («mi juego da tirones», «mi PC va lento») y Velox abre la herramienta adecuada.

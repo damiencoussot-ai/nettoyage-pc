@@ -7,6 +7,10 @@ namespace NettoyagePC
     {
         public static readonly List<KeyValuePair<string, string[]>> Liste = new List<KeyValuePair<string, string[]>>
         {
+            N("5.12", "Nouveau : Boîte noire du jeu (Premium). Pendant les FPS en direct, Velox enregistre ta partie et t'explique chaque saccade : programme en arrière-plan, chaleur, mémoire, disque.",
+                "Rapport de partie : FPS moyen, FPS minimum (1 %), nombre de saccades et note de fluidité sur 100.",
+                "Nouveau et gratuit : « Qui ralentit mon PC ? » (Accélérer). 12 secondes d'observation, et Velox désigne le programme responsable.",
+                "Recherche (Ctrl+K) : décris ton problème avec tes mots (« mon jeu saccade », « mon PC est lent ») et Velox ouvre le bon outil."),
             N("5.11", "Overlay en jeu : l'utilisation de la carte graphique en %, et avec Premium les FPS en direct (bouton « FPS en direct » du QG Gamer).",
                 "Alerte de surchauffe en jeu : cadre rouge, bip et message si le processeur ou la carte graphique chauffe trop.",
                 "Nouveau : Test du Wi-Fi (Outils > Réseau). Signal, bande, canal, réseaux voisins et conseils.",

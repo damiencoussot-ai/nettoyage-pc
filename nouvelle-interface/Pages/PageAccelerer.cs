@@ -42,6 +42,7 @@ namespace NettoyagePC.Nouveau
                 CarteAction.Code("Mettre à jour les applications", "Liste tes logiciels qui ont une nouvelle version (winget, l'outil officiel de Microsoft) : tu choisis lesquels mettre à jour, avec le résultat pour chacun. Avec Premium, c'est automatique chaque semaine.", "Voir les mises à jour", () => MajApplis5.Ouvrir(f)),
                 CarteAction.A("Mode d'alimentation", (alim != "" ? Langue.F("Mode actuel : {0}.", Langue.T(alim)) + " " : "") + (perf ? "Équilibré consomme moins (conseillé sur portable)." : "Performances élevées rend le PC plus réactif."),
                     perf ? "Revenir en Équilibré" : "Passer en Performances", perf ? "equilibre" : "perf"),
+                CarteAction.Code("Qui ralentit mon PC ?", "Ton PC rame maintenant ? Velox l'observe 12 secondes et te dit quel programme occupe le processeur, la mémoire ou le disque en ce moment. Lecture seule.", "Chercher le coupable", () => Coupable5.Ouvrir(f)),
                 CarteAction.A("Libérer la RAM", "Libère la mémoire vive inutilisée, idéal juste avant un jeu ou une application gourmande. Effet temporaire. « Infos » montre tes barrettes et les applications les plus gourmandes.", "Libérer", "ramlib").Aussi("Infos", "raminfo").Plus(),
             }, "Optimisation");
         }
@@ -66,6 +67,7 @@ namespace NettoyagePC.Nouveau
             {
                 CarteAction.Code("Preuve en FPS", "Mesure les images par seconde réelles d'un jeu, avant puis après un réglage : tu vois le vrai gain, en chiffres (PresentMon, l'outil gratuit d'Intel).", "Mesurer un jeu", () => Fps5.OuvrirPremium(f), true),
                 CarteAction.Code("Réglages des jeux", "Mode jeu de Windows, planification matérielle du GPU, optimisations pour le jeu en fenêtré : l'état de chacun et un conseil.", "Voir les réglages", () => ReglagesWindows5.Jeux(f)),
+                CarteAction.Code("Boîte noire du jeu", "Ton jeu saccade ? Pendant les FPS en direct (Premium), Velox enregistre ta partie et t'explique chaque saccade : un programme en arrière-plan, la chaleur, la mémoire, le disque… avec le FPS minimum et une note de fluidité.", "Voir le rapport", () => BoiteNoire5.Ouvrir(f)),
                 CarteAction.Code("Ping des serveurs de jeu", "Le temps de réponse entre ton PC et les grandes régions de serveurs (Paris, Francfort, Londres, États-Unis…) : choisis la région la plus rapide dans tes jeux.", "Mesurer le ping", () => PingJeu5.Ouvrir(f)),
                 CarteAction.Code("Mes jeux", "Tous tes jeux installés (Steam, Epic, Xbox, Battle.net…) et la place qu'ils prennent : repère les plus gros quand le disque est plein, lance-les d'ici.", "Voir mes jeux", () => MesJeux5.Ouvrir(f)),
             }, "Jeux");

@@ -1,6 +1,6 @@
 # yaml-language-server: $schema=https://aka.ms/winget-manifest.defaultLocale.1.6.0.schema.json
 PackageIdentifier: DamienCoussot.Velox
-PackageVersion: 5.11
+PackageVersion: 5.12
 PackageLocale: fr-FR
 Publisher: Damien
 PublisherUrl: https://damiencoussot-ai.github.io/nettoyage-pc/

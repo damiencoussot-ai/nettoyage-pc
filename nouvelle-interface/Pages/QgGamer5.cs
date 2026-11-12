@@ -154,6 +154,11 @@ namespace NettoyagePC.Nouveau
             bDiscord.Clic += () => Progression5.PartagerDiscord(F);
             options2.Children.Add(bDiscord);
             c.Children.Add(options2);
+            // Boîte noire : rapport de la dernière partie (saccades et leurs causes)
+            var bBoite = new BoutonNoyau("Boîte noire", false, 0, 32) { TaillePolice = 11.5, Capitales = true, HorizontalAlignment = HorizontalAlignment.Stretch, Margin = new Thickness(0, 6, 0, 0) };
+            ToolTip.SetTip(bBoite, Langue.T("Premium : pendant les FPS en direct, Velox enregistre ta partie et t'explique chaque saccade. Ici, le rapport de tes dernières parties."));
+            bBoite.Clic += () => BoiteNoire5.Ouvrir(F);
+            c.Children.Add(bBoite);
             Grid.SetColumn(c, 4); g.Children.Add(c);
 
             Child = new StackPanel { Children = { g, zoneDefis } };

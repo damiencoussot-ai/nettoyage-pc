@@ -341,9 +341,14 @@ namespace NettoyagePC
         /// Images par seconde affichées depuis le dernier appel (une fois par seconde environ) : le programme au premier
         /// plan s'il affiche des images, sinon celui qui en affiche le plus. -1 = rien de mesuré. « application » reçoit son nom.
         /// </summary>
+        /// <summary>Durées (ms) des images de l'application retenue par le dernier LireDirect (vide si aucune), et son numéro de processus.</summary>
+        public static List<double> ImagesDirect = new List<double>();
+        public static int PidDirect;
+
         public static double LireDirect(string fichier, int pidPremierPlan, out string application)
         {
             application = "";
+            ImagesDirect = new List<double>(); PidDirect = 0;
             try
             {
                 if (!File.Exists(fichier)) { positionDirect = 0; resteDirect = ""; colonnesDirect = null; return -1; }
@@ -362,6 +367,7 @@ namespace NettoyagePC
                 if (dernier < 0) { resteDirect = nouveau; return videsDirect++ >= 3 ? -1 : -2; }
                 resteDirect = nouveau.Substring(dernier + 1);
                 var somme = new Dictionary<string, double>(); var nombre = new Dictionary<string, int>(); var noms = new Dictionary<string, string>();
+                var durees = new Dictionary<string, List<double>>();
                 foreach (string brute in nouveau.Substring(0, dernier).Split('\n'))
                 {
                     string l = brute.TrimEnd('\r');
@@ -386,6 +392,8 @@ namespace NettoyagePC
                     double s; somme.TryGetValue(cle, out s); somme[cle] = s + ms;
                     int k; nombre.TryGetValue(cle, out k); nombre[cle] = k + 1;
                     noms[cle] = app;
+                    List<double> ld; if (!durees.TryGetValue(cle, out ld)) durees[cle] = ld = new List<double>();
+                    ld.Add(ms);
                 }
                 if (nombre.Count == 0) return videsDirect++ >= 3 ? -1 : -2;
                 videsDirect = 0;
@@ -398,6 +406,8 @@ namespace NettoyagePC
                 if (choix == null) choix = nombre.OrderByDescending(kv => kv.Value).First().Key;
                 if (nombre[choix] < 2 || somme[choix] <= 0) return -2;
                 application = noms[choix];
+                ImagesDirect = durees[choix];
+                int pidChoisi; if (int.TryParse(choix.Split('|')[0], NumberStyles.Integer, CultureInfo.InvariantCulture, out pidChoisi)) PidDirect = pidChoisi;
                 return 1000.0 * nombre[choix] / somme[choix];
             }
             catch { return -1; }

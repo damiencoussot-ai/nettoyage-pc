@@ -1,0 +1,42 @@
+Velox 5.12 : la Boîte noire du jeu
+
+Nouveau en 5.12 :
+- Boîte noire du jeu (Premium) : pendant les FPS en direct, Velox enregistre ta partie. À chaque saccade, il regarde
+  ce qui se passait sur le PC (programme en arrière-plan, chaleur, mémoire pleine, disque occupé) et te dit pourquoi,
+  avec un conseil. Rapport de fin de partie : FPS moyen, FPS minimum (1 %), saccades, note de fluidité sur 100.
+  Rien n'est fermé ni modifié, et tout reste sur ton PC.
+- « Qui ralentit mon PC ? » (gratuit, Accélérer > Optimisation) : 12 secondes d'observation, et Velox désigne
+  le programme qui occupe le processeur, la mémoire ou le disque en ce moment.
+- Recherche (Ctrl+K) : décris ton problème avec tes mots (« mon jeu saccade », « mon PC est lent », « plus de place »)
+  et Velox ouvre le bon outil.
+- Rapport de session de jeu : FPS moyen, FPS minimum et saccades ajoutés.
+
+Et tout ce qui était prévu pour la 5.11 :
+
+Profil Gamer :
+- Overlay en jeu : l'utilisation de la carte graphique en %, à côté de sa température.
+- FPS en direct (Premium) : les images par seconde de ton jeu dans l'overlay. Bouton « FPS en direct » du QG Gamer ;
+  Windows demande une autorisation au démarrage, et tout s'arrête quand tu fermes Velox.
+- Alerte de surchauffe en jeu : cadre rouge, bip et message si le processeur ou la carte graphique chauffe trop.
+
+Nouveaux outils gratuits :
+- Test du Wi-Fi (Outils > Réseau) : signal, bande, canal, réseaux voisins et conseils. Lecture seule.
+- Applications : après une désinstallation, Velox montre ce que le programme a laissé (réglages, raccourcis)
+  et propose de l'envoyer à la corbeille. Rien n'est supprimé définitivement.
+- Ping des serveurs de jeu, Mes jeux, Minuteur d'extinction (arrivés avec la 5.10).
+
+Pages plus simples :
+- Les outils voisins sont regroupés sur une même carte avec deux boutons : nettoyage rapide et en profondeur,
+  optimiser et vérifier les disques, créer un point de restauration et restaurer, mémoire vive et test des barrettes,
+  bilan de sécurité et Sécurité Windows, journaux. Le minuteur d'extinction passe dans Outils > Matériel.
+
+Plus sûr :
+- Le nettoyage ne vide plus la Corbeille : ce que tu y as mis reste récupérable. Pour la vider à chaque nettoyage,
+  active-le dans Réglages > Corbeille pendant le nettoyage.
+- Nettoyage en profondeur : le cache de Windows Update n'est touché que si ses services sont bien arrêtés.
+
+Aussi : traductions complétées, comparaison des versions plus sûre, conditions de vente et confidentialité à jour.
+
+L'installateur est publié sous les deux noms : Velox-Setup-5.12.exe (winget, site) et NettoyagePC-Setup-5.12.exe (mise à jour des anciennes versions).
+
+SHA256 de Velox-Setup-5.12.exe : voir le fichier Velox-Setup-5.12.sha256

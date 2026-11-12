@@ -197,6 +197,16 @@ namespace NettoyagePC.Nouveau
             l.Add(new EntreeCommande { Titre = Langue.T("Mes jeux"), Detail = Langue.T("Tes jeux installés et la place qu'ils prennent."), Type = "Action", Faire = () => MesJeux5.Ouvrir(this) });
             l.Add(new EntreeCommande { Titre = Langue.T("Minuteur d'extinction"), Detail = Langue.T("Éteindre le PC dans un moment."), Type = "Action", Faire = () => Extinction5.Ouvrir(this) });
             l.Add(new EntreeCommande { Titre = Langue.T("Test du Wi-Fi"), Detail = Langue.T("Signal, bande, canal et conseils."), Type = "Action", Faire = () => Wifi5.Ouvrir(this) });
+            l.Add(new EntreeCommande { Titre = Langue.T("Boîte noire du jeu"), Detail = Langue.T("Premium : pourquoi ton jeu a saccadé, à la seconde près"), Type = "Action", Faire = () => BoiteNoire5.Ouvrir(this) });
+            l.Add(new EntreeCommande { Titre = Langue.T("Qui ralentit mon PC ?"), Detail = Langue.T("Le programme qui occupe le processeur, la mémoire ou le disque en ce moment"), Type = "Action", Faire = () => Coupable5.Ouvrir(this) });
+            // tu décris ton problème avec tes mots : Velox ouvre le bon outil
+            l.Add(new EntreeCommande { Titre = Langue.T("Mon jeu saccade"), Detail = Langue.T("lag, freeze, à-coups, micro-coupures, FPS qui chutent : la Boîte noire cherche la cause"), Type = "Problème", Faire = () => BoiteNoire5.Ouvrir(this) });
+            l.Add(new EntreeCommande { Titre = Langue.T("Mon PC est lent"), Detail = Langue.T("rame, ralentit, se fige, met du temps : Velox cherche le programme responsable"), Type = "Problème", Faire = () => Coupable5.Ouvrir(this) });
+            l.Add(new EntreeCommande { Titre = Langue.T("Mon PC met longtemps à démarrer"), Detail = Langue.T("allumage lent, démarrage long : les programmes lancés avec Windows"), Type = "Problème", Faire = () => { SousPage("Accelerer", "Demarrage"); Afficher("Accelerer", true); } });
+            l.Add(new EntreeCommande { Titre = Langue.T("Je n'ai plus de place"), Detail = Langue.T("disque plein, stockage saturé, espace insuffisant : le nettoyage et les gros fichiers"), Type = "Problème", Faire = () => Afficher("Nettoyer", true) });
+            l.Add(new EntreeCommande { Titre = Langue.T("Internet est lent"), Detail = Langue.T("connexion lente, Wi-Fi faible, ping élevé, ça coupe : les outils réseau"), Type = "Problème", Faire = () => { SousPage("Outils", "Reseau"); Afficher("Outils", true); } });
+            l.Add(new EntreeCommande { Titre = Langue.T("Mon PC chauffe ou fait du bruit"), Detail = Langue.T("ventilateurs bruyants, surchauffe, température : le moniteur en direct"), Type = "Problème", Faire = () => OuvrirOutil("moniteur") });
+            l.Add(new EntreeCommande { Titre = Langue.T("Mon PC plante"), Detail = Langue.T("écran bleu, redémarre tout seul, se bloque : l'analyse des plantages"), Type = "Problème", Faire = () => OuvrirOutil("plantages") });
             l.Add(new EntreeCommande { Titre = Langue.T("FPS en direct dans l'overlay"), Detail = Langue.T("Premium : les images par seconde de ton jeu, en direct"), Type = "Action", Faire = () => Overlay5.BasculerFps(this, null) });
             l.Add(new EntreeCommande { Titre = Langue.T("Overlay : changer de coin"), Detail = Langue.T("Haut gauche, haut droite, bas droite, bas gauche"), Type = "Action", Faire = () => Overlay5.ChangerCoin(this) });
             l.Add(new EntreeCommande { Titre = Langue.T("Rejoindre le Discord"), Detail = Langue.T("Le serveur officiel de Velox : aide, nouveautés, concours"), Type = "Action", Faire = () => { try { Programmes.Ouvrir(Boutique.UrlDiscord); } catch { } } });
@@ -417,6 +427,8 @@ namespace NettoyagePC.Nouveau
             if (cle == "mesjeux") { MesJeux5.Ouvrir(this); return true; }
             if (cle == "extinction") { Extinction5.Ouvrir(this); return true; }
             if (cle == "wifi") { Wifi5.Ouvrir(this); return true; }
+            if (cle == "boitenoire") { BoiteNoire5.Ouvrir(this); return true; }
+            if (cle == "coupable") { Coupable5.Ouvrir(this); return true; }
             Action ouvrir;
             if (!outils.TryGetValue(cle, out ouvrir))
             {
