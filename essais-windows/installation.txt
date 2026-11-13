@@ -1,0 +1,12 @@
+installateur NettoyagePC-Setup-5.13.exe : 40.8 Mo
+version 4 : installateur code 0, programme 4.6
+entretien automatique (version 4) : code 0, tâche Nettoyage PC - complet (toutes les 4 semaines)
+version 5 : installateur code 0 en 14 s, programme 5.0-apercu+adb4c253d5d7be0eabe703f001fdfe923951a41d (46.9 Mo)
+version précédente gardée : 4.6
+Applications installées : Velox 5.13
+entretien automatique (version 5) : Velox - complet (toutes les 4 semaines) -> C:\Program Files\Nettoyage PC\NettoyagePC.exe --moteur --tache complet
+auto-contrôle : code 0
+état du PC (programme installé) : code 0
+gardien sans Premium : s'arrête tout seul (code 0)
+fenêtre du programme installé : code 0 ; fenêtre ouverte : 1454 ms / bilan affiché : 1874 ms (note 59, 11 points)
+désinstallation : code 0, programme retiré, tâches retirées

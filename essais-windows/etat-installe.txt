@@ -1,0 +1,14 @@
+{
+    "application": "Velox",
+    "version": "5.13",
+    "date": "2026-11-13 14:19",
+    "premium": false,
+    "disqueLibreGo": 29.2,
+    "disqueTotalGo": 150,
+    "disqueLibrePct": 19,
+    "ramPct": 25,
+    "allumeDepuisJours": 0,
+    "antivirusTempsReel": false,
+    "priseEnMainADistance": [],
+    "dernierNettoyage": "13/11/2026 14:17"
+}

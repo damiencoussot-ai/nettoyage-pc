@@ -1,0 +1,149 @@
+Velox complet - 13/11/2026 14:09 - SIMULATION (rien n'est supprimé ni déplacé) + OPTIMISATION + SÉCURITÉ + PROFOND + DISQUES + RAM
+  Windows Server 2025 Datacenter (build 26100, 64 bits) - PC fixe - 16 Go de RAM - Velox 5.13
+
+=== Point de restauration ===
+  Un point de restauration serait créé avant les modifications (simulation : non créé).
+
+=== Windows : temporaires, rapports d'erreurs, caches graphiques ===
+  Temporaires utilisateur                              288,2 Mo
+  Cache des miniatures                                 1,0 Mo
+  Cache shaders DirectX                                80 Ko
+  Temporaires Windows                                  2 Ko
+  -> Total windows : 289,2 Mo libérables
+
+=== Navigateurs (cache uniquement) ===
+  Edge - ShaderCache                                   544 Ko
+  Edge (Default) - Code Cache                          0 Ko
+  -> Total navigateurs : 544 Ko libérables
+
+  (Cookies, mots de passe, historiques et favoris ne sont pas touchés.)
+
+=== Applications et outils de développement ===
+  Cache NuGet                                          244,5 Mo
+  -> Total applications : 244,5 Mo libérables
+
+  (Ces caches se reconstituent tout seuls au besoin.)
+
+=== Corbeille ===
+  Corbeille non vidée (0 Ko à l'intérieur) : ce qu'elle contient reste récupérable.
+  Pour la vider pendant le nettoyage : Réglages > Corbeille pendant le nettoyage.
+
+=== Téléchargements de plus de 90 jours ===
+  -> 0 élément(s) seraient déplacés vers '_A_verifier' (0 Ko)
+
+=== Nettoyage profond de Windows ===
+  Cache de téléchargement Windows Update               5,0 Mo
+  Nettoyage du magasin de composants (DISM) : non exécuté en simulation.
+  Nettoyage de disque Windows : 20 catégories seraient nettoyées (anciennes mises à jour, anciens pilotes, journaux d'installation...).
+  -> Total profond mesurable : 5,0 Mo libérables (DISM : voir l'espace libre dans le résumé)
+
+=== Disques : santé, SSD, optimisation ===
+  Disque 0 : Msft Virtual Disk - Inconnu, 150,00 Go, bus SAS
+    État : Healthy (OK)
+  Disque 1 : Msft Virtual Disk - Inconnu, 150,00 Go, bus SAS
+    État : Healthy (OK)
+
+  Volume C: 29,04 Go libres sur 149,89 Go (19 % libre) - disque Inconnu
+    Type de disque non signalé : Windows choisirait lui-même l'optimisation adaptée (defrag /O).
+
+  Volume D: 146,73 Go libres sur 150,00 Go (98 % libre) - disque Inconnu
+    Type de disque non signalé : Windows choisirait lui-même l'optimisation adaptée (defrag /O).
+
+  Optimisation automatique de Windows : désactivée (dernière exécution : 03/11/2026 12:45)
+    Elle est désactivée : réactive-la dans 'Défragmenter et optimiser les lecteurs'.
+
+  Dossiers racine les plus volumineux par volume (lecture seule, peut être long) :
+  Volume C:
+      60,98 Go  Program Files
+      27,85 Go  Program Files (x86)
+       7,13 Go  ProgramData
+       4,90 Go  Users
+       4,88 Go  hostedtoolcache
+       4,23 Go  ghcup
+       3,08 Go  rtools45
+       1,60 Go  Miniconda
+  Volume D:
+      301,4 Mo  a
+        1,5 Mo  CollectGuestLogsTemp
+    (Le dossier Windows n'est pas analysé : il est géré par Windows.)
+
+  Conseils SSD : ne défragmente jamais un SSD (Velox ne fait que le ReTrim) ; garde 10 à 20 % d'espace libre ;
+  mets à jour son firmware avec l'outil de son fabricant (Samsung Magician, Crucial Storage Executive, WD Dashboard...).
+
+=== Mémoire vive (RAM) ===
+  Barrettes installées : 2 sur 2 emplacement(s), total 16,00 Go
+  Capacité maximale prise en charge par la carte mère : 2,00 To
+    None / M0001                 1,00 Go  type inconnu DIMM    Microsoft Corporation None
+    None / M0002                15,00 Go  type inconnu DIMM    Microsoft Corporation None
+  Remarque : les barrettes n'ont pas toutes la même capacité (le double canal peut être partiel).
+
+  Utilisation actuelle : 4,02 Go utilisés sur 15,99 Go (25 %)
+    Disponible 11,98 Go (dont libre 5,73 Go et cache 6,24 Go) ; pages modifiées 546,9 Mo
+    Mémoire engagée 3,19 Go sur 18,87 Go possibles (RAM + fichier d'échange)
+
+  Applications qui utilisent le plus de mémoire :
+       1,17 Go  svchost (77 processus)
+      156,6 Mo  explorer
+      130,2 Mo  StartMenuExperienceHost
+      109,3 Mo  SearchHost
+      100,2 Mo  WmiPrvSE (3 processus)
+       89,5 Mo  MsMpEng
+       89,4 Mo  taskhostw (3 processus)
+       85,4 Mo  WaAppAgent
+       85,4 Mo  WindowsTerminal
+       71,3 Mo  dwm
+       69,3 Mo  WindowsAzureGuestAgent
+       55,5 Mo  VBCSCompiler
+
+  Erreurs matérielles Windows (WHEA) sur 30 jours : aucune
+  Aucun test mémoire de Windows enregistré : le bouton « Test des barrettes » permet de tester les barrettes.
+
+  Libération prévue (simulation, rien n'est exécuté) :
+    1. Réduction des working sets : les pages peu utilisées des processus quittent les barrettes.
+    2. Écriture sur disque de la liste des pages modifiées.
+    3. Purge du cache mémoire (liste standby) : environ 6,24 Go seraient rendus à la mémoire libre.
+
+=== Bilan d'optimisation ===
+  Allumé depuis : 0 jour(s) 0 h (dernier démarrage le 13/11/2026 14:05)
+  Programmes lancés au démarrage : 3
+    - AzureArcSetup
+    - SecurityHealth
+    - Service Fabric Local Cluster Manager
+  Mode d'alimentation : High performance
+  Assistant de stockage de Windows : activé
+  Mises à jour d'applications disponibles : 27
+
+  -> 1 conseil(s) d'optimisation :
+     - 27 application(s) peuvent être mises à jour : bouton « Mettre à jour les applications » (corrige aussi des failles de sécurité).
+
+=== Bilan de sécurité ===
+    ATTENTION : La protection en temps réel de Microsoft Defender est désactivée et aucun autre antivirus n'est déclaré : réactive-la dans Sécurité Windows > Protection contre les virus et menaces.
+  Pare-feu Windows : actif sur tous les profils
+  Contrôle de compte d'utilisateur (UAC) : actif
+  Démarrage sécurisé (Secure Boot) : désactivé (il protège contre les logiciels malveillants au démarrage ; il s'active dans le BIOS/UEFI).
+  Chiffrement BitLocker de C: : inactif (utile surtout sur un portable, en cas de vol).
+  Dernière mise à jour Windows installée : il y a 20 jour(s) (KB5127690)
+  Points de restauration : aucun (le bouton « Créer un point de restauration » en crée un).
+
+  -> 1 point(s) de sécurité à corriger (détails ci-dessus). Velox ne modifie pas ces réglages à ta place.
+
+=== Rapports : disques, gros fichiers, doublons, programmes ===
+  Analyse en cours (cela peut prendre plusieurs minutes)...
+  -> 0 fichier(s) de 10 Mo et plus, 0 groupe(s) de doublons (0 Ko récupérables)
+
+=== Résumé ===
+  Windows               : 289,2 Mo
+  Navigateurs           : 544 Ko
+  Applications / outils : 244,5 Mo
+  Corbeille             : 0 Ko
+  Nettoyage profond     : 5,0 Mo (hors DISM)
+  Téléchargements       : 0 élément(s) à vérifier (0 Ko)
+  TOTAL libérables : 539,2 Mo
+  Optimisation          : 1 conseil(s)
+  Sécurité              : 1 point(s) à corriger
+    - La protection en temps réel de Microsoft Defender est désactivée et aucun autre antivirus n'est déclaré : réactive-la dans Sécurité Windows > Protection contre les virus et menaces.
+  Mémoire vive (RAM)    : 4,02 Go utilisés sur 15,99 Go (25 %) - libération non exécutée (simulation)
+  Disques               : aucune alerte
+
+Journal : C:\Users\runneradmin\Documents\NettoyagePC\journal_2026-11-13_14-09.txt
+Rapport : C:\Users\runneradmin\Documents\NettoyagePC\rapport_2026-11-13_14-09.txt

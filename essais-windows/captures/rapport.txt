@@ -1,0 +1,145 @@
+Bilan réel : note 52, 11 points, en 521 ms
+  [Probleme] Protection antivirus en temps réel désactivée.  -> uri:windowsdefender://threat
+  [Attention] Disque C: 29,23 Go libres (20 %) : il commence à se remplir.  -> action:standard
+  [Attention] HyperVMonitor : résolution 1024 × 768 au lieu de 1920 × 1080 (image plus nette)  -> page:Potentiel
+  [Attention] Entretien automatique désactivé : ton PC ne se nettoie pas tout seul.  -> action:planifier
+  [Attention] Aucun point de restauration : impossible de revenir en arrière en cas de problème.  -> action:point
+  [Ok] Fichiers temporaires : 345,7 Mo
+  [Ok] Dernière action : 13/11/2026 14:17
+  [Ok] Mémoire vive utilisée à 25 %.
+  [Ok] 3 programme(s) au démarrage.  -> page:Demarrage
+  [Ok] Disques en bonne santé.  -> page:Materiel
+  [Ok] Pare-feu Windows actif.
+  secteurs : 78.01735416249542 / 100 / 30 / 90
+  mesures : processeur 0 %, mémoire 25.380477128443182 %, disque 29,23 Go libres, température -1
+Versions : 5.10 > 5.9.10 > 5.9.9, 5.10 = 5.10.0.0
+Ping us-east-1 : 3 ms (gigue 0.5, perte 0 %) : Excellent : jeux compétitifs
+Ping eu-west-3 : 86 ms (gigue 0.2, perte 0 %) : Correct : un léger retard en compétitif
+Ping eu-south-2 : 93 ms (gigue 2.5, perte 0 %) : Correct : un léger retard en compétitif
+Ping ap-southeast-1 : 221 ms (gigue 2.5, perte 0 %) : Trop loin pour jouer confortablement
+Taille de C:\Windows\system32\drivers\etc : 23 Ko
+Jeux détectés : 0
+Extinction prévue : aucune
+Démarrages notés : 0 ; code de joueur : VLX1-4-979-9-22-14-10-e16cfc
+Utilisation GPU : -1 puis 9 (−1 = pas de compteur sur cette machine)
+Wi-Fi : disponible False, connecté False, erreur « service Wi-Fi absent (1062) » ; verdict : Ce PC n'a pas de Wi-Fi (ou il est désactivé). (1 conseil(s))
+Programmes installés : 59
+Restes trouvés : Réglages et données du programme C:\Users\runneradmin\AppData\Roaming\VeloxEssaiRestes (5000 o, protégé False) | Raccourci du Bureau C:\Users\runneradmin\Desktop\VeloxEssaiRestes.lnk (5 o, protégé False)
+Restes mis à la corbeille : 2 ; dossier encore là : False ; raccourci encore là : False
+Restauration depuis la corbeille : 2 remis, 0 introuvable(s) ; dossier revenu : True
+FPS en direct (fichier d'essai) : 100 (jeu.exe) puis 50 (jeu.exe)
+Boîte noire (partie simulée) : en cours True, reçue True, saccades 2 (programme:Discord:200, chaleur:processeur:150), FPS moyen 99.6, FPS 1 % 97.6, note 40, causes 2, relue jeu-essai.exe 2
+Boîte noire (règles) : True
+Activité des programmes : 5 actif(s), ce programme (NettoyagePC) : 111 % d'un cœur, disque occupé à 0 %, les plus actifs : NettoyagePC 111%, WindowsTerminal 10%, explorer 3%, dwm 1%
+Qui ralentit mon PC (2 s) : 2 programme(s), verdict « Rien ne ralentit ton PC en ce moment. » 
+Autopilote (simulé) : verdicts priorite:garde: / alimentation:annule:aucun ; relu : priorite=garde(, 12 blocs, FPS min 57 %), alimentation=annule(aucun, 24 blocs, FPS min 0 %) ; réglages appliqués 19, retirés 19, priorité encore appliquée : False
+Autopilote (test statistique) : True
+Autopilote (priorité réelle) : haute True (High), notée True, rétablie Normal, note effacée True, anti-triche vu : False
+Autopilote (alimentation réelle) : avant 381b4222-f694-41f0-9685-ff5bb260df2e, pendant 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c (True), après 381b4222-f694-41f0-9685-ff5bb260df2e
+FPS en direct (PresentMon réel) : fichier lisible pendant la mesure True (0 o), 12 lecture(s), FPS vus -1 (), état avant l'arrêt : en marche, arrêté après le témoin : True, fichier laissé : False
+OK : classique-Accueil.png
+OK : sombre-Accueil.png
+OK : sombre-Nettoyer.png
+OK : sombre-Premium.png
+OK : clair-Accueil.png
+OK : clair-Nettoyer.png
+OK : clair-Premium.png
+OK : sombre-Nettoyer-Disques.png
+OK : sombre-Nettoyer-Doublons.png
+OK : sombre-Nettoyer-options.png
+OK : sombre-Accelerer-Optimisation.png
+OK : sombre-Accelerer-Jeux.png
+OK : sombre-Accelerer-Demarrage.png
+OK : sombre-Accelerer-Applications.png
+OK : sombre-demarrage-conseils.png
+OK : sombre-gains.png
+OK : sombre-majapplis.png
+OK : sombre-profils.png
+OK : sombre-signaler.png
+OK : sombre-moniteur.png
+OK : sombre-widget.png
+OK : sombre-visite.png
+OK : sombre-Nettoyer-hud.png
+OK : sombre-annonce.png
+OK : sombre-annonce-velox.png
+OK : sombre-gamer-accueil.png
+OK : sombre-gamer-trophee.png
+OK : sombre-gamer-boost.png
+OK : sombre-gamer-session.png
+OK : sombre-gamer-qg.png
+OK : sombre-gamer-carte.png
+OK : sombre-gamer-niveau.png
+OK : sombre-gamer-succes.png
+OK : clair-gamer-accueil.png
+OK : sombre-etat.png
+OK : sombre-Accueil-etat.png
+OK : sombre-favoris.png
+OK : sombre-Outils-MonPc.png
+OK : sombre-Outils-Materiel.png
+OK : sombre-Outils-Potentiel.png
+OK : sombre-Outils-Aide.png
+OK : sombre-memoire.png
+OK : sombre-fps.png
+OK : sombre-batterie.png
+OK : sombre-sante.png
+OK : sombre-energie.png
+OK : sombre-gardien.png
+OK : sombre-enqueteur.png
+OK : sombre-benchmark.png
+OK : sombre-assistant.png
+OK : sombre-modejeu.png
+OK : sombre-temps-demarrage.png
+OK : sombre-ping-jeu.png
+OK : sombre-mes-jeux.png
+OK : sombre-extinction.png
+OK : sombre-wifi.png
+OK : sombre-restes.png
+OK : sombre-boitenoire.png
+OK : sombre-coupable.png
+OK : sombre-autopilote.png
+OK : sombre-majapps.png
+OK : sombre-photos.png
+OK : sombre-bulletin.png
+OK : sombre-reseau-premium.png
+OK : sombre-plantages.png
+OK : sombre-demarrage.png
+OK : sombre-Outils-Reseau.png
+OK : sombre-Historique.png
+OK : sombre-MisesAJour.png
+OK : sombre-Pilotes.png
+OK : sombre-Premium-page.png
+OK : sombre-achat.png
+OK : sombre-carte-espace.png
+OK : sombre-confidentialite.png
+OK : sombre-bienvenue.png
+OK : sombre-simple.png
+OK : clair-simple.png
+OK : sombre-Reglages.png
+OK : sombre-couleur-rubis.png
+OK : clair-couleur-emeraude.png
+OK : sombre-couleur-amethyste.png
+OK : sombre-Proteger.png
+OK : sombre-Sauvegarde.png
+OK : sombre-bouclier.png
+OK : clair-bouclier-urgence.png
+OK : sombre-palette.png
+OK : sombre-action-en-cours.png
+OK : sombre-action-finie.png
+OK : sombre-question.png
+OK : clair-question.png
+OK : petit-Accueil.png
+OK : en-Accueil.png
+OK : en-Nettoyer.png
+OK : en-Proteger.png
+OK : en-Premium.png
+OK : en-Reglages.png
+OK : en-Outils-Reseau.png
+OK : en-question.png
+OK : es-Accueil.png
+OK : es-Nettoyer.png
+OK : es-Proteger.png
+OK : es-Premium.png
+OK : es-Reglages.png
+OK : es-Outils-Reseau.png
+OK : es-question.png
+Fin : 0 erreur(s).
