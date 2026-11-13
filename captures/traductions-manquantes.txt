@@ -1,0 +1,135 @@
+// PERFIL
+// PROFILE
+// SISTEMA
+// SYSTEM
+> ANÁLISIS EN CURSO…
+> ANÁLISIS TERMINADO · 14:08:56
+> SCAN COMPLETE · 14:08:55
+> SCAN IN PROGRESS…
+▲ CAN BE IMPROVED
+▲ MEJORABLE
+▸ APLICACIONES
+▸ APPS
+▸ AYUDA REMOTA
+▸ BACKUP
+▸ CLEANUP
+▸ CONSEJOS PARA MEJORARLO
+▸ COPIA DE SEGURIDAD
+▸ DISCOS Y ARCHIVOS GRANDES
+▸ DISKS AND LARGE FILES
+▸ DUPLICADOS
+▸ DUPLICATES
+▸ FICHA DE TU PC
+▸ GAMES
+▸ HARDWARE
+▸ INICIO DE WINDOWS
+▸ JUEGOS
+▸ LIMPIEZA
+▸ NETWORK
+▸ OPTIMIZACIÓN
+▸ OPTIMIZATION
+▸ RED
+▸ REMOTE HELP
+▸ SECURITY
+▸ SEGURIDAD
+▸ STARTUP
+▸ TIPS TO IMPROVE IT
+▸ VELOX
+▸ WINDOWS AND DRIVERS
+▸ WINDOWS Y CONTROLADORES
+▸ YOUR PC'S PROFILE
+★  ACCESO RÁPIDO
+★  QUICK ACCESS
+⚠  ALERTAS
+⚠  ALERTAS · 5
+⚠  ALERTS
+⚠  ALERTS · 5
+✔  14-day money-back guarantee
+✔  3 PC, todas las versiones
+✔  3 PCs, all versions
+✔  No ads, no tracking
+✔  No commitment, cancel anytime
+✔  Pago seguro (Stripe)
+✔  Satisfecho o reembolsado 14 días
+✔  Secure payment (Stripe)
+✔  Sin permanencia, cancela cuando quieras
+✔  Sin publicidad ni rastreo
+✔  Tu PC está bien equipado: nada que cambiar por ahora.
+✔  Your PC is well equipped: nothing to change for now.
+0 aplicación(es), 0 KB en total (tamaño estimado)
+0 app(s), 0 KB in total (estimated size)
+1,03 GB recuperables ahora mismo (papelera y archivos temporales).
+1.03 GB recoverable right now (recycle bin and temporary files).
+19 herramientas profesionales, desbloqueadas de una vez
+19 pro tools, unlocked at once
+3 a la vez. Antes de regalar un PC, «Gestionar la licencia» libera su plaza.
+3 at the same time. Before giving a PC away, "Manage the license" frees its slot.
+4 logical cores
+5 mejoras posibles. Pulsa «Optimizar en 1 clic» para hacerlo todo de una vez, o elige abajo.
+5 other points checked: all good.
+5 possible improvements. Click "Optimize in 1 click" to do everything at once, or choose below.
+5 puntos más comprobados: todo bien.
+604 Mbit/s
+912 Mbit/s
+ALMACENAMIENTO 44%
+build 0
+By default, cleaning leaves the Recycle Bin alone: what you put there stays recoverable. You can ask Velox to empty it at every clean to free more space. Currently: Velox never empties the Recycle Bin.
+Cloudflare
+Cloudflare es el más rápido (6 ms frente a 24 ms hoy). Selecciónalo y luego «Usar el servidor elegido».
+Cloudflare is the fastest (6 ms versus 24 ms today). Select it then "Use the chosen server".
+Ctrl+K
+Desactivar los que pueden esperar (0)
+English
+Español
+FREE ON C:
+Fuente oficial: github.com/damiencoussot-ai/nettoyage-pc
+Google
+Hello, Damien.
+Hola, Damien.
+HUD: el aspecto futurista, desde la versión 5.5. Clásico: el aspecto anterior. Tus herramientas, favoritos y ajustes siguen siendo los mismos. Actualmente: HUD.
+HUD: the futuristic look, since version 5.5. Classic: the previous look. Your tools, favorites and settings stay the same. Currently: HUD.
+INTÉGRITÉ.SYS
+LIBRE EN C:
+Light, dark or automatic theme (follows the Windows setting). The sun / moon button at the top also switches in one click. Currently: Dark theme.
+LISTO
+MEMORIA 100%
+MEMORY 100%
+MODULE 00 // SYSTEM
+MODULE 01 // DASHBOARD
+MODULE 02 // DISK SPACE
+MODULE 03 // PERFORMANCE
+MODULE 04 // SECURITY
+MODULE 05 // DIAGNOSTICS
+MODULE 06 // PRO TOOLS
+MÓDULO 00 // SISTEMA
+MÓDULO 01 // PANEL
+MÓDULO 02 // ESPACIO EN DISCO
+MÓDULO 03 // RENDIMIENTO
+MÓDULO 04 // SEGURIDAD
+MÓDULO 05 // DIAGNÓSTICO
+MÓDULO 06 // HERRAMIENTAS PRO
+Motor de la versión 5.13
+Official source: github.com/damiencoussot-ai/nettoyage-pc
+Por defecto, la limpieza no toca la papelera: lo que pusiste allí sigue siendo recuperable. Puedes pedir a Velox que la vacíe en cada limpieza para liberar más espacio. Actualmente: Velox nunca vacía la papelera.
+PRO
+Quad9
+READY
+Realtek Gaming 2.5GbE Family Controller
+RYZEN 7 7800X3D · RX 7900 XTX
+SECURITY 60%
+SEGURIDAD 60%
+Sí: 4,99 € al mes, sin permanencia. Lo cancelas cuando quieras (enlace en el correo de Stripe); Premium sigue activo hasta el final del mes pagado. Si compraste Premium en un solo pago antes, es tuyo para siempre.
+STORAGE 44%
+Subscribe  ·  4,99 € / month
+Suscribirse  ·  4,99 € / mes
+Tema claro, oscuro o automático (sigue el ajuste de Windows). El botón sol / luna de arriba también cambia en un clic. Actualmente: Tema oscuro.
+Tu PC se puede mejorar : 5 puntos detectados.
+Turn off the ones that can wait (0)
+V5.13 · EN LÍNEA
+V5.13 · ONLINE
+Windows
+WINDOWS
+Windows Update is not responding (service stopped or no Internet connection). The Windows Update component can't be found on this PC.
+Windows Update no responde (servicio detenido o sin conexión a Internet). No se encuentra el componente Windows Update en este PC.
+Yes: 4,99 € per month, no commitment. Stop whenever you like (link in the Stripe e-mail); Premium stays active until the end of the paid month. If you bought Premium in one payment before, it stays yours for life.
+Your PC can be improved : 5 items found.
