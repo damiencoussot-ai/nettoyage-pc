@@ -326,7 +326,7 @@ namespace NettoyagePC.Nouveau
                         BoiteNoire.PartieFinie = ancienneSim;
                         var relueSim = BoiteNoire.Parties().FirstOrDefault();
                         var causesSim = recueSim != null ? BoiteNoire.Causes(recueSim) : new System.Collections.Generic.List<CauseBoite>();
-                        rapport.AppendLine("Boîte noire (partie simulée) : en cours " + enCoursBoite + ", reçue " + (recueSim != null) + (recueSim != null ? ", saccades " + recueSim.Saccades.Count + " (" + string.Join(", ", recueSim.Saccades.Select(kb => kb.Cause + ":" + kb.Programme + ":" + kb.Ms)) + "), FPS moyen " + Math.Round(recueSim.FpsMoyen, 1) + ", FPS 1 % " + Math.Round(recueSim.Fps1, 1) + ", note " + recueSim.Note + ", causesSim " + causesSim.Count : "") + ", relueSim " + (relueSim != null ? relueSim.Jeu + " " + relueSim.Saccades.Count : "non"));
+                        rapport.AppendLine("Boîte noire (partie simulée) : en cours " + enCoursBoite + ", reçue " + (recueSim != null) + (recueSim != null ? ", saccades " + recueSim.Saccades.Count + " (" + string.Join(", ", recueSim.Saccades.Select(kb => kb.Cause + ":" + kb.Programme + ":" + kb.Ms)) + "), FPS moyen " + Math.Round(recueSim.FpsMoyen, 1) + ", FPS 1 % " + Math.Round(recueSim.Fps1, 1) + ", note " + recueSim.Note + ", causes " + causesSim.Count : "") + ", relue " + (relueSim != null ? relueSim.Jeu + " " + relueSim.Saccades.Count : "non"));
                         if (!enCoursBoite || recueSim == null || recueSim.Saccades.Count != 2 || recueSim.Saccades[0].Cause != "programme" || recueSim.Saccades[0].Programme != "Discord" || recueSim.Saccades[1].Cause != "chaleur"
                             || recueSim.FpsMoyen < 95 || recueSim.FpsMoyen > 100.5 || recueSim.Fps1 < 90 || recueSim.Fps1 > 100.5 || recueSim.Note < 35 || recueSim.Note > 45 || causesSim.Count != 2
                             || relueSim == null || relueSim.Jeu != "jeu-essai.exe" || relueSim.Saccades.Count != 2 || BoiteNoire.EnCours)
@@ -344,7 +344,7 @@ namespace NettoyagePC.Nouveau
                         double occupationSim = ActiviteProgrammes.Disque();
                         string moiNom = System.Diagnostics.Process.GetCurrentProcess().ProcessName;
                         var moiActif = actifsSim.FirstOrDefault(xb => xb.Pid == Environment.ProcessId);
-                        rapport.AppendLine("Activité des programmes : " + actifsSim.Count + " actif(s), ce programme (" + moiNom + ") : " + (moiActif != null ? Math.Round(moiActif.Coeur) + " % d'un cœur" : "absent") + ", disque occupé à " + Math.Round(occupationSim) + " %, les plus actifsSim : " + string.Join(", ", actifsSim.OrderByDescending(xb => xb.Coeur).Take(4).Select(xb => xb.Nom + " " + Math.Round(xb.Coeur) + "%")));
+                        rapport.AppendLine("Activité des programmes : " + actifsSim.Count + " actif(s), ce programme (" + moiNom + ") : " + (moiActif != null ? Math.Round(moiActif.Coeur) + " % d'un cœur" : "absent") + ", disque occupé à " + Math.Round(occupationSim) + " %, les plus actifs : " + string.Join(", ", actifsSim.OrderByDescending(xb => xb.Coeur).Take(4).Select(xb => xb.Nom + " " + Math.Round(xb.Coeur) + "%")));
                         if (moiActif == null || moiActif.Coeur < 30 || moiActif.Coeur > 250 || occupationSim < 0) { erreurs++; rapport.AppendLine("ERREUR : activité des programmes"); }
                         var coupableSim = Coupable.Observer(2, null, null, null);
                         int nivC; string progC;

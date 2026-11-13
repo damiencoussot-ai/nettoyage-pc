@@ -511,20 +511,14 @@ namespace NettoyagePC
             var l = new List<SessionBoite>();
             try
             {
-                var brut = Json.LireFichier(Fichier) as List<object>;
-                if (brut == null) return l;
-                foreach (var o in brut)
+                foreach (var d in Json.Objets(Json.LireFichier(Fichier)))
                 {
-                    var d = o as Dictionary<string, object>;
-                    if (d == null) continue;
                     var s = new SessionBoite { Jeu = Propre(Json.Texte(d, "Jeu")), Debut = Date(d, "Debut"), Fin = Date(d, "Fin"), FpsMoyen = Lu(d, "FpsMoyen"), Fps1 = Lu(d, "Fps1"), TempCpuMax = Lu(d, "TempCpuMax"), TempGpuMax = Lu(d, "TempGpuMax"), Images = (long)Lu(d, "Images"), Note = (int)Lu(d, "Note") };
                     if (s.Debut == DateTime.MinValue || s.Jeu == "") continue;
                     object sac;
-                    if (d.TryGetValue("Saccades", out sac) && sac is List<object>)
-                        foreach (var k in (List<object>)sac)
+                    if (d.TryGetValue("Saccades", out sac) && sac != null && !(sac is string))
+                        foreach (var kd in Json.Objets(sac))
                         {
-                            var kd = k as Dictionary<string, object>;
-                            if (kd == null) continue;
                             string cause = Json.Texte(kd, "Cause");
                             s.Saccades.Add(new Saccade { Heure = Date(kd, "Heure"), Ms = Lu(kd, "Ms"), Cause = CausesConnues.Contains(cause) ? cause : "jeu", Programme = Propre(Json.Texte(kd, "Programme")), Valeur = Lu(kd, "Valeur") });
                         }
