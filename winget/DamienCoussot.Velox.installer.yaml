@@ -17,6 +17,6 @@ AppsAndFeaturesEntries:
 Installers:
   - Architecture: x64
     InstallerUrl: https://github.com/damiencoussot-ai/nettoyage-pc/releases/download/v5.12/Velox-Setup-5.12.exe
-    InstallerSha256: EED0D9E2478B90E912B2FD9E0630EA7B90BBF4688453CC88622844ADC65B22F6
+    InstallerSha256: 6F47439C2953B7271BCC2981A33692011F946EFE7ADCBC5BFB367F7E0A37E290
 ManifestType: installer
 ManifestVersion: 1.6.0
