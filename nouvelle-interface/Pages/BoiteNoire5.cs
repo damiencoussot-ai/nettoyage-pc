@@ -45,14 +45,15 @@ namespace NettoyagePC.Nouveau
             minuteur = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
             minuteur.Tick += (s, e) => Seconde(f);
             minuteur.Start();
-            f.Closed += (s, e) => { try { minuteur.Stop(); BoiteNoire.Terminer(); } catch { } };
+            f.Closed += (s, e) => { try { minuteur.Stop(); BoiteNoire.Terminer(); Autopilote.Terminer(); } catch { } };
+            Autopilote5.Demarrer(f);
         }
 
         private static void Seconde(FenetrePrincipale f)
         {
             if (!Fps.DirectActif)
             {
-                if (actif) { actif = false; FpsActuel = -1; Task.Run(() => BoiteNoire.Terminer()); }
+                if (actif) { actif = false; FpsActuel = -1; Task.Run(() => { BoiteNoire.Terminer(); Autopilote.Terminer(); }); }
                 return;
             }
             actif = true;
@@ -77,7 +78,9 @@ namespace NettoyagePC.Nouveau
                     BoiteNoire.SeuilCpu = Overlay5.SeuilCpu();
                     // seules comptent les images du programme au premier plan, et jamais celles d'un navigateur ou d'un lanceur
                     bool jeuDevant = fps > 0 && pidJeu != 0 && pidJeu == (int)pid && EstUnJeu(app);
-                    BoiteNoire.Seconde(e, jeuDevant ? images : null, app, pidJeu);
+                    bool saccade = BoiteNoire.Seconde(e, jeuDevant ? images : null, app, pidJeu);
+                    if (Autopilote5.Actif) Autopilote.Seconde(app, pidJeu, jeuDevant ? images : null, saccade);
+                    else Autopilote.Terminer();
                 }
                 catch (Exception ex) { JournalDemarrage.Erreur("boîte noire", ex); }
                 return fps;
@@ -206,6 +209,9 @@ namespace NettoyagePC.Nouveau
                 var fps = new BoutonNoyau(Fps.DirectActif ? "Arrêter les FPS en direct" : "Démarrer les FPS en direct", false, 0, 40) { TaillePolice = 13.5, Margin = new Thickness(0, 4, 8, 0) };
                 fps.Clic += () => Overlay5.BasculerFps(f, ok => Remplir(f, s, null));
                 boutons.Children.Add(fps);
+                var auto = new BoutonNoyau("Autopilote", false, 0, 40) { TaillePolice = 13.5, Margin = new Thickness(0, 4, 8, 0) };
+                auto.Clic += () => { f.ViderCalques(); Autopilote5.Ouvrir(f); };
+                boutons.Children.Add(auto);
             }
             s.Children.Add(boutons);
 

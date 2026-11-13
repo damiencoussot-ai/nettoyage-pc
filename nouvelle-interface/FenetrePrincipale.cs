@@ -198,6 +198,7 @@ namespace NettoyagePC.Nouveau
             l.Add(new EntreeCommande { Titre = Langue.T("Minuteur d'extinction"), Detail = Langue.T("Éteindre le PC dans un moment."), Type = "Action", Faire = () => Extinction5.Ouvrir(this) });
             l.Add(new EntreeCommande { Titre = Langue.T("Test du Wi-Fi"), Detail = Langue.T("Signal, bande, canal et conseils."), Type = "Action", Faire = () => Wifi5.Ouvrir(this) });
             l.Add(new EntreeCommande { Titre = Langue.T("Boîte noire du jeu"), Detail = Langue.T("Premium : pourquoi ton jeu a saccadé, à la seconde près"), Type = "Action", Faire = () => BoiteNoire5.Ouvrir(this) });
+            l.Add(new EntreeCommande { Titre = Langue.T("Autopilote du mode jeu"), Detail = Langue.T("Premium : les réglages qui marchent vraiment sur ton PC, prouvés partie après partie"), Type = "Action", Faire = () => Autopilote5.Ouvrir(this) });
             l.Add(new EntreeCommande { Titre = Langue.T("Qui ralentit mon PC ?"), Detail = Langue.T("Le programme qui occupe le processeur, la mémoire ou le disque en ce moment"), Type = "Action", Faire = () => Coupable5.Ouvrir(this) });
             // tu décris ton problème avec tes mots : Velox ouvre le bon outil
             l.Add(new EntreeCommande { Titre = Langue.T("Mon jeu saccade"), Detail = Langue.T("lag, freeze, à-coups, micro-coupures, FPS qui chutent : la Boîte noire cherche la cause"), Type = "Problème", Faire = () => BoiteNoire5.Ouvrir(this) });
@@ -428,6 +429,7 @@ namespace NettoyagePC.Nouveau
             if (cle == "extinction") { Extinction5.Ouvrir(this); return true; }
             if (cle == "wifi") { Wifi5.Ouvrir(this); return true; }
             if (cle == "boitenoire") { BoiteNoire5.Ouvrir(this); return true; }
+            if (cle == "autopilote") { Autopilote5.Ouvrir(this); return true; }
             if (cle == "coupable") { Coupable5.Ouvrir(this); return true; }
             Action ouvrir;
             if (!outils.TryGetValue(cle, out ouvrir))

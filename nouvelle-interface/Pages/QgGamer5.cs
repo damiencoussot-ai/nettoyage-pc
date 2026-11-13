@@ -155,10 +155,16 @@ namespace NettoyagePC.Nouveau
             options2.Children.Add(bDiscord);
             c.Children.Add(options2);
             // Boîte noire : rapport de la dernière partie (saccades et leurs causes)
-            var bBoite = new BoutonNoyau("Boîte noire", false, 0, 32) { TaillePolice = 11.5, Capitales = true, HorizontalAlignment = HorizontalAlignment.Stretch, Margin = new Thickness(0, 6, 0, 0) };
+            var bBoite = new BoutonNoyau("Boîte noire", false, 0, 32) { TaillePolice = 11.5, Capitales = true, HorizontalAlignment = HorizontalAlignment.Stretch, Margin = new Thickness(0, 6, 3, 0) };
             ToolTip.SetTip(bBoite, Langue.T("Premium : pendant les FPS en direct, Velox enregistre ta partie et t'explique chaque saccade. Ici, le rapport de tes dernières parties."));
             bBoite.Clic += () => BoiteNoire5.Ouvrir(F);
-            c.Children.Add(bBoite);
+            var bAuto = new BoutonNoyau("Autopilote", Autopilote5.Actif, 0, 32) { TaillePolice = 11.5, Capitales = true, HorizontalAlignment = HorizontalAlignment.Stretch, Margin = new Thickness(3, 6, 0, 0) };
+            ToolTip.SetTip(bAuto, Langue.T("Premium : Velox essaie des réglages sur tes vraies parties et garde seulement ceux qui marchent sur ton PC, preuve à l'appui."));
+            bAuto.Clic += () => Autopilote5.Ouvrir(F);
+            var rangee3 = new Grid { ColumnDefinitions = new ColumnDefinitions("*,*") };
+            rangee3.Children.Add(bBoite);
+            Grid.SetColumn(bAuto, 1); rangee3.Children.Add(bAuto);
+            c.Children.Add(rangee3);
             Grid.SetColumn(c, 4); g.Children.Add(c);
 
             Child = new StackPanel { Children = { g, zoneDefis } };

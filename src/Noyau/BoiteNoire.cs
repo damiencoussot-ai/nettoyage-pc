@@ -278,11 +278,12 @@ namespace NettoyagePC
         }
 
         /// <summary>À appeler chaque seconde pendant les FPS en direct (hors du fil de l'interface).
-        /// images : durées (ms) des images du jeu affichées depuis l'appel précédent (vide ou null : aucune).</summary>
-        public static void Seconde(SecondeBoite etat, List<double> images, string jeu, int pidJeu)
+        /// images : durées (ms) des images du jeu affichées depuis l'appel précédent (vide ou null : aucune).
+        /// Renvoie vrai si une saccade a été repérée pendant cette seconde.</summary>
+        public static bool Seconde(SecondeBoite etat, List<double> images, string jeu, int pidJeu)
         {
-            if (etat == null) return;
-            SessionBoite finie = null;
+            if (etat == null) return false;
+            SessionBoite finie = null; bool saccade = false;
             lock (verrou)
             {
                 bool aDesImages = images != null && images.Count >= 2 && !string.IsNullOrEmpty(jeu);
@@ -318,12 +319,14 @@ namespace NettoyagePC
                         var s = new Saccade { Heure = etat.Heure, Ms = Math.Round(pire) };
                         Diagnostiquer(s, etat);
                         session.Saccades.Add(s);
+                        saccade = true;
                     }
                     medianes.Enqueue(Mediane(images));
                     while (medianes.Count > 8) medianes.Dequeue();
                 }
             }
             Annoncer(finie);
+            return saccade;
         }
 
         /// <summary>Termine la partie en cours (FPS en direct arrêtés, Velox fermé).</summary>

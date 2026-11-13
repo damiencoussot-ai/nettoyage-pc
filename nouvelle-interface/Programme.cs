@@ -352,6 +352,72 @@ namespace NettoyagePC.Nouveau
                         rapport.AppendLine("Qui ralentit mon PC (2 s) : " + coupableSim.Programmes.Count + " programme(s), verdict « " + verdictC + " » " + progC);
                         if (verdictC == "") { erreurs++; rapport.AppendLine("ERREUR : Qui ralentit mon PC"); }
                     }
+                    // ---- 5.13 : Autopilote. D'abord la logique, avec des réglages simulés : la priorité haute réduit les images lentes
+                    // (elle doit être gardée), le mode d'alimentation ne change rien (il doit être annulé « aucun effet »)
+                    {
+                        string apFichier = Path.Combine(Chemins.Local, "autopilote.json");
+                        string apSauve = File.Exists(apFichier) ? File.ReadAllText(apFichier) : null;
+                        var apAppliquer = Autopilote.Appliquer; var apVerdict = Autopilote.Verdict;
+                        int apDuree = Autopilote.DureeBloc, apEchauffement = Autopilote.Echauffement;
+                        var apAppels = new System.Collections.Generic.List<string>(); var apVerdicts = new System.Collections.Generic.List<string>();
+                        bool apPriorite = false;
+                        try
+                        {
+                            Autopilote.Appliquer = (r, avec, pid, cible) => { apAppels.Add(r + (avec ? "+" : "-")); if (r == "priorite") apPriorite = avec; return true; };
+                            Autopilote.Verdict = (j, e) => apVerdicts.Add(e.Reglage + ":" + e.Etat + ":" + e.Raison);
+                            Autopilote.DureeBloc = 20; Autopilote.Echauffement = 5;
+                            Autopilote.Recommencer("jeu-auto.exe");
+                            var apHasard = new Random(7);
+                            for (int apI = 0; apI < 3000 && apVerdicts.Count < 2; apI++)
+                            {
+                                var apImages = new System.Collections.Generic.List<double>();
+                                for (int apK = 0; apK < 100; apK++) apImages.Add(10 + (apHasard.NextDouble() < (apPriorite ? 0.004 : 0.03) ? 6 : 0) + apHasard.NextDouble() * 0.5);
+                                Autopilote.Seconde("jeu-auto.exe", 4343, apImages, false);
+                            }
+                            Autopilote.Terminer();
+                            var apRelu = Autopilote.Charger().FirstOrDefault(x => x.Jeu == "jeu-auto.exe");
+                            string apEtats = apRelu == null ? "non relu" : string.Join(", ", apRelu.Essais.Select(x => x.Reglage + "=" + x.Etat + "(" + x.Raison + ", " + x.Blocs.Count + " blocs, FPS min " + Math.Round(x.Gain1 * 100) + " %)"));
+                            int apPlus = apAppels.Count(x => x.EndsWith("+")), apMoins = apAppels.Count(x => x.EndsWith("-"));
+                            rapport.AppendLine("Autopilote (simulé) : verdicts " + string.Join(" / ", apVerdicts) + " ; relu : " + apEtats + " ; réglages appliqués " + apPlus + ", retirés " + apMoins + ", priorité encore appliquée : " + apPriorite);
+                            if (apVerdicts.Count != 2 || apVerdicts[0] != "priorite:garde:" || apVerdicts[1] != "alimentation:annule:aucun" || apPriorite || apRelu == null
+                                || apRelu.Essais.First(x => x.Reglage == "priorite").Etat != "garde" || apRelu.Essais.First(x => x.Reglage == "priorite").Gain1 < 0.2)
+                            { erreurs++; rapport.AppendLine("ERREUR : Autopilote (simulé)"); }
+                        }
+                        finally
+                        {
+                            Autopilote.Appliquer = apAppliquer; Autopilote.Verdict = apVerdict; Autopilote.DureeBloc = apDuree; Autopilote.Echauffement = apEchauffement;
+                            try { if (apSauve != null) File.WriteAllText(apFichier, apSauve); else File.Delete(apFichier); } catch { }
+                        }
+                        bool apStats = Autopilote.MannWhitney(new System.Collections.Generic.List<double> { 5, 6, 7, 8, 9, 10 }, new System.Collections.Generic.List<double> { 1, 2, 3, 4, 5, 6 }) < 0.05
+                            && Autopilote.MannWhitney(new System.Collections.Generic.List<double> { 1, 2, 3, 4, 5, 6 }, new System.Collections.Generic.List<double> { 5, 6, 7, 8, 9, 10 }) > 0.9;
+                        rapport.AppendLine("Autopilote (test statistique) : " + apStats);
+                        if (!apStats) { erreurs++; rapport.AppendLine("ERREUR : Autopilote (test statistique)"); }
+                        // puis pour de vrai : priorité d'un vrai programme changée, notée pour un arrêt brutal, puis rétablie
+                        string apRetablir = Path.Combine(Chemins.Local, "autopilote-retablir.json");
+                        var apPing = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(Path.Combine(Chemins.Systeme32, "ping.exe"), "-n 30 127.0.0.1") { UseShellExecute = false, CreateNoWindow = true });
+                        try
+                        {
+                            bool apHaut = Autopilote.Priorite(apPing.Id, System.Diagnostics.ProcessPriorityClass.High);
+                            apPing.Refresh(); var apLu = apPing.PriorityClass; bool apNote = File.Exists(apRetablir);
+                            Autopilote.Retablir(apPing.Id, System.Diagnostics.ProcessPriorityClass.High);
+                            apPing.Refresh(); var apLu2 = apPing.PriorityClass; bool apNote2 = File.Exists(apRetablir);
+                            rapport.AppendLine("Autopilote (priorité réelle) : haute " + apHaut + " (" + apLu + "), notée " + apNote + ", rétablie " + apLu2 + ", note effacée " + !apNote2 + ", anti-triche vu : " + Autopilote.AntiTricheActif());
+                            if (!apHaut || apLu != System.Diagnostics.ProcessPriorityClass.High || !apNote || apLu2 != System.Diagnostics.ProcessPriorityClass.Normal || apNote2) { erreurs++; rapport.AppendLine("ERREUR : Autopilote (priorité réelle)"); }
+                        }
+                        finally { try { apPing.Kill(); } catch { } apPing.Dispose(); }
+                        // et le mode d'alimentation, si le PC n'est pas déjà en « Performances élevées »
+                        string apPlan = Alimentation.PlanActif();
+                        if (apPlan != "" && apPlan != Alimentation.Performances && Alimentation.Liste().Contains(Alimentation.Performances) && !File.Exists(Chemins.Fichier("modejeu.json")))
+                        {
+                            bool apOk = Autopilote.Appliquer("alimentation", true, 0, "");
+                            string apPendant = Alimentation.PlanActif();
+                            Autopilote.Appliquer("alimentation", false, 0, "");
+                            string apApres = Alimentation.PlanActif();
+                            rapport.AppendLine("Autopilote (alimentation réelle) : avant " + apPlan + ", pendant " + apPendant + " (" + apOk + "), après " + apApres);
+                            if (!apOk || apPendant != Alimentation.Performances || apApres != apPlan) { erreurs++; rapport.AppendLine("ERREUR : Autopilote (alimentation réelle)"); }
+                        }
+                        else rapport.AppendLine("Autopilote (alimentation réelle) : non essayé (plan actif « " + apPlan + " », Performances élevées absent ou déjà actif)");
+                    }
                     // FPS en direct pour de vrai : PresentMon officiel téléchargé, lancé comme le fait le processus administrateur,
                     // et son fichier de mesures lu PENDANT qu'il tourne ; puis arrêt dès que le témoin disparaît.
                     try
@@ -820,6 +886,11 @@ namespace NettoyagePC.Nouveau
                 };
                 Coupable5.Ouvrir(f);
                 Capturer(f, dossier, "sombre-coupable.png", rapport, ref erreurs);
+                f.ViderCalques(); Coupable5.Exemple = null;
+                Autopilote5.Exemple = Autopilote.Exemple();
+                Autopilote5.Ouvrir(f);
+                Capturer(f, dossier, "sombre-autopilote.png", rapport, ref erreurs);
+                Autopilote5.Exemple = null;
                 f.ViderCalques(); Coupable5.Exemple = null;
 
                 MajApps5.Exemple = new System.Collections.Generic.List<AppAMettreAJour>

@@ -83,6 +83,7 @@ namespace NettoyagePC.Nouveau
             O("aide", "Outils", "Aide à distance", "Recevoir de l'aide d'un proche, en sécurité.", Page("Outils", "Aide")),
             O("wifi", "Outils", "Test du Wi-Fi", "Signal, bande, canal et conseils.", f => Wifi5.Ouvrir(f)),
             O("boitenoire", "Accelerer", "Boîte noire du jeu", "Pourquoi ton jeu a saccadé.", f => BoiteNoire5.Ouvrir(f)),
+            O("autopilote", "Accelerer", "Autopilote du mode jeu", "Les réglages prouvés sur ton PC.", f => Autopilote5.Ouvrir(f)),
             O("coupable", "Accelerer", "Qui ralentit mon PC ?", "Le programme responsable, en 12 secondes.", f => Coupable5.Ouvrir(f)),
             O("extinction", "Outils", "Minuteur d'extinction", "Éteindre le PC dans un moment.", f => Extinction5.Ouvrir(f)),
             O("compat", "Outils", "Compatibilité de ce PC", "Windows 11, TPM, Secure Boot, virtualisation.", Act("compat")),

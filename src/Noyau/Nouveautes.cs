@@ -7,6 +7,8 @@ namespace NettoyagePC
     {
         public static readonly List<KeyValuePair<string, string[]>> Liste = new List<KeyValuePair<string, string[]>>
         {
+            N("5.13", "Nouveau : Autopilote du mode jeu (Premium). Velox essaie chaque réglage sur tes vraies parties, avec et sans, et garde seulement ce qui marche sur ton PC, preuve à l'appui.",
+                "Réglages essayés : mise en retrait du programme qui fait saccader le jeu, priorité haute, mode « Performances élevées ». Rien n'est fermé, tout est rétabli à la fin de la partie."),
             N("5.12", "Nouveau : Boîte noire du jeu (Premium). Pendant les FPS en direct, Velox enregistre ta partie et t'explique chaque saccade : programme en arrière-plan, chaleur, mémoire, disque.",
                 "Rapport de partie : FPS moyen, FPS minimum (1 %), nombre de saccades et note de fluidité sur 100.",
                 "Nouveau et gratuit : « Qui ralentit mon PC ? » (Accélérer). 12 secondes d'observation, et Velox désigne le programme responsable.",
