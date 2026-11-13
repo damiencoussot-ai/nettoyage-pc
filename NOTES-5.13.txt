@@ -10,7 +10,7 @@ Nouveau en 5.13 :
   le pare-feu et Windows Update ne sont jamais touchés. Pas de priorité haute si un anti-triche tourne.
   Compte environ 40 minutes de jeu par réglage avant un verdict.
 
-Nouveau en 5.12 :
+Et ce qui était prévu pour la 5.12 :
 - Boîte noire du jeu (Premium) : pendant les FPS en direct, Velox enregistre ta partie. À chaque saccade, il regarde
   ce qui se passait sur le PC (programme en arrière-plan, chaleur, mémoire pleine, disque occupé) et te dit pourquoi,
   avec un conseil. Rapport de fin de partie : FPS moyen, FPS minimum (1 %), saccades, note de fluidité sur 100.

@@ -397,6 +397,8 @@ namespace NettoyagePC.Nouveau
                         var apPing = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(Path.Combine(Chemins.Systeme32, "ping.exe"), "-n 30 127.0.0.1") { UseShellExecute = false, CreateNoWindow = true });
                         try
                         {
+                            // (le programme d'essai hérite de la priorité de ce processus de test, parfois « inférieure »)
+                            apPing.PriorityClass = System.Diagnostics.ProcessPriorityClass.Normal;
                             bool apHaut = Autopilote.Priorite(apPing.Id, System.Diagnostics.ProcessPriorityClass.High);
                             apPing.Refresh(); var apLu = apPing.PriorityClass; bool apNote = File.Exists(apRetablir);
                             Autopilote.Retablir(apPing.Id, System.Diagnostics.ProcessPriorityClass.High);
@@ -406,6 +408,9 @@ namespace NettoyagePC.Nouveau
                         }
                         finally { try { apPing.Kill(); } catch { } apPing.Dispose(); }
                         // et le mode d'alimentation, si le PC n'est pas déjà en « Performances élevées »
+                        string apPlanInitial = Alimentation.PlanActif();
+                        // machine d'essai déjà en « Performances élevées » : on passe un instant en « Équilibré » pour pouvoir essayer
+                        if (apPlanInitial == Alimentation.Performances && Alimentation.Liste().Contains(Alimentation.Equilibre)) Alimentation.Activer(Alimentation.Equilibre);
                         string apPlan = Alimentation.PlanActif();
                         if (apPlan != "" && apPlan != Alimentation.Performances && Alimentation.Liste().Contains(Alimentation.Performances) && !File.Exists(Chemins.Fichier("modejeu.json")))
                         {
@@ -417,6 +422,7 @@ namespace NettoyagePC.Nouveau
                             if (!apOk || apPendant != Alimentation.Performances || apApres != apPlan) { erreurs++; rapport.AppendLine("ERREUR : Autopilote (alimentation réelle)"); }
                         }
                         else rapport.AppendLine("Autopilote (alimentation réelle) : non essayé (plan actif « " + apPlan + " », Performances élevées absent ou déjà actif)");
+                        if (apPlanInitial != "" && Alimentation.PlanActif() != apPlanInitial) Alimentation.Activer(apPlanInitial);
                     }
                     // FPS en direct pour de vrai : PresentMon officiel téléchargé, lancé comme le fait le processus administrateur,
                     // et son fichier de mesures lu PENDANT qu'il tourne ; puis arrêt dès que le témoin disparaît.
