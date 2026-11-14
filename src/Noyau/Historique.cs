@@ -70,6 +70,13 @@ namespace NettoyagePC
             catch { }
         }
 
+        /// <summary>Lit l'historique, le modifie et le réécrit d'un seul tenant (« modifier » renvoie vrai s'il faut l'enregistrer).</summary>
+        public static void Modifier(Func<List<Modif>, bool> modifier)
+        {
+            try { lock (verrou) { var l = Lire(); if (modifier(l)) Ecrire(l); } }
+            catch { }
+        }
+
         /// <summary>Marque comme annulées les entrées actives qui correspondent (l'utilisateur a défait lui-même).</summary>
         public static void MarquerAnnulees(Func<Modif, bool> filtre)
         {
@@ -179,6 +186,12 @@ namespace NettoyagePC
                         }
                     case "dns":
                         return Reseau.AnnulerDns(e);
+                    case "audiojeu":
+                        return AudioJeu.Annuler(e);
+                    case "sortieaudio":
+                        return AudioWindows.Annuler(e);
+                    case "voicemeeter":
+                        return Voicemeeter.Annuler(e);
                 }
                 return "type de modification inconnu";
             }

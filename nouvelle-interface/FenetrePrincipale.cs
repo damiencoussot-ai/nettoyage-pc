@@ -200,8 +200,10 @@ namespace NettoyagePC.Nouveau
             l.Add(new EntreeCommande { Titre = Langue.T("Boîte noire du jeu"), Detail = Langue.T("Premium : pourquoi ton jeu a saccadé, à la seconde près"), Type = "Action", Faire = () => BoiteNoire5.Ouvrir(this) });
             l.Add(new EntreeCommande { Titre = Langue.T("Autopilote du mode jeu"), Detail = Langue.T("Premium : les réglages qui marchent vraiment sur ton PC, prouvés partie après partie"), Type = "Action", Faire = () => Autopilote5.Ouvrir(this) });
             l.Add(new EntreeCommande { Titre = Langue.T("Qui ralentit mon PC ?"), Detail = Langue.T("Le programme qui occupe le processeur, la mémoire ou le disque en ce moment"), Type = "Action", Faire = () => Coupable5.Ouvrir(this) });
+            l.Add(new EntreeCommande { Titre = Langue.T("Audio jeu"), Detail = Langue.T("Premium : égaliseur de pas pour Call of Duty / Warzone, sorties audio, Voicemeeter"), Type = "Outil", Faire = () => AudioJeu5.Ouvrir(this) });
             // tu décris ton problème avec tes mots : Velox ouvre le bon outil
             l.Add(new EntreeCommande { Titre = Langue.T("Mon jeu saccade"), Detail = Langue.T("lag, freeze, à-coups, micro-coupures, FPS qui chutent : la Boîte noire cherche la cause"), Type = "Problème", Faire = () => BoiteNoire5.Ouvrir(this) });
+            l.Add(new EntreeCommande { Titre = Langue.T("Je n'entends pas les pas"), Detail = Langue.T("bruits de pas, footsteps, ennemis inaudibles, son du jeu, Warzone : l'égaliseur Audio jeu"), Type = "Problème", Faire = () => AudioJeu5.Ouvrir(this) });
             l.Add(new EntreeCommande { Titre = Langue.T("Mon PC est lent"), Detail = Langue.T("rame, ralentit, se fige, met du temps : Velox cherche le programme responsable"), Type = "Problème", Faire = () => Coupable5.Ouvrir(this) });
             l.Add(new EntreeCommande { Titre = Langue.T("Mon PC met longtemps à démarrer"), Detail = Langue.T("allumage lent, démarrage long : les programmes lancés avec Windows"), Type = "Problème", Faire = () => { SousPage("Accelerer", "Demarrage"); Afficher("Accelerer", true); } });
             l.Add(new EntreeCommande { Titre = Langue.T("Je n'ai plus de place"), Detail = Langue.T("disque plein, stockage saturé, espace insuffisant : le nettoyage et les gros fichiers"), Type = "Problème", Faire = () => Afficher("Nettoyer", true) });
@@ -431,6 +433,7 @@ namespace NettoyagePC.Nouveau
             if (cle == "boitenoire") { BoiteNoire5.Ouvrir(this); return true; }
             if (cle == "autopilote") { Autopilote5.Ouvrir(this); return true; }
             if (cle == "coupable") { Coupable5.Ouvrir(this); return true; }
+            if (cle == "audiojeu") { AudioJeu5.Ouvrir(this); return true; }
             Action ouvrir;
             if (!outils.TryGetValue(cle, out ouvrir))
             {
@@ -490,6 +493,8 @@ namespace NettoyagePC.Nouveau
             Horloge.Fenetre = this;
             // profil Gamer : raccourci Ctrl+Alt+O de l'overlay en jeu, et suivi des sessions de mode jeu
             Opened += (s, e) => { try { Overlay5.Initialiser(this); } catch (Exception ex) { JournalDemarrage.Erreur("overlay en jeu", ex); } };
+            // Audio jeu : veille de l'Auto Warzone et de la sortie par défaut (rien n'est lu tant que l'outil ne sert pas)
+            Opened += (s, e) => { try { AudioJeu5.Demarrer(this); } catch (Exception ex) { JournalDemarrage.Erreur("audio jeu", ex); } };
             Activated += (s, e) => Horloge.Pause(false);
             Deactivated += (s, e) => Horloge.Pause(true);
             PropertyChanged += (s, e) => { if (e.Property == WindowStateProperty) Horloge.Pause(WindowState == WindowState.Minimized); };
@@ -510,6 +515,7 @@ namespace NettoyagePC.Nouveau
             Rubriques.Add(new Rubrique { Cle = "Proteger", Nom = Langue.T("Protéger"), Sous = Langue.T("Antivirus, bouclier anti-arnaque, sauvegarde et confidentialité."), Page = () => PageProteger.Creer(this) });
             Rubriques.Add(new Rubrique { Cle = "Outils", Nom = Langue.T("Outils"), Sous = Langue.T("Matériel, plein potentiel, réseau et aide à distance."), Page = () => PageOutils.Creer(this) });
             Rubriques.Add(new Rubrique { Cle = "Premium", Nom = Langue.T("Premium"), Sous = Langue.T("Les outils des pros, débloqués d'un coup."), Page = () => new PagePremium5(this) });
+            Rubriques.Add(new Rubrique { Cle = "Audio", Nom = Langue.T("Audio"), Sous = Langue.T("Studio son : entends chaque pas dans tes jeux."), Page = () => AudioJeu5.Creer(this) });
             Rubriques.Add(new Rubrique { Cle = "MisesAJour", Nom = Langue.T("Mises à jour"), Sous = Langue.T("Version installée et nouveautés."), EnBas = true, Page = () => RubriqueMisesAJour.Creer(this) });
             Rubriques.Add(new Rubrique { Cle = "Historique", Nom = Langue.T("Historique"), Sous = Langue.T("Tout ce que Velox a fait, et l'annulation."), EnBas = true, Page = () => new PageHistorique5(this) });
             Rubriques.Add(new Rubrique { Cle = "Reglages", Nom = Langue.T("Réglages"), Sous = Langue.T("Apparence, langue, profil et informations."), EnBas = true, Page = () => PageReglages5.Creer(this) });
@@ -572,7 +578,7 @@ namespace NettoyagePC.Nouveau
             foreach (var r in Rubriques)
             {
                 var e = new ElementMenu(r.Cle, r.Nom, r.EnBas ? 0 : ++n, r.EnBas ? 36 : 42) { Margin = new Thickness(5, 0, 0, 0) };
-                if (r.Cle == "Premium") e.Pastille = "PRO";
+                if (r.Cle == "Premium" || r.Cle == "Audio") e.Pastille = "PRO";
                 e.Clic += x => Afficher(x.Cle, true);
                 menu[r.Cle] = e;
                 (r.EnBas ? bas : haut).Children.Add(e);
@@ -837,6 +843,7 @@ namespace NettoyagePC.Nouveau
                 case "Proteger": return "Sécurité";
                 case "Outils": return "Diagnostic";
                 case "Premium": return "Outils pro";
+                case "Audio": return "Studio son";
                 default: return "Système";
             }
         }
