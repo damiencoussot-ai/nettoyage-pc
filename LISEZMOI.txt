@@ -18,7 +18,20 @@ sur « Installer maintenant » dans la rubrique Mises à jour). L'historique, le
 statistiques, l'entretien automatique et Premium sont conservés.
 
 Désinstaller : Paramètres > Applications > Applications installées > Velox > Désinstaller.
-La désinstallation retire aussi l'entretien automatique (tâches planifiées).
+La désinstallation retire aussi l'entretien automatique (tâches planifiées), ainsi que le fichier de
+l'égaliseur « Audio jeu » et sa ligne dans la configuration d'Equalizer APO.
+
+Nouveautés de la prochaine version
+----------------------------------
+- Audio jeu (Accélérer > Jeux, gratuit) : un égaliseur pour mieux entendre les pas et les recharges dans
+  Call of Duty / Warzone. Quatre profils (Compétitif, Équilibré, Pas extrême, Immersion), un curseur
+  « Force de l'effet » et un interrupteur. Il fonctionne avec Equalizer APO (logiciel libre, à installer
+  à part) : Velox écrit un petit fichier de réglages dans son dossier, le jeu n'est jamais touché.
+- « Plus d'options » : gain de chaque bande, sortie visée (Auto suit la sortie par défaut de Windows),
+  niveau, balance, largeur stéréo, coupe-explosions, inversion gauche / droite, et « Auto Warzone »
+  (l'égaliseur s'active quand le jeu tourne et se coupe quand tu le fermes, tant que Velox est ouvert).
+- Comme le reste de Velox : rien n'est écrit en mode simulation, chaque changement est noté dans
+  l'Historique et s'annule de là, et l'outil se trouve aussi par Ctrl+K et dans les favoris.
 
 Nouveautés de la version 5.7
 ----------------------------

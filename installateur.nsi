@@ -287,6 +287,13 @@ Section "Uninstall"
     nsExec::ExecToLog '"$SYSDIR\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -ExecutionPolicy Bypass -Command "Get-ScheduledTask -TaskName ''Nettoyage PC*'',''Velox - *'' -ErrorAction SilentlyContinue | Unregister-ScheduledTask -Confirm:$$false"'
     Pop $0
 
+    ; Audio jeu : retire le fichier de l'égaliseur (MW_optimizer.txt) et sa ligne Include du dossier d'Equalizer APO
+    ; (le reste de config.txt n'est pas touché ; sans Equalizer APO, rien n'est fait)
+    ${If} ${FileExists} "$INSTDIR\NettoyagePC.exe"
+        nsExec::ExecToLog '"$INSTDIR\NettoyagePC.exe" --retirer-audio-jeu'
+        Pop $0
+    ${EndIf}
+
     ; Arrête le gardien Premium et retire son lancement automatique
     System::Call 'kernel32::OpenEventW(i 0x0002, i 0, w "Local\NettoyagePC-Gardien-Arret") p .r2'
     ${If} $2 P<> 0

@@ -1,6 +1,6 @@
 // Velox - commandes reçues de l'extérieur : raccourcis, gardien, assistant vocal (ORION...).
 //   NettoyagePC.exe --page Nettoyage           ouvre une page
-//   NettoyagePC.exe --ouvrir bouclier          ouvre un outil (gardien, bouclier, assistant, enqueteur, sante, energie, fps)
+//   NettoyagePC.exe --ouvrir bouclier          ouvre un outil (gardien, bouclier, assistant, enqueteur, sante, energie, fps, audiojeu)
 //   NettoyagePC.exe --action nettoyage         prépare une action : elle est TOUJOURS confirmée par la personne devant le PC
 //   NettoyagePC.exe --assistant "question"     pose une question à l'assistant local
 // Si l'application est déjà ouverte, la commande lui est transmise (fichier + signal), sans deuxième fenêtre.
@@ -18,7 +18,7 @@ namespace NettoyagePC
         public string Page, Ouvrir, Action, Question;
         public bool Vide { get { return Page == null && Ouvrir == null && Action == null && Question == null; } }
 
-        public static readonly string[] Outils = { "gardien", "bouclier", "assistant", "enqueteur", "sante", "energie", "fps", "modejeu", "majapps", "photos", "bulletin", "reseau" };
+        public static readonly string[] Outils = { "gardien", "bouclier", "assistant", "enqueteur", "sante", "energie", "fps", "modejeu", "majapps", "photos", "bulletin", "reseau", "audiojeu" };
         private const string NomSignal = @"Local\NettoyagePC-Commande";
         private static string Fichier { get { return Path.Combine(Chemins.Local, "commande.json"); } }
 

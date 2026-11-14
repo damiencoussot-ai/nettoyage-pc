@@ -63,6 +63,7 @@ namespace NettoyagePC.Nouveau
             O("reglagesjeux", "Accelerer", "Réglages des jeux", "Mode jeu de Windows, GPU, jeux en fenêtré.", f => ReglagesWindows5.Jeux(f)),
             O("pingjeu", "Accelerer", "Ping des serveurs de jeu", "Latence vers les régions de serveurs.", f => PingJeu5.Ouvrir(f)),
             O("mesjeux", "Accelerer", "Mes jeux", "Tes jeux installés et la place qu'ils prennent.", f => MesJeux5.Ouvrir(f)),
+            O("audiojeu", "Accelerer", "Audio jeu", "Entendre les pas dans Call of Duty / Warzone.", f => AudioJeu5.Ouvrir(f)),
             O("tempsdemarrage", "Accelerer", "Temps de démarrage", "Du bouton marche au bureau, sur 30 jours.", f => TempsDemarrage5.Ouvrir(f)),
 
             O("secu", "Proteger", "Bilan de sécurité", "Antivirus, pare-feu, Secure Boot, mises à jour.", Act("secu")),
@@ -139,6 +140,12 @@ namespace NettoyagePC.Nouveau
                 {
                     if (PageAccelerer.ModeAlimentation() != "Performances élevées") return 0;
                     detail = Langue.T("Performances élevées activées.");
+                    return 1;
+                }
+                if (o.Id == "audiojeu")
+                {
+                    if (!AudioJeu5.Actif) return 0;
+                    detail = Langue.T("L'égaliseur est actif.");
                     return 1;
                 }
                 string cle;

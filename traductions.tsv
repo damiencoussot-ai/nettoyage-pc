@@ -3307,3 +3307,125 @@ Les réglages prouvés sur ton PC.	Settings proven on your PC.	Ajustes demostrad
 Les optimiseurs promettent des FPS sans le vérifier. L'Autopilote (Premium) essaie chaque réglage sur tes vraies parties, avec et sans, et garde seulement ce qui marche sur ton PC, preuve à l'appui. Rien n'est jamais fermé.	Optimizers promise FPS without checking. The autopilot (Premium) tries each setting on your real games, with and without, and keeps only what works on your PC, with proof. Nothing is ever closed.	Los optimizadores prometen FPS sin comprobarlo. El piloto automático (Premium) prueba cada ajuste en tus partidas reales, con y sin él, y solo conserva lo que funciona en tu PC, con pruebas. Nunca se cierra nada.
 Nouveau : Autopilote du mode jeu (Premium). Velox essaie chaque réglage sur tes vraies parties, avec et sans, et garde seulement ce qui marche sur ton PC, preuve à l'appui.	New: Game mode autopilot (Premium). Velox tries each setting on your real games, with and without, and keeps only what works on your PC, with proof.	Nuevo: Piloto automático del modo juego (Premium). Velox prueba cada ajuste en tus partidas reales, con y sin él, y solo conserva lo que funciona en tu PC, con pruebas.
 Réglages essayés : mise en retrait du programme qui fait saccader le jeu, priorité haute, mode « Performances élevées ». Rien n'est fermé, tout est rétabli à la fin de la partie.	Settings tried: pushing back the program that makes the game stutter, high priority, “High performance” mode. Nothing is closed, everything is restored at the end of the game.	Ajustes probados: relegar el programa que provoca tirones, prioridad alta, modo «Alto rendimiento». No se cierra nada, todo se restablece al final de la partida.
+Audio jeu	Game audio	Audio de juego
+Equalizer APO n'est pas installé sur ce PC : rien n'a été modifié.	Equalizer APO is not installed on this PC: nothing was changed.	Equalizer APO no está instalado en este PC: no se ha modificado nada.
+Windows refuse l'écriture dans le dossier d'Equalizer APO : rien n'a été modifié.	Windows refuses to write to the Equalizer APO folder: nothing was changed.	Windows deniega la escritura en la carpeta de Equalizer APO: no se ha modificado nada.
+Le fichier d'Equalizer APO est occupé ou illisible : rien n'a été modifié.	The Equalizer APO file is busy or unreadable: nothing was changed.	El archivo de Equalizer APO está ocupado o es ilegible: no se ha modificado nada.
+Le fichier config.txt d'Equalizer APO a un format inattendu : Velox n'y touche pas.	Equalizer APO's config.txt file has an unexpected format: Velox leaves it alone.	El archivo config.txt de Equalizer APO tiene un formato inesperado: Velox no lo toca.
+Equalizer APO est introuvable sur ce PC	Equalizer APO cannot be found on this PC	No se encuentra Equalizer APO en este PC
+Vérifie les droits du dossier (clic droit > Propriétés > Sécurité), ou réinstalle Equalizer APO.	Check the folder's permissions (right-click > Properties > Security), or reinstall Equalizer APO.	Comprueba los permisos de la carpeta (clic derecho > Propiedades > Seguridad) o reinstala Equalizer APO.
+Graves	Bass	Graves
+Bas-médium	Low mids	Medios graves
+Pas	Footsteps	Pasos
+Recharge	Reload	Recarga
+Aigus	Treble	Agudos
+Pas / compétitif	Footsteps / competitive	Pasos / competitivo
+Pas extrême	Extreme footsteps	Pasos extremos
+Immersion	Immersion	Inmersión
+Voix / chat	Voice / chat	Voz / chat
+Neutre	Neutral	Neutro
+Personnalisé	Custom	Personalizado
+Compétitif	Competitive	Competitivo
+Pas et recharges en avant	Footsteps and reloads up front	Pasos y recargas en primer plano
+Plus de détail, sans excès	More detail, without overdoing it	Más detalle, sin excesos
+Maximum sur les pas, moins de graves	Maximum on footsteps, less bass	Máximo en los pasos, menos graves
+Graves et ambiance	Bass and atmosphere	Graves y ambiente
+Les voix en avant	Voices up front	Las voces en primer plano
+Aucune correction	No correction	Sin corrección
+Audio jeu : égaliseur coupé	Game audio: equalizer off	Audio de juego: ecualizador desactivado
+Entends mieux les pas et les recharges dans Call of Duty / Warzone : quatre profils d'égaliseur, appliqués par Equalizer APO (logiciel libre). Le jeu n'est jamais touché, et tout s'annule dans l'Historique.	Hear footsteps and reloads better in Call of Duty / Warzone: four equalizer profiles, applied by Equalizer APO (free software). The game is never touched, and everything can be undone in History.	Oye mejor los pasos y las recargas en Call of Duty / Warzone: cuatro perfiles de ecualizador, aplicados por Equalizer APO (software libre). El juego nunca se toca y todo se deshace en el Historial.
+Régler le son	Tune the sound	Ajustar el sonido
+Égaliseur de pas pour Call of Duty / Warzone, avec Equalizer APO	Footstep equalizer for Call of Duty / Warzone, with Equalizer APO	Ecualizador de pasos para Call of Duty / Warzone, con Equalizer APO
+Je n'entends pas les pas	I can't hear footsteps	No oigo los pasos
+bruits de pas, footsteps, ennemis inaudibles, son du jeu, Warzone : l'égaliseur Audio jeu	footstep sounds, footsteps, enemies you can't hear, game sound, Warzone: the Game audio equalizer	ruido de pasos, footsteps, enemigos inaudibles, sonido del juego, Warzone: el ecualizador Audio de juego
+Entendre les pas dans Call of Duty / Warzone.	Hear footsteps in Call of Duty / Warzone.	Oír los pasos en Call of Duty / Warzone.
+L'égaliseur est actif.	The equalizer is on.	El ecualizador está activo.
+Lecture d'Equalizer APO…	Reading Equalizer APO…	Leyendo Equalizer APO…
+Fais ressortir les pas et les recharges dans Call of Duty / Warzone. Velox écrit un petit fichier de réglages pour Equalizer APO (logiciel libre) : le jeu n'est jamais touché, et chaque changement s'annule dans l'Historique.	Bring out footsteps and reloads in Call of Duty / Warzone. Velox writes a small settings file for Equalizer APO (free software): the game is never touched, and every change can be undone in History.	Resalta los pasos y las recargas en Call of Duty / Warzone. Velox escribe un pequeño archivo de ajustes para Equalizer APO (software libre): el juego nunca se toca y cada cambio se deshace en el Historial.
+Activer ou couper l'égaliseur	Turn the equalizer on or off	Activar o desactivar el ecualizador
+Force de l'effet	Effect strength	Fuerza del efecto
+Equalizer APO n'est pas installé sur ce PC	Equalizer APO is not installed on this PC	Equalizer APO no está instalado en este PC
+Audio jeu a besoin d'Equalizer APO, un égaliseur libre et gratuit qui s'installe sur ta carte son. Installe-le, coche ta sortie (casque ou haut-parleurs) dans la fenêtre qu'il ouvre, redémarre le PC, puis reviens ici. Tant qu'il n'est pas là, Velox ne modifie rien.	Game audio needs Equalizer APO, a free and open equalizer that installs on your sound card. Install it, tick your output (headset or speakers) in the window it opens, restart the PC, then come back here. Until it is there, Velox changes nothing.	Audio de juego necesita Equalizer APO, un ecualizador libre y gratuito que se instala en tu tarjeta de sonido. Instálalo, marca tu salida (auriculares o altavoces) en la ventana que abre, reinicia el PC y vuelve aquí. Mientras no esté, Velox no modifica nada.
+Ouvrir la page d'Equalizer APO	Open the Equalizer APO page	Abrir la página de Equalizer APO
+Vérifier à nouveau	Check again	Comprobar de nuevo
+Recherche d'Equalizer APO…	Looking for Equalizer APO…	Buscando Equalizer APO…
+Gain de chaque bande	Gain of each band	Ganancia de cada banda
+Profil « {0} »	“{0}” profile	Perfil «{0}»
+Sortie visée	Target output	Salida de destino
+Sortie visée changée.	Target output changed.	Salida de destino cambiada.
+« Auto » suit la sortie par défaut de Windows. Pour ajouter une sortie à la liste, coche-la dans le Configurator d'Equalizer APO, puis redémarre le PC. Laisse les « Améliorations audio » de Windows activées sur ta sortie : Equalizer APO en a besoin.	“Auto” follows the Windows default output. To add an output to the list, tick it in the Equalizer APO Configurator, then restart the PC. Leave Windows “Audio enhancements” turned on for your output: Equalizer APO needs them.	«Auto» sigue la salida predeterminada de Windows. Para añadir una salida a la lista, márcala en el Configurator de Equalizer APO y reinicia el PC. Deja activadas las «Mejoras de audio» de Windows en tu salida: Equalizer APO las necesita.
+Ouvrir le Configurator	Open the Configurator	Abrir el Configurator
+Son	Sound	Sonido
+Niveau de sortie	Output level	Nivel de salida
+Balance	Balance	Balance
+Largeur stéréo	Stereo width	Anchura estéreo
+Coupe-explosions	Explosion cut	Corte de explosiones
+Le coupe-explosions retire les sons très graves (explosions, grondements) sous la fréquence choisie, pour qu'ils ne couvrent pas les pas.	The explosion cut removes very low sounds (explosions, rumble) below the chosen frequency, so they don't drown out footsteps.	El corte de explosiones quita los sonidos muy graves (explosiones, retumbos) por debajo de la frecuencia elegida, para que no tapen los pasos.
+Inversion gauche / droite	Swap left / right	Invertir izquierda / derecha
+Échange les deux canaux : utile si ton casque est branché ou porté à l'envers.	Swaps the two channels: useful if your headset is plugged in or worn the wrong way round.	Intercambia los dos canales: útil si tus auriculares están conectados o puestos al revés.
+Auto Warzone	Auto Warzone	Auto Warzone
+L'égaliseur s'active quand Call of Duty / Warzone tourne et se coupe quand tu le fermes. Fonctionne tant que Velox est ouvert (même réduit) ; quand tu fermes Velox, l'égaliseur est coupé.	The equalizer turns on when Call of Duty / Warzone is running and off when you close it. Works as long as Velox is open (even minimized); when you close Velox, the equalizer is turned off.	El ecualizador se activa cuando Call of Duty / Warzone está en marcha y se desactiva cuando lo cierras. Funciona mientras Velox esté abierto (incluso minimizado); al cerrar Velox, el ecualizador se desactiva.
+Réglage automatique	Automatic setup	Ajuste automático
+Profil compétitif, force 100 %, sortie Auto, tout le reste remis à zéro.	Competitive profile, 100% strength, Auto output, everything else reset to zero.	Perfil competitivo, fuerza al 100 %, salida Auto, todo lo demás a cero.
+Fichier écrit pour Equalizer APO	File written for Equalizer APO	Archivo escrito para Equalizer APO
+Égaliseur actif	Equalizer on	Ecualizador activo
+Égaliseur coupé	Equalizer off	Ecualizador desactivado
+Jeu : {0} détecté.	Game: {0} detected.	Juego: {0} detectado.
+Jeu : Call of Duty / Warzone n'est pas lancé.	Game: Call of Duty / Warzone is not running.	Juego: Call of Duty / Warzone no está en marcha.
+inconnue	unknown	desconocida
+Equalizer APO n'est installé sur aucune sortie : ouvre le Configurator, coche ta sortie, puis redémarre le PC.	Equalizer APO is not installed on any output: open the Configurator, tick your output, then restart the PC.	Equalizer APO no está instalado en ninguna salida: abre el Configurator, marca tu salida y reinicia el PC.
+La sortie choisie n'a plus Equalizer APO : choisis-en une autre, ou coche-la de nouveau dans le Configurator.	The chosen output no longer has Equalizer APO: pick another one, or tick it again in the Configurator.	La salida elegida ya no tiene Equalizer APO: elige otra o vuelve a marcarla en el Configurator.
+Ta sortie par défaut ({0}) n'a pas Equalizer APO : l'égaliseur vise toutes les sorties où il est installé. Si tu n'entends aucune différence, ouvre le Configurator, coche ta sortie, puis redémarre le PC.	Your default output ({0}) does not have Equalizer APO: the equalizer targets every output where it is installed. If you hear no difference, open the Configurator, tick your output, then restart the PC.	Tu salida predeterminada ({0}) no tiene Equalizer APO: el ecualizador se aplica a todas las salidas donde está instalado. Si no notas diferencia, abre el Configurator, marca tu salida y reinicia el PC.
+Equalizer APO : toutes les sorties où il est installé ({0}).	Equalizer APO: every output where it is installed ({0}).	Equalizer APO: todas las salidas donde está instalado ({0}).
+Equalizer APO : installé sur ta sortie par défaut ({0}).	Equalizer APO: installed on your default output ({0}).	Equalizer APO: instalado en tu salida predeterminada ({0}).
+Equalizer APO : installé sur la sortie choisie ({0}).	Equalizer APO: installed on the chosen output ({0}).	Equalizer APO: instalado en la salida elegida ({0}).
+Profil en cours : {0} · force {1} %	Current profile: {0} · strength {1}%	Perfil actual: {0} · fuerza {1} %
+Mode simulation : tes essais ici ne sont pas écrits, le fichier d'Equalizer APO ne change pas.	Simulation mode: what you try here is not written, the Equalizer APO file does not change.	Modo simulación: tus pruebas aquí no se escriben, el archivo de Equalizer APO no cambia.
+D'autres traitements sont actifs dans Equalizer APO ({0}) : leurs effets s'ajoutent à cet égaliseur.	Other processing is active in Equalizer APO ({0}): its effects add to this equalizer.	Hay otros procesamientos activos en Equalizer APO ({0}): sus efectos se suman a este ecualizador.
+Le fichier config.txt d'Equalizer APO n'inclut pas cet égaliseur : il n'a aucun effet. Coupe puis réactive l'interrupteur pour remettre la ligne.	Equalizer APO's config.txt file does not include this equalizer: it has no effect. Turn the switch off then on again to put the line back.	El archivo config.txt de Equalizer APO no incluye este ecualizador: no tiene ningún efecto. Desactiva y vuelve a activar el interruptor para restaurar la línea.
+Le fichier en place ne vient pas de ces réglages (autre outil, ou modifié à la main) : ton prochain réglage ici le remplacera.	The file in place does not come from these settings (another tool, or edited by hand): your next change here will replace it.	El archivo actual no procede de estos ajustes (otra herramienta o editado a mano): tu próximo ajuste aquí lo sustituirá.
+Niveau au-dessus de 0 dB : le son peut saturer (grésillements). Baisse-le si tu en entends.	Level above 0 dB: the sound may clip (crackling). Lower it if you hear any.	Nivel por encima de 0 dB: el sonido puede saturar (chasquidos). Bájalo si los oyes.
+Chaque gain va de −12 à +12 dB. La force de l'effet les multiplie tous.	Each gain goes from −12 to +12 dB. The effect strength multiplies them all.	Cada ganancia va de −12 a +12 dB. La fuerza del efecto las multiplica todas.
+Avec la force à {0} %, les gains réellement appliqués sont : {1}.	With strength at {0}%, the gains actually applied are: {1}.	Con la fuerza al {0} %, las ganancias realmente aplicadas son: {1}.
+centre	center	centro
+droite {0}	right {0}	derecha {0}
+gauche {0}	left {0}	izquierda {0}
+normale	normal	normal
+Auto (la sortie par défaut de Windows)	Auto (the Windows default output)	Auto (la salida predeterminada de Windows)
+Toutes les sorties où Equalizer APO est installé	Every output where Equalizer APO is installed	Todas las salidas donde está instalado Equalizer APO
+par défaut	default	predeterminada
+Sortie choisie (sans Equalizer APO)	Chosen output (without Equalizer APO)	Salida elegida (sin Equalizer APO)
+Simulation : le fichier d'Equalizer APO serait réécrit, rien n'est modifié.	Simulation: the Equalizer APO file would be rewritten, nothing is changed.	Simulación: el archivo de Equalizer APO se reescribiría, no se modifica nada.
+Réglage appliqué.	Setting applied.	Ajuste aplicado.
+Réglage gardé : il s'entendra dès que l'égaliseur sera actif.	Setting saved: you will hear it as soon as the equalizer is on.	Ajuste guardado: se oirá en cuanto el ecualizador esté activo.
+Activer l'égaliseur avec Equalizer APO ?	Turn on the equalizer with Equalizer APO?	¿Activar el ecualizador con Equalizer APO?
+Velox va écrire le fichier {0} dans le dossier d'Equalizer APO et ajouter la ligne « {1} » à la fin de son config.txt. Rien d'autre n'y est modifié, le jeu n'est pas touché, et tout s'annule dans l'Historique.	Velox will write the file {0} in the Equalizer APO folder and add the line “{1}” at the end of its config.txt. Nothing else in it is changed, the game is not touched, and everything can be undone in History.	Velox escribirá el archivo {0} en la carpeta de Equalizer APO y añadirá la línea «{1}» al final de su config.txt. No se modifica nada más, el juego no se toca y todo se deshace en el Historial.
+Égaliseur actif.	Equalizer on.	Ecualizador activo.
+Égaliseur coupé.	Equalizer off.	Ecualizador desactivado.
+Auto Warzone est désactivé : c'est toi qui pilotes l'interrupteur.	Auto Warzone is off: you control the switch yourself.	Auto Warzone está desactivado: tú controlas el interruptor.
+Auto Warzone désactivé : l'égaliseur reste comme il est.	Auto Warzone off: the equalizer stays as it is.	Auto Warzone desactivado: el ecualizador se queda como está.
+Auto Warzone activé : le jeu tourne, l'égaliseur est actif.	Auto Warzone on: the game is running, the equalizer is on.	Auto Warzone activado: el juego está en marcha, el ecualizador está activo.
+Auto Warzone activé : l'égaliseur se mettra en marche au lancement du jeu.	Auto Warzone on: the equalizer will turn on when the game starts.	Auto Warzone activado: el ecualizador se activará al iniciar el juego.
+Profil « {0} » appliqué.	“{0}” profile applied.	Perfil «{0}» aplicado.
+Profil « {0} » choisi : il s'appliquera au lancement du jeu.	“{0}” profile chosen: it will apply when the game starts.	Perfil «{0}» elegido: se aplicará al iniciar el juego.
+Profil « {0} » choisi. L'égaliseur est coupé : active-le pour l'entendre.	“{0}” profile chosen. The equalizer is off: turn it on to hear it.	Perfil «{0}» elegido. El ecualizador está desactivado: actívalo para oírlo.
+Réglage automatique : profil compétitif, force 100 %, sortie Auto, le reste remis à zéro.	Automatic setup: competitive profile, 100% strength, Auto output, the rest reset to zero.	Ajuste automático: perfil competitivo, fuerza al 100 %, salida Auto, el resto a cero.
+L'égaliseur est coupé : active-le pour l'entendre.	The equalizer is off: turn it on to hear it.	El ecualizador está desactivado: actívalo para oírlo.
+Le Configurator d'Equalizer APO est introuvable sur ce PC.	The Equalizer APO Configurator cannot be found on this PC.	No se encuentra el Configurator de Equalizer APO en este PC.
+Configurator ouvert : coche ta sortie, valide, puis redémarre le PC.	Configurator opened: tick your output, confirm, then restart the PC.	Configurator abierto: marca tu salida, confirma y reinicia el PC.
+Auto Warzone : {0} détecté, égaliseur actif.	Auto Warzone: {0} detected, equalizer on.	Auto Warzone: {0} detectado, ecualizador activo.
+Auto Warzone : jeu fermé, égaliseur coupé.	Auto Warzone: game closed, equalizer off.	Auto Warzone: juego cerrado, ecualizador desactivado.
+Audio jeu : égaliseur actif (Pas / compétitif)	Game audio: equalizer on (Footsteps / competitive)	Audio de juego: ecualizador activo (Pasos / competitivo)
+Audio jeu : Auto Warzone (Pas / compétitif)	Game audio: Auto Warzone (Footsteps / competitive)	Audio de juego: Auto Warzone (Pasos / competitivo)
+Audio jeu : égaliseur actif (Équilibré)	Game audio: equalizer on (Balanced)	Audio de juego: ecualizador activo (Equilibrado)
+Audio jeu : Auto Warzone (Équilibré)	Game audio: Auto Warzone (Balanced)	Audio de juego: Auto Warzone (Equilibrado)
+Audio jeu : égaliseur actif (Pas extrême)	Game audio: equalizer on (Extreme footsteps)	Audio de juego: ecualizador activo (Pasos extremos)
+Audio jeu : Auto Warzone (Pas extrême)	Game audio: Auto Warzone (Extreme footsteps)	Audio de juego: Auto Warzone (Pasos extremos)
+Audio jeu : égaliseur actif (Immersion)	Game audio: equalizer on (Immersion)	Audio de juego: ecualizador activo (Inmersión)
+Audio jeu : Auto Warzone (Immersion)	Game audio: Auto Warzone (Immersion)	Audio de juego: Auto Warzone (Inmersión)
+Audio jeu : égaliseur actif (Voix / chat)	Game audio: equalizer on (Voice / chat)	Audio de juego: ecualizador activo (Voz / chat)
+Audio jeu : Auto Warzone (Voix / chat)	Game audio: Auto Warzone (Voice / chat)	Audio de juego: Auto Warzone (Voz / chat)
+Audio jeu : égaliseur actif (Neutre)	Game audio: equalizer on (Neutral)	Audio de juego: ecualizador activo (Neutro)
+Audio jeu : Auto Warzone (Neutre)	Game audio: Auto Warzone (Neutral)	Audio de juego: Auto Warzone (Neutro)
+Audio jeu : égaliseur actif (Personnalisé)	Game audio: equalizer on (Custom)	Audio de juego: ecualizador activo (Personalizado)
+Audio jeu : Auto Warzone (Personnalisé)	Game audio: Auto Warzone (Custom)	Audio de juego: Auto Warzone (Personalizado)

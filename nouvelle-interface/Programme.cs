@@ -208,7 +208,248 @@ namespace NettoyagePC.Nouveau
             catch (Exception ex) { JournalDemarrage.Erreur("auto-contrôle (version 5)", ex); return 1; }
         }
 
+        /// <summary>(captures) relevé et réglages d'exemple de l'outil « Audio jeu » : Equalizer APO présent ou absent.</summary>
+        private static ReglagesAudioJeu ExempleAudioJeu(out ReleveAudioJeu releve, bool present)
+        {
+            string casque = "11111111-2222-3333-4444-555555555555";
+            var r = new ReglagesAudioJeu { Actif = true, Intensite = 110, CibleEcrite = casque };
+            releve = new ReleveAudioJeu { Dossier = @"C:\Program Files\EqualizerAPO\config" };
+            if (!present) return r;
+            releve.Etat = new EtatAudioJeu { Present = true, Fichier = true, Actif = true, Include = true, Contenu = AudioJeu.Generer(r, casque), Autres = { "YouSound", "HeSuVi" } };
+            releve.Sorties.Add(new SortieAudio { Guid = casque, Nom = "Casque", Carte = "Arctis Nova Pro" });
+            releve.Sorties.Add(new SortieAudio { Guid = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee", Nom = "Haut-parleurs", Carte = "Realtek(R) Audio" });
+            releve.Defaut = casque; releve.NomDefaut = "Casque (Arctis Nova Pro)"; releve.Jeu = "cod.exe"; releve.Configurator = true;
+            return r;
+        }
+
         private static void Pomper() { for (int k = 0; k < 3; k++) { Dispatcher.UIThread.RunJobs(); AvaloniaHeadlessPlatform.ForceRenderTimerTick(); } }
+
+        /// <summary>
+        /// Essais de l'outil « Audio jeu » : le fichier écrit pour Equalizer APO (dont les deux valeurs de contrôle du
+        /// cahier des charges), la détection du jeu, le choix de la sortie, et les écritures (config.txt jamais modifié
+        /// en dehors de la ligne Include, Historique, annulation, désinstallation) dans un dossier d'essai.
+        /// </summary>
+        private static void EssaisAudioJeu(System.Text.StringBuilder rapport, ref int erreurs)
+        {
+            int avant = erreurs;
+            var echecs = new System.Collections.Generic.List<string>();
+            Action<bool, string> verifier = (ok, quoi) => { if (!ok) echecs.Add(quoi); };
+            Func<string, string[]> lignes = t => t.Split(new[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
+            var competitif = AudioJeu.Profil("competitif").Gains;
+
+            // ---- valeur de contrôle 1 : « Pas / competitif », force 100 %, niveau 0, rien d'autre
+            var r1 = new ReglagesAudioJeu { Actif = true, Gains = (double[])competitif.Clone() };
+            string f1 = AudioJeu.Generer(r1, "");
+            string attendu1 = string.Join("\r\n", new[]
+            {
+                "# MW Sound Optimizer 3.0 - fichier genere automatiquement",
+                "If: (sizeof(regexSearch(\"capture\", stage)) == 0)",
+                "Preamp: -5.2 dB",
+                "Filter 1: ON LSC Fc 100 Hz Gain -5.0 dB Q 0.70",
+                "Filter 2: ON PK Fc 250 Hz Gain -3.0 dB Q 1.00",
+                "Filter 3: ON PK Fc 1200 Hz Gain 2.0 dB Q 1.20",
+                "Filter 4: ON PK Fc 2500 Hz Gain 4.0 dB Q 1.40",
+                "Filter 5: ON PK Fc 4000 Hz Gain 3.0 dB Q 1.50",
+                "Filter 6: ON PK Fc 7500 Hz Gain -3.0 dB Q 2.00",
+                "EndIf:",
+            }) + "\r\n";
+            verifier(f1 == attendu1, "contrôle 1 : fichier inattendu :\n" + f1);
+            verifier(lignes(f1).Count(x => x.StartsWith("Filter ")) == 6 && lignes(f1).Contains("Preamp: -5.2 dB"), "contrôle 1 : 6 filtres et Preamp -5.2 dB");
+
+            // ---- valeur de contrôle 2 : même profil + passe-haut 90 Hz + largeur 50 % + inversion + balance +2, sur une sortie précise
+            var r2 = new ReglagesAudioJeu { Actif = true, Gains = (double[])competitif.Clone(), CoupeBas = 90, Largeur = 50, Inversion = true, Balance = 2 };
+            string f2 = AudioJeu.Generer(r2, "{0A1B2C3D-4E5F-6789-ABCD-EF0123456789}");
+            string attendu2 = string.Join("\r\n", new[]
+            {
+                "# MW Sound Optimizer 3.0 - fichier genere automatiquement",
+                "If: (sizeof(regexSearch(\"0a1b2c3d-4e5f-6789-abcd-ef0123456789\", tolower(deviceGuid))) > 0) and (sizeof(regexSearch(\"capture\", stage)) == 0)",
+                "Preamp: -7.2 dB",
+                "Filter 1: ON HP Fc 90 Hz",
+                "Filter 2: ON LSC Fc 100 Hz Gain -5.0 dB Q 0.70",
+                "Filter 3: ON PK Fc 250 Hz Gain -3.0 dB Q 1.00",
+                "Filter 4: ON PK Fc 1200 Hz Gain 2.0 dB Q 1.20",
+                "Filter 5: ON PK Fc 2500 Hz Gain 4.0 dB Q 1.40",
+                "Filter 6: ON PK Fc 4000 Hz Gain 3.0 dB Q 1.50",
+                "Filter 7: ON PK Fc 7500 Hz Gain -3.0 dB Q 2.00",
+                "Copy: L=1.250*R+-0.250*L R=1.250*L+-0.250*R",
+                "Channel: L",
+                "Preamp: -2.0 dB",
+                "Channel: all",
+                "EndIf:",
+            }) + "\r\n";
+            verifier(f2 == attendu2, "contrôle 2 : fichier inattendu :\n" + f2);
+
+            // ---- autres règles du format
+            verifier(AudioJeu.Generer(new ReglagesAudioJeu(), "") == "# MW Sound Optimizer : desactive\r\n", "égaliseur coupé : une seule ligne de commentaire");
+            var r3 = new ReglagesAudioJeu { Actif = true, Gains = (double[])AudioJeu.Profil("immersion").Gains.Clone() };
+            var l3 = lignes(AudioJeu.Generer(r3, "")).Where(x => x.StartsWith("Filter ")).ToArray();
+            verifier(l3.Length == 5 && l3[3] == "Filter 4: ON PK Fc 2500 Hz Gain -1.0 dB Q 1.40" && l3[4] == "Filter 5: ON PK Fc 7500 Hz Gain 1.0 dB Q 2.00" && !l3.Any(x => x.Contains("4000")), "bande à gain nul omise, filtres numérotés à la suite");
+            r3.Intensite = 0;
+            verifier(!AudioJeu.Generer(r3, "").Contains("Filter ") && AudioJeu.Generer(r3, "").Contains("Preamp: 0.0 dB"), "force 0 % : aucun filtre, Preamp 0.0 dB");
+            var r4 = new ReglagesAudioJeu { Actif = true, Gains = new double[] { -8, 12, 0, 6, 2.5, 0 }, Intensite = 150 };
+            string f4 = AudioJeu.Generer(r4, "");
+            verifier(f4.Contains("Fc 100 Hz Gain -12.0 dB") && f4.Contains("Fc 250 Hz Gain 12.0 dB") && f4.Contains("Fc 2500 Hz Gain 9.0 dB"), "gain effectif = gain × force, borné à ±12 dB :\n" + f4);
+            r4.Intensite = 50;
+            verifier(AudioJeu.Generer(r4, "").Contains("Fc 4000 Hz Gain 1.2 dB"), "arrondi au plus proche, pair si égalité (2,5 dB × 50 % = 1,25 → 1.2) :\n" + AudioJeu.Generer(r4, ""));
+            var r5 = new ReglagesAudioJeu { Actif = true, Gains = new double[6], Inversion = true, Balance = -1.5, Niveau = 3 };
+            string f5 = AudioJeu.Generer(r5, "");
+            verifier(f5.Contains("Copy: L=R R=L\r\nChannel: R\r\nPreamp: -1.5 dB\r\nChannel: all\r\nEndIf:") && f5.Contains("Preamp: 3.0 dB"), "inversion seule et balance à gauche :\n" + f5);
+            r5.Inversion = false; r5.Balance = 0; r5.Largeur = 100;
+            verifier(AudioJeu.Generer(r5, "").Contains("Copy: L=1.500*L+-0.500*R R=1.500*R+-0.500*L") && AudioJeu.Generer(r5, "").Contains("Preamp: -0.5 dB"), "largeur 100 % : w = 0,5 et préampli compensé :\n" + AudioJeu.Generer(r5, ""));
+            verifier(Math.Abs(AudioJeu.Reponse("PK", 2500, 4, 1.4, 2500) - 4) < 0.001 && Math.Abs(AudioJeu.Reponse("HP", 90, 0, 0.7071, 90) + 3.01) < 0.02 && Math.Abs(AudioJeu.Reponse("LSC", 100, -5, 0.7, 20) + 5) < 0.2, "réponse des filtres (cloche au centre, passe-haut à −3 dB, plateau des graves)");
+
+            // ---- réglages : bornes, et relecture quelle que soit la langue de Windows (virgule décimale)
+            var cultureAvant = System.Globalization.CultureInfo.CurrentCulture;
+            try
+            {
+                System.Globalization.CultureInfo.CurrentCulture = System.Globalization.CultureInfo.GetCultureInfo("fr-FR");
+                var r6 = new ReglagesAudioJeu { Actif = true, Gains = new double[] { 2.5, -0.5, 0, 11.5, -12, 4 }, Intensite = 135, Niveau = -2.5, Balance = 1.5, Largeur = 35, CoupeBas = 120, Inversion = true, AutoJeu = true, Cible = "0a1b2c3d-4e5f-6789-abcd-ef0123456789" };
+                var relu = ReglagesAudioJeu.DepuisJson(Json.Lire(Json.Ecrire(r6.VersJson())) as System.Collections.Generic.Dictionary<string, object>);
+                verifier(relu.Gains.SequenceEqual(r6.Gains) && relu.Intensite == 135 && relu.Niveau == -2.5 && relu.Balance == 1.5 && relu.Largeur == 35 && relu.CoupeBas == 120 && relu.Inversion && relu.AutoJeu && relu.Actif && relu.Cible == r6.Cible, "réglages relus à l'identique (langue française)");
+            }
+            finally { System.Globalization.CultureInfo.CurrentCulture = cultureAvant; }
+            var r7 = new ReglagesAudioJeu { Gains = new double[] { 99, -99, 0.26, double.NaN, 1, 1 }, Intensite = 900, Niveau = 40, Balance = -40, Largeur = -5, CoupeBas = 75, Cible = "n'importe quoi" }.Borner();
+            verifier(r7.Gains.SequenceEqual(new double[] { 12, -12, 0.5, 0, 1, 1 }) && r7.Intensite == 150 && r7.Niveau == 6 && r7.Balance == -6 && r7.Largeur == 0 && r7.CoupeBas == 0 && r7.Cible == "auto", "réglages ramenés dans leurs bornes");
+            verifier(AudioJeu.NomProfil(r1) == "Pas / compétitif" && AudioJeu.NomProfil(r4) == "Personnalisé" && AudioJeu.Titre(r1) == "Audio jeu : égaliseur actif (Pas / compétitif)" && AudioJeu.Titre(new ReglagesAudioJeu()) == "Audio jeu : égaliseur coupé", "profil en cours et ligne de l'Historique");
+
+            // ---- détection du jeu (lecture seule) et choix de la sortie
+            foreach (var exe in new[] { "cod.exe", "COD.EXE", "cod23-cod.exe", "sp24-cod.exe", "cod-hq.exe", "codhq.exe", "ModernWarfare.exe", "Warzone.exe", "BlackOps6.exe", "blackopscoldwar.exe", "Vanguard.exe" })
+                verifier(AudioJeu.EstJeu(exe), "jeu non reconnu : " + exe);
+            foreach (var exe in new[] { "chrome.exe", "codex.exe", "mycod.exe", "cod.exe.bak", "cod", "steam.exe", "warzone2.exe", "cod2-cod.exe", null })
+                verifier(!AudioJeu.EstJeu(exe), "pris à tort pour le jeu : " + exe);
+            verifier(AudioJeu.JeuDetecte() == null || AudioJeu.EstJeu(AudioJeu.JeuDetecte()), "lecture de la liste des programmes");
+            string ga = "11111111-2222-3333-4444-555555555555", gb = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee", gc = "99999999-8888-7777-6666-555555555555";
+            var sorties = new System.Collections.Generic.List<SortieAudio> { new SortieAudio { Guid = ga, Nom = "Casque", Carte = "USB" }, new SortieAudio { Guid = gb } };
+            int etat;
+            verifier(AudioJeu.Resoudre("auto", sorties, "{" + ga.ToUpperInvariant() + "}", out etat) == ga && etat == 0, "Auto : la sortie par défaut a Equalizer APO");
+            verifier(AudioJeu.Resoudre("auto", sorties, gc, out etat) == "" && etat == 1, "Auto : la sortie par défaut ne l'a pas → toutes, avec avertissement");
+            verifier(AudioJeu.Resoudre("auto", sorties, "", out etat) == "" && etat == 1, "Auto : sortie par défaut inconnue → toutes, avec avertissement");
+            verifier(AudioJeu.Resoudre("toutes", sorties, ga, out etat) == "" && etat == 0, "Toutes");
+            verifier(AudioJeu.Resoudre(gb, sorties, ga, out etat) == gb && etat == 0 && AudioJeu.Resoudre(gc, sorties, ga, out etat) == gc && etat == 2, "sortie précise, présente puis absente");
+            verifier(AudioJeu.Resoudre("auto", new System.Collections.Generic.List<SortieAudio>(), ga, out etat) == "" && etat == 3, "aucune sortie avec Equalizer APO");
+            verifier(sorties[0].Libelle == "Casque (USB)" && sorties[1].Libelle == gb, "nom lisible d'une sortie");
+
+            // ---- écritures, dans un dossier d'essai
+            string racine = Path.Combine(Path.GetTempPath(), "velox-essai-audio-" + Guid.NewGuid().ToString("N"));
+            string dossier = Path.Combine(racine, "config"), documents = Path.Combine(racine, "documents");
+            string fichier = Path.Combine(dossier, AudioJeu.NomFichier), config = Path.Combine(dossier, "config.txt"), fReglages = Path.Combine(racine, "audio-jeu.json");
+            string documentsAvant = Environment.GetEnvironmentVariable("NP_DOCUMENTS");
+            var latin = System.Text.Encoding.Latin1;
+            Func<int> notes = () => Historique.Lire().Count(m => m.Type == "audiojeu");
+            try
+            {
+                Directory.CreateDirectory(documents);
+                Environment.SetEnvironmentVariable("NP_DOCUMENTS", documents);   // l'Historique des essais reste dans le dossier d'essai
+                AudioJeu.DossierEssai = dossier; AudioJeu.ReglagesEssai = fReglages;
+
+                // Equalizer APO absent : rien n'est fait
+                verifier(!AudioJeu.Present && !AudioJeu.Etat().Present && AudioJeu.Appliquer(r1.Copie(), "", true) == AudioJeu.Absent && !Directory.Exists(dossier) && AudioJeu.Retirer() == 0, "Equalizer APO absent : rien n'est créé");
+
+                // config.txt avec d'autres traitements, un caractère accentué, et sans fin de ligne à la fin
+                Directory.CreateDirectory(dossier);
+                byte[] origine = latin.GetBytes("Preamp: -6 dB\r\nInclude: YouSound\\yousound.txt\r\n# café : Include: Peace.txt\r\nInclude: HeSuVi\\hesuvi.txt");
+                File.WriteAllBytes(config, origine);
+                var coupe = new ReglagesAudioJeu { Gains = (double[])competitif.Clone() };
+                verifier(AudioJeu.Appliquer(coupe.Copie(), "", true) == "" && !File.Exists(fichier) && File.ReadAllBytes(config).SequenceEqual(origine) && notes() == 0, "égaliseur coupé et aucun fichier : rien n'est créé, rien n'est noté");
+                File.Delete(fReglages);   // (comme au tout premier usage : aucun réglage enregistré)
+                var e0 = AudioJeu.Etat();
+                verifier(e0.Present && !e0.Fichier && !e0.Actif && !e0.Include && string.Join(",", e0.Autres) == "YouSound,HeSuVi", "état : autres traitements trouvés (les commentaires ne comptent pas) : " + string.Join(",", e0.Autres));
+
+                // activation : fichier écrit, ligne Include ajoutée à la fin, le reste de config.txt intact à l'octet près
+                var actif = r1.Copie();
+                verifier(AudioJeu.Appliquer(actif, ga, true) == "" && actif.CibleEcrite == ga, "activation");
+                verifier(File.ReadAllText(fichier, System.Text.Encoding.ASCII) == AudioJeu.Generer(r1, ga) && File.ReadAllBytes(fichier)[0] == (byte)'#', "fichier de l'égaliseur écrit tel quel, sans marque d'encodage");
+                verifier(File.ReadAllBytes(config).SequenceEqual(origine.Concat(latin.GetBytes("\r\nInclude: MW_optimizer.txt\r\n"))), "config.txt = l'original + la ligne Include à la fin");
+                var e1 = AudioJeu.Etat();
+                verifier(e1.Actif && e1.Include && e1.Fichier && e1.Contenu == AudioJeu.Generer(r1, ga), "état après activation");
+                byte[] configActif = File.ReadAllBytes(config);
+                var extreme = r1.Copie(); extreme.Gains = (double[])AudioJeu.Profil("extreme").Gains.Clone();
+                verifier(AudioJeu.Appliquer(extreme, ga, true) == "" && AudioJeu.Appliquer(extreme.Copie(), ga, true) == "" && File.ReadAllBytes(config).SequenceEqual(configActif) && File.ReadAllText(fichier).Contains("Gain -8.0 dB"), "autre profil : le fichier suit, config.txt ne bouge plus");
+                var arret = extreme.Copie(); arret.Actif = false;
+                verifier(AudioJeu.Appliquer(arret, ga, true) == "" && File.ReadAllText(fichier) == "# MW Sound Optimizer : desactive\r\n" && File.ReadAllBytes(config).SequenceEqual(configActif) && !AudioJeu.Etat().Actif && arret.CibleEcrite == "", "égaliseur coupé : une ligne de commentaire");
+
+                // Historique : ces changements rapprochés forment une seule ligne, qui s'annule d'un coup
+                var h = Historique.Lire().Where(m => m.Type == "audiojeu").ToList();
+                verifier(h.Count == 1 && h[0].Titre == "Audio jeu : égaliseur coupé" && Json.Bool(h[0].Donnees, "IncludeAjoute") && !Json.Bool(h[0].Donnees, "Existait"), "Historique : une ligne pour les changements rapprochés (" + h.Count + ")");
+                verifier(AudioJeu.Lire().Gains.SequenceEqual(extreme.Gains) && !AudioJeu.Lire().Actif, "réglages enregistrés");
+                bool prevenu = false; Action surAnnule = () => prevenu = true;
+                AudioJeu.Annule += surAnnule;
+                verifier(h.Count == 1 && Historique.Annuler(h[0]) == "" && prevenu, "annulation");
+                AudioJeu.Annule -= surAnnule;
+                verifier(!File.Exists(fichier) && File.ReadAllBytes(config).SequenceEqual(origine) && !File.Exists(fReglages), "après annulation : fichier retiré, config.txt revenu à l'octet près, réglages d'avant");
+
+                // le fichier existe déjà (écrit par le prototype) et config.txt l'inclut déjà, en fins de ligne Unix
+                Historique.Modifier(l => { l.Clear(); return true; });
+                byte[] proto = latin.GetBytes("# MW Sound Optimizer 3.0 - fichier genere automatiquement\nIf: (sizeof(regexSearch(\"capture\", stage)) == 0)\nPreamp: -3.0 dB\nEndIf:\n");
+                byte[] configProto = latin.GetBytes("Include: MW_optimizer.txt\nInclude: HeSuVi\\hesuvi.txt\n");
+                File.WriteAllBytes(fichier, proto); File.WriteAllBytes(config, configProto);
+                AudioJeu.FusionSecondes = 0;   // chaque changement a sa ligne
+                var a1 = r1.Copie(); var a2 = extreme.Copie();
+                verifier(AudioJeu.Etat().Actif && AudioJeu.Appliquer(a1, "", true) == "" && AudioJeu.Appliquer(a2, "", true) == "" && File.ReadAllBytes(config).SequenceEqual(configProto), "fichier du prototype remplacé, config.txt déjà complet : pas touché");
+                h = Historique.Lire().Where(m => m.Type == "audiojeu").ToList();
+                verifier(h.Count == 2 && !Json.Bool(h[0].Donnees, "IncludeAjoute") && Json.Bool(h[0].Donnees, "Existait") && h[1].Titre == "Audio jeu : égaliseur actif (Pas extrême)", "Historique : une ligne par changement éloigné (" + h.Count + ")");
+                verifier(h.Count == 2 && Historique.Annuler(h[1]) == "" && File.ReadAllText(fichier) == AudioJeu.Generer(r1, "") && AudioJeu.Lire().Gains.SequenceEqual(competitif), "annuler le dernier changement : retour à l'état précédent (fichier et réglages)");
+                verifier(h.Count == 2 && Historique.Annuler(h[0]) == "" && File.ReadAllBytes(fichier).SequenceEqual(proto) && File.ReadAllBytes(config).SequenceEqual(configProto), "annuler le premier : le fichier du prototype revient à l'octet près, sa ligne Include reste");
+
+                // bascule automatique (Auto Warzone) : pas de ligne en plus, sauf si elle a dû compléter config.txt
+                Historique.Modifier(l => { l.Clear(); return true; });
+                File.Delete(fichier); File.WriteAllBytes(config, origine); File.Delete(fReglages);
+                var auto = r1.Copie(); auto.Actif = false; auto.AutoJeu = true;
+                verifier(AudioJeu.Appliquer(auto, "", true, true) == "" && notes() == 1 && !File.Exists(fichier), "Auto Warzone activé : noté même sans changement immédiat");
+                auto.Actif = true;
+                verifier(AudioJeu.Appliquer(auto, "", false) == "" && notes() == 1 && Json.Bool(Historique.Lire().Last().Donnees, "IncludeAjoute") && AudioJeu.Etat().Include, "le jeu se lance : pas de nouvelle ligne, mais l'ajout de l'Include est rattaché au choix noté");
+                auto.Actif = false;
+                verifier(AudioJeu.Appliquer(auto, "", false) == "" && notes() == 1, "le jeu se ferme : pas de nouvelle ligne");
+                verifier(Historique.Annuler(Historique.Lire().Last()) == "" && !File.Exists(fichier) && File.ReadAllBytes(config).SequenceEqual(origine), "annuler Auto Warzone : fichier retiré, config.txt revenu à l'octet près");
+
+                // config.txt en UTF-16, puis désinstallation : la ligne et le fichier sont retirés, le reste est intact
+                byte[] utf16 = new byte[] { 0xFF, 0xFE }.Concat(System.Text.Encoding.Unicode.GetBytes("Preamp: -1 dB\r\n# été ♫\r\n")).ToArray();
+                File.WriteAllBytes(config, utf16);
+                verifier(AudioJeu.Appliquer(r1.Copie(), "", true) == "" && File.ReadAllBytes(config).SequenceEqual(utf16.Concat(System.Text.Encoding.Unicode.GetBytes("Include: MW_optimizer.txt\r\n"))) && AudioJeu.Etat().Include, "config.txt en UTF-16 : la ligne est ajoutée dans le même encodage");
+                verifier(AudioJeu.Retirer() == 0 && !File.Exists(fichier) && File.ReadAllBytes(config).SequenceEqual(utf16), "désinstallation : fichier et ligne Include retirés, config.txt revenu à l'octet près");
+                byte[] milieu = latin.GetBytes("ï»¿Include: MW_optimizer.txt\r\nPreamp: -2 dB\r\n  Include :  mw_OPTIMIZER.TXT  \r\n# Include: MW_optimizer.txt\r\ninclude: MW_optimizer.txt\r\nInclude: MW_optimizer.txt.bak\r\nFin");
+                File.WriteAllBytes(config, milieu); File.WriteAllText(fichier, "x");
+                verifier(AudioJeu.Etat().Include && AudioJeu.Retirer() == 0 && !File.Exists(fichier) && File.ReadAllBytes(config).SequenceEqual(latin.GetBytes("ï»¿Preamp: -2 dB\r\n# Include: MW_optimizer.txt\r\ninclude: MW_optimizer.txt\r\nInclude: MW_optimizer.txt.bak\r\nFin")), "seules les vraies lignes Include de l'égaliseur sont retirées (marque d'encodage, commentaire et autres lignes gardés)");
+                verifier(AudioJeu.Retirer() == 0, "désinstallation sans rien à retirer");
+
+                // Windows refuse l'écriture (fichier en lecture seule) : rien n'est modifié, et c'est dit
+                File.WriteAllBytes(config, origine); File.WriteAllBytes(fichier, proto);
+                File.SetAttributes(fichier, FileAttributes.ReadOnly);
+                string refus = AudioJeu.Appliquer(r1.Copie(), "", true);
+                File.SetAttributes(fichier, FileAttributes.Normal);
+                if (refus == "") rapport.AppendLine("Audio jeu (refus d'accès) : non essayé ici (ce compte écrit malgré la lecture seule)");
+                else verifier(refus == AudioJeu.Refus && File.ReadAllBytes(fichier).SequenceEqual(proto) && File.ReadAllBytes(config).SequenceEqual(origine), "refus d'accès : rien n'est modifié (" + refus + ")");
+            }
+            finally
+            {
+                AudioJeu.DossierEssai = null; AudioJeu.ReglagesEssai = null; AudioJeu.FusionSecondes = 120;
+                Environment.SetEnvironmentVariable("NP_DOCUMENTS", documentsAvant);
+                try { if (File.Exists(fichier)) File.SetAttributes(fichier, FileAttributes.Normal); Directory.Delete(racine, true); } catch { }
+            }
+
+            // ---- traductions : les lignes de l'Historique et les noms des profils existent en anglais et en espagnol
+            string langueAvant = Langue.Code;
+            try
+            {
+                foreach (var code in new[] { "en", "es" })
+                {
+                    Langue.Choisir(code);
+                    foreach (var p in AudioJeu.Profils)
+                    {
+                        var rp = new ReglagesAudioJeu { Actif = true, Gains = (double[])p.Gains.Clone() };
+                        var ra = rp.Copie(); ra.AutoJeu = true;
+                        foreach (var t in new[] { AudioJeu.Titre(rp), AudioJeu.Titre(ra), p.Nom, p.Carte, p.Texte })
+                            verifier(Langue.Connue(t), "sans traduction (" + code + ") : " + t);
+                    }
+                    foreach (var t in new[] { "Audio jeu", "Audio jeu : égaliseur coupé", "Personnalisé", AudioJeu.Absent, AudioJeu.Refus, AudioJeu.Occupe, AudioJeu.ConfigInattendu }.Concat(AudioJeu.Bandes.Select(b => b.Nom)))
+                        verifier(Langue.Connue(t), "sans traduction (" + code + ") : " + t);
+                }
+            }
+            finally { Langue.Choisir(langueAvant); }
+
+            foreach (var e in echecs) { erreurs++; rapport.AppendLine("ERREUR : audio jeu : " + e); }
+            rapport.AppendLine("Audio jeu (fichier d'Equalizer APO, config.txt, Historique, annulation, désinstallation) : " + (erreurs == avant ? "tous les essais passent" : (erreurs - avant) + " essai(s) en échec") + " ; Preamp des deux valeurs de contrôle : " + lignes(f1)[2] + " et " + lignes(f2)[2]);
+        }
 
         public static int Faire(string dossier, bool reel)
         {
@@ -453,6 +694,9 @@ namespace NettoyagePC.Nouveau
                 }
                 catch (Exception ex) { erreurs++; rapport.AppendLine("ERREUR : essais 5.10 : " + ex); }
             }
+            // Audio jeu : calcul du fichier d'Equalizer APO, config.txt, Historique et annulation (dans un dossier d'essai : rien n'est lu ni écrit ailleurs)
+            try { EssaisAudioJeu(rapport, ref erreurs); }
+            catch (Exception ex) { erreurs++; rapport.AppendLine("ERREUR : essais de l'audio jeu : " + ex); }
             AppBuilder.Configure<App>().UseSkia().UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false }).SetupWithoutStarting();
             var f = new FenetrePrincipale(source) { Pseudo = "Damien" };
             f.Show();
@@ -950,6 +1194,52 @@ namespace NettoyagePC.Nouveau
             }
             catch (Exception ex) { ModeJeu5.Exemple = null; MajApps5.Exemple = null; Photos5.Exemple = null; Bulletin5.Exemple = null; ReseauPremium5.ExempleAppareils = null; ReseauPremium5.ExempleApps = null; Gardien5.Exemple = null; erreurs++; rapport.AppendLine("ERREUR : outils Premium 5.2 : " + ex); }
 
+            // Audio jeu (gratuit) : sa carte dans Accélérer > Jeux, la fenêtre avec un relevé d'exemple (rien n'est lu ni écrit),
+            // les favoris et la recherche Ctrl+K
+            try
+            {
+                f.ChangerTheme(true); f.SousPage("Accelerer", "Jeux"); f.Afficher("Accelerer", false);
+                for (int k = 0; k < 4; k++) { Dispatcher.UIThread.RunJobs(); AvaloniaHeadlessPlatform.ForceRenderTimerTick(); }
+                bool carteVue = f.GetVisualDescendants().OfType<TextBlock>().Any(t => t.Text == "Audio jeu");
+                bool favoriVu = Favoris5.Par("audiojeu") != null && Favoris5.ParTitre("Audio jeu") == Favoris5.Par("audiojeu");
+                AudioJeu5.ExempleReglages = ExempleAudioJeu(out AudioJeu5.Exemple, true);
+                bool ouvert = f.OuvrirOutil("audiojeu");
+                for (int k = 0; k < 4; k++) { Dispatcher.UIThread.RunJobs(); AvaloniaHeadlessPlatform.ForceRenderTimerTick(); }
+                bool fenetreVue = f.GetVisualDescendants().OfType<AudioJeu5>().Any() && f.GetVisualDescendants().OfType<Interrupteur5>().Any() && f.GetVisualDescendants().OfType<Curseur5>().Count() >= 10;
+                Capturer(f, dossier, "sombre-audiojeu.png", rapport, ref erreurs);
+                f.ViderCalques();
+                f.OptionOuverte("AudioJeu", true);
+                AudioJeu5.Ouvrir(f);
+                for (int k = 0; k < 4; k++) { Dispatcher.UIThread.RunJobs(); AvaloniaHeadlessPlatform.ForceRenderTimerTick(); }
+                foreach (var defil in f.GetVisualDescendants().OfType<FenetreInterieure>().SelectMany(x => x.GetVisualDescendants().OfType<ScrollViewer>()).Take(1)) defil.Offset = new Vector(0, 520);
+                Capturer(f, dossier, "sombre-audiojeu-options.png", rapport, ref erreurs);
+                foreach (var defil in f.GetVisualDescendants().OfType<FenetreInterieure>().SelectMany(x => x.GetVisualDescendants().OfType<ScrollViewer>()).Take(1)) defil.Offset = new Vector(0, 1250);
+                Capturer(f, dossier, "sombre-audiojeu-options-2.png", rapport, ref erreurs);
+                f.ViderCalques(); f.OptionOuverte("AudioJeu", false);
+                f.ChangerTheme(false); f.Afficher("Accelerer", false);
+                AudioJeu5.Ouvrir(f);
+                Capturer(f, dossier, "clair-audiojeu.png", rapport, ref erreurs);
+                f.ViderCalques(); f.ChangerTheme(true); f.Afficher("Accelerer", false);
+                AudioJeu5.ExempleReglages = ExempleAudioJeu(out AudioJeu5.Exemple, false);
+                AudioJeu5.Ouvrir(f);
+                Capturer(f, dossier, "sombre-audiojeu-absent.png", rapport, ref erreurs);
+                f.ViderCalques();
+                f.OuvrirPalette();
+                for (int k = 0; k < 3; k++) Dispatcher.UIThread.RunJobs();
+                foreach (var tb in f.GetVisualDescendants().OfType<TextBox>()) tb.Text = "audio";
+                for (int k = 0; k < 3; k++) Dispatcher.UIThread.RunJobs();
+                bool recherche = f.GetVisualDescendants().OfType<TextBlock>().Any(t => t.Text == "Audio jeu");
+                foreach (var tb in f.GetVisualDescendants().OfType<TextBox>()) tb.Text = "entends pas les pas";
+                for (int k = 0; k < 3; k++) Dispatcher.UIThread.RunJobs();
+                bool probleme = f.GetVisualDescendants().OfType<TextBlock>().Any(t => t.Text == "Je n'entends pas les pas");
+                Capturer(f, dossier, "sombre-palette-audiojeu.png", rapport, ref erreurs);
+                f.ViderCalques(); f.SousPage("Accelerer", "Optimisation");
+                rapport.AppendLine("Audio jeu (interface) : carte dans Accélérer > Jeux " + carteVue + ", favori " + favoriVu + ", ouverture par sa clé " + ouvert + ", fenêtre " + fenetreVue + ", Ctrl+K « audio » " + recherche + ", Ctrl+K « entends pas les pas » " + probleme);
+                if (!carteVue || !favoriVu || !ouvert || !fenetreVue || !recherche || !probleme) { erreurs++; rapport.AppendLine("ERREUR : audio jeu (interface)"); }
+            }
+            catch (Exception ex) { erreurs++; rapport.AppendLine("ERREUR : audio jeu (interface) : " + ex); }
+            finally { AudioJeu5.Exemple = null; AudioJeu5.ExempleReglages = null; }
+
             // analyses des plantages et du démarrage avec des résultats d'exemple (rien n'est lancé)
             try
             {
@@ -1225,6 +1515,22 @@ namespace NettoyagePC.Nouveau
                     g.DemanderConfirmation(QuestionComplete(), r => { });
                     Capturer(g, dossier, code + "-question.png", rapport, ref erreurs);
                     g.ViderCalques();
+                    // Audio jeu : Equalizer APO absent, puis présent avec « Plus d'options » ouvert
+                    try
+                    {
+                        AudioJeu5.ExempleReglages = ExempleAudioJeu(out AudioJeu5.Exemple, false);
+                        AudioJeu5.Ouvrir(g);
+                        for (int k = 0; k < 4; k++) { Dispatcher.UIThread.RunJobs(); AvaloniaHeadlessPlatform.ForceRenderTimerTick(); }
+                        g.ViderCalques();
+                        AudioJeu5.ExempleReglages = ExempleAudioJeu(out AudioJeu5.Exemple, true);
+                        AudioJeu5.ExempleReglages.Niveau = 2; AudioJeu5.ExempleReglages.Balance = 1.5; AudioJeu5.ExempleReglages.Largeur = 30; AudioJeu5.ExempleReglages.Cible = "toutes";
+                        g.OptionOuverte("AudioJeu", true);
+                        AudioJeu5.Ouvrir(g);
+                        Capturer(g, dossier, code + "-audiojeu.png", rapport, ref erreurs);
+                        g.OptionOuverte("AudioJeu", false);
+                        g.ViderCalques();
+                    }
+                    finally { AudioJeu5.Exemple = null; AudioJeu5.ExempleReglages = null; }
                     g.Close();
                 }
                 catch (Exception ex) { Reseau5.Exemple = false; erreurs++; rapport.AppendLine("ERREUR : captures en " + code + " : " + ex); }
