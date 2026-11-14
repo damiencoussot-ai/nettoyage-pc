@@ -1,0 +1,23 @@
+Velox 5.14 : le Studio son
+
+Nouveau en 5.14 :
+- Rubrique Audio (Premium), sous Premium dans le menu : le « Studio son », un égaliseur pour mieux entendre
+  les pas et les recharges dans Call of Duty / Warzone, avec son propre look de console de mixage.
+  Quatre profils (Compétitif, Équilibré, Pas extrême, Immersion), courbe de l'égaliseur avec le spectre du son
+  en direct (glisse les points pour régler chaque bande), molettes (force, niveau, balance, largeur), faders,
+  coupe-explosions, inversion gauche / droite et bouton « Comparer » (maintenu : le son sans l'égaliseur).
+- L'égaliseur passe par Equalizer APO (logiciel libre, à installer à part) : Velox écrit un petit fichier de
+  réglages dans son dossier, et le jeu n'est jamais touché. Avec Voicemeeter Banana ou Potato, il peut aussi
+  passer par l'égaliseur d'un de leurs bus.
+- Sorties audio : VU-mètre, choix de la sortie égalisée, et sortie par défaut de Windows changée en un clic.
+  Avec Voicemeeter comme sortie par défaut, le mode Auto vise directement l'appareil du bus A (ton casque).
+- Auto Warzone : l'égaliseur s'allume quand le jeu tourne et se coupe quand tu le fermes (avec le gardien,
+  même Velox fermé). Raccourcis en plein jeu, désactivés par défaut : Ctrl+Alt+F9 (égaliseur) et Ctrl+Alt+F10
+  (profil suivant), avec une petite bulle à l'écran.
+- Comme partout dans Velox : rien n'est écrit en mode simulation, chaque changement est noté dans l'Historique
+  et s'annule de là, et la désinstallation retire ce que l'outil a écrit.
+- Raccourcis : Ctrl+7 ouvre Audio, Mises à jour passe à Ctrl+8, Historique à Ctrl+9, Réglages à Ctrl+0.
+
+L'installateur est publié sous les deux noms : Velox-Setup-5.14.exe (winget, site) et NettoyagePC-Setup-5.14.exe (mise à jour des anciennes versions).
+
+SHA256 de Velox-Setup-5.14.exe : voir le fichier Velox-Setup-5.14.sha256
