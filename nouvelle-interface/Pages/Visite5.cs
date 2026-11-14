@@ -42,7 +42,7 @@ namespace NettoyagePC.Nouveau
             Background = Brushes.Transparent;   // capte les clics : l'interface ne réagit pas pendant la visite
             etapes = new List<Etape>
             {
-                new Etape { Cible = () => F.ZoneMenu, Titre = "Les rubriques", Texte = "Nettoyer, Accélérer, Protéger, Outils et Premium, toujours ici, dans le même ordre. Ctrl+1 à Ctrl+6 les ouvrent au clavier." },
+                new Etape { Cible = () => F.ZoneMenu, Titre = "Les rubriques", Texte = "Nettoyer, Accélérer, Protéger, Outils, Premium et Audio, toujours ici, dans le même ordre. Ctrl+1 à Ctrl+7 les ouvrent au clavier." },
                 new Etape { Cible = () => PageAccueil.Courante == null ? null : PageAccueil.Courante.ZoneAnneau, Titre = "L'indice de ton PC", Texte = "Une note sur 100, calculée à partir du stockage, de la mémoire, de la sécurité et du matériel. Plus elle est haute, mieux ton PC se porte." },
                 new Etape { Cible = () => PageAccueil.Courante == null ? null : PageAccueil.Courante.BoutonOptimiser, Titre = "Optimiser en 1 clic", Texte = "Tout l'entretien d'un coup. Une question s'affiche toujours avant : rien n'est lancé sans ton accord." },
                 new Etape { Cible = () => PageAccueil.Courante == null ? null : PageAccueil.Courante.ZoneFavoris, Titre = "Accès rapide", Texte = "Tes outils préférés, lancés en un clic. Une bulle verte montre ceux qui sont activés. L'étoile ☆ sur chaque outil l'ajoute ici." },

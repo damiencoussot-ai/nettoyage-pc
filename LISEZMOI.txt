@@ -23,15 +23,23 @@ l'égaliseur « Audio jeu » et sa ligne dans la configuration d'Equalizer APO.
 
 Nouveautés de la prochaine version
 ----------------------------------
-- Audio jeu (Accélérer > Jeux, gratuit) : un égaliseur pour mieux entendre les pas et les recharges dans
-  Call of Duty / Warzone. Quatre profils (Compétitif, Équilibré, Pas extrême, Immersion), un curseur
-  « Force de l'effet » et un interrupteur. Il fonctionne avec Equalizer APO (logiciel libre, à installer
-  à part) : Velox écrit un petit fichier de réglages dans son dossier, le jeu n'est jamais touché.
-- « Plus d'options » : gain de chaque bande, sortie visée (Auto suit la sortie par défaut de Windows),
-  niveau, balance, largeur stéréo, coupe-explosions, inversion gauche / droite, et « Auto Warzone »
-  (l'égaliseur s'active quand le jeu tourne et se coupe quand tu le fermes, tant que Velox est ouvert).
-- Comme le reste de Velox : rien n'est écrit en mode simulation, chaque changement est noté dans
-  l'Historique et s'annule de là, et l'outil se trouve aussi par Ctrl+K et dans les favoris.
+- Nouvelle rubrique Audio (Premium), sous Premium dans le menu : le « Studio son », avec son propre look de
+  console de mixage. Un égaliseur pour mieux entendre les pas et les recharges dans Call of Duty / Warzone.
+- Courbe de l'égaliseur avec le spectre du son en direct (glisse les points pour régler chaque bande),
+  quatre profils (Compétitif, Équilibré, Pas extrême, Immersion), molettes (force, niveau, balance, largeur),
+  faders pour les six bandes, coupe-explosions et inversion gauche / droite.
+- L'égaliseur passe par Equalizer APO (logiciel libre, à installer à part : Velox écrit un petit fichier de
+  réglages dans son dossier) ou, avec Voicemeeter Banana ou Potato, par l'égaliseur d'un de leurs bus.
+  Le jeu n'est jamais touché.
+- Sorties audio : VU-mètre de la sortie par défaut, choix de la sortie égalisée, et la sortie par défaut de
+  Windows changée en un clic. Voicemeeter reconnu : version, niveaux de chaque bus.
+- Auto Warzone : l'égaliseur s'active quand le jeu tourne et se coupe quand tu le fermes (tant que Velox
+  est ouvert). Raccourcis clavier en plein jeu, désactivés par défaut : Ctrl+Alt+F9 (égaliseur) et
+  Ctrl+Alt+F10 (profil suivant), avec des bips pour savoir ce qui a changé.
+- Comme le reste de Velox : rien n'est écrit en mode simulation, chaque changement (égaliseur, sortie par
+  défaut, Voicemeeter) est noté dans l'Historique et s'annule de là. Aussi dans Ctrl+K, les favoris et
+  Accélérer > Jeux. Ctrl+7 ouvre la rubrique Audio (Mises à jour passe à Ctrl+8, Historique à Ctrl+9,
+  et Réglages n'a plus de raccourci Ctrl+chiffre).
 
 Nouveautés de la version 5.7
 ----------------------------

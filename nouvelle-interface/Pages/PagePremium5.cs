@@ -54,6 +54,7 @@ namespace NettoyagePC.Nouveau
                 Outil("Surveillance du réseau", "Alerte quand un appareil inconnu se connecte à ta box, et liste des applications connectées à Internet en ce moment.", "Surveiller", null, () => ReseauPremium5.Ouvrir(F)),
                 Outil("Moniteur en direct", "Processeur, mémoire vive, disque et température sur les 60 dernières secondes, en courbes : tu vois tout de suite ce qui fait chauffer ou ramer ton PC.", "Ouvrir", null, () => Moniteur5.Ouvrir(F)),
                 Outil("Widget de bureau", "Une petite fenêtre toujours visible en bas de l'écran : l'indice du PC, le processeur, la mémoire, la température, et un bouton « Nettoyer ».", Widget5.Ouvert ? "Fermer le widget" : "Afficher", null, () => { Widget5.Basculer(F); F.Afficher("Premium", false); }),
+                Outil("Audio jeu", "Le Studio son : entends les pas et les recharges dans Call of Duty / Warzone. Profils d'égaliseur, spectre en direct, Auto Warzone, raccourcis en plein jeu, sortie audio et Voicemeeter.", "Ouvrir le studio", null, () => AudioJeu5.Ouvrir(F)),
                 Outil("Santé de la batterie", "Pour les portables : usure de la batterie, nombre de cycles, autonomie réelle comparée à celle d'origine, et conseils pour la faire durer.", "Vérifier", null, () => Batterie5.Ouvrir(F)),
             };
             Children.Add(Titre(Langue.F("{0} outils de pro, débloqués d'un coup", outils.Count)));

@@ -2541,7 +2541,7 @@ Les 60 dernières secondes, mises à jour chaque seconde. Rien n'est modifié : 
 Les alertes	Alerts	Las alertas
 Les rubriques	The sections	Las secciones
 Moniteur en direct	Live monitor	Monitor en directo
-Nettoyer, Accélérer, Protéger, Outils et Premium, toujours ici, dans le même ordre. Ctrl+1 à Ctrl+6 les ouvrent au clavier.	Clean, Speed up, Protect, Tools and Premium, always here, in the same order. Ctrl+1 to Ctrl+6 open them from the keyboard.	Limpiar, Acelerar, Proteger, Herramientas y Premium, siempre aquí, en el mismo orden. Ctrl+1 a Ctrl+6 las abren con el teclado.
+Nettoyer, Accélérer, Protéger, Outils, Premium et Audio, toujours ici, dans le même ordre. Ctrl+1 à Ctrl+7 les ouvrent au clavier.	Clean, Speed up, Protect, Tools, Premium and Audio, always here, in the same order. Ctrl+1 to Ctrl+7 open them from the keyboard.	Limpiar, Acelerar, Proteger, Herramientas, Premium y Audio, siempre aquí, en el mismo orden. Ctrl+1 a Ctrl+7 las abren con el teclado.
 Passer la visite	Skip the tour	Saltar la visita
 Processeur, mémoire vive, disque et température sur les 60 dernières secondes, en courbes : tu vois tout de suite ce qui fait chauffer ou ramer ton PC.	Processor, memory, disk and temperature over the last 60 seconds, as curves: you instantly see what makes your PC heat up or lag.	Procesador, memoria, disco y temperatura en los últimos 60 segundos, en curvas: ves enseguida qué calienta o ralentiza tu PC.
 Suivant	Next	Siguiente
@@ -3429,3 +3429,112 @@ Audio jeu : égaliseur actif (Neutre)	Game audio: equalizer on (Neutral)	Audio d
 Audio jeu : Auto Warzone (Neutre)	Game audio: Auto Warzone (Neutral)	Audio de juego: Auto Warzone (Neutro)
 Audio jeu : égaliseur actif (Personnalisé)	Game audio: equalizer on (Custom)	Audio de juego: ecualizador activo (Personalizado)
 Audio jeu : Auto Warzone (Personnalisé)	Game audio: Auto Warzone (Custom)	Audio de juego: Auto Warzone (Personalizado)
+Audio	Audio	Audio
+Studio son : entends chaque pas dans tes jeux.	Sound studio: hear every footstep in your games.	Estudio de sonido: oye cada paso en tus juegos.
+Studio son	Sound studio	Estudio de sonido
+STUDIO SON	SOUND STUDIO	ESTUDIO DE SONIDO
+AUDIO JEU	GAME AUDIO	AUDIO DE JUEGO
+Entends chaque pas.	Hear every footstep.	Oye cada paso.
+Égaliseur de pas pour Call of Duty / Warzone, appliqué par Equalizer APO ou Voicemeeter. Le jeu n'est jamais touché, et chaque changement s'annule dans l'Historique.	Footstep equalizer for Call of Duty / Warzone, applied by Equalizer APO or Voicemeeter. The game is never touched, and every change can be undone in History.	Ecualizador de pasos para Call of Duty / Warzone, aplicado por Equalizer APO o Voicemeeter. El juego nunca se toca y cada cambio se deshace en el Historial.
+ACTIF	ON	ACTIVO
+COUPÉ	OFF	DESACTIVADO
+ÉGALISEUR ACTIF	EQUALIZER ON	ECUALIZADOR ACTIVO
+ÉGALISEUR COUPÉ	EQUALIZER OFF	ECUALIZADOR DESACTIVADO
+JEU : {0}	GAME: {0}	JUEGO: {0}
+JEU NON LANCÉ	GAME NOT RUNNING	JUEGO NO INICIADO
+VOICEMEETER ARRÊTÉ	VOICEMEETER STOPPED	VOICEMEETER DETENIDO
+SANS VOICEMEETER	NO VOICEMEETER	SIN VOICEMEETER
+ACTIVÉ	ON	ACTIVADO
+DÉSACTIVÉ	OFF	DESACTIVADO
+PAR DÉFAUT	DEFAULT	PREDETERMINADA
+Réponse en fréquence	Frequency response	Respuesta en frecuencia
+Spectre en direct	Live spectrum	Espectro en directo
+Égaliseur	Equalizer	Ecualizador
+Glisse un point pour régler sa bande (ou flèches du clavier). En fond, ce que joue ta sortie en ce moment.	Drag a point to adjust its band (or use the arrow keys). In the background, what your output is playing right now.	Arrastra un punto para ajustar su banda (o usa las flechas del teclado). Al fondo, lo que reproduce tu salida ahora mismo.
+Profils	Profiles	Perfiles
+Console	Console	Consola
+Force	Strength	Fuerza
+Niveau	Level	Nivel
+Largeur	Width	Anchura
+Bandes	Bands	Bandas
+Sorties	Outputs	Salidas
+Automatismes	Automations	Automatismos
+Fichier d'Equalizer APO	Equalizer APO file	Archivo de Equalizer APO
+Le coupe-explosions retire les sons très graves (explosions, grondements) sous la fréquence choisie, pour qu'ils ne couvrent pas les pas. Au-dessus de 0 dB, le niveau peut faire saturer le son.	The explosion cut removes very low sounds (explosions, rumble) below the chosen frequency, so they don't drown out footsteps. Above 0 dB, the level can make the sound clip.	El corte de explosiones quita los sonidos muy graves (explosiones, retumbos) por debajo de la frecuencia elegida, para que no tapen los pasos. Por encima de 0 dB, el nivel puede saturar el sonido.
+Égaliseur dans Voicemeeter : la largeur stéréo et l'inversion n'y existent pas, et le coupe-explosions prend la place de la bande Graves (6 cellules par bus).	Equalizer in Voicemeeter: stereo width and swapping don't exist there, and the explosion cut takes the place of the Bass band (6 cells per bus).	Ecualizador en Voicemeeter: la anchura estéreo y la inversión no existen allí, y el corte de explosiones ocupa el lugar de la banda Graves (6 celdas por bus).
+Glisse vers le haut ou le bas, ou utilise la molette de la souris. Double clic : valeur par défaut.	Drag up or down, or use the mouse wheel. Double-click: default value.	Arrastra hacia arriba o abajo, o usa la rueda del ratón. Doble clic: valor predeterminado.
+La force de l'effet est à 0 % : monte-la pour régler les bandes.	Effect strength is at 0%: raise it to adjust the bands.	La fuerza del efecto está al 0 %: súbela para ajustar las bandas.
+Ce que joue ta sortie par défaut	What your default output is playing	Lo que reproduce tu salida predeterminada
+Voir le fichier écrit	View the written file	Ver el archivo escrito
+Égaliseur sur :	Equalizer on:	Ecualizador en:
+Auto	Auto	Auto
+Toutes	All	Todas
+Suit la sortie par défaut de Windows.	Follows the Windows default output.	Sigue la salida predeterminada de Windows.
+Aucune sortie audio active trouvée.	No active audio output found.	No se ha encontrado ninguna salida de audio activa.
+sans Equalizer APO	without Equalizer APO	sin Equalizer APO
+Viser	Target	Aplicar aquí
+Visée	Targeted	Aplicado aquí
+L'égaliseur s'applique seulement à cette sortie.	The equalizer applies only to this output.	El ecualizador solo se aplica a esta salida.
+Par défaut	Default	Predeterminada
+Windows joue le son sur cette sortie (comme Paramètres > Son). S'annule dans l'Historique.	Windows plays sound on this output (like Settings > Sound). Can be undone in History.	Windows reproduce el sonido en esta salida (como Configuración > Sonido). Se deshace en el Historial.
+Pour qu'une sortie ait Equalizer APO, coche-la dans son Configurator puis redémarre le PC. Laisse les « Améliorations audio » de Windows activées sur elle : Equalizer APO en a besoin.	For an output to have Equalizer APO, tick it in its Configurator then restart the PC. Leave Windows “Audio enhancements” turned on for it: Equalizer APO needs them.	Para que una salida tenga Equalizer APO, márcala en su Configurator y reinicia el PC. Deja activadas en ella las «Mejoras de audio» de Windows: Equalizer APO las necesita.
+Voicemeeter n'est pas installé : rien à régler ici. L'égaliseur passe par Equalizer APO.	Voicemeeter is not installed: nothing to set here. The equalizer goes through Equalizer APO.	Voicemeeter no está instalado: nada que ajustar aquí. El ecualizador pasa por Equalizer APO.
+Voicemeeter est installé mais pas lancé. Lance-le pour voir ses niveaux ici.	Voicemeeter is installed but not running. Start it to see its levels here.	Voicemeeter está instalado pero no iniciado. Inícialo para ver sus niveles aquí.
+Avec Voicemeeter, le son du jeu passe d'abord par « Voicemeeter Input », puis sort sur l'appareil du bus {0}{1}. Equalizer APO agit sur la sortie où il est installé : vise celle où tu entends l'effet.	With Voicemeeter, game sound first goes through “Voicemeeter Input”, then comes out on the device of bus {0}{1}. Equalizer APO works on the output where it is installed: target the one where you hear the effect.	Con Voicemeeter, el sonido del juego pasa primero por «Voicemeeter Input» y luego sale por el dispositivo del bus {0}{1}. Equalizer APO actúa en la salida donde está instalado: elige aquella en la que oyes el efecto.
+L'égaliseur des bus n'existe que dans Voicemeeter Banana et Potato : ici, l'égaliseur passe par Equalizer APO.	Bus equalizers only exist in Voicemeeter Banana and Potato: here, the equalizer goes through Equalizer APO.	El ecualizador de los buses solo existe en Voicemeeter Banana y Potato: aquí, el ecualizador pasa por Equalizer APO.
+Égaliseur :	Equalizer:	Ecualizador:
+L'égaliseur du bus de Voicemeeter (canaux gauche et droit) remplace celui d'Equalizer APO.	The Voicemeeter bus equalizer (left and right channels) replaces Equalizer APO's.	El ecualizador del bus de Voicemeeter (canales izquierdo y derecho) sustituye al de Equalizer APO.
+L'égaliseur s'active quand Call of Duty / Warzone tourne et se coupe quand tu le fermes, tant que Velox est ouvert (même réduit).	The equalizer turns on when Call of Duty / Warzone is running and off when you close it, as long as Velox is open (even minimized).	El ecualizador se activa cuando Call of Duty / Warzone está en marcha y se desactiva cuando lo cierras, mientras Velox esté abierto (incluso minimizado).
+Raccourcis clavier	Keyboard shortcuts	Atajos de teclado
+Même en plein jeu : un bip aigu quand l'égaliseur s'allume, un grave quand il se coupe, et autant de bips que le numéro du profil choisi.	Even in the middle of a game: a high beep when the equalizer turns on, a low one when it turns off, and as many beeps as the number of the chosen profile.	Incluso en plena partida: un pitido agudo cuando el ecualizador se activa, uno grave cuando se desactiva, y tantos pitidos como el número del perfil elegido.
+égaliseur marche / arrêt	equalizer on / off	ecualizador encendido / apagado
+profil suivant	next profile	perfil siguiente
+Raccourcis activés : Ctrl+Alt+F9 pour l'égaliseur, Ctrl+Alt+F10 pour le profil suivant.	Shortcuts on: Ctrl+Alt+F9 for the equalizer, Ctrl+Alt+F10 for the next profile.	Atajos activados: Ctrl+Alt+F9 para el ecualizador, Ctrl+Alt+F10 para el perfil siguiente.
+Raccourcis désactivés.	Shortcuts off.	Atajos desactivados.
+Ctrl+Alt+F9 et Ctrl+Alt+F10 sont déjà pris par un autre logiciel.	Ctrl+Alt+F9 and Ctrl+Alt+F10 are already taken by another program.	Ctrl+Alt+F9 y Ctrl+Alt+F10 ya los usa otro programa.
+Ctrl+Alt+F9 est déjà pris par un autre logiciel.	Ctrl+Alt+F9 is already taken by another program.	Ctrl+Alt+F9 ya lo usa otro programa.
+Ctrl+Alt+F10 est déjà pris par un autre logiciel.	Ctrl+Alt+F10 is already taken by another program.	Ctrl+Alt+F10 ya lo usa otro programa.
+Le Studio son fait partie de Velox Premium	The sound studio is part of Velox Premium	El estudio de sonido forma parte de Velox Premium
+Quatre profils pensés pour Call of Duty / Warzone : les pas et les recharges passent devant, les explosions reculent.	Four profiles designed for Call of Duty / Warzone: footsteps and reloads come forward, explosions step back.	Cuatro perfiles pensados para Call of Duty / Warzone: los pasos y las recargas pasan delante, las explosiones retroceden.
+Courbe de l'égaliseur et spectre de ton son en direct, molettes et faders pour tout régler à l'oreille.	Equalizer curve and live spectrum of your sound, knobs and faders to tune everything by ear.	Curva del ecualizador y espectro de tu sonido en directo, ruedas y faders para ajustarlo todo de oído.
+Auto Warzone : l'égaliseur s'allume avec le jeu et s'éteint avec lui. Raccourcis clavier en plein jeu.	Auto Warzone: the equalizer turns on with the game and off with it. Keyboard shortcuts in the middle of a game.	Auto Warzone: el ecualizador se enciende con el juego y se apaga con él. Atajos de teclado en plena partida.
+Sortie par défaut de Windows en un clic, Voicemeeter reconnu (niveaux, égaliseur de Banana et Potato).	Windows default output in one click, Voicemeeter recognized (levels, Banana and Potato equalizer).	Salida predeterminada de Windows en un clic, Voicemeeter reconocido (niveles, ecualizador de Banana y Potato).
+Essayer Premium	Try Premium	Probar Premium
+Couper l'égaliseur	Turn off the equalizer	Desactivar el ecualizador
+Ouvrir le studio	Open the studio	Abrir el estudio
+Entends mieux les pas et les recharges dans Call of Duty / Warzone (Premium) : le Studio son, dans la rubrique Audio. Profils d'égaliseur, spectre en direct, sorties audio et Voicemeeter. Le jeu n'est jamais touché, et tout s'annule dans l'Historique.	Hear footsteps and reloads better in Call of Duty / Warzone (Premium): the sound studio, in the Audio section. Equalizer profiles, live spectrum, audio outputs and Voicemeeter. The game is never touched, and everything can be undone in History.	Oye mejor los pasos y las recargas en Call of Duty / Warzone (Premium): el estudio de sonido, en la sección Audio. Perfiles de ecualizador, espectro en directo, salidas de audio y Voicemeeter. El juego nunca se toca y todo se deshace en el Historial.
+Le Studio son : entends les pas et les recharges dans Call of Duty / Warzone. Profils d'égaliseur, spectre en direct, Auto Warzone, raccourcis en plein jeu, sortie audio et Voicemeeter.	The sound studio: hear footsteps and reloads in Call of Duty / Warzone. Equalizer profiles, live spectrum, Auto Warzone, in-game shortcuts, audio output and Voicemeeter.	El estudio de sonido: oye los pasos y las recargas en Call of Duty / Warzone. Perfiles de ecualizador, espectro en directo, Auto Warzone, atajos en plena partida, salida de audio y Voicemeeter.
+Premium : égaliseur de pas pour Call of Duty / Warzone, sorties audio, Voicemeeter	Premium: footstep equalizer for Call of Duty / Warzone, audio outputs, Voicemeeter	Premium: ecualizador de pasos para Call of Duty / Warzone, salidas de audio, Voicemeeter
+Equalizer APO n'est pas installé sur ce PC. Installe-le (gratuit, sourceforge.net/projects/equalizerapo), coche ta sortie (casque ou haut-parleurs) dans la fenêtre qu'il ouvre, redémarre le PC, puis reviens ici. Tant qu'il n'est pas là, Velox ne modifie rien.	Equalizer APO is not installed on this PC. Install it (free, sourceforge.net/projects/equalizerapo), tick your output (headset or speakers) in the window it opens, restart the PC, then come back here. Until it is there, Velox changes nothing.	Equalizer APO no está instalado en este PC. Instálalo (gratis, sourceforge.net/projects/equalizerapo), marca tu salida (auriculares o altavoces) en la ventana que abre, reinicia el PC y vuelve aquí. Mientras no esté, Velox no modifica nada.
+L'égaliseur passe maintenant par Voicemeeter (celui d'Equalizer APO est coupé).	The equalizer now goes through Voicemeeter (Equalizer APO's is turned off).	El ecualizador pasa ahora por Voicemeeter (el de Equalizer APO está desactivado).
+L'égaliseur passe maintenant par Equalizer APO (celui de Voicemeeter est coupé).	The equalizer now goes through Equalizer APO (Voicemeeter's is turned off).	El ecualizador pasa ahora por Equalizer APO (el de Voicemeeter está desactivado).
+L'égaliseur passe par Voicemeeter : le fichier d'Equalizer APO est coupé.	The equalizer goes through Voicemeeter: the Equalizer APO file is turned off.	El ecualizador pasa por Voicemeeter: el archivo de Equalizer APO está desactivado.
+Simulation : « {0} » deviendrait la sortie par défaut, rien n'est modifié.	Simulation: “{0}” would become the default output, nothing is changed.	Simulación: «{0}» pasaría a ser la salida predeterminada, no se modifica nada.
+Changement de la sortie par défaut…	Changing the default output…	Cambiando la salida predeterminada…
+« {0} » est maintenant la sortie par défaut (annulable dans l'Historique).	“{0}” is now the default output (can be undone in History).	«{0}» es ahora la salida predeterminada (se deshace en el Historial).
+Windows uniquement.	Windows only.	Solo Windows.
+Cette sortie n'est plus branchée ou n'est plus active.	This output is no longer plugged in or active.	Esta salida ya no está conectada o activa.
+Windows n'a pas pris en compte le changement de sortie.	Windows did not apply the output change.	Windows no ha aplicado el cambio de salida.
+la sortie d'avant n'est plus branchée : branche-la, puis annule de nouveau	the previous output is no longer plugged in: plug it in, then undo again	la salida anterior ya no está conectada: conéctala y vuelve a deshacer
+Écoute du son indisponible sur cette sortie.	Sound monitoring unavailable on this output.	Escucha del sonido no disponible en esta salida.
+Format audio illisible.	Unreadable audio format.	Formato de audio ilegible.
+Format audio non pris en charge par le spectre.	Audio format not supported by the spectrum.	Formato de audio no compatible con el espectro.
+Écoute du son indisponible.	Sound monitoring unavailable.	Escucha del sonido no disponible.
+Windows refuse l'écoute de cette sortie.	Windows refuses to monitor this output.	Windows rechaza la escucha de esta salida.
+Aucune sortie audio par défaut.	No default audio output.	No hay salida de audio predeterminada.
+Bibliothèque de Voicemeeter illisible.	Voicemeeter library unreadable.	Biblioteca de Voicemeeter ilegible.
+Voicemeeter n'est pas lancé : rien n'a été modifié.	Voicemeeter is not running: nothing was changed.	Voicemeeter no está iniciado: no se ha modificado nada.
+Cette version de Voicemeeter n'a pas d'égaliseur sur ses bus (Banana ou Potato seulement).	This version of Voicemeeter has no equalizer on its buses (Banana or Potato only).	Esta versión de Voicemeeter no tiene ecualizador en sus buses (solo Banana o Potato).
+Bibliothèque de Voicemeeter incomplète : rien n'a été modifié.	Voicemeeter library incomplete: nothing was changed.	Biblioteca de Voicemeeter incompleta: no se ha modificado nada.
+Voicemeeter ne répond pas.	Voicemeeter is not responding.	Voicemeeter no responde.
+Voicemeeter ne répond pas	Voicemeeter is not responding	Voicemeeter no responde
+Voicemeeter n'est pas lancé : lance-le, puis annule de nouveau	Voicemeeter is not running: start it, then undo again	Voicemeeter no está iniciado: inícialo y vuelve a deshacer
+Audio jeu : égaliseur Voicemeeter coupé	Game audio: Voicemeeter equalizer off	Audio de juego: ecualizador de Voicemeeter desactivado
+^Sortie audio par défaut : (.+)$	Default audio output: $1	Salida de audio predeterminada: $1
+^Windows a refusé le changement de sortie \(code (\w+)\)\.$	Windows refused the output change (code $1).	Windows ha rechazado el cambio de salida (código $1).
+^Changement de sortie impossible sur ce PC : (.+)$	Output change not possible on this PC: $1	Cambio de salida imposible en este PC: $1
+^Écoute du son indisponible : (.+)$	Sound monitoring unavailable: $1	Escucha del sonido no disponible: $1
+^Écoute interrompue : (.+)$	Monitoring interrupted: $1	Escucha interrumpida: $1
+^Voicemeeter ne connaît pas le réglage « (.+) » \(version trop ancienne \?\) : rien n'a été modifié\.$	Voicemeeter doesn't know the “$1” setting (version too old?): nothing was changed.	Voicemeeter no conoce el ajuste «$1» (¿versión demasiado antigua?): no se ha modificado nada.
+^Voicemeeter a refusé le réglage \(code (-?\d+)\) : rien n'a été modifié\.$	Voicemeeter refused the setting (code $1): nothing was changed.	Voicemeeter ha rechazado el ajuste (código $1): no se ha modificado nada.
+^Voicemeeter a refusé le réglage \(code (-?\d+)\)$	Voicemeeter refused the setting (code $1)	Voicemeeter ha rechazado el ajuste (código $1)

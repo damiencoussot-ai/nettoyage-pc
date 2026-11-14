@@ -63,7 +63,6 @@ namespace NettoyagePC.Nouveau
             O("reglagesjeux", "Accelerer", "Réglages des jeux", "Mode jeu de Windows, GPU, jeux en fenêtré.", f => ReglagesWindows5.Jeux(f)),
             O("pingjeu", "Accelerer", "Ping des serveurs de jeu", "Latence vers les régions de serveurs.", f => PingJeu5.Ouvrir(f)),
             O("mesjeux", "Accelerer", "Mes jeux", "Tes jeux installés et la place qu'ils prennent.", f => MesJeux5.Ouvrir(f)),
-            O("audiojeu", "Accelerer", "Audio jeu", "Entendre les pas dans Call of Duty / Warzone.", f => AudioJeu5.Ouvrir(f)),
             O("tempsdemarrage", "Accelerer", "Temps de démarrage", "Du bouton marche au bureau, sur 30 jours.", f => TempsDemarrage5.Ouvrir(f)),
 
             O("secu", "Proteger", "Bilan de sécurité", "Antivirus, pare-feu, Secure Boot, mises à jour.", Act("secu")),
@@ -108,6 +107,8 @@ namespace NettoyagePC.Nouveau
             O("moniteur", "Premium", "Moniteur en direct", "Courbes du PC sur 60 secondes.", Outil("moniteur"), true),
             O("widget", "Premium", "Widget de bureau", "L'indice et les mesures toujours visibles.", Outil("widget"), true),
             O("batterie", "Premium", "Santé de la batterie", "Usure, cycles et autonomie réelle.", Outil("batterie"), true),
+
+            O("audiojeu", "Audio", "Audio jeu", "Entendre les pas dans Call of Duty / Warzone.", f => AudioJeu5.Ouvrir(f), true),
         };
 
         /// <summary>Favori qui correspond à une fonction qu'on active (gardien, mode jeu...) → clé de son état.</summary>

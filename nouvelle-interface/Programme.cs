@@ -164,7 +164,9 @@ namespace NettoyagePC.Nouveau
             for (int k = 0; k < 6; k++) { Dispatcher.UIThread.RunJobs(); AvaloniaHeadlessPlatform.ForceRenderTimerTick(); }
             var image = f.CaptureRenderedFrame();
             if (image == null) { erreurs++; rapport.AppendLine("ERREUR : capture vide " + nom); return; }
-            image.Save(Path.Combine(dossier, nom));
+            // image libérée tout de suite après l'enregistrement : laissées au ramasse-miettes, les images étaient libérées
+            // sur un autre fil pendant l'encodage PNG suivant (arrêts brutaux dans sk_image_encode)
+            using (image) image.Save(Path.Combine(dossier, nom));
             rapport.AppendLine("OK : " + nom);
         }
 
@@ -197,7 +199,7 @@ namespace NettoyagePC.Nouveau
                         {
                             f.SousPage(o[0], o[1]); f.Afficher(o[0], false); Pomper();
                         }
-                        if (f.CaptureRenderedFrame() == null) throw new InvalidOperationException("rendu de la fenêtre impossible");
+                        using (var essai = f.CaptureRenderedFrame()) if (essai == null) throw new InvalidOperationException("rendu de la fenêtre impossible");
                     }
                     f.Close();
                 }
@@ -219,7 +221,20 @@ namespace NettoyagePC.Nouveau
             releve.Sorties.Add(new SortieAudio { Guid = casque, Nom = "Casque", Carte = "Arctis Nova Pro" });
             releve.Sorties.Add(new SortieAudio { Guid = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee", Nom = "Haut-parleurs", Carte = "Realtek(R) Audio" });
             releve.Defaut = casque; releve.NomDefaut = "Casque (Arctis Nova Pro)"; releve.Jeu = "cod.exe"; releve.Configurator = true;
+            releve.Windows.Add(new SortieWindows { Id = "{0.0.0.00000000}.{" + casque + "}", Guid = casque, Nom = "Casque (Arctis Nova Pro)", ParDefaut = true });
+            releve.Windows.Add(new SortieWindows { Id = "{0.0.0.00000000}.{aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee}", Guid = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee", Nom = "Haut-parleurs (Realtek(R) Audio)" });
+            releve.Windows.Add(new SortieWindows { Id = "{0.0.0.00000000}.{12345678-90ab-cdef-1234-567890abcdef}", Guid = "12345678-90ab-cdef-1234-567890abcdef", Nom = "Voicemeeter Input (VB-Audio Voicemeeter VAIO)" });
             return r;
+        }
+
+        /// <summary>(captures) Voicemeeter Banana lancé, avec des niveaux d'exemple.</summary>
+        private static EtatVoicemeeter ExempleVoicemeeter()
+        {
+            var e = new EtatVoicemeeter { Installe = true, Lance = true, Type = 2, Version = "2.1.1.8" };
+            e.Bus = Voicemeeter.Disposition(2);
+            e.Bus[0].Appareil = "Casque (Arctis Nova Pro)"; e.Bus[0].G = 0.5f; e.Bus[0].D = 0.42f;
+            e.Bus[3].Label = "Discord"; e.Bus[3].G = 0.12f; e.Bus[3].D = 0.1f;
+            return e;
         }
 
         private static void Pomper() { for (int k = 0; k < 3; k++) { Dispatcher.UIThread.RunJobs(); AvaloniaHeadlessPlatform.ForceRenderTimerTick(); } }
@@ -427,6 +442,48 @@ namespace NettoyagePC.Nouveau
                 try { if (File.Exists(fichier)) File.SetAttributes(fichier, FileAttributes.Normal); Directory.Delete(racine, true); } catch { }
             }
 
+            // ---- lot 2 : spectre, Voicemeeter, sortie par défaut, raccourcis (logique, sans Windows)
+            {
+                // sinusoïde à −6 dB sur une case exacte de l'analyse (48 kHz, 1031,25 Hz) : sa bande à −6 dB, les autres bien plus bas
+                var sin = new float[AnalyseurSpectre.Taille];
+                for (int n = 0; n < sin.Length; n++) sin[n] = (float)(0.5 * Math.Sin(2 * Math.PI * 1031.25 * n / 48000));
+                var sp = AnalyseurSpectre.Analyser(sin, 48000);
+                int maxi = Array.IndexOf(sp, sp.Max());
+                double centre = AnalyseurSpectre.Centres[maxi];
+                verifier(Math.Abs(sp.Max() + 6.02) < 0.3 && centre > 900 && centre < 1200 && sp[2] < -60 && sp[sp.Length - 3] < -60, "spectre : sinusoïde à 1 kHz, −6 dB (max " + sp.Max() + " dB à " + Math.Round(centre) + " Hz, graves " + sp[2] + ", aigus " + sp[sp.Length - 3] + ")");
+                verifier(AnalyseurSpectre.Analyser(new float[AnalyseurSpectre.Taille], 48000).All(x => x <= -170), "spectre : silence");
+                verifier(Math.Abs(AnalyseurSpectre.Centres[0] - 20 * Math.Pow(1000, 0.5 / AnalyseurSpectre.NbBandes)) < 0.01 && AnalyseurSpectre.Centres.Last() < 20000, "spectre : bandes de 20 Hz à 20 kHz");
+
+                // Voicemeeter : bus et canaux de niveaux (Voicemeeter Remote API), noms de paramètres autorisés, réglages de l'égaliseur
+                var d1 = Voicemeeter.Disposition(1); var d2 = Voicemeeter.Disposition(2); var d3 = Voicemeeter.Disposition(3);
+                verifier(string.Join(",", d1.Select(x => x.Nom + x.PremierCanal)) == "A0,B8" && string.Join(",", d2.Select(x => x.Nom + x.PremierCanal)) == "A10,A28,A316,B124,B232"
+                    && d3.Count == 8 && d3[5].Nom == "B1" && d3[5].PremierCanal == 40 && d3[7].PremierCanal == 56 && d3.Count(x => x.Physique) == 5, "Voicemeeter : bus et canaux");
+                verifier(Voicemeeter.ParametreAutorise("Bus[0].EQ.on") && Voicemeeter.ParametreAutorise("Bus[4].EQ.channel[1].cell[5].gain") && Voicemeeter.ParametreAutorise("Bus[7].EQ.channel[0].Trim")
+                    && !Voicemeeter.ParametreAutorise("Bus[0].Gain") && !Voicemeeter.ParametreAutorise("Bus[0].EQ.channel[2].cell[0].gain") && !Voicemeeter.ParametreAutorise("Strip[0].Mute") && !Voicemeeter.ParametreAutorise("Bus[0].EQ.on;Strip[0].Mute=1") && !Voicemeeter.ParametreAutorise(null), "Voicemeeter : paramètres autorisés");
+                var vm = Voicemeeter.ScriptEq(new ReglagesAudioJeu { Actif = true, Gains = (double[])competitif.Clone(), Balance = 2 }, 0);
+                verifier(vm.Count == 1 + 2 * (6 * 5 + 1) && vm["Bus[0].EQ.on"] == 1 && vm["Bus[0].EQ.channel[0].cell[0].type"] == 5 && vm["Bus[0].EQ.channel[1].cell[3].type"] == 0
+                    && vm["Bus[0].EQ.channel[0].cell[3].f"] == 2500 && vm["Bus[0].EQ.channel[1].cell[3].gain"] == 4 && vm["Bus[0].EQ.channel[0].cell[0].q"] == 1 && vm["Bus[0].EQ.channel[0].cell[5].q"] == 2
+                    && vm["Bus[0].EQ.channel[1].Trim"] == -5.2f && vm["Bus[0].EQ.channel[0].Trim"] == -7.2f, "Voicemeeter : égaliseur (plateau grave, cloches, Q, compensation, balance)");
+                var vm2 = Voicemeeter.ScriptEq(new ReglagesAudioJeu { Actif = false, Gains = (double[])competitif.Clone(), CoupeBas = 90 }, 3);
+                verifier(vm2["Bus[3].EQ.on"] == 0 && vm2["Bus[3].EQ.channel[0].cell[0].type"] == 4 && vm2["Bus[3].EQ.channel[0].cell[0].f"] == 90 && vm2["Bus[3].EQ.channel[1].cell[0].on"] == 1 && vm2.Keys.All(Voicemeeter.ParametreAutorise), "Voicemeeter : coupe-explosions dans la première cellule, égaliseur coupé");
+                string sc = Voicemeeter.Script(new System.Collections.Generic.Dictionary<string, float> { { "Bus[0].EQ.on", 1 }, { "Bus[0].EQ.channel[0].Trim", -5.25f }, { "Strip[0].Mute", 1 } });
+                verifier(sc == "Bus[0].EQ.on=1;Bus[0].EQ.channel[0].Trim=-5.25", "Voicemeeter : script (point décimal, paramètres inconnus écartés) : " + sc);
+                verifier(Voicemeeter.Annuler(new Modif { Type = "voicemeeter", Donnees = new System.Collections.Generic.Dictionary<string, object> { { "Avant", new System.Collections.Generic.Dictionary<string, object> { { "Strip[0].Mute", 1 } } } } }).StartsWith("entrée de l'historique invalide")
+                    && Voicemeeter.Annuler(new Modif { Type = "voicemeeter" }).StartsWith("entrée de l'historique invalide"), "Voicemeeter : annulation refusée pour un paramètre inconnu");
+
+                // sortie par défaut : seuls de vrais identifiants de sortie sont acceptés
+                verifier(AudioWindows.IdValide("{0.0.0.00000000}.{0A1B2C3D-4E5F-6789-ABCD-EF0123456789}") && AudioWindows.GuidDe("{0.0.0.00000000}.{0A1B2C3D-4E5F-6789-ABCD-EF0123456789}") == "0a1b2c3d-4e5f-6789-abcd-ef0123456789"
+                    && !AudioWindows.IdValide("{0.0.1.00000000}.{0a1b2c3d-4e5f-6789-abcd-ef0123456789}") && !AudioWindows.IdValide("C:\\Windows\\x.dll") && !AudioWindows.IdValide(null), "sortie par défaut : identifiants");
+                verifier(AudioWindows.Annuler(new Modif { Type = "sortieaudio", Donnees = new System.Collections.Generic.Dictionary<string, object> { { "Console", "pas un identifiant" } } }).StartsWith("entrée de l'historique invalide")
+                    && AudioWindows.Annuler(new Modif { Type = "sortieaudio" }) == "", "sortie par défaut : annulation vérifiée");
+
+                // raccourci « profil suivant », nouveaux réglages relus
+                verifier(AudioJeu.ProfilSuivant(competitif).Cle == "equilibre" && AudioJeu.ProfilSuivant(AudioJeu.Profil("immersion").Gains).Cle == "competitif" && AudioJeu.ProfilSuivant(AudioJeu.Profil("neutre").Gains).Cle == "competitif" && AudioJeu.ProfilSuivant(new double[] { 1, 2, 3, 4, 5, 6 }).Cle == "competitif", "profil suivant");
+                var rv = ReglagesAudioJeu.DepuisJson(Json.Lire(Json.Ecrire(new ReglagesAudioJeu { Raccourcis = true, Moteur = "vm", BusVm = 2, VmEcrit = 2 }.VersJson())) as System.Collections.Generic.Dictionary<string, object>);
+                var rd = new ReglagesAudioJeu { Moteur = "autre", BusVm = 12, VmEcrit = -9 }.Borner();
+                verifier(rv.Raccourcis && rv.Moteur == "vm" && rv.BusVm == 2 && rv.VmEcrit == 2 && rd.Moteur == "apo" && rd.BusVm == 7 && rd.VmEcrit == -1 && !new ReglagesAudioJeu().Raccourcis && new ReglagesAudioJeu().VmEcrit == -1, "réglages : raccourcis, moteur, bus de Voicemeeter");
+            }
+
             // ---- traductions : les lignes de l'Historique et les noms des profils existent en anglais et en espagnol
             string langueAvant = Langue.Code;
             try
@@ -441,7 +498,8 @@ namespace NettoyagePC.Nouveau
                         foreach (var t in new[] { AudioJeu.Titre(rp), AudioJeu.Titre(ra), p.Nom, p.Carte, p.Texte })
                             verifier(Langue.Connue(t), "sans traduction (" + code + ") : " + t);
                     }
-                    foreach (var t in new[] { "Audio jeu", "Audio jeu : égaliseur coupé", "Personnalisé", AudioJeu.Absent, AudioJeu.Refus, AudioJeu.Occupe, AudioJeu.ConfigInattendu }.Concat(AudioJeu.Bandes.Select(b => b.Nom)))
+                    foreach (var t in new[] { "Audio", "Studio son", "Entends chaque pas.", "Le Studio son fait partie de Velox Premium", "Réponse en fréquence", "Raccourcis clavier", "Audio jeu : égaliseur Voicemeeter coupé", "Voicemeeter n'est pas lancé : rien n'a été modifié.", "Cette sortie n'est plus branchée ou n'est plus active.", "Ctrl+Alt+F9 est déjà pris par un autre logiciel.",
+                        "Audio jeu", "Audio jeu : égaliseur coupé", "Personnalisé", AudioJeu.Absent, AudioJeu.Refus, AudioJeu.Occupe, AudioJeu.ConfigInattendu }.Concat(AudioJeu.Bandes.Select(b => b.Nom)))
                         verifier(Langue.Connue(t), "sans traduction (" + code + ") : " + t);
                 }
             }
@@ -721,7 +779,7 @@ namespace NettoyagePC.Nouveau
                         var image = f.CaptureRenderedFrame();
                         string nom = (sombre ? "sombre-" : "clair-") + cle + ".png";
                         if (image == null) { erreurs++; rapport.AppendLine("ERREUR : capture vide " + nom); continue; }
-                        image.Save(Path.Combine(dossier, nom));
+                        using (image) image.Save(Path.Combine(dossier, nom));
                         rapport.AppendLine("OK : " + nom);
                     }
                     catch (Exception ex) { erreurs++; rapport.AppendLine("ERREUR : " + cle + " : " + ex); }
@@ -1194,51 +1252,59 @@ namespace NettoyagePC.Nouveau
             }
             catch (Exception ex) { ModeJeu5.Exemple = null; MajApps5.Exemple = null; Photos5.Exemple = null; Bulletin5.Exemple = null; ReseauPremium5.ExempleAppareils = null; ReseauPremium5.ExempleApps = null; Gardien5.Exemple = null; erreurs++; rapport.AppendLine("ERREUR : outils Premium 5.2 : " + ex); }
 
-            // Audio jeu (gratuit) : sa carte dans Accélérer > Jeux, la fenêtre avec un relevé d'exemple (rien n'est lu ni écrit),
-            // les favoris et la recherche Ctrl+K
+            // Audio (Premium) : la rubrique « Studio son », sous Premium dans le menu ; la page verrouillée sans Premium, puis
+            // (aperçu) déverrouillée avec un relevé d'exemple : rien n'est lu ni écrit. Favoris, carte des Jeux et Ctrl+K.
             try
             {
                 f.ChangerTheme(true); f.SousPage("Accelerer", "Jeux"); f.Afficher("Accelerer", false);
                 for (int k = 0; k < 4; k++) { Dispatcher.UIThread.RunJobs(); AvaloniaHeadlessPlatform.ForceRenderTimerTick(); }
                 bool carteVue = f.GetVisualDescendants().OfType<TextBlock>().Any(t => t.Text == "Audio jeu");
-                bool favoriVu = Favoris5.Par("audiojeu") != null && Favoris5.ParTitre("Audio jeu") == Favoris5.Par("audiojeu");
-                AudioJeu5.ExempleReglages = ExempleAudioJeu(out AudioJeu5.Exemple, true);
-                bool ouvert = f.OuvrirOutil("audiojeu");
+                var cles = f.Rubriques.Select(x => x.Cle).ToList();
+                bool sousPremium = cles.IndexOf("Audio") == cles.IndexOf("Premium") + 1 && !f.Rubriques.First(x => x.Cle == "Audio").EnBas;
+                bool favoriVu = Favoris5.Par("audiojeu") != null && Favoris5.Par("audiojeu").Premium && Favoris5.Par("audiojeu").Rubrique == "Audio";
+                AudioJeu5.ExempleReglages = ExempleAudioJeu(out AudioJeu5.Exemple, true); AudioJeu5.ExempleVoicemeeter = ExempleVoicemeeter();
+                bool ouvert = f.OuvrirOutil("audiojeu") && f.PageActive == "Audio";
                 for (int k = 0; k < 4; k++) { Dispatcher.UIThread.RunJobs(); AvaloniaHeadlessPlatform.ForceRenderTimerTick(); }
-                bool fenetreVue = f.GetVisualDescendants().OfType<AudioJeu5>().Any() && f.GetVisualDescendants().OfType<Interrupteur5>().Any() && f.GetVisualDescendants().OfType<Curseur5>().Count() >= 10;
-                Capturer(f, dossier, "sombre-audiojeu.png", rapport, ref erreurs);
-                f.ViderCalques();
-                f.OptionOuverte("AudioJeu", true);
-                AudioJeu5.Ouvrir(f);
+                bool verrouVu = Licence.Premium || (f.GetVisualDescendants().OfType<TextBlock>().Any(t => t.Text == "Le Studio son fait partie de Velox Premium") && !f.GetVisualDescendants().OfType<Marche5>().Any());
+                Capturer(f, dossier, "sombre-audio-verrou.png", rapport, ref erreurs);
+                AudioJeu5.ApercuPremium = true;
+                f.Afficher("Audio", false);
                 for (int k = 0; k < 4; k++) { Dispatcher.UIThread.RunJobs(); AvaloniaHeadlessPlatform.ForceRenderTimerTick(); }
-                foreach (var defil in f.GetVisualDescendants().OfType<FenetreInterieure>().SelectMany(x => x.GetVisualDescendants().OfType<ScrollViewer>()).Take(1)) defil.Offset = new Vector(0, 520);
-                Capturer(f, dossier, "sombre-audiojeu-options.png", rapport, ref erreurs);
-                foreach (var defil in f.GetVisualDescendants().OfType<FenetreInterieure>().SelectMany(x => x.GetVisualDescendants().OfType<ScrollViewer>()).Take(1)) defil.Offset = new Vector(0, 1250);
-                Capturer(f, dossier, "sombre-audiojeu-options-2.png", rapport, ref erreurs);
-                f.ViderCalques(); f.OptionOuverte("AudioJeu", false);
-                f.ChangerTheme(false); f.Afficher("Accelerer", false);
-                AudioJeu5.Ouvrir(f);
-                Capturer(f, dossier, "clair-audiojeu.png", rapport, ref erreurs);
-                f.ViderCalques(); f.ChangerTheme(true); f.Afficher("Accelerer", false);
-                AudioJeu5.ExempleReglages = ExempleAudioJeu(out AudioJeu5.Exemple, false);
-                AudioJeu5.Ouvrir(f);
-                Capturer(f, dossier, "sombre-audiojeu-absent.png", rapport, ref erreurs);
-                f.ViderCalques();
+                var vus = f.GetVisualDescendants().ToList();
+                bool studioVu = vus.OfType<Marche5>().Count() == 1 && vus.OfType<CourbeEq5>().Count() == 5 && vus.OfType<Molette5>().Count() == 4 && vus.OfType<Fader5>().Count() == 6 && vus.OfType<VuMetre5>().Count() >= 3;
+                Capturer(f, dossier, "sombre-audio.png", rapport, ref erreurs);
+                foreach (var defil in f.GetVisualDescendants().OfType<ScrollViewer>().Where(x => x.Content is AudioJeu5).Take(1)) defil.Offset = new Vector(0, 760);
+                Capturer(f, dossier, "sombre-audio-bas.png", rapport, ref erreurs);
+                foreach (var defil in f.GetVisualDescendants().OfType<ScrollViewer>().Where(x => x.Content is AudioJeu5).Take(1)) defil.Offset = new Vector(0, 1750);
+                Capturer(f, dossier, "sombre-audio-sorties.png", rapport, ref erreurs);
+                foreach (var defil in f.GetVisualDescendants().OfType<ScrollViewer>().Where(x => x.Content is AudioJeu5).Take(1)) defil.Offset = new Vector(0, 2400);
+                Capturer(f, dossier, "sombre-audio-fin.png", rapport, ref erreurs);
+                f.Width = 1600; f.Height = 1000; f.Afficher("Audio", false);
+                Capturer(f, dossier, "grand-audio.png", rapport, ref erreurs);
+                f.Width = 1240; f.Height = 800;
+                f.ChangerTheme(false); f.Afficher("Audio", false);
+                Capturer(f, dossier, "clair-audio.png", rapport, ref erreurs);
+                f.ChangerTheme(true); f.Width = 1100; f.Height = 680; f.Afficher("Audio", false);
+                Capturer(f, dossier, "petit-audio.png", rapport, ref erreurs);
+                f.Width = 1240; f.Height = 800;
+                AudioJeu5.ExempleReglages = ExempleAudioJeu(out AudioJeu5.Exemple, false); AudioJeu5.ExempleVoicemeeter = new EtatVoicemeeter();
+                f.Afficher("Audio", false);
+                Capturer(f, dossier, "sombre-audio-sans-apo.png", rapport, ref erreurs);
                 f.OuvrirPalette();
                 for (int k = 0; k < 3; k++) Dispatcher.UIThread.RunJobs();
                 foreach (var tb in f.GetVisualDescendants().OfType<TextBox>()) tb.Text = "audio";
                 for (int k = 0; k < 3; k++) Dispatcher.UIThread.RunJobs();
-                bool recherche = f.GetVisualDescendants().OfType<TextBlock>().Any(t => t.Text == "Audio jeu");
+                bool recherche = f.GetVisualDescendants().OfType<TextBlock>().Any(t => t.Text == "Audio jeu") && f.GetVisualDescendants().OfType<TextBlock>().Any(t => t.Text == "Audio");
                 foreach (var tb in f.GetVisualDescendants().OfType<TextBox>()) tb.Text = "entends pas les pas";
                 for (int k = 0; k < 3; k++) Dispatcher.UIThread.RunJobs();
                 bool probleme = f.GetVisualDescendants().OfType<TextBlock>().Any(t => t.Text == "Je n'entends pas les pas");
                 Capturer(f, dossier, "sombre-palette-audiojeu.png", rapport, ref erreurs);
-                f.ViderCalques(); f.SousPage("Accelerer", "Optimisation");
-                rapport.AppendLine("Audio jeu (interface) : carte dans Accélérer > Jeux " + carteVue + ", favori " + favoriVu + ", ouverture par sa clé " + ouvert + ", fenêtre " + fenetreVue + ", Ctrl+K « audio » " + recherche + ", Ctrl+K « entends pas les pas » " + probleme);
-                if (!carteVue || !favoriVu || !ouvert || !fenetreVue || !recherche || !probleme) { erreurs++; rapport.AppendLine("ERREUR : audio jeu (interface)"); }
+                f.ViderCalques(); f.SousPage("Accelerer", "Optimisation"); f.Afficher("Accueil", false);
+                rapport.AppendLine("Audio (interface) : rubrique sous Premium " + sousPremium + ", carte dans Accélérer > Jeux " + carteVue + ", favori Premium " + favoriVu + ", ouverture par sa clé " + ouvert + ", page verrouillée sans Premium " + verrouVu + ", studio " + studioVu + ", Ctrl+K « audio » " + recherche + ", Ctrl+K « entends pas les pas » " + probleme);
+                if (!sousPremium || !carteVue || !favoriVu || !ouvert || !verrouVu || !studioVu || !recherche || !probleme) { erreurs++; rapport.AppendLine("ERREUR : audio (interface)"); }
             }
-            catch (Exception ex) { erreurs++; rapport.AppendLine("ERREUR : audio jeu (interface) : " + ex); }
-            finally { AudioJeu5.Exemple = null; AudioJeu5.ExempleReglages = null; }
+            catch (Exception ex) { erreurs++; rapport.AppendLine("ERREUR : audio (interface) : " + ex); }
+            finally { AudioJeu5.Exemple = null; AudioJeu5.ExempleReglages = null; AudioJeu5.ExempleVoicemeeter = null; AudioJeu5.ApercuPremium = false; f.Width = 1240; f.Height = 800; }
 
             // analyses des plantages et du démarrage avec des résultats d'exemple (rien n'est lancé)
             try
@@ -1477,7 +1543,7 @@ namespace NettoyagePC.Nouveau
                 f.ChangerTheme(true); f.Width = 1100; f.Height = 680; f.Afficher("Accueil", false);
                 for (int k = 0; k < 6; k++) { Dispatcher.UIThread.RunJobs(); AvaloniaHeadlessPlatform.ForceRenderTimerTick(); }
                 var image = f.CaptureRenderedFrame();
-                if (image != null) { image.Save(Path.Combine(dossier, "petit-Accueil.png")); rapport.AppendLine("OK : petit-Accueil.png"); }
+                if (image != null) { using (image) image.Save(Path.Combine(dossier, "petit-Accueil.png")); rapport.AppendLine("OK : petit-Accueil.png"); }
             }
             catch (Exception ex) { erreurs++; rapport.AppendLine("ERREUR : petite fenêtre : " + ex); }
 
@@ -1515,22 +1581,23 @@ namespace NettoyagePC.Nouveau
                     g.DemanderConfirmation(QuestionComplete(), r => { });
                     Capturer(g, dossier, code + "-question.png", rapport, ref erreurs);
                     g.ViderCalques();
-                    // Audio jeu : Equalizer APO absent, puis présent avec « Plus d'options » ouvert
+                    // Audio : verrouillé, puis le studio (aperçu Premium) avec Voicemeeter et un niveau au-dessus de 0 dB
                     try
                     {
-                        AudioJeu5.ExempleReglages = ExempleAudioJeu(out AudioJeu5.Exemple, false);
-                        AudioJeu5.Ouvrir(g);
+                        AudioJeu5.ExempleReglages = ExempleAudioJeu(out AudioJeu5.Exemple, true); AudioJeu5.ExempleVoicemeeter = ExempleVoicemeeter();
+                        g.Afficher("Audio", false);
                         for (int k = 0; k < 4; k++) { Dispatcher.UIThread.RunJobs(); AvaloniaHeadlessPlatform.ForceRenderTimerTick(); }
-                        g.ViderCalques();
-                        AudioJeu5.ExempleReglages = ExempleAudioJeu(out AudioJeu5.Exemple, true);
-                        AudioJeu5.ExempleReglages.Niveau = 2; AudioJeu5.ExempleReglages.Balance = 1.5; AudioJeu5.ExempleReglages.Largeur = 30; AudioJeu5.ExempleReglages.Cible = "toutes";
-                        g.OptionOuverte("AudioJeu", true);
-                        AudioJeu5.Ouvrir(g);
-                        Capturer(g, dossier, code + "-audiojeu.png", rapport, ref erreurs);
-                        g.OptionOuverte("AudioJeu", false);
-                        g.ViderCalques();
+                        AudioJeu5.ApercuPremium = true;
+                        AudioJeu5.ExempleReglages.Niveau = 2; AudioJeu5.ExempleReglages.Balance = 1.5; AudioJeu5.ExempleReglages.Largeur = 30; AudioJeu5.ExempleReglages.Cible = "toutes"; AudioJeu5.ExempleReglages.AutoJeu = true; AudioJeu5.ExempleReglages.Raccourcis = true;
+                        g.Afficher("Audio", false);
+                        Capturer(g, dossier, code + "-audio.png", rapport, ref erreurs);
+                        foreach (var defil in g.GetVisualDescendants().OfType<ScrollViewer>().Where(x => x.Content is AudioJeu5).Take(1)) defil.Offset = new Vector(0, 760);
+                        Capturer(g, dossier, code + "-audio-bas.png", rapport, ref erreurs);
+                        AudioJeu5.ExempleReglages = ExempleAudioJeu(out AudioJeu5.Exemple, false); AudioJeu5.ExempleVoicemeeter = new EtatVoicemeeter { Installe = true };
+                        g.Afficher("Audio", false);
+                        for (int k = 0; k < 4; k++) { Dispatcher.UIThread.RunJobs(); AvaloniaHeadlessPlatform.ForceRenderTimerTick(); }
                     }
-                    finally { AudioJeu5.Exemple = null; AudioJeu5.ExempleReglages = null; }
+                    finally { AudioJeu5.Exemple = null; AudioJeu5.ExempleReglages = null; AudioJeu5.ExempleVoicemeeter = null; AudioJeu5.ApercuPremium = false; }
                     g.Close();
                 }
                 catch (Exception ex) { Reseau5.Exemple = false; erreurs++; rapport.AppendLine("ERREUR : captures en " + code + " : " + ex); }

@@ -287,8 +287,9 @@ Section "Uninstall"
     nsExec::ExecToLog '"$SYSDIR\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -ExecutionPolicy Bypass -Command "Get-ScheduledTask -TaskName ''Nettoyage PC*'',''Velox - *'' -ErrorAction SilentlyContinue | Unregister-ScheduledTask -Confirm:$$false"'
     Pop $0
 
-    ; Audio jeu : retire le fichier de l'égaliseur (MW_optimizer.txt) et sa ligne Include du dossier d'Equalizer APO
-    ; (le reste de config.txt n'est pas touché ; sans Equalizer APO, rien n'est fait)
+    ; Audio : retire le fichier de l'égaliseur (MW_optimizer.txt) et sa ligne Include du dossier d'Equalizer APO
+    ; (le reste de config.txt n'est pas touché ; sans Equalizer APO, rien n'est fait), et coupe l'égaliseur de
+    ; Voicemeeter si Velox l'avait allumé
     ${If} ${FileExists} "$INSTDIR\NettoyagePC.exe"
         nsExec::ExecToLog '"$INSTDIR\NettoyagePC.exe" --retirer-audio-jeu'
         Pop $0

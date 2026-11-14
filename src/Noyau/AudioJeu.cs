@@ -49,6 +49,12 @@ namespace NettoyagePC
         public string Cible = "auto";
         /// <summary>Sortie écrite dans le dernier fichier (« » = toutes) : sert à le réécrire quand la sortie par défaut change.</summary>
         public string CibleEcrite = "";
+        /// <summary>Raccourcis clavier globaux (Ctrl+Alt+F9 : égaliseur, Ctrl+Alt+F10 : profil suivant). Désactivés par défaut.</summary>
+        public bool Raccourcis;
+        /// <summary>Moteur de l'égaliseur : « apo » (Equalizer APO) ou « vm » (égaliseur des bus de Voicemeeter Banana / Potato).</summary>
+        public string Moteur = "apo";
+        /// <summary>Bus de Voicemeeter égalisé (0 = A1), et bus dont Velox a allumé l'égaliseur (−1 : aucun).</summary>
+        public int BusVm, VmEcrit = -1;
 
         public ReglagesAudioJeu Copie() { var c = (ReglagesAudioJeu)MemberwiseClone(); c.Gains = (double[])Gains.Clone(); return c; }
 
@@ -70,6 +76,8 @@ namespace NettoyagePC
             if (CoupeBas != 60 && CoupeBas != 90 && CoupeBas != 120) CoupeBas = 0;
             if (Cible != "auto" && Cible != "toutes") { Cible = AudioJeu.NormaliserGuid(Cible); if (Cible == "") Cible = "auto"; }
             CibleEcrite = AudioJeu.NormaliserGuid(CibleEcrite);
+            if (Moteur != "vm") Moteur = "apo";
+            BusVm = Math.Max(0, Math.Min(7, BusVm)); VmEcrit = Math.Max(-1, Math.Min(7, VmEcrit));
             return this;
         }
 
@@ -79,6 +87,7 @@ namespace NettoyagePC
             {
                 { "Actif", Actif }, { "Gains", Gains.Select(x => (object)x).ToArray() }, { "Intensite", Intensite }, { "Niveau", Niveau }, { "Balance", Balance },
                 { "Largeur", Largeur }, { "CoupeBas", CoupeBas }, { "Inversion", Inversion }, { "AutoJeu", AutoJeu }, { "Cible", Cible }, { "CibleEcrite", CibleEcrite },
+                { "Raccourcis", Raccourcis }, { "Moteur", Moteur }, { "BusVm", BusVm }, { "VmEcrit", VmEcrit },
             };
         }
 
@@ -97,6 +106,8 @@ namespace NettoyagePC
             r.Largeur = (int)Json.Long(d, "Largeur"); r.CoupeBas = (int)Json.Long(d, "CoupeBas");
             r.Inversion = Json.Bool(d, "Inversion"); r.AutoJeu = Json.Bool(d, "AutoJeu");
             r.Cible = Json.Texte(d, "Cible", "auto"); r.CibleEcrite = Json.Texte(d, "CibleEcrite");
+            r.Raccourcis = Json.Bool(d, "Raccourcis"); r.Moteur = Json.Texte(d, "Moteur", "apo");
+            r.BusVm = (int)Json.Long(d, "BusVm"); r.VmEcrit = (int)Json.Long(d, "VmEcrit", -1);
             return r.Borner();
         }
     }
@@ -149,6 +160,14 @@ namespace NettoyagePC
         };
 
         public static ProfilAudio Profil(string cle) { return Profils.FirstOrDefault(p => p.Cle == cle); }
+
+        /// <summary>Profil suivant parmi les quatre grands (raccourci « profil suivant ») ; après un réglage personnalisé : le premier.</summary>
+        public static ProfilAudio ProfilSuivant(double[] gains)
+        {
+            var p = ProfilDe(gains);
+            int i = p == null ? -1 : Array.IndexOf(Profils, p);
+            return Profils[i < 0 || i >= 3 ? 0 : i + 1];
+        }
 
         /// <summary>Profil dont les gains sont exactement ceux-là, ou null (réglage personnalisé).</summary>
         public static ProfilAudio ProfilDe(double[] gains)
@@ -343,26 +362,7 @@ namespace NettoyagePC
         }
 
         /// <summary>Identifiant de la sortie par défaut de Windows ("" si elle n'a pas pu être lue). Lecture seule.</summary>
-        public static string SortieParDefaut()
-        {
-            if (!Natif.EstWindows) return "";
-            IMMDeviceEnumerator e = null; IMMDevice d = null;
-            try
-            {
-                e = (IMMDeviceEnumerator)new MMDeviceEnumeratorCom();
-                if (e.GetDefaultAudioEndpoint(0, 0, out d) != 0 || d == null) return "";   // sortie (eRender), usage général (eConsole)
-                string id;
-                if (d.GetId(out id) != 0 || id == null) return "";
-                var m = Regex.Match(id, @"\{([0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12})\}\s*$");
-                return m.Success ? m.Groups[1].Value.ToLowerInvariant() : "";
-            }
-            catch { return ""; }
-            finally
-            {
-                try { if (d != null) Marshal.ReleaseComObject(d); } catch { }
-                try { if (e != null) Marshal.ReleaseComObject(e); } catch { }
-            }
-        }
+        public static string SortieParDefaut() { return AudioWindows.GuidDe(AudioWindows.ParDefaut()); }
 
         /// <summary>
         /// Sortie à écrire dans le fichier ("" = toutes les sorties où Equalizer APO est installé).
@@ -796,23 +796,4 @@ namespace NettoyagePC
             }
         }
     }
-
-    // ---------------- sortie par défaut de Windows (API audio de Windows, lecture seule)
-    [ComImport, Guid("A95664D2-9614-4F35-A746-DE8DB63617E6"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-    internal interface IMMDeviceEnumerator
-    {
-        [PreserveSig] int EnumAudioEndpoints(int flux, int etats, out IntPtr appareils);
-        [PreserveSig] int GetDefaultAudioEndpoint(int flux, int role, out IMMDevice appareil);
-    }
-
-    [ComImport, Guid("D666063F-1587-4E43-81F1-B948E807363F"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-    internal interface IMMDevice
-    {
-        [PreserveSig] int Activate(ref Guid interfaceVoulue, int contexte, IntPtr parametres, out IntPtr objet);
-        [PreserveSig] int OpenPropertyStore(int acces, out IntPtr proprietes);
-        [PreserveSig] int GetId([MarshalAs(UnmanagedType.LPWStr)] out string id);
-    }
-
-    [ComImport, Guid("BCDE0395-E52F-467C-8E3D-C4579291692E"), ClassInterface(ClassInterfaceType.None)]
-    internal class MMDeviceEnumeratorCom { }
 }
