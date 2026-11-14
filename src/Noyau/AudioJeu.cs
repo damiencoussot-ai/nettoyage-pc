@@ -55,6 +55,8 @@ namespace NettoyagePC
         public string Moteur = "apo";
         /// <summary>Bus de Voicemeeter égalisé (0 = A1), et bus dont Velox a allumé l'égaliseur (−1 : aucun).</summary>
         public int BusVm, VmEcrit = -1;
+        /// <summary>Dernier appareil vu sur le bus A de Voicemeeter (pour viser la bonne sortie quand Voicemeeter est la sortie par défaut).</summary>
+        public string AppareilVm = "";
 
         public ReglagesAudioJeu Copie() { var c = (ReglagesAudioJeu)MemberwiseClone(); c.Gains = (double[])Gains.Clone(); return c; }
 
@@ -87,7 +89,7 @@ namespace NettoyagePC
             {
                 { "Actif", Actif }, { "Gains", Gains.Select(x => (object)x).ToArray() }, { "Intensite", Intensite }, { "Niveau", Niveau }, { "Balance", Balance },
                 { "Largeur", Largeur }, { "CoupeBas", CoupeBas }, { "Inversion", Inversion }, { "AutoJeu", AutoJeu }, { "Cible", Cible }, { "CibleEcrite", CibleEcrite },
-                { "Raccourcis", Raccourcis }, { "Moteur", Moteur }, { "BusVm", BusVm }, { "VmEcrit", VmEcrit },
+                { "Raccourcis", Raccourcis }, { "Moteur", Moteur }, { "BusVm", BusVm }, { "VmEcrit", VmEcrit }, { "AppareilVm", AppareilVm ?? "" },
             };
         }
 
@@ -108,6 +110,7 @@ namespace NettoyagePC
             r.Cible = Json.Texte(d, "Cible", "auto"); r.CibleEcrite = Json.Texte(d, "CibleEcrite");
             r.Raccourcis = Json.Bool(d, "Raccourcis"); r.Moteur = Json.Texte(d, "Moteur", "apo");
             r.BusVm = (int)Json.Long(d, "BusVm"); r.VmEcrit = (int)Json.Long(d, "VmEcrit", -1);
+            string av = Json.Texte(d, "AppareilVm"); r.AppareilVm = av.Length <= 200 ? av : "";
             return r.Borner();
         }
     }
@@ -369,6 +372,45 @@ namespace NettoyagePC
         /// « etat » : 0 = la sortie visée a Equalizer APO ; 1 = Auto, mais la sortie par défaut de Windows ne l'a pas
         /// (toutes les sorties sont alors visées) ; 2 = la sortie choisie ne l'a plus ; 3 = il n'est installé sur aucune sortie.
         /// </summary>
+        /// <summary>« etat » 4 (Auto, avec Voicemeeter) : la sortie par défaut est Voicemeeter, l'égaliseur vise l'appareil de
+        /// son bus A (« nomDefaut » : nom de la sortie par défaut ; « appareilVm » : appareil du bus A de Voicemeeter).</summary>
+        public static string Resoudre(string cible, List<SortieAudio> sorties, string defaut, out int etat, string nomDefaut, string appareilVm)
+        {
+            string g = Resoudre(cible, sorties, defaut, out etat);
+            if (etat != 1 || cible != "auto" || !EstVoicemeeter(nomDefaut)) return g;
+            string vm = SortieVoicemeeter(appareilVm, sorties);
+            if (vm == "") return g;
+            etat = 4;
+            return vm;
+        }
+
+        /// <summary>Vrai si ce nom de sortie est un appareil virtuel de Voicemeeter (« Voicemeeter Input (VB-Audio Voicemeeter VAIO) »).</summary>
+        public static bool EstVoicemeeter(string nom)
+        {
+            return nom != null && (nom.IndexOf("voicemeeter", StringComparison.OrdinalIgnoreCase) >= 0 || nom.IndexOf("vb-audio", StringComparison.OrdinalIgnoreCase) >= 0);
+        }
+
+        private static string NomComparable(string s)
+        {
+            s = Regex.Replace((s ?? "").Trim(), @"^(wdm|ks|mme|asio)\s*:\s*", "", RegexOptions.IgnoreCase);
+            return Regex.Replace(s, @"\s+", " ").ToLowerInvariant();
+        }
+
+        /// <summary>Sortie (avec Equalizer APO) qui correspond à l'appareil d'un bus de Voicemeeter, "" si aucune ou plusieurs.
+        /// Voicemeeter peut couper les noms longs (pilote MME : 31 caractères) : un début commun suffit.</summary>
+        public static string SortieVoicemeeter(string appareil, List<SortieAudio> sorties)
+        {
+            string a = NomComparable(appareil);
+            if (a.Length < 4 || EstVoicemeeter(a)) return "";
+            var trouvees = sorties.Where(s =>
+            {
+                string n = NomComparable(s.Libelle);
+                if (n == a) return true;
+                return Math.Min(n.Length, a.Length) >= 10 && (n.StartsWith(a, StringComparison.Ordinal) || a.StartsWith(n, StringComparison.Ordinal));
+            }).Select(s => s.Guid).Distinct().ToList();
+            return trouvees.Count == 1 ? trouvees[0] : "";
+        }
+
         public static string Resoudre(string cible, List<SortieAudio> sorties, string defaut, out int etat)
         {
             etat = sorties.Count == 0 ? 3 : 0;
@@ -709,6 +751,29 @@ namespace NettoyagePC
                 catch (Exception ex) { return Raison(ex); }
             }
             return "";
+        }
+
+        /// <summary>
+        /// Bouton « Comparer » : pendant l'appui, le fichier passe à l'égaliseur coupé ; au relâchement, il revient tel qu'il
+        /// était. Rien n'est enregistré ni noté dans l'Historique. Seulement si le fichier en place est celui de Velox
+        /// (« attendu ») : un fichier écrit par un autre outil n'est jamais touché. Renvoie "" si c'est fait.
+        /// </summary>
+        public static string Comparer(bool couper, string attendu)
+        {
+            lock (verrou)
+            {
+                try
+                {
+                    if (!Present || string.IsNullOrEmpty(attendu)) return Absent;
+                    var avant = LireOctets(Fichier);
+                    if (avant == null) return Absent;
+                    string actuel = Octets.GetString(avant), voulu = couper ? LigneCoupe + "\r\n" : attendu;
+                    if (actuel != attendu && actuel != LigneCoupe + "\r\n") return "Le fichier en place ne vient pas de Velox : rien n'a été modifié.";
+                    if (actuel != voulu) EcrireOctets(Fichier, Encoding.ASCII.GetBytes(voulu));
+                    return "";
+                }
+                catch (Exception ex) { return Raison(ex); }
+            }
         }
 
         // ------------------------------------------------------------ Historique : noter, annuler

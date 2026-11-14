@@ -427,6 +427,17 @@ namespace NettoyagePC.Nouveau
                 verifier(AudioJeu.Etat().Include && AudioJeu.Retirer() == 0 && !File.Exists(fichier) && File.ReadAllBytes(config).SequenceEqual(latin.GetBytes("ï»¿Preamp: -2 dB\r\n# Include: MW_optimizer.txt\r\ninclude: MW_optimizer.txt\r\nInclude: MW_optimizer.txt.bak\r\nFin")), "seules les vraies lignes Include de l'égaliseur sont retirées (marque d'encodage, commentaire et autres lignes gardés)");
                 verifier(AudioJeu.Retirer() == 0, "désinstallation sans rien à retirer");
 
+                // bouton « Comparer » : égaliseur coupé pendant l'appui, puis le même fichier ; un fichier d'un autre outil n'est pas touché
+                File.WriteAllBytes(config, origine);
+                var cmp = r1.Copie();
+                verifier(AudioJeu.Appliquer(cmp, "", true) == "", "comparer : préparation");
+                string ecritCmp = File.ReadAllText(fichier);
+                int notesCmp = notes();
+                verifier(AudioJeu.Comparer(true, AudioJeu.Generer(cmp, "")) == "" && File.ReadAllText(fichier) == "# MW Sound Optimizer : desactive\r\n"
+                    && AudioJeu.Comparer(false, AudioJeu.Generer(cmp, "")) == "" && File.ReadAllText(fichier) == ecritCmp && notes() == notesCmp && AudioJeu.Lire().Actif, "comparer : coupé pendant l'appui, puis rétabli, sans Historique ni réglages changés");
+                File.WriteAllText(fichier, "Preamp: -3 dB\r\n");
+                verifier(AudioJeu.Comparer(true, AudioJeu.Generer(cmp, "")) != "" && File.ReadAllText(fichier) == "Preamp: -3 dB\r\n", "comparer : fichier d'un autre outil pas touché");
+
                 // Windows refuse l'écriture (fichier en lecture seule) : rien n'est modifié, et c'est dit
                 File.WriteAllBytes(config, origine); File.WriteAllBytes(fichier, proto);
                 File.SetAttributes(fichier, FileAttributes.ReadOnly);
@@ -482,6 +493,39 @@ namespace NettoyagePC.Nouveau
                 var rv = ReglagesAudioJeu.DepuisJson(Json.Lire(Json.Ecrire(new ReglagesAudioJeu { Raccourcis = true, Moteur = "vm", BusVm = 2, VmEcrit = 2 }.VersJson())) as System.Collections.Generic.Dictionary<string, object>);
                 var rd = new ReglagesAudioJeu { Moteur = "autre", BusVm = 12, VmEcrit = -9 }.Borner();
                 verifier(rv.Raccourcis && rv.Moteur == "vm" && rv.BusVm == 2 && rv.VmEcrit == 2 && rd.Moteur == "apo" && rd.BusVm == 7 && rd.VmEcrit == -1 && !new ReglagesAudioJeu().Raccourcis && new ReglagesAudioJeu().VmEcrit == -1, "réglages : raccourcis, moteur, bus de Voicemeeter");
+
+                // lot 3 : Voicemeeter comme sortie par défaut → l'égaliseur vise l'appareil du bus A (nom éventuellement coupé par Voicemeeter)
+                var sv = new System.Collections.Generic.List<SortieAudio>
+                {
+                    new SortieAudio { Guid = "11111111-2222-3333-4444-555555555555", Nom = "Casque", Carte = "Arctis Nova Pro Wireless" },
+                    new SortieAudio { Guid = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee", Nom = "Haut-parleurs", Carte = "Realtek(R) Audio" },
+                };
+                int ev;
+                verifier(AudioJeu.EstVoicemeeter("Voicemeeter Input (VB-Audio Voicemeeter VAIO)") && !AudioJeu.EstVoicemeeter("Casque (Arctis)") && !AudioJeu.EstVoicemeeter(null), "Voicemeeter reconnu comme sortie");
+                verifier(AudioJeu.SortieVoicemeeter("Casque (Arctis Nova Pro Wireless)", sv) == "11111111-2222-3333-4444-555555555555"
+                    && AudioJeu.SortieVoicemeeter("WDM: Haut-parleurs (Realtek(R) Audio)", sv) == "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
+                    && AudioJeu.SortieVoicemeeter("Casque (Arctis Nova Pro Wir", sv) == "11111111-2222-3333-4444-555555555555"
+                    && AudioJeu.SortieVoicemeeter("Ca", sv) == "" && AudioJeu.SortieVoicemeeter("", sv) == "" && AudioJeu.SortieVoicemeeter("Voicemeeter Input", sv) == "", "appareil du bus A retrouvé parmi les sorties (nom coupé, préfixe WDM)");
+                verifier(AudioJeu.Resoudre("auto", sv, "99999999-8888-7777-6666-555555555555", out ev, "Voicemeeter Input (VB-Audio Voicemeeter VAIO)", "Casque (Arctis Nova Pro Wireless)") == "11111111-2222-3333-4444-555555555555" && ev == 4
+                    && AudioJeu.Resoudre("auto", sv, "99999999-8888-7777-6666-555555555555", out ev, "Écran (HDMI)", "Casque (Arctis Nova Pro Wireless)") == "" && ev == 1
+                    && AudioJeu.Resoudre("toutes", sv, "99999999-8888-7777-6666-555555555555", out ev, "Voicemeeter Input", "Casque (Arctis Nova Pro Wireless)") == "" && ev == 0, "Auto avec Voicemeeter : l'appareil du bus A, seulement en Auto");
+
+                // processus d'écoute : lignes envoyées puis relues à l'identique, état de Voicemeeter compris
+                var spl = Enumerable.Range(0, AnalyseurSpectre.NbBandes).Select(i => (float)(-i * 1.5)).ToArray();
+                string lsp = EcouteDirecte.Ligne(spl, 0.5f, 0.25f, "Format audio illisible.");
+                EcouteDirecte.Traiter(lsp);
+                verifier(EcouteDirecte.Spectre != null && EcouteDirecte.Spectre.Length == spl.Length && Math.Abs(EcouteDirecte.Spectre[10] + 15) < 0.01 && EcouteDirecte.CreteG == 0.5f && EcouteDirecte.CreteD == 0.25f && EcouteDirecte.Erreur == "Format audio illisible.", "écoute : ligne relue (" + lsp.Substring(0, 30) + "…)");
+                EcouteDirecte.Traiter(EcouteDirecte.Ligne(null, 0, 0, null));
+                EcouteDirecte.Traiter("S 1,2,3 0 0");   // ligne abîmée : ignorée
+                verifier(EcouteDirecte.Spectre == null && EcouteDirecte.Erreur == "", "écoute : silence, ligne abîmée ignorée");
+                var evm = ExempleVoicemeeter();
+                var etatAvant = Voicemeeter.Etat;
+                EcouteDirecte.Traiter("V " + Json.Compact(evm.VersJson()));
+                var evr = Voicemeeter.Etat;
+                verifier(evr.Lance && evr.Type == 2 && evr.Version == "2.1.1.8" && evr.Bus.Count == 5 && evr.Bus[0].Appareil == "Casque (Arctis Nova Pro)" && Math.Abs(evr.Bus[0].G - 0.5f) < 0.001 && evr.Bus[3].Label == "Discord" && evr.EgaliseurNatif, "écoute : état de Voicemeeter relu");
+                Voicemeeter.Etat = etatAvant;
+                verifier(EtatVoicemeeter.DepuisJson(null) == null && EtatVoicemeeter.DepuisJson(new System.Collections.Generic.Dictionary<string, object> { { "T", 99 } }).Type == 3, "écoute : état de Voicemeeter borné");
+                verifier(AudioWindows.ChangerEnProcessus(new[] { "--sortie-audio-defaut", "C:\\Windows\\x.dll", "0" }) == 3 && AudioWindows.ChangerEnProcessus(new[] { "--sortie-audio-defaut", "{0.0.0.00000000}.{0a1b2c3d-4e5f-6789-abcd-ef0123456789}", "0,7" }) == 3, "changement de sortie (processus à part) : arguments vérifiés");
             }
 
             // ---- traductions : les lignes de l'Historique et les noms des profils existent en anglais et en espagnol
@@ -1271,7 +1315,8 @@ namespace NettoyagePC.Nouveau
                 f.Afficher("Audio", false);
                 for (int k = 0; k < 4; k++) { Dispatcher.UIThread.RunJobs(); AvaloniaHeadlessPlatform.ForceRenderTimerTick(); }
                 var vus = f.GetVisualDescendants().ToList();
-                bool studioVu = vus.OfType<Marche5>().Count() == 1 && vus.OfType<CourbeEq5>().Count() == 5 && vus.OfType<Molette5>().Count() == 4 && vus.OfType<Fader5>().Count() == 6 && vus.OfType<VuMetre5>().Count() >= 3;
+                bool studioVu = vus.OfType<Marche5>().Count() == 1 && vus.OfType<CourbeEq5>().Count() == 5 && vus.OfType<Molette5>().Count() == 4 && vus.OfType<Fader5>().Count() == 6 && vus.OfType<VuMetre5>().Count() >= 3
+                    && vus.OfType<TextBlock>().Any(t => t.Text == "COMPARER") && Avalonia.Automation.AutomationProperties.GetName(vus.OfType<Molette5>().First()) == "Force";
                 Capturer(f, dossier, "sombre-audio.png", rapport, ref erreurs);
                 foreach (var defil in f.GetVisualDescendants().OfType<ScrollViewer>().Where(x => x.Content is AudioJeu5).Take(1)) defil.Offset = new Vector(0, 760);
                 Capturer(f, dossier, "sombre-audio-bas.png", rapport, ref erreurs);

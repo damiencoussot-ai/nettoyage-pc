@@ -107,6 +107,7 @@ namespace NettoyagePC
                     if (R.Sante && n % 720 == 61) VerifierSante();
                     if (R.RappelMensuel && n % 120 == 17) VerifierEntretienMensuel();
                     if (R.ModeJeuAuto || ModeJeuAuto.Actif) VerifierModeJeu();
+                    VerifierAudioJeu();
                     if (R.Bulletin && n % 120 == 47) VerifierBulletin();
                     if (R.NouveauxAppareils && n % 30 == 23) VerifierAppareils();
                     if (R.ResumeSemaine && n % 120 == 77) VerifierResumeSemaine();
@@ -293,6 +294,28 @@ namespace NettoyagePC
             var s = ModeJeuAuto.Terminer();
             if (s != null && s.Duree.TotalMinutes >= 1)
                 S.SurUi(() => Notifier("Mode jeu terminé", Langue.F("{0} de jeu sur « {1} ». Ton PC est revenu comme avant.", ModeJeuAuto.TexteDuree(s.Duree), s.Jeu), 0, null));
+        }
+
+        // ------------------------------------------------------------ Audio jeu : Auto Warzone, même Velox fermé
+        /// <summary>
+        /// Auto Warzone (égaliseur par Equalizer APO) : l'égaliseur s'allume quand Call of Duty / Warzone tourne et se coupe
+        /// quand il est fermé, même si la fenêtre de Velox est fermée. Changement automatique : pas de ligne en plus dans
+        /// l'Historique (le choix d'Auto Warzone y est déjà). L'égaliseur par Voicemeeter reste suivi par la fenêtre.
+        /// </summary>
+        private void VerifierAudioJeu()
+        {
+            ReglagesAudioJeu r;
+            try { r = AudioJeu.Lire(); } catch { return; }
+            if (!r.AutoJeu || r.Moteur == "vm" || !AudioJeu.Present) return;
+            bool voulu = AudioJeu.JeuDetecte() != null;
+            var e = AudioJeu.Etat();
+            if (e.Actif == voulu) return;
+            r.Actif = voulu;
+            int etat;
+            string defaut = AudioJeu.SortieParDefaut();
+            string guid = AudioJeu.Resoudre(r.Cible, AudioJeu.Sorties(), defaut, out etat, AudioJeu.NomSortie(defaut), r.AppareilVm);
+            string err = AudioJeu.Appliquer(r, guid, false);
+            if (err != "") JournalDemarrage.Noter("Gardien, Auto Warzone : " + err);
         }
 
         // ------------------------------------------------------------ Bulletin mensuel

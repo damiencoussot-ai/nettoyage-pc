@@ -30,6 +30,9 @@ namespace NettoyagePC
             if (args[0] == "--gardien-arreter") { Gardien.Arreter(); return 0; }
             // (désinstallation) retire le fichier de l'égaliseur « Audio jeu » et sa ligne Include du dossier d'Equalizer APO,
             // et coupe l'égaliseur de Voicemeeter si c'est Velox qui l'avait allumé
+            // (Audio jeu) processus à part : écoute du son et relevés de Voicemeeter, changement de la sortie par défaut
+            if (args[0] == "--ecoute-audio") return EcouteDirecte.Executer(args);
+            if (args[0] == "--sortie-audio-defaut") return AudioWindows.ChangerEnProcessus(args);
             if (args[0] == "--retirer-audio-jeu")
             {
                 int code = AudioJeu.Retirer();

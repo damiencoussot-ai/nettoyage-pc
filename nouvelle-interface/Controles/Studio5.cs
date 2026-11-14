@@ -6,6 +6,9 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using Avalonia;
+using Avalonia.Automation;
+using Avalonia.Automation.Peers;
+using Avalonia.Automation.Provider;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Layout;
@@ -122,6 +125,37 @@ namespace NettoyagePC.Nouveau
         public static string Db(double v, int dec = 1) { return (v > 0.0001 ? "+" : v < -0.0001 ? "−" : "") + Math.Abs(v).ToString(dec == 0 ? "0" : "0.0", Langue.Culture) + " dB"; }
     }
 
+    // ================================================================ lecteurs d'écran
+
+    /// <summary>Un réglage (molette, fader) vu par un lecteur d'écran comme un curseur : valeur, bornes, pas.</summary>
+    internal sealed class PeerReglage5 : ControlAutomationPeer, IRangeValueProvider
+    {
+        private readonly double min, max, petit, grand;
+        private readonly Func<double> lire;
+        private readonly Action<double> ecrire;
+        public PeerReglage5(Control c, double min, double max, double pas, Func<double> lire, Action<double> ecrire) : base(c)
+        { this.min = min; this.max = max; petit = pas; grand = 5 * pas; this.lire = lire; this.ecrire = ecrire; }
+        protected override AutomationControlType GetAutomationControlTypeCore() { return AutomationControlType.Slider; }
+        public bool IsReadOnly { get { return false; } }
+        public double Minimum { get { return min; } }
+        public double Maximum { get { return max; } }
+        public double Value { get { return lire(); } }
+        public double SmallChange { get { return petit; } }
+        public double LargeChange { get { return grand; } }
+        public void SetValue(double v) { ecrire(v); }
+    }
+
+    /// <summary>Le bouton marche vu par un lecteur d'écran comme un interrupteur.</summary>
+    internal sealed class PeerMarche5 : ControlAutomationPeer, IToggleProvider
+    {
+        private readonly Func<bool> lire;
+        private readonly Action basculer;
+        public PeerMarche5(Control c, Func<bool> lire, Action basculer) : base(c) { this.lire = lire; this.basculer = basculer; }
+        protected override AutomationControlType GetAutomationControlTypeCore() { return AutomationControlType.Button; }
+        public ToggleState ToggleState { get { return lire() ? ToggleState.On : ToggleState.Off; } }
+        public void Toggle() { basculer(); }
+    }
+
     // ================================================================ molette rotative
 
     /// <summary>Molette : glisser vers le haut ou le bas, molette de la souris, flèches du clavier ; double clic : valeur par défaut.</summary>
@@ -140,6 +174,8 @@ namespace NettoyagePC.Nouveau
         }
 
         public double Valeur { get { return valeur; } set { double v = Ajuster(value); if (v != valeur) { valeur = v; InvalidateVisual(); } } }
+
+        protected override AutomationPeer OnCreateAutomationPeer() { return new PeerReglage5(this, Min, Max, Pas, () => valeur, Choisir); }
 
         private double Ajuster(double v) { if (double.IsNaN(v)) v = Min; v = Min + Math.Round((v - Min) / Pas, MidpointRounding.AwayFromZero) * Pas; return Math.Max(Min, Math.Min(Max, v)); }
         private void Choisir(double v) { v = Ajuster(v); if (v == valeur) return; valeur = v; InvalidateVisual(); var c = Change; if (c != null) c(v); }
@@ -225,6 +261,7 @@ namespace NettoyagePC.Nouveau
         }
 
         public double Valeur { get { return valeur; } set { double v = Ajuster(value); if (v != valeur) { valeur = v; InvalidateVisual(); } } }
+        protected override AutomationPeer OnCreateAutomationPeer() { return new PeerReglage5(this, Min, Max, Pas, () => valeur, Choisir); }
         private double Ajuster(double v) { if (double.IsNaN(v)) v = 0; v = Min + Math.Round((v - Min) / Pas, MidpointRounding.AwayFromZero) * Pas; return Math.Max(Min, Math.Min(Max, v)); }
         private void Choisir(double v) { v = Ajuster(v); if (v == valeur) return; valeur = v; InvalidateVisual(); var c = Change; if (c != null) c(v); }
         private const double Marge = 10;
@@ -295,6 +332,7 @@ namespace NettoyagePC.Nouveau
         public event Action<bool> Demande;
         public Marche5(bool actif) { this.actif = actif; Width = 72; Height = 72; Focusable = true; Cursor = new Cursor(StandardCursorType.Hand); }
         public bool Actif { get { return actif; } set { if (value != actif) { actif = value; InvalidateVisual(); } } }
+        protected override AutomationPeer OnCreateAutomationPeer() { return new PeerMarche5(this, () => actif, Demander); }
         private void Demander() { if (!IsEffectivelyEnabled) return; var d = Demande; if (d != null) d(!actif); }
         protected override void OnPointerPressed(PointerPressedEventArgs e) { base.OnPointerPressed(e); e.Handled = true; }
         protected override void OnPointerReleased(PointerReleasedEventArgs e) { base.OnPointerReleased(e); if (new Rect(Bounds.Size).Contains(e.GetPosition(this))) { e.Handled = true; Focus(); Demander(); } }

@@ -33,13 +33,16 @@ Nouveautés de la prochaine version
   Le jeu n'est jamais touché.
 - Sorties audio : VU-mètre de la sortie par défaut, choix de la sortie égalisée, et la sortie par défaut de
   Windows changée en un clic. Voicemeeter reconnu : version, niveaux de chaque bus.
-- Auto Warzone : l'égaliseur s'active quand le jeu tourne et se coupe quand tu le fermes (tant que Velox
-  est ouvert). Raccourcis clavier en plein jeu, désactivés par défaut : Ctrl+Alt+F9 (égaliseur) et
-  Ctrl+Alt+F10 (profil suivant), avec des bips pour savoir ce qui a changé.
+- Avec Voicemeeter comme sortie par défaut, le mode Auto vise directement l'appareil du bus A (ton casque).
+- Bouton « Comparer » : maintiens-le pour entendre ton jeu sans l'égaliseur, relâche pour le retrouver.
+- Auto Warzone : l'égaliseur s'active quand le jeu tourne et se coupe quand tu le fermes. Avec le gardien
+  activé, ça marche même Velox fermé. Raccourcis clavier en plein jeu, désactivés par défaut : Ctrl+Alt+F9
+  (égaliseur) et Ctrl+Alt+F10 (profil suivant), avec une petite bulle à l'écran et des bips.
+- L'écoute du son (spectre, niveaux) tourne à part : si elle rencontre un problème, Velox reste ouvert.
 - Comme le reste de Velox : rien n'est écrit en mode simulation, chaque changement (égaliseur, sortie par
   défaut, Voicemeeter) est noté dans l'Historique et s'annule de là. Aussi dans Ctrl+K, les favoris et
   Accélérer > Jeux. Ctrl+7 ouvre la rubrique Audio (Mises à jour passe à Ctrl+8, Historique à Ctrl+9,
-  et Réglages n'a plus de raccourci Ctrl+chiffre).
+  et Réglages s'ouvre avec Ctrl+0).
 
 Nouveautés de la version 5.7
 ----------------------------

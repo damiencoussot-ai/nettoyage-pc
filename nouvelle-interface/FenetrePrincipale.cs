@@ -236,6 +236,8 @@ namespace NettoyagePC.Nouveau
             int n = e.Key >= Avalonia.Input.Key.D1 && e.Key <= Avalonia.Input.Key.D9 ? e.Key - Avalonia.Input.Key.D1
                 : e.Key >= Avalonia.Input.Key.NumPad1 && e.Key <= Avalonia.Input.Key.NumPad9 ? e.Key - Avalonia.Input.Key.NumPad1 : -1;
             if (ctrl && n >= 0 && n < Rubriques.Count) { e.Handled = true; Afficher(Rubriques[n].Cle, true); return; }
+            // Ctrl+0 : Réglages (la rubrique Audio a pris la place de Ctrl+7, les suivantes sont décalées)
+            if (ctrl && (e.Key == Avalonia.Input.Key.D0 || e.Key == Avalonia.Input.Key.NumPad0)) { e.Handled = true; Afficher("Reglages", true); return; }
             if (e.Key == Avalonia.Input.Key.F5 && e.KeyModifiers == Avalonia.Input.KeyModifiers.None && PageActive == "Accueil") { e.Handled = true; ActualiserBilan(); }
         }
 

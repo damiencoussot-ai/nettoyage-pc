@@ -3413,6 +3413,21 @@ namespace NettoyagePC
             "Voicemeeter ne répond pas", "Voicemeeter is not responding", "Voicemeeter no responde",
             "Voicemeeter n'est pas lancé : lance-le, puis annule de nouveau", "Voicemeeter is not running: start it, then undo again", "Voicemeeter no está iniciado: inícialo y vuelve a deshacer",
             "Audio jeu : égaliseur Voicemeeter coupé", "Game audio: Voicemeeter equalizer off", "Audio de juego: ecualizador de Voicemeeter desactivado",
+            "L'écoute du son s'est arrêtée plusieurs fois : spectre et niveaux indisponibles. Velox continue normalement.", "Sound monitoring stopped several times: spectrum and levels unavailable. Velox carries on normally.", "La escucha del sonido se ha detenido varias veces: espectro y niveles no disponibles. Velox sigue funcionando con normalidad.",
+            "L'écoute du son s'est arrêtée : reprise…", "Sound monitoring stopped: restarting…", "La escucha del sonido se ha detenido: reanudando…",
+            "Windows ne répond pas au changement de sortie.", "Windows is not responding to the output change.", "Windows no responde al cambio de salida.",
+            "Le fichier en place ne vient pas de Velox : rien n'a été modifié.", "The file in place doesn't come from Velox: nothing was changed.", "El archivo actual no procede de Velox: no se ha modificado nada.",
+            "L'égaliseur s'active quand Call of Duty / Warzone tourne et se coupe quand tu le fermes. Avec le gardien activé, ça marche même Velox fermé ; sinon, tant que Velox est ouvert (même réduit).", "The equalizer turns on when Call of Duty / Warzone is running and off when you close it. With the guardian on, it works even with Velox closed; otherwise, as long as Velox is open (even minimized).", "El ecualizador se activa cuando Call of Duty / Warzone está en marcha y se desactiva cuando lo cierras. Con el guardián activado, funciona incluso con Velox cerrado; si no, mientras Velox esté abierto (incluso minimizado).",
+            "profil appliqué", "profile applied", "perfil aplicado",
+            "profil choisi (égaliseur coupé)", "profile chosen (equalizer off)", "perfil elegido (ecualizador desactivado)",
+            "L'égaliseur est coupé : rien à comparer.", "The equalizer is off: nothing to compare.", "El ecualizador está desactivado: nada que comparar.",
+            "Comparaison : égaliseur coupé tant que tu maintiens le bouton.", "Comparing: equalizer off while you hold the button.", "Comparación: ecualizador desactivado mientras mantienes el botón.",
+            "Comparaison terminée : l'égaliseur est de nouveau actif.", "Comparison over: the equalizer is on again.", "Comparación terminada: el ecualizador vuelve a estar activo.",
+            "COMPARER", "COMPARE", "COMPARAR",
+            "Maintiens ce bouton (ou la barre d'espace) pour entendre ton jeu sans l'égaliseur ; relâche pour le retrouver.", "Hold this button (or the space bar) to hear your game without the equalizer; release to get it back.", "Mantén este botón (o la barra espaciadora) para oír tu juego sin el ecualizador; suéltalo para recuperarlo.",
+            "Comparer sans l'égaliseur", "Compare without the equalizer", "Comparar sin el ecualizador",
+            "Ta sortie par défaut est Voicemeeter : l'égaliseur vise l'appareil de son bus A ({0}).", "Your default output is Voicemeeter: the equalizer targets the device on its A bus ({0}).", "Tu salida predeterminada es Voicemeeter: el ecualizador se aplica al dispositivo de su bus A ({0}).",
+            "Courbe de l'égaliseur", "Equalizer curve", "Curva del ecualizador",
         };
         private static readonly string[] Prefixes =
         {
@@ -3528,6 +3543,7 @@ namespace NettoyagePC
             "^Voicemeeter ne connaît pas le réglage « (.+) » \\(version trop ancienne \\?\\) : rien n'a été modifié\\.$", "Voicemeeter doesn't know the “$1” setting (version too old?): nothing was changed.", "Voicemeeter no conoce el ajuste «$1» (¿versión demasiado antigua?): no se ha modificado nada.",
             "^Voicemeeter a refusé le réglage \\(code (-?\\d+)\\) : rien n'a été modifié\\.$", "Voicemeeter refused the setting (code $1): nothing was changed.", "Voicemeeter ha rechazado el ajuste (código $1): no se ha modificado nada.",
             "^Voicemeeter a refusé le réglage \\(code (-?\\d+)\\)$", "Voicemeeter refused the setting (code $1)", "Voicemeeter ha rechazado el ajuste (código $1)",
+            "^Le changement de sortie a échoué \\(code (-?\\d+)\\)\\.$", "The output change failed (code $1).", "El cambio de salida ha fallado (código $1).",
         };
     }
 }

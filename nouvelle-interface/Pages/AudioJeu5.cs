@@ -13,6 +13,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
+using Avalonia.Automation;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
@@ -149,7 +150,7 @@ namespace NettoyagePC.Nouveau
         {
             var f = principale; var r = Reglages; var v = releve;
             if (f == null || v == null || enEcriture || (page != null && page.attente)) return;
-            if (f.Simulation || autoBloque || !Licence.Premium) return;
+            if (f.Simulation || autoBloque || comparaison || !Licence.Premium) return;
             bool vm = r.Moteur == "vm";
             if (!vm && !v.Etat.Present) return;
             if (r.AutoJeu)
@@ -168,7 +169,7 @@ namespace NettoyagePC.Nouveau
             if (r.Actif && v.Etat.Contenu == AudioJeu.Generer(r, r.CibleEcrite))
             {
                 int etat;
-                if (AudioJeu.Resoudre(r.Cible, v.Sorties, v.Defaut, out etat) != r.CibleEcrite) Ecrire(f, false, false, null);
+                if (AudioJeu.Resoudre(r.Cible, v.Sorties, v.Defaut, out etat, v.NomDefaut, r.AppareilVm) != r.CibleEcrite) Ecrire(f, false, false, null);
             }
         }
 
@@ -200,7 +201,8 @@ namespace NettoyagePC.Nouveau
                 else
                 {
                     int etat;
-                    string guid = AudioJeu.Resoudre(copie.Cible, AudioJeu.Sorties(), AudioJeu.SortieParDefaut(), out etat);
+                    string defaut = AudioJeu.SortieParDefaut();
+                    string guid = AudioJeu.Resoudre(copie.Cible, AudioJeu.Sorties(), defaut, out etat, AudioJeu.NomSortie(defaut), copie.AppareilVm);
                     erreur = AudioJeu.Appliquer(copie, guid, utilisateur, toujours);
                     if (erreur == "" && copie.VmEcrit >= 0 && Voicemeeter.Couper(copie.VmEcrit, utilisateur) == "") copie.VmEcrit = -1;
                 }
@@ -252,6 +254,8 @@ namespace NettoyagePC.Nouveau
                 RaccourcisAudio.Activer(false);
                 var f = principale; var r = reglages;
                 if (f == null || r == null || !r.AutoJeu || f.Simulation) return;
+                // le gardien (Premium) suit le jeu même Velox fermé : l'égaliseur reste comme il est
+                if (r.Moteur != "vm" && Licence.Premium && Gardien.EnCours) return;
                 var c = r.Copie(); c.Actif = false;
                 if (c.Moteur == "vm") Voicemeeter.Couper(c.BusVm, false); else AudioJeu.Appliquer(c, "", false);
             }
@@ -271,6 +275,7 @@ namespace NettoyagePC.Nouveau
                 r.AutoJeu = false; r.Actif = !r.Actif;
                 message = Langue.T(r.Actif ? "Égaliseur actif." : "Égaliseur coupé.");
                 Bip(r.Actif ? new[] { 880 } : new[] { 440 });
+                BulleAudio.Montrer(Langue.T(r.Actif ? "ÉGALISEUR ACTIF" : "ÉGALISEUR COUPÉ"), r.Actif ? Langue.T(AudioJeu.NomProfil(r)) : "", r.Actif);
             }
             else
             {
@@ -278,9 +283,35 @@ namespace NettoyagePC.Nouveau
                 r.Gains = (double[])p.Gains.Clone();
                 message = Langue.F("Profil « {0} » appliqué.", Langue.T(p.Nom));
                 Bip(Enumerable.Repeat(660, Array.IndexOf(AudioJeu.Profils, p) + 1).ToArray());
+                BulleAudio.Montrer(Langue.T(p.Carte).ToUpper(Langue.Culture), Langue.T(r.Actif ? "profil appliqué" : "profil choisi (égaliseur coupé)"), r.Actif);
             }
             if (page != null) page.Recharger();
             Ecrire(f, true, false, message);
+        }
+
+        // ---- bouton « Comparer » : tant qu'il est maintenu, l'égaliseur est coupé (rien n'est enregistré ni noté)
+        private static bool comparaison;
+        private static Task fileComparaison = Task.CompletedTask;
+
+        internal static void Comparer(FenetrePrincipale f, bool appuye)
+        {
+            if (Exemple != null || f == null || !Licence.Premium || appuye == comparaison) return;
+            var r = Reglages;
+            if (appuye && !r.Actif) { f.Statut(Langue.T("L'égaliseur est coupé : rien à comparer.")); return; }
+            if (f.Simulation) { if (appuye) f.Statut(Langue.T("Simulation : le fichier d'Equalizer APO serait réécrit, rien n'est modifié."), true); return; }
+            comparaison = appuye;
+            var copie = r.Copie();
+            Task<string> etape = fileComparaison.ContinueWith(_ =>
+            {
+                if (copie.Moteur == "vm") return appuye ? Voicemeeter.Couper(copie.BusVm, false) : Voicemeeter.Appliquer(copie, copie.BusVm, false);
+                return AudioJeu.Comparer(appuye, AudioJeu.Generer(copie, copie.CibleEcrite));
+            });
+            fileComparaison = etape.ContinueWith(t => Dispatcher.UIThread.Post(() =>
+            {
+                string err = t.IsFaulted ? (t.Exception.InnerException ?? t.Exception).Message : t.Result;
+                if (err != "") { f.Statut(Langue.T(err), true); return; }
+                f.Statut(Langue.T(appuye ? "Comparaison : égaliseur coupé tant que tu maintiens le bouton." : "Comparaison terminée : l'égaliseur est de nouveau actif."));
+            }));
         }
 
         /// <summary>Petits bips pour savoir, en plein jeu, ce que le raccourci a fait (un bip par numéro de profil).</summary>
@@ -357,6 +388,7 @@ namespace NettoyagePC.Nouveau
             };
             DetachedFromVisualTree += (s, e) =>
             {
+                if (comparaison) Comparer(F, false);   // bouton « Comparer » encore maintenu : l'égaliseur revient
                 Appliquer();   // un réglage encore en attente n'est pas perdu
                 Direct(false);
                 if (page == this) page = null;
@@ -372,14 +404,14 @@ namespace NettoyagePC.Nouveau
             enDirect = oui;
             if (oui)
             {
-                CapteurAudio.Demarrer(); Voicemeeter.Suivre(true);
+                EcouteDirecte.Demarrer();
                 ambiance = t =>
                 {
                     if (t - dernierImage < 33) return;   // 30 images par seconde
                     dernierImage = t;
-                    if (courbe != null) { courbe.Spectre = CapteurAudio.Spectre; courbe.InvalidateVisual(); }
-                    if (vu != null) vu.Definir(CapteurAudio.CreteG, CapteurAudio.CreteD);
-                    if (tEcoute != null) { string err = CapteurAudio.Erreur == "" ? "" : Langue.T(CapteurAudio.Erreur); if (tEcoute.Text != err) tEcoute.Text = err; }
+                    if (courbe != null) { courbe.Spectre = EcouteDirecte.Spectre; courbe.InvalidateVisual(); }
+                    if (vu != null) vu.Definir(EcouteDirecte.CreteG, EcouteDirecte.CreteD);
+                    if (tEcoute != null) { string err = EcouteDirecte.Erreur == "" ? "" : Langue.T(EcouteDirecte.Erreur); if (tEcoute.Text != err) { tEcoute.Text = err; tEcoute.IsVisible = err != ""; } }
                     var e = Voicemeeter.Etat;
                     foreach (var x in vuBus) { var b = e.Bus.FirstOrDefault(y => y.Index == x.Item1.Index); if (b != null) x.Item2.Definir(b.G, b.D); }
                     if (t % 1000 < 40) MajVoicemeeter();
@@ -388,7 +420,7 @@ namespace NettoyagePC.Nouveau
             }
             else
             {
-                CapteurAudio.Arreter(); Voicemeeter.Suivre(false);
+                EcouteDirecte.Arreter();
                 if (ambiance != null) Horloge.RetirerAmbiance(ambiance);
                 ambiance = null;
             }
@@ -424,9 +456,25 @@ namespace NettoyagePC.Nouveau
             {
                 marche = new Marche5(r.Actif);
                 ToolTip.SetTip(marche, Langue.T("Activer ou couper l'égaliseur"));
+                AutomationProperties.SetName(marche, Langue.T("Égaliseur"));
                 marche.Demande += BasculerEq;
                 tMarche = new TextBlock { FontFamily = Studio.Chiffres, FontSize = 11, LetterSpacing = 2, HorizontalAlignment = HorizontalAlignment.Center };
-                var droiteEq = new StackPanel { Spacing = 6, VerticalAlignment = VerticalAlignment.Top, Margin = new Thickness(18, 4, 0, 0), Children = { marche, tMarche } };
+                // « Comparer » : maintenu, l'égaliseur se coupe ; relâché, il revient (pour juger un réglage à l'oreille)
+                var comparer = new Border
+                {
+                    Child = new TextBlock { Text = Langue.T("COMPARER"), FontFamily = Studio.Chiffres, FontSize = 10.5, LetterSpacing = 1.5, Foreground = Studio.P(Studio.Texte), HorizontalAlignment = HorizontalAlignment.Center },
+                    Padding = new Thickness(10, 6), CornerRadius = new CornerRadius(14), BorderThickness = new Thickness(1), BorderBrush = Studio.P(Studio.Violet, 160), Background = Studio.P(Studio.Violet, 22),
+                    Cursor = new Cursor(StandardCursorType.Hand), Focusable = true, Margin = new Thickness(0, 4, 0, 0),
+                };
+                ToolTip.SetTip(comparer, Langue.T("Maintiens ce bouton (ou la barre d'espace) pour entendre ton jeu sans l'égaliseur ; relâche pour le retrouver."));
+                AutomationProperties.SetName(comparer, Langue.T("Comparer sans l'égaliseur"));
+                comparer.PointerPressed += (o, e) => { e.Pointer.Capture(comparer); comparer.Background = Studio.P(Studio.Magenta, 60); Comparer(F, true); e.Handled = true; };
+                comparer.PointerReleased += (o, e) => { e.Pointer.Capture(null); comparer.Background = Studio.P(Studio.Violet, 22); Comparer(F, false); };
+                comparer.PointerCaptureLost += (o, e) => { comparer.Background = Studio.P(Studio.Violet, 22); Comparer(F, false); };
+                comparer.KeyDown += (o, e) => { if (e.Key == Key.Space || e.Key == Key.Enter) { e.Handled = true; Comparer(F, true); } };
+                comparer.KeyUp += (o, e) => { if (e.Key == Key.Space || e.Key == Key.Enter) { e.Handled = true; Comparer(F, false); } };
+                comparer.LostFocus += (o, e) => Comparer(F, false);
+                var droiteEq = new StackPanel { Spacing = 6, VerticalAlignment = VerticalAlignment.Top, Margin = new Thickness(18, 4, 0, 0), Children = { marche, tMarche, comparer } };
                 Grid.SetColumn(droiteEq, 1); g.Children.Add(droiteEq);
             }
             return g;
@@ -442,6 +490,7 @@ namespace NettoyagePC.Nouveau
             // ---------------- colonne principale
             var g = new StackPanel();
             courbe = new CourbeEq5 { Reglages = r, Allume = r.Actif };
+            AutomationProperties.SetName(courbe, Langue.T("Courbe de l'égaliseur"));
             courbe.GainChange += (k, db) =>
             {
                 if (r.Intensite <= 0) { F.Statut(Langue.T("La force de l'effet est à 0 % : monte-la pour régler les bandes."), true); return; }
@@ -497,6 +546,7 @@ namespace NettoyagePC.Nouveau
                 int k = i; var b = AudioJeu.Bandes[i];
                 faders[i] = new Fader5(-12, 12, 0.5, r.Gains[i]) { HorizontalAlignment = HorizontalAlignment.Center };
                 faders[i].Change += v => { r.Gains[k] = v; Changer(); };
+                AutomationProperties.SetName(faders[i], Langue.T(b.Nom) + " " + b.Fc + " Hz");
                 tFaders[i] = new TextBlock { FontFamily = Studio.Chiffres, FontSize = 12, Foreground = Studio.P(Studio.Texte), HorizontalAlignment = HorizontalAlignment.Center };
                 bandes.Children.Add(new StackPanel
                 {
@@ -519,7 +569,7 @@ namespace NettoyagePC.Nouveau
             var sortie = new StackPanel { Spacing = 10 };
             sortie.Children.Add(Studio.T(Langue.T("Ce que joue ta sortie par défaut"), 11.5, Studio.Faible));
             sortie.Children.Add(vu);
-            tEcoute = Studio.T("", 11.5, Studio.Faible);
+            tEcoute = Studio.T("", 11.5, Studio.Faible); tEcoute.IsVisible = false;   // (pas d'espace vide sous le VU-mètre)
             sortie.Children.Add(tEcoute);
             sortie.Children.Add(zoneSorties);
             d.Children.Add(Studio.Module("Sorties", sortie));
@@ -584,6 +634,7 @@ namespace NettoyagePC.Nouveau
         private Control Molette(string nom, double min, double max, double pas, double defaut, bool bipolaire, Func<string> texte, Action<double> regler)
         {
             var m = new Molette5(min, max, pas, 0, defaut) { Bipolaire = bipolaire, Tag = nom, HorizontalAlignment = HorizontalAlignment.Center };
+            AutomationProperties.SetName(m, Langue.T(nom));
             m.Valeur = ValeurMolette(m);
             var t = new TextBlock { FontFamily = Studio.Chiffres, FontSize = 12, Foreground = Studio.P(Studio.Ambre), HorizontalAlignment = HorizontalAlignment.Center };
             m.Change += v => { regler(v); Changer(); };
@@ -638,7 +689,7 @@ namespace NettoyagePC.Nouveau
             if (sig == signatureAuto) return;
             signatureAuto = sig;
             z.Children.Clear();
-            z.Children.Add(Ligne("Auto Warzone", "L'égaliseur s'active quand Call of Duty / Warzone tourne et se coupe quand tu le fermes, tant que Velox est ouvert (même réduit).", r.AutoJeu, BasculerAuto));
+            z.Children.Add(Ligne("Auto Warzone", "L'égaliseur s'active quand Call of Duty / Warzone tourne et se coupe quand tu le fermes. Avec le gardien activé, ça marche même Velox fermé ; sinon, tant que Velox est ouvert (même réduit).", r.AutoJeu, BasculerAuto));
             var touches = new WrapPanel { Margin = new Thickness(0, 4, 0, 0) };
             foreach (var t in new[] { Tuple.Create("F9", "égaliseur marche / arrêt"), Tuple.Create("F10", "profil suivant") })
             {
@@ -740,6 +791,7 @@ namespace NettoyagePC.Nouveau
                 int etat; Cible(v, out etat);
                 if (etat == 3) avertir(Langue.T("Equalizer APO n'est installé sur aucune sortie : ouvre le Configurator, coche ta sortie, puis redémarre le PC."), Studio.Rouge);
                 else if (etat == 2) avertir(Langue.T("La sortie choisie n'a plus Equalizer APO : choisis-en une autre, ou coche-la de nouveau dans le Configurator."), Studio.Ambre);
+                else if (etat == 4) avertir(Langue.F("Ta sortie par défaut est Voicemeeter : l'égaliseur vise l'appareil de son bus A ({0}).", r.AppareilVm), Studio.Violet);
                 else if (etat == 1) avertir(Langue.F("Ta sortie par défaut ({0}) n'a pas Equalizer APO : l'égaliseur vise toutes les sorties où il est installé. Si tu n'entends aucune différence, ouvre le Configurator, coche ta sortie, puis redémarre le PC.", v.NomDefaut != "" ? v.NomDefaut : Langue.T("inconnue")), Studio.Ambre);
                 if (v.Etat.Autres.Count > 0) avertir(Langue.F("D'autres traitements sont actifs dans Equalizer APO ({0}) : leurs effets s'ajoutent à cet égaliseur.", string.Join(", ", v.Etat.Autres)), Studio.Violet);
                 var vrais = exemple ? r : Reglages;
@@ -778,7 +830,7 @@ namespace NettoyagePC.Nouveau
             tFichier.Text = AudioJeu.Generer(r, guid).TrimEnd();
         }
 
-        private string Cible(ReleveAudioJeu v, out int etat) { return AudioJeu.Resoudre(r.Cible, v.Sorties, v.Defaut, out etat); }
+        private string Cible(ReleveAudioJeu v, out int etat) { return AudioJeu.Resoudre(r.Cible, v.Sorties, v.Defaut, out etat, v.NomDefaut, r.AppareilVm); }
 
         /// <summary>Les sorties de Windows : la sortie par défaut, Equalizer APO présent ou non, et les boutons
         /// « Viser » (l'égaliseur s'applique à elle) et « Par défaut » (Windows l'utilise). Refaite seulement si elle change.</summary>
@@ -865,6 +917,13 @@ namespace NettoyagePC.Nouveau
                 if (exemple) m.Definir(b.G, b.D);
             }
             var a = e.Bus.FirstOrDefault(b => b.Physique);
+            // appareil du bus A gardé : la veille et le gardien visent la bonne sortie quand Voicemeeter est la sortie par défaut
+            if (!exemple && a != null && a.Appareil != "" && a.Appareil != Reglages.AppareilVm)
+            {
+                Reglages.AppareilVm = a.Appareil; r.AppareilVm = a.Appareil;
+                if (!simulation) AudioJeu.Enregistrer(Reglages);
+                signatureSorties = null;
+            }
             zoneVm.Children.Add(Studio.T(Langue.F("Avec Voicemeeter, le son du jeu passe d'abord par « Voicemeeter Input », puis sort sur l'appareil du bus {0}{1}. Equalizer APO agit sur la sortie où il est installé : vise celle où tu entends l'effet.", a != null ? a.Nom : "A", a != null && a.Appareil != "" ? " (" + a.Appareil + ")" : ""), 12, Studio.Faible));
             if (!e.EgaliseurNatif)
             {
@@ -1019,6 +1078,70 @@ namespace NettoyagePC.Nouveau
             // (c'est le Configurator lui-même qui demande l'autorisation de Windows)
             Programmes.Ouvrir(c);
             F.Statut(Langue.T("Configurator ouvert : coche ta sortie, valide, puis redémarre le PC."));
+        }
+    }
+
+    /// <summary>
+    /// Petite bulle en haut de l'écran pendant deux secondes, après un raccourci clavier (« ÉGALISEUR ACTIF · Compétitif ») :
+    /// toujours au premier plan, elle laisse passer les clics et ne prend jamais le focus (même principe que l'overlay).
+    /// Visible dans les jeux en « fenêtré plein écran » ; un jeu en plein écran exclusif passe par-dessus (les bips restent).
+    /// </summary>
+    internal static class BulleAudio
+    {
+        [DllImport("user32.dll", EntryPoint = "GetWindowLongPtrW")] private static extern IntPtr GetWindowLongPtr(IntPtr h, int i);
+        [DllImport("user32.dll", EntryPoint = "SetWindowLongPtrW")] private static extern IntPtr SetWindowLongPtr(IntPtr h, int i, IntPtr v);
+        private const int GWL_EXSTYLE = -20;
+        private const long WS_EX_TRANSPARENT = 0x20, WS_EX_LAYERED = 0x80000, WS_EX_TOOLWINDOW = 0x80, WS_EX_NOACTIVATE = 0x8000000;
+        private static Window fenetre;
+        private static DispatcherTimer minuteur;
+
+        public static void Montrer(string titre, string detail, bool actif)
+        {
+            if (!OperatingSystem.IsWindows()) return;
+            try
+            {
+                if (fenetre != null) fenetre.Close();
+                var point = new Border { Width = 10, Height = 10, CornerRadius = new CornerRadius(5), Background = Studio.P(actif ? Studio.Vert : Studio.Faible), VerticalAlignment = VerticalAlignment.Center };
+                var ligne = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 10 };
+                ligne.Children.Add(point);
+                ligne.Children.Add(new TextBlock { Text = titre, FontFamily = Studio.Titre, FontSize = 16, FontWeight = FontWeight.Bold, Foreground = Studio.P(Studio.Texte), VerticalAlignment = VerticalAlignment.Center });
+                if (!string.IsNullOrEmpty(detail)) ligne.Children.Add(new TextBlock { Text = "· " + detail, FontFamily = Studio.Corps, FontSize = 14, Foreground = Studio.P(Studio.Ambre), VerticalAlignment = VerticalAlignment.Center });
+                var cadre = new Border { Child = ligne, Padding = new Thickness(18, 10), CornerRadius = new CornerRadius(20), Background = new SolidColorBrush(Color.FromArgb(225, 18, 10, 32)), BorderBrush = Studio.Degrade(0, Studio.Ambre, Studio.Magenta), BorderThickness = new Thickness(1.5) };
+                var w = new Window
+                {
+                    SizeToContent = SizeToContent.WidthAndHeight, SystemDecorations = SystemDecorations.None, Topmost = true, CanResize = false, ShowInTaskbar = false, ShowActivated = false,
+                    Background = Brushes.Transparent, TransparencyLevelHint = new[] { WindowTransparencyLevel.Transparent }, Title = "Velox audio", Content = cadre, Focusable = false,
+                };
+                w.Opened += (s, e) =>
+                {
+                    try
+                    {
+                        Placer(w);
+                        Dispatcher.UIThread.Post(() => { try { if (fenetre == w) Placer(w); } catch { } }, DispatcherPriority.Background);
+                        var h = w.TryGetPlatformHandle();
+                        if (h != null) SetWindowLongPtr(h.Handle, GWL_EXSTYLE, new IntPtr(GetWindowLongPtr(h.Handle, GWL_EXSTYLE).ToInt64() | WS_EX_TRANSPARENT | WS_EX_LAYERED | WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE));
+                    }
+                    catch (Exception ex) { JournalDemarrage.Erreur("bulle de l'audio", ex); }
+                };
+                w.Closed += (s, e) => { if (fenetre == w) fenetre = null; };
+                fenetre = w;
+                w.Show();
+                if (minuteur != null) minuteur.Stop();
+                minuteur = new DispatcherTimer { Interval = TimeSpan.FromSeconds(2) };
+                minuteur.Tick += (s, e) => { minuteur.Stop(); if (fenetre == w) w.Close(); };
+                minuteur.Start();
+            }
+            catch (Exception ex) { JournalDemarrage.Erreur("bulle de l'audio", ex); }
+        }
+
+        /// <summary>En haut, au centre de l'écran principal (zone de travail).</summary>
+        private static void Placer(Window w)
+        {
+            var ecran = w.Screens.Primary;
+            if (ecran == null) return;
+            var z = ecran.WorkingArea;
+            int l = (int)Math.Ceiling(w.Bounds.Width * ecran.Scaling);
+            w.Position = new PixelPoint(z.X + (z.Width - l) / 2, z.Y + (int)(48 * ecran.Scaling));
         }
     }
 

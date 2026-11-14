@@ -119,7 +119,48 @@ namespace NettoyagePC
             catch (Exception ex) { return ex.Message; }
         }
 
+        /// <summary>
+        /// Le changement passe par un petit processus à part (« NettoyagePC.exe --sortie-audio-defaut ») : l'interface de
+        /// Windows utilisée n'est pas documentée, et si elle se comportait mal sur un PC, seul ce processus s'arrêterait,
+        /// pas Velox.
+        /// </summary>
         private static string Changer(string id, params int[] roles)
+        {
+            if (!IdValide(id)) return "Cette sortie n'est plus branchée ou n'est plus active.";
+            try
+            {
+                var psi = new System.Diagnostics.ProcessStartInfo(Chemins.Exe, "--sortie-audio-defaut " + id + " " + string.Join(",", roles))
+                { UseShellExecute = false, CreateNoWindow = true, RedirectStandardOutput = true, StandardOutputEncoding = Encoding.UTF8 };
+                using (var p = System.Diagnostics.Process.Start(psi))
+                {
+                    var lecture = p.StandardOutput.ReadToEndAsync();
+                    if (!p.WaitForExit(15000)) { try { p.Kill(); } catch { } return "Windows ne répond pas au changement de sortie."; }
+                    string sortie = lecture.Wait(2000) ? lecture.Result.Trim() : "";
+                    if (p.ExitCode == 0) return "";
+                    return sortie != "" && sortie.Length < 300 ? sortie : "Le changement de sortie a échoué (code " + p.ExitCode + ").";
+                }
+            }
+            catch (Exception ex) { return "Changement de sortie impossible sur ce PC : " + ex.Message; }
+        }
+
+        /// <summary>(processus à part) « --sortie-audio-defaut ID 0,1 » : change la sortie par défaut. Code 0 si c'est fait.</summary>
+        public static int ChangerEnProcessus(string[] args)
+        {
+            if (args.Length < 3 || !IdValide(args[1])) { Console.Out.WriteLine("Cette sortie n'est plus branchée ou n'est plus active."); return 3; }
+            var roles = new List<int>();
+            foreach (var x in args[2].Split(','))
+            {
+                int r;
+                if (!int.TryParse(x, NumberStyles.Integer, CultureInfo.InvariantCulture, out r) || r < 0 || r > 2) return 3;
+                roles.Add(r);
+            }
+            if (roles.Count == 0) return 3;
+            string err = ChangerDirect(args[1], roles.ToArray());
+            if (err != "") { Console.Out.WriteLine(err); Console.Out.Flush(); return 1; }
+            return 0;
+        }
+
+        private static string ChangerDirect(string id, params int[] roles)
         {
             IPolicyConfig p = null;
             try
@@ -408,6 +449,141 @@ namespace NettoyagePC
         }
     }
 
+    // ================================================================ écoute dans un processus à part
+
+    /// <summary>
+    /// L'écoute du son (spectre, VU-mètre) et la lecture de Voicemeeter tournent dans un petit processus à part
+    /// (« NettoyagePC.exe --ecoute-audio PID ») qui envoie ses relevés ligne par ligne. Elles passent par des interfaces
+    /// natives (API audio de Windows, bibliothèque de Voicemeeter) : si l'une d'elles se comportait mal sur un PC, seul ce
+    /// processus s'arrêterait, et Velox resterait ouvert (le spectre affiche alors qu'il est indisponible).
+    /// </summary>
+    internal static class EcouteDirecte
+    {
+        public static volatile float[] Spectre;
+        public static volatile float CreteG, CreteD;
+        public static volatile string Erreur = "";
+        private static System.Diagnostics.Process processus;
+        private static int demandes, plantages;
+        private static bool arretVoulu;
+        private static readonly object verrou = new object();
+        private const int PlantagesMax = 3;
+
+        public static void Demarrer()
+        {
+            if (!Natif.EstWindows) return;
+            lock (verrou) { demandes++; Lancer(); }
+        }
+
+        public static void Arreter()
+        {
+            lock (verrou)
+            {
+                demandes = Math.Max(0, demandes - 1);
+                if (demandes > 0 || processus == null) return;
+                arretVoulu = true;
+                try { if (!processus.HasExited) processus.Kill(); } catch { }
+                processus = null;
+                Spectre = null; CreteG = 0; CreteD = 0;
+            }
+        }
+
+        private static void Lancer()
+        {
+            if (processus != null || demandes == 0) return;
+            if (plantages >= PlantagesMax) { Erreur = "L'écoute du son s'est arrêtée plusieurs fois : spectre et niveaux indisponibles. Velox continue normalement."; return; }
+            try
+            {
+                var psi = new System.Diagnostics.ProcessStartInfo(Chemins.Exe, "--ecoute-audio " + Environment.ProcessId)
+                { UseShellExecute = false, CreateNoWindow = true, RedirectStandardOutput = true, StandardOutputEncoding = Encoding.UTF8 };
+                var p = System.Diagnostics.Process.Start(psi);
+                processus = p; arretVoulu = false;
+                var fil = new Thread(() => Lire(p)) { IsBackground = true, Name = "Audio jeu : écoute (lecture)" };
+                fil.Start();
+            }
+            catch (Exception ex) { Erreur = "Écoute du son indisponible : " + ex.Message; processus = null; }
+        }
+
+        private static void Lire(System.Diagnostics.Process p)
+        {
+            try
+            {
+                string l;
+                while ((l = p.StandardOutput.ReadLine()) != null) Traiter(l);
+            }
+            catch { }
+            lock (verrou)
+            {
+                if (processus != p) return;
+                processus = null;
+                Spectre = null; CreteG = 0; CreteD = 0;
+                if (arretVoulu) return;
+                // arrêt inattendu : noté, puis relancé (au plus quelques fois)
+                plantages++;
+                int code = -1; try { p.WaitForExit(2000); code = p.ExitCode; } catch { }
+                JournalDemarrage.Noter("Audio jeu : le processus d'écoute s'est arrêté (code " + code + ", " + plantages + "/" + PlantagesMax + ").");
+                Erreur = "L'écoute du son s'est arrêtée : reprise…";
+            }
+            Thread.Sleep(1500);
+            lock (verrou) Lancer();
+        }
+
+        /// <summary>Une ligne du processus d'écoute : « S spectre G D erreur » ou « V état de Voicemeeter (JSON) ».</summary>
+        internal static void Traiter(string l)
+        {
+            if (l.StartsWith("V ", StringComparison.Ordinal)) { var e = EtatVoicemeeter.DepuisJson(Json.Lire(l.Substring(2)) as Dictionary<string, object>); if (e != null) Voicemeeter.Etat = e; return; }
+            if (!l.StartsWith("S ", StringComparison.Ordinal)) return;
+            var c = l.Substring(2).Split(new[] { ' ' }, 4);
+            if (c.Length < 3) return;
+            if (c[0] == "-") Spectre = null;
+            else
+            {
+                var v = c[0].Split(',');
+                if (v.Length != AnalyseurSpectre.NbBandes) return;
+                var s = new float[v.Length];
+                for (int i = 0; i < v.Length; i++) if (!float.TryParse(v[i], NumberStyles.Float, CultureInfo.InvariantCulture, out s[i])) return;
+                Spectre = s;
+            }
+            float g, d;
+            if (float.TryParse(c[1], NumberStyles.Float, CultureInfo.InvariantCulture, out g)) CreteG = g;
+            if (float.TryParse(c[2], NumberStyles.Float, CultureInfo.InvariantCulture, out d)) CreteD = d;
+            Erreur = c.Length > 3 ? c[3].Trim() : "";
+        }
+
+        /// <summary>Ligne envoyée par le processus d'écoute (testable).</summary>
+        internal static string Ligne(float[] spectre, float g, float d, string erreur)
+        {
+            var ci = CultureInfo.InvariantCulture;
+            return "S " + (spectre == null ? "-" : string.Join(",", spectre.Select(x => Math.Round(x, 1).ToString(ci)))) + " " + g.ToString("0.###", ci) + " " + d.ToString("0.###", ci)
+                + (string.IsNullOrEmpty(erreur) ? "" : " " + erreur.Replace('\r', ' ').Replace('\n', ' '));
+        }
+
+        /// <summary>(processus à part) « --ecoute-audio PID » : écoute et relevés de Voicemeeter, tant que Velox (PID) est ouvert.</summary>
+        public static int Executer(string[] args)
+        {
+            int pid;
+            if (args.Length < 2 || !int.TryParse(args[1], NumberStyles.Integer, CultureInfo.InvariantCulture, out pid)) return 3;
+            System.Diagnostics.Process parent;
+            try { parent = System.Diagnostics.Process.GetProcessById(pid); } catch { return 2; }
+            CapteurAudio.Demarrer();
+            Voicemeeter.Suivre(true);
+            var sortie = new StreamWriter(Console.OpenStandardOutput(), new UTF8Encoding(false)) { AutoFlush = false };
+            var montre = System.Diagnostics.Stopwatch.StartNew();
+            long dernierVm = -10000;
+            try
+            {
+                while (!parent.HasExited)
+                {
+                    sortie.WriteLine(Ligne(CapteurAudio.Spectre, CapteurAudio.CreteG, CapteurAudio.CreteD, CapteurAudio.Erreur));
+                    if (montre.ElapsedMilliseconds - dernierVm >= 250) { dernierVm = montre.ElapsedMilliseconds; sortie.WriteLine("V " + Json.Compact(Voicemeeter.Etat.VersJson())); }
+                    sortie.Flush();
+                    Thread.Sleep(33);
+                }
+            }
+            catch (IOException) { }   // Velox a fermé le tuyau : fin normale
+            return 0;
+        }
+    }
+
     // ================================================================ Voicemeeter (VB-Audio)
 
     internal sealed class BusVoicemeeter
@@ -428,6 +604,30 @@ namespace NettoyagePC
         public string Nom { get { return Type == 3 ? "Voicemeeter Potato" : Type == 2 ? "Voicemeeter Banana" : Type == 1 ? "Voicemeeter" : ""; } }
         /// <summary>Égaliseur paramétrique des bus : Banana et Potato seulement.</summary>
         public bool EgaliseurNatif { get { return Lance && Type >= 2; } }
+
+        public Dictionary<string, object> VersJson()
+        {
+            var c = CultureInfo.InvariantCulture;
+            return new Dictionary<string, object>
+            {
+                { "I", Installe }, { "L", Lance }, { "T", Type }, { "V", Version }, { "E", Erreur },
+                { "B", Bus.Select(b => (object)new Dictionary<string, object> { { "i", b.Index }, { "n", b.Nom }, { "l", b.Label }, { "a", b.Appareil }, { "p", b.Physique }, { "c", b.PremierCanal }, { "g", Math.Round(b.G, 4) }, { "d", Math.Round(b.D, 4) } }).ToArray() },
+            };
+        }
+
+        /// <summary>État relu (valeurs bornées : il vient d'un autre processus) ; null si illisible.</summary>
+        public static EtatVoicemeeter DepuisJson(Dictionary<string, object> d)
+        {
+            if (d == null) return null;
+            var e = new EtatVoicemeeter { Installe = Json.Bool(d, "I"), Lance = Json.Bool(d, "L"), Type = (int)Math.Max(0, Math.Min(3, Json.Long(d, "T"))), Version = Json.Texte(d, "V"), Erreur = Json.Texte(d, "E") };
+            foreach (var b in Json.Objets(Json.Valeur(d, "B")).Take(8))
+                e.Bus.Add(new BusVoicemeeter
+                {
+                    Index = (int)Math.Max(0, Math.Min(7, Json.Long(b, "i"))), Nom = Json.Texte(b, "n"), Label = Json.Texte(b, "l"), Appareil = Json.Texte(b, "a"), Physique = Json.Bool(b, "p"),
+                    PremierCanal = (int)Math.Max(0, Math.Min(63, Json.Long(b, "c"))), G = (float)Json.Double(b, "g"), D = (float)Json.Double(b, "d"),
+                });
+            return e;
+        }
     }
 
     internal static class Voicemeeter
