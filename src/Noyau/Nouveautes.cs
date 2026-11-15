@@ -9,7 +9,8 @@ namespace NettoyagePC
         {
             N("5.14", "Nouveau : rubrique Audio (Premium), le « Studio son ». Un égaliseur pour mieux entendre les pas et les recharges dans Call of Duty / Warzone, avec Equalizer APO ou Voicemeeter. Le jeu n'est jamais touché.",
                 "Quatre profils, courbe avec le spectre du son en direct, molettes, faders et bouton « Comparer ». Auto Warzone (avec le gardien, même Velox fermé) et raccourcis Ctrl+Alt+F9 / F10 en plein jeu.",
-                "Sorties audio : VU-mètre, sortie par défaut de Windows en un clic, Voicemeeter reconnu. Raccourcis : Ctrl+7 ouvre Audio, Réglages passe à Ctrl+0."),
+                "Sorties audio : VU-mètre, sortie par défaut de Windows en un clic, Voicemeeter reconnu. Raccourcis : Ctrl+7 ouvre Audio, Réglages passe à Ctrl+0.",
+                "Premium passe à 9,99 € par mois pour les nouveaux abonnements. Si tu es déjà abonné, ton prix ne change pas. Les clés offertes sur Discord peuvent maintenant avoir une date de fin, affichée dans l'onglet Premium."),
             N("5.13", "Nouveau : Autopilote du mode jeu (Premium). Velox essaie chaque réglage sur tes vraies parties, avec et sans, et garde seulement ce qui marche sur ton PC, preuve à l'appui.",
                 "Réglages essayés : mise en retrait du programme qui fait saccader le jeu, priorité haute, mode « Performances élevées ». Rien n'est fermé, tout est rétabli à la fin de la partie."),
             N("5.12", "Nouveau : Boîte noire du jeu (Premium). Pendant les FPS en direct, Velox enregistre ta partie et t'explique chaque saccade : programme en arrière-plan, chaleur, mémoire, disque.",

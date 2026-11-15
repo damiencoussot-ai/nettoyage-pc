@@ -25,7 +25,7 @@ namespace NettoyagePC
         private const string ServeurLicencesIntegre = "https://velox-licences.nettoyagepcai.workers.dev";   // service de licences de l'éditeur (clés Discord, puis Stripe)
         /// <summary>L'abonnement se prend uniquement sur le serveur Discord officiel (commande /premium du bot).</summary>
         public const string UrlDiscord = "https://discord.gg/RjUawE3SXY";
-        public const string Prix = "4,99 €";   // par mois (abonnement Stripe, sans engagement)
+        public const string Prix = "9,99 €";   // par mois (abonnement Stripe, sans engagement ; 4,99 € avant le 15/11/2026, prix gardé par les abonnés d'avant)
         public const int NombrePc = 3;
 
         // Clé publique de l'éditeur pour les clés offertes (la clé privée reste chez l'éditeur)
@@ -96,6 +96,8 @@ namespace NettoyagePC
         public static string Courriel { get; private set; } = "";
         public static string CleMasquee { get; private set; } = "";
         public static string Remarque { get; private set; } = "";    // message à afficher (vérification en ligne impossible...)
+        /// <summary>Date de fin d'une clé à durée limitée (clé offerte sur Discord), en heure locale ; null : sans fin.</summary>
+        public static DateTime? Fin { get; private set; }
         /// <summary>Essai gratuit en cours (Premium actif sans clé).</summary>
         public static bool EnEssai { get; private set; }
         public static int JoursEssaiRestants { get; private set; }
@@ -145,7 +147,7 @@ namespace NettoyagePC
 
         private static void Evaluer()
         {
-            Premium = false; Remarque = ""; EnEssai = false; JoursEssaiRestants = 0;
+            Premium = false; Remarque = ""; EnEssai = false; JoursEssaiRestants = 0; Fin = null;
             EvaluerCle();
             if (!Premium)
             {
@@ -195,10 +197,26 @@ namespace NettoyagePC
                 DateTime ok;
                 if (!DateTime.TryParse(Json.Texte(etat, "verifiee"), System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.RoundtripKind, out ok)) return;
                 if (Json.Bool(etat, "revoquee")) { Remarque = Json.Texte(etat, "raison"); return; }
+                // clé à durée limitée : elle s'arrête à sa date de fin, même sans Internet (une prolongation est vue à la vérification suivante)
+                DateTime fin;
+                if (LireFin(Json.Texte(etat, "fin"), out fin))
+                {
+                    Fin = fin.ToLocalTime();
+                    if (fin <= DateTime.UtcNow) { Remarque = "Licence Premium : cette clé offerte est arrivée à sa date de fin."; return; }
+                }
                 if ((DateTime.UtcNow - ok).TotalDays <= JoursSansInternet) Premium = true;
                 else Remarque = "Connecte-toi à Internet : la licence doit être vérifiée de temps en temps.";
             }
         }
+
+        private static bool LireFin(string texte, out DateTime fin)
+        {
+            fin = DateTime.MinValue;
+            return texte != "" && DateTime.TryParse(texte, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.AdjustToUniversal | System.Globalization.DateTimeStyles.AssumeUniversal, out fin);
+        }
+
+        /// <summary>Date de fin donnée par le service de licences (« expires_at », vide si la clé n'a pas de fin).</summary>
+        private static string FinDe(Dictionary<string, object> rep) { return Json.Texte(Json.Dict(rep, "license_key"), "expires_at"); }
 
         // ------------------------------------------------------------ Essai gratuit (une fois par PC et par compte)
         private const string CleRegistreEssai = @"Software\NettoyagePC";
@@ -407,6 +425,7 @@ namespace NettoyagePC
                     { "type", "boutique" }, { "cle", cle }, { "instance", Json.Texte(inst, "id") }, { "titulaire", Json.Texte(meta, "customer_name") },
                     { "courriel", Json.Texte(meta, "customer_email") }, { "verifiee", DateTime.UtcNow.ToString("o") }, { "activee", DateTime.UtcNow.ToString("o") }
                 };
+                if (FinDe(rep) != "") etat["fin"] = FinDe(rep);
                 Enregistrer(); Evaluer(); Signaler();
                 return "";
             }
@@ -419,13 +438,15 @@ namespace NettoyagePC
             if (Json.Texte(etat, "type") != "boutique" || !Boutique.Ouverte) return;
             DateTime ok;
             DateTime.TryParse(Json.Texte(etat, "verifiee"), System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.RoundtripKind, out ok);
-            if (!forcer && (DateTime.UtcNow - ok).TotalDays < JoursEntreVerifications) return;
+            DateTime fin;
+            bool finie = LireFin(Json.Texte(etat, "fin"), out fin) && fin <= DateTime.UtcNow;   // clé finie : on regarde tout de suite si elle a été prolongée
+            if (!forcer && !finie && (DateTime.UtcNow - ok).TotalDays < JoursEntreVerifications) return;
             try
             {
                 int code;
                 var rep = Appeler("validate", new Dictionary<string, string> { { "license_key", Json.Texte(etat, "cle") }, { "instance_id", Json.Texte(etat, "instance") } }, out code);
                 bool valide = Json.Bool(rep, "valid") && ControlerProduit(rep) == "";
-                if (valide) { etat["verifiee"] = DateTime.UtcNow.ToString("o"); etat.Remove("revoquee"); etat.Remove("raison"); }
+                if (valide) { etat["verifiee"] = DateTime.UtcNow.ToString("o"); etat.Remove("revoquee"); etat.Remove("raison"); if (FinDe(rep) != "") etat["fin"] = FinDe(rep); else etat.Remove("fin"); }
                 else if (code != 429 && code < 500 && rep.ContainsKey("valid"))
                 {
                     // réponse claire de la boutique : clé désactivée, remboursée, ou PC retiré de la licence

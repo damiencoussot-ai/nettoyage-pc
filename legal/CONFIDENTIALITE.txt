@@ -1,5 +1,5 @@
 ﻿POLITIQUE DE CONFIDENTIALITÉ DE VELOX
-Version du 10 novembre 2026
+Version du 15 novembre 2026
 
 
 EN BREF
@@ -76,8 +76,9 @@ Le site officiel de Velox (https://damiencoussot-ai.github.io/nettoyage-pc/) n'u
 
 3.9 Le serveur Discord et l'achat par Discord
 Le serveur Discord officiel de Velox est hébergé par Discord (Discord Inc. et Discord Netherlands B.V.), qui applique sa propre politique de confidentialité à tout ce que vous y écrivez : https://discord.com/privacy
-Le robot « Velox » du serveur ne lit pas les messages : il répond seulement aux commandes (/premium, /ma-cle, /score, /essai, /telecharger) et aux boutons que vous utilisez vous-même. Pour répondre, il reçoit de Discord votre identifiant de compte Discord (un numéro) et votre pseudo.
-Si vous achetez Premium par Discord, ou si une clé vous est offerte, le service de licences de l'Éditeur (hébergé par Cloudflare) enregistre votre identifiant de compte Discord avec votre clé. Il sert uniquement à vous envoyer la clé en message privé, à vous la redonner (/ma-cle), à vous attribuer le rôle « Premium » sur le serveur et à le retirer si l'abonnement s'arrête ou est remboursé. Base légale : l'exécution du contrat. Il est conservé aussi longtemps que la licence (voir 4).
+Le robot « Velox » du serveur ne lit pas les messages : il répond seulement aux commandes (/premium, /ma-cle, /score, /essai, /telecharger, /avis) et aux boutons que vous utilisez vous-même. Pour répondre, il reçoit de Discord votre identifiant de compte Discord (un numéro) et votre pseudo.
+Si vous achetez Premium par Discord, ou si une clé vous est offerte, le service de licences de l'Éditeur (hébergé par Cloudflare) enregistre votre identifiant de compte Discord avec votre clé (et, pour une clé offerte, votre pseudo Discord, affiché comme titulaire dans l'onglet Premium de Velox). Il sert uniquement à vous envoyer la clé en message privé, à vous la redonner (/ma-cle), à vous attribuer le rôle « Premium » sur le serveur et à le retirer si l'abonnement s'arrête, est remboursé, ou si la clé offerte arrive à sa date de fin (vous recevez alors un message privé). Base légale : l'exécution du contrat. Il est conservé aussi longtemps que la licence (voir 4).
+La commande /avis est réservée aux membres qui ont une clé Premium (achetée ou offerte). Elle publie dans le salon « avis », à la vue de tous les membres, votre pseudo Discord, votre note, votre commentaire (les liens en sont retirés) et l'origine de votre Premium (abonnement ou clé offerte). Le service de licences conserve votre note, votre commentaire, la date et votre identifiant Discord, pour remplacer votre avis si vous le refaites. Base légale : votre consentement (c'est vous qui choisissez de publier un avis). Vous pouvez demander à tout moment la suppression de votre avis en écrivant à l'Éditeur ; sinon, il est conservé jusqu'à cette demande.
 La commande /score affiche dans le salon, à la vue de tous les membres, votre pseudo Discord et les chiffres contenus dans le code que vous collez (niveau, points, succès du profil Gamer). Ce code est créé par Velox à votre demande et ne contient aucune information personnelle ni aucune information sur votre ordinateur.
 
 4. DURÉE DE CONSERVATION

@@ -115,7 +115,8 @@ namespace NettoyagePC.Nouveau
             if (Licence.Premium && !Licence.EnEssai)
             {
                 pastille = "★  PREMIUM ACTIF"; titre = "Merci pour ton soutien !";
-                texte = (qui != "" ? Langue.F(Licence.Type == "offerte" ? "Licence de {0} (clé offerte)." : "Licence de {0}.", qui) + " " : "") + Langue.T("Tous les outils Premium sont débloqués sur ce PC, pour toutes les versions 4 et 5.");
+                texte = (qui != "" ? Langue.F(Licence.Type == "offerte" ? "Licence de {0} (clé offerte)." : "Licence de {0}.", qui) + " " : "") + Langue.T("Tous les outils Premium sont débloqués sur ce PC, pour toutes les versions 4 et 5.") +
+                    (Licence.Fin.HasValue ? "\n" + Langue.F("Clé offerte valable jusqu'au {0}.", Licence.Fin.Value.ToString("dd/MM/yyyy")) : "");
                 var g = new BoutonNoyau("Gérer la licence", false, 0, 42) { TaillePolice = 14 };
                 g.Clic += GererLicence;
                 boutons.Add(g);
@@ -239,7 +240,7 @@ namespace NettoyagePC.Nouveau
         private void GererLicence()
         {
             string info = Langue.T("Licence Premium active sur ce PC.") + "\n\n" + Langue.T(Licence.Type == "offerte" ? "Type : clé offerte" : "Type : achat sur la boutique") +
-                (Licence.Titulaire != "" ? "\n" + Langue.T("Titulaire") + " : " + Licence.Titulaire : "") + (Licence.Courriel != "" ? "\nE-mail : " + Licence.Courriel : "") + "\n" + Langue.T("Clé") + " : " + Licence.CleMasquee +
+                (Licence.Titulaire != "" ? "\n" + Langue.T("Titulaire") + " : " + Licence.Titulaire : "") + (Licence.Courriel != "" ? "\nE-mail : " + Licence.Courriel : "") + "\n" + Langue.T("Clé") + " : " + Licence.CleMasquee + (Licence.Fin.HasValue ? "\n" + Langue.F("Clé offerte valable jusqu'au {0}.", Licence.Fin.Value.ToString("dd/MM/yyyy")) : "") +
                 "\n\n" + Langue.T("Retirer la licence de ce PC ? (par exemple avant de le donner ou de le vendre : la place est libérée pour un autre PC)");
             F.Demander("Velox Premium", info, "Retirer la licence de ce PC", "Garder", oui =>
             {

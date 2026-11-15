@@ -18,6 +18,12 @@ Nouveau en 5.14 :
   et s'annule de là, et la désinstallation retire ce que l'outil a écrit.
 - Raccourcis : Ctrl+7 ouvre Audio, Mises à jour passe à Ctrl+8, Historique à Ctrl+9, Réglages à Ctrl+0.
 
+Premium :
+- Nouveau prix : 9,99 € TTC par mois pour les abonnements pris à partir du 15 novembre 2026. Si tu es déjà
+  abonné, ton prix de 4,99 € ne change pas tant que tu ne résilies pas. Conditions de vente mises à jour.
+- Les clés offertes sur le serveur Discord peuvent avoir une date de fin, affichée dans l'onglet Premium ;
+  Premium s'arrête à cette date, même sans Internet. Politique de confidentialité mise à jour (commande /avis).
+
 L'installateur est publié sous les deux noms : Velox-Setup-5.14.exe (winget, site) et NettoyagePC-Setup-5.14.exe (mise à jour des anciennes versions).
 
 SHA256 de Velox-Setup-5.14.exe : voir le fichier Velox-Setup-5.14.sha256

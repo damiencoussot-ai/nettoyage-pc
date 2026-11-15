@@ -131,6 +131,9 @@ namespace NettoyagePC.Nouveau
             }
             catch (Exception ex) { JournalDemarrage.Erreur("réglages (version 5)", ex); }
             try { Licence.Charger(); } catch (Exception ex) { JournalDemarrage.Erreur("licence (version 5)", ex); }
+            // licence de la boutique revérifiée en arrière-plan (au plus une fois par semaine, ou tout de suite si une clé offerte
+            // est arrivée à sa date de fin : elle a peut-être été prolongée) ; l'interface suit grâce à Licence.Change
+            if (Appli.DossierAutotest == null) System.Threading.Tasks.Task.Run(() => { try { Licence.VerifierSiBesoin(); } catch { } });
             // couleur de l'interface : celles autres que « Noyau » font partie de Premium (comme dans la version 4)
             try { Habillage.ChoisirCouleur(Licence.Premium ? couleur : "aurore"); } catch (Exception ex) { JournalDemarrage.Erreur("couleur (version 5)", ex); }
             BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
