@@ -544,6 +544,12 @@ namespace NettoyagePC.Nouveau
         }
         private StackPanel zoneMix, zoneCasque, zoneSurround;
         private TextBlock tDansLeJeu, tPasDirect;
+        private StackPanel zoneDemarrage;
+        private Control moduleDemarrage;
+        private string signatureDemarrage;
+        private List<CasqueAutoEq> casquesDevines;
+        private string sortieDevinee;
+        private bool devinette, casqueRefuse, configEnCours;
         private StackPanel zonePas;
         private string signaturePas;
         private bool pasOccupe;
@@ -720,6 +726,9 @@ namespace NettoyagePC.Nouveau
 
             // ---------------- colonne principale
             var g = new StackPanel();
+            zoneDemarrage = new StackPanel { Spacing = 10 };
+            moduleDemarrage = Studio.Module("Démarrage rapide", zoneDemarrage);
+            g.Children.Add(moduleDemarrage);
             courbe = new CourbeEq5 { Reglages = r, Allume = r.Actif };
             AutomationProperties.SetName(courbe, Langue.T("Courbe de l'égaliseur"));
             courbe.GainChange += (k, db) =>
@@ -743,6 +752,7 @@ namespace NettoyagePC.Nouveau
             var autres = new WrapPanel { Margin = new Thickness(0, 6, 0, 0) };
             foreach (var p in AudioJeu.Profils.Skip(4)) { var pp = p; autres.Children.Add(Studio.Bouton(Langue.T(p.Nom), false, () => ChoisirProfil(pp), Langue.T(p.Texte))); }
             autres.Children.Add(Studio.Bouton(Langue.T("Réglage automatique"), false, ReglageAutomatique, Langue.T("Profil compétitif, force 100 %, sortie Auto, tout le reste remis à zéro.")));
+            autres.Children.Add(Studio.Bouton(Langue.T("Démarrage rapide"), false, () => { if (exemple) return; r.AssistantFait = false; casqueRefuse = false; signatureDemarrage = null; MajDemarrage(Releve ?? new ReleveAudioJeu()); Changer(null, false, false); }, Langue.T("Rouvre le démarrage rapide : Velox vérifie et règle tout pour toi.")));
             // profils par jeu (les mêmes que charge Auto jeux)
             var parJeu = new WrapPanel { Margin = new Thickness(0, 4, 0, 0) };
             parJeu.Children.Add(new TextBlock { Text = Langue.T("Par jeu :"), FontFamily = Studio.Corps, FontSize = 12.5, Foreground = Studio.P(Studio.Discret), VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 10, 8) });
@@ -1110,6 +1120,7 @@ namespace NettoyagePC.Nouveau
             // ---- sorties, Voicemeeter, automatismes, fichier
             if (exemple) vu.Definir(0.42f, 0.36f);
             MajCasque();
+            MajDemarrage(v);
             MajPas(v);
             MajSurround(v);
             MajSorties(v);
@@ -1335,7 +1346,7 @@ namespace NettoyagePC.Nouveau
             ArreterDuel(false);
             if (!OperatingSystem.IsWindows()) return;
             if (simulation) { F.Statut(Langue.T("Simulation : l'écoute avant / après a besoin de couper l'égaliseur un instant, rien n'est modifié ici."), true); return; }
-            if (!r.Actif) { F.Statut(Langue.T("Allume d'abord l'égaliseur (gros bouton en haut), puis écoute la différence."), true); return; }
+            if (!r.Actif) { LancerDemoPreparee(); return; }
             var v = Releve;
             if (v != null && r.Moteur != "vm")
             {
@@ -1351,8 +1362,37 @@ namespace NettoyagePC.Nouveau
             minuterieDemo.Start();
         }
 
+        private List<byte[]> demoPreparee;
+
+        /// <summary>
+        /// Égaliseur pas actif en ce moment (Auto jeux attend un jeu, ou coupé) : Velox prépare lui-même les deux sons, sans
+        /// puis avec tes réglages (calibration comprise), au même volume, et les joue. Equalizer APO n'est pas touché.
+        /// </summary>
+        private void LancerDemoPreparee()
+        {
+            var sans = r.Copie(); sans.Gains = new double[AudioJeu.Bandes.Length]; sans.CalibActive = false; sans.CoupeBas = 0; sans.Actif = true;
+            var avec = r.Copie(); avec.Actif = true;
+            etapeDemo = 10; MarquerDemo(1);
+            F.Statut(Langue.T("Préparation de la scène…"));
+            Task.Run(() => DemoAudio.Duel(new List<ReglagesAudioJeu> { sans, avec })).ContinueWith(t => Dispatcher.UIThread.Post(() =>
+            {
+                if (etapeDemo != 10) return;
+                if (t.IsFaulted) { ArreterDemo(); return; }
+                demoPreparee = t.Result;
+                if (minuterieDemo == null) { minuterieDemo = new DispatcherTimer(); minuterieDemo.Tick += (o, a) => EtapeDemo(); }
+                DemoAudio.Jouer(demoPreparee[0]); etapeDemo = 11;
+                minuterieDemo.Interval = TimeSpan.FromSeconds(DemoAudio.Duree + 0.3); minuterieDemo.Start();
+            }));
+        }
+
         private void EtapeDemo()
         {
+            if (etapeDemo >= 10)
+            {
+                minuterieDemo.Stop();
+                if (etapeDemo == 11 && demoPreparee != null) { MarquerDemo(2); DemoAudio.Jouer(demoPreparee[1]); etapeDemo = 12; minuterieDemo.Interval = TimeSpan.FromSeconds(DemoAudio.Duree + 0.3); minuterieDemo.Start(); return; }
+                ArreterDemo(); demoPreparee = null; F.Statut(Langue.T("Écoute terminée. Rejoue-la après chaque réglage pour comparer.")); return;
+            }
             minuterieDemo.Stop();
             switch (etapeDemo)
             {
@@ -1372,6 +1412,124 @@ namespace NettoyagePC.Nouveau
             if (comparaison) Comparer(F, false);   // l'égaliseur revient toujours
             etapeDemo = 0;
             MarquerDemo(0);
+        }
+
+        // ---------------------------------------------------------------- démarrage rapide (première utilisation)
+
+        /// <summary>
+        /// Démarrage rapide : un bouton, et Velox fait tout ce qu'il faut, dans l'ordre. Chaque étape se coche toute seule
+        /// d'après ce que Velox voit sur le PC (rien n'est supposé) :
+        /// 1. Equalizer APO installé (Velox le télécharge et l'installe) ;
+        /// 2. branché sur ta sortie (sa fenêtre s'ouvre, tu coches ton casque) ;
+        /// 3. casque reconnu et calibré (Velox devine le modèle d'après le nom de la sortie, tu confirmes) ;
+        /// 4. profil pour les pas, Auto jeux et profil adapté à chaque jeu ;
+        /// 5. écoute : avant / après, et duel à l'oreille.
+        /// </summary>
+        private void MajDemarrage(ReleveAudioJeu v)
+        {
+            if (zoneDemarrage == null) return;
+            moduleDemarrage.IsVisible = !r.AssistantFait;
+            if (r.AssistantFait) return;
+            bool vm = r.Moteur == "vm";
+            int etat; Cible(v, out etat);
+            bool apo = vm || v.Etat.Present;
+            bool branche = vm || (v.Etat.Present && (etat == 0 || etat == 4));
+            bool calibre = r.CalibFiltres != null && r.CalibFiltres.Count > 0 && r.CalibActive;
+            bool regle = r.AutoJeu && r.ProfilParJeu && (vm || v.Etat.Include);
+            // le casque d'après le nom de la sortie (une fois par sortie), dès qu'Equalizer APO est là
+            string sortie = v.NomDefaut ?? "";
+            if (!calibre && !casqueRefuse && !exemple && sortie != "" && sortie != sortieDevinee && !devinette)
+            {
+                sortieDevinee = sortie; devinette = true;
+                Task.Run(() => Casques.RequeteDepuisSortie(sortie) == "" ? new List<CasqueAutoEq>() : Casques.Deviner(Casques.Index(), sortie, 3))
+                    .ContinueWith(t => Dispatcher.UIThread.Post(() => { devinette = false; casquesDevines = t.IsFaulted ? new List<CasqueAutoEq>() : t.Result; signatureDemarrage = null; MajDemarrage(Releve ?? new ReleveAudioJeu()); }));
+            }
+            string sig = apo + "|" + branche + "|" + calibre + "|" + regle + "|" + configEnCours + "|" + installationApo + "|" + casqueRefuse + "|" + (casquesDevines == null ? "-" : string.Join(",", casquesDevines.Select(c => c.Nom))) + "|" + sortie;
+            if (sig == signatureDemarrage) return;
+            signatureDemarrage = sig;
+            zoneDemarrage.Children.Clear();
+            bool fini = apo && branche && regle;
+            zoneDemarrage.Children.Add(Studio.T(Langue.T(fini ? "C'est prêt. Écoute la différence, puis lance ton jeu : Velox s'occupe du reste." : "Un clic, et Velox fait tout ce qu'il faut pour que tu entendes mieux les pas. Tu n'as qu'à suivre ce qui s'affiche."), 13, Studio.Texte));
+            var liste = new StackPanel { Spacing = 6 };
+            liste.Children.Add(Etape(apo, Langue.T("Equalizer APO installé"), apo ? "" : Langue.T("Velox le télécharge depuis son site officiel et l'installe (Windows demandera l'autorisation).")));
+            liste.Children.Add(Etape(branche, Langue.T("Branché sur ton casque") + (sortie != "" ? " · " + sortie : ""), branche || !apo ? "" : Langue.T("Une fenêtre d'Equalizer APO s'ouvre : coche ton casque, clique sur OK, puis redémarre le PC si elle le demande.")));
+            string detailCasque = calibre ? r.CalibNom : casqueRefuse ? Langue.T("Facultatif : tape ton modèle dans « Calibration du casque », plus bas.") : casquesDevines == null ? Langue.T("Recherche de ton modèle…") : casquesDevines.Count == 0 ? Langue.T("Modèle pas reconnu d'après Windows : tape-le dans « Calibration du casque », plus bas (facultatif).") : "";
+            liste.Children.Add(Etape(calibre, Langue.T("Casque reconnu et calibré"), detailCasque, !calibre && (casqueRefuse || (casquesDevines != null && casquesDevines.Count == 0))));
+            if (!calibre && !casqueRefuse && casquesDevines != null && casquesDevines.Count > 0)
+            {
+                var choix = new WrapPanel { Margin = new Thickness(28, 0, 0, 0) };
+                choix.Children.Add(new TextBlock { Text = Langue.T("C'est ton casque ?"), FontFamily = Studio.Corps, FontSize = 12.5, Foreground = Studio.P(Studio.Discret), VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 10, 8) });
+                foreach (var c in casquesDevines) { var cc = c; var b = Puce(c.Nom, () => ChoisirCasque(cc)); Marquer(b, false, Studio.Ambre); choix.Children.Add(b); }
+                var bNon = Puce(Langue.T("Aucun de ceux-là"), () => { casqueRefuse = true; signatureDemarrage = null; MajDemarrage(Releve ?? new ReleveAudioJeu()); });
+                Marquer(bNon, false); choix.Children.Add(bNon);
+                liste.Children.Add(choix);
+            }
+            liste.Children.Add(Etape(regle, Langue.T("Profil pour les pas, Auto jeux et profil adapté à chaque jeu"), regle ? Langue.T("L'égaliseur s'allume tout seul au lancement de tes jeux, avec le bon profil.") : ""));
+            zoneDemarrage.Children.Add(liste);
+            var boutons = new WrapPanel();
+            if (!fini)
+            {
+                string libelle = configEnCours || installationApo ? Langue.T("Configuration en cours…") : !apo ? Langue.T("Tout configurer pour moi") : !branche ? Langue.T("Brancher Equalizer APO sur mon casque") : Langue.T("Terminer la configuration");
+                boutons.Children.Add(Studio.Bouton(libelle, true, () => ConfigurerTout(Releve ?? new ReleveAudioJeu())));
+            }
+            else
+            {
+                boutons.Children.Add(Studio.Bouton(Langue.T("▶  Écouter la différence"), true, LancerDemo, Langue.T("La même scène de jeu sans puis avec le Studio son, au même volume.")));
+                boutons.Children.Add(Studio.Bouton(Langue.T("Trouver mon profil à l'oreille"), false, LancerDuel, Langue.T("Duel à l'aveugle entre plusieurs profils, au même volume.")));
+                boutons.Children.Add(Studio.Bouton(Langue.T("C'est bon, masquer"), false, () => { if (exemple) return; r.AssistantFait = true; Changer(Langue.T("Démarrage rapide masqué : le bouton « Démarrage rapide » (Profils) le rouvre."), false, true); }));
+            }
+            zoneDemarrage.Children.Add(boutons);
+            if (fini) zoneDemarrage.Children.Add(Studio.T(Langue.T("Pour aller plus loin, plus bas : « Pas boostés » (les pas lointains remontent face aux explosions) et le son 7.1 virtuel."), 11.5, Studio.Faible));
+        }
+
+        private Control Etape(bool fait, string titre, string detail, bool facultatif = false)
+        {
+            var coche = new Border
+            {
+                Width = 20, Height = 20, CornerRadius = new CornerRadius(10), VerticalAlignment = VerticalAlignment.Top, Margin = new Thickness(0, 1, 8, 0),
+                Background = fait ? Studio.P(Studio.Vert, 220) : Studio.P(Studio.Fond1, 200), BorderBrush = Studio.P(fait ? Studio.Vert : facultatif ? Studio.Bord : Studio.Ambre, 200), BorderThickness = new Thickness(1.5),
+                Child = new TextBlock { Text = fait ? "✔" : "", FontSize = 11, FontWeight = FontWeight.Bold, Foreground = Studio.P(Studio.Fond1), HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center },
+            };
+            var textes = new StackPanel { Spacing = 1 };
+            textes.Children.Add(new TextBlock { Text = titre, FontFamily = Studio.Corps, FontSize = 13, FontWeight = FontWeight.SemiBold, Foreground = Studio.P(fait ? Studio.Texte : Studio.Discret), TextWrapping = TextWrapping.Wrap });
+            if (!string.IsNullOrEmpty(detail)) textes.Children.Add(Studio.T(detail, 11.5, Studio.Faible));
+            var l = new DockPanel();
+            DockPanel.SetDock(coche, Dock.Left);
+            l.Children.Add(coche); l.Children.Add(textes);
+            AutomationProperties.SetName(l, (fait ? Langue.T("Fait") : Langue.T("À faire")) + " : " + titre);
+            return l;
+        }
+
+        /// <summary>Le gros bouton : fait l'étape suivante (et toutes celles qui peuvent se faire d'un coup).</summary>
+        private void ConfigurerTout(ReleveAudioJeu v)
+        {
+            if (exemple || configEnCours || installationApo) return;
+            if (simulation) { F.Statut(Langue.T("Simulation : Velox configurerait tout, rien n'est modifié."), true); return; }
+            bool vm = r.Moteur == "vm";
+            int etat; Cible(v, out etat);
+            if (!vm && !v.Etat.Present) { InstallerApo(v.NomDefaut); return; }
+            if (!vm && etat != 0 && etat != 4)
+            {
+                F.Demander(Langue.T("Brancher Equalizer APO sur ton casque"),
+                    Langue.F("Une fenêtre d'Equalizer APO va s'ouvrir. Coche « {0} » (ta sortie actuelle), clique sur OK, et redémarre le PC si elle te le demande. Puis reviens ici : la suite se fait toute seule.", v.NomDefaut != "" ? v.NomDefaut : Langue.T("ton casque")),
+                    Langue.T("Ouvrir"), Langue.T("Annuler"), oui => { if (oui) OuvrirConfigurator(); });
+                return;
+            }
+            AvecAccord(() =>
+            {
+                configEnCours = true;
+                // profil pour les pas (celui du jeu s'il tourne), force normale, sortie suivie automatiquement
+                var jeu = AudioJeu.JeuDe(v.Jeu);
+                r.Cible = "auto"; r.Intensite = 100;
+                r.Gains = (double[])(jeu != null ? jeu.Gains : AudioJeu.Profils[0].Gains).Clone();
+                if (jeu != null) r.CoupeBas = jeu.CoupeBas;
+                r.AutoJeu = true; r.ProfilParJeu = true; r.JeuEnCours = "";
+                AudioJeu.SuivreJeu(r, v.Jeu, r.Actif);
+                AnnoncerApres(Langue.T("Studio son configuré"), jeu != null ? jeu.Nom : Langue.T("Auto jeux actif"));
+                Changer(Langue.T(jeu != null ? "Configuré : ton jeu tourne, l'égaliseur est actif avec son profil." : "Configuré : l'égaliseur s'allumera tout seul au lancement de tes jeux, avec le bon profil."), true, true);
+                configEnCours = false; signatureDemarrage = null;
+                MettreAJourBientot();
+            });
         }
 
         // ---------------------------------------------------------------- « Pas boostés » : moteur audio de Velox

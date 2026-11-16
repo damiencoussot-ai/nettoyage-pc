@@ -1,6 +1,8 @@
 Velox 5.14 : le Studio son
 
 Nouveau : la rubrique Audio (Premium), le « Studio son »
+- Démarrage rapide : un bouton, et Velox fait tout pour la première utilisation (installe Equalizer APO, le
+  branche sur ton casque, devine ton modèle de casque et le calibre, règle le profil et Auto jeux), puis te fait écouter.
 - Un égaliseur pensé pour entendre les pas et les recharges dans Call of Duty / Warzone et les autres jeux
   compétitifs, avec un look de console de mixage. Le jeu n'est jamais touché.
 - Quatre profils (Compétitif, Équilibré, Pas extrême, Immersion), courbe avec le spectre du son en direct

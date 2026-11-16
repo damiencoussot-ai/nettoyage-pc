@@ -225,6 +225,7 @@ namespace NettoyagePC.Nouveau
             // calibration d'exemple (mesure oratory1990 publiée par AutoEq pour ce casque)
             r.CalibActive = true; r.CalibNom = "SteelSeries Arctis Nova Pro Wireless (wired)"; r.CalibSource = "oratory1990";
             r.CalibFiltres = Casques.LireEq(ExempleEqCasque);
+            r.AssistantFait = true;   // (le démarrage rapide a sa propre capture)
             releve = new ReleveAudioJeu { Dossier = @"C:\Program Files\EqualizerAPO\config" };
             if (!present) return r;
             releve.Etat = new EtatAudioJeu { Present = true, Fichier = true, Actif = true, Include = true, Contenu = AudioJeu.Generer(r, casque), Autres = { "YouSound", "HeSuVi" } };
@@ -619,6 +620,12 @@ namespace NettoyagePC.Nouveau
                 verifier(liste.Count == 3 && hd != null && hd.Source == "oratory1990" && liste.First(c => c.Nom == "Moondrop Aria").IntraAuriculaire && !liste.Any(c => c.Nom.StartsWith("Piège")), "casques : liste lue, meilleure mesure gardée, chemins douteux écartés");
                 verifier(Casques.AdresseEq(hd) == "https://raw.githubusercontent.com/jaakkopasanen/AutoEq/master/results/oratory1990/over-ear/Sennheiser%20HD%20650/Sennheiser%20HD%20650%20ParametricEQ.txt", "casques : adresse de la correction");
                 verifier(Casques.Chercher(liste, "hd650").Count == 0 && Casques.Chercher(liste, "hd 650").Count == 1 && Casques.Chercher(liste, "arctis nova").Count == 1 && Casques.Chercher(liste, "a").Count == 0, "casques : recherche par mots");
+                // démarrage rapide : le modèle deviné d'après le nom de la sortie de Windows
+                var dev = Casques.Deviner(liste, "Casque (SteelSeries Arctis Nova Pro Wireless)");
+                verifier(Casques.RequeteDepuisSortie("Haut-parleurs (Realtek(R) Audio)") == "" && Casques.RequeteDepuisSortie("Headphones (High Definition Audio Device)") == ""
+                    && Casques.RequeteDepuisSortie("CABLE Input (VB-Audio Virtual Cable)") == "" && Casques.RequeteDepuisSortie("Casque (Arctis Nova Pro Wireless)") == "arctis nova pro wireless"
+                    && dev.Count == 1 && dev[0].Nom == "SteelSeries Arctis Nova Pro" && Casques.Deviner(liste, "Casque (HD 650)").Count == 1 && Casques.Deviner(liste, "Speakers (Realtek(R) Audio)").Count == 0,
+                    "démarrage rapide : modèle du casque deviné d'après le nom de la sortie (noms génériques ignorés)");
                 var eqc = Casques.LireEq(ExempleEqCasque + "Include: piege.txt\nFilter 11: ON PK Fc 100 Hz Gain 3 dB Q 1 ; Include: x\nFilter 12: ON PK Fc 5 Hz Gain 3 dB Q 1\nFilter 13: ON PK Fc 100 Hz Gain 45 dB Q 1\nFilter 14: ON HP Fc 100 Hz\n");
                 verifier(eqc != null && eqc.Count == 10 && eqc[5].Type == "HSC" && eqc[5].Gain == -1.9 && eqc[3].Q == 3.24 && Casques.LireEq("Preamp: -3 dB\n") == null, "casques : seules les lignes de filtre valables sont gardées");
                 var rc = new ReglagesAudioJeu { Actif = true, Gains = (double[])competitif.Clone(), CalibActive = true, CalibNom = "Test", CalibSource = "oratory1990", CalibFiltres = eqc };
@@ -708,6 +715,8 @@ namespace NettoyagePC.Nouveau
                         verifier(err.StartsWith("VB-Cable n'est pas installé") && !MoteurSon.EnMarche() && AudioWindows.ParDefaut() == defAvant && !MoteurSon.Lire().Actif, "pas boostés sans VB-Cable : refusé proprement (" + err + ")");
                     }
                     else if (!OperatingSystem.IsWindows()) verifier(MoteurSon.Allumer(65, true) == "Windows uniquement." && MoteurSon.Executer() == 2, "pas boostés hors Windows : refusé");
+                    var ra = new ReglagesAudioJeu { AssistantFait = true };
+                    verifier(ReglagesAudioJeu.DepuisJson(NettoyagePC.Json.Lire(NettoyagePC.Json.Ecrire(ra.VersJson())) as System.Collections.Generic.Dictionary<string, object>).AssistantFait && !new ReglagesAudioJeu().AssistantFait, "démarrage rapide : « fait » gardé dans les réglages");
                     verifier(rr.Actif && rr.Force == 100 && rr.Source == rm.Source && rr.Destination == "" && rr.DefautAvant == rm.DefautAvant && rr.JeuxSeulement && ReglagesMoteurSon.Lire("{\"Source\":\"C:\\\\x\"}").Source == "", "pas boostés : réglages bornés et relus, identifiants invalides refusés");
                 }
                 // duel à l'oreille : candidats différents, tous au même volume, aucun ne sature
@@ -1560,6 +1569,16 @@ namespace NettoyagePC.Nouveau
                 }
                 foreach (var defil in f.GetVisualDescendants().OfType<ScrollViewer>().Where(x => x.Content is AudioJeu5).Take(1)) defil.Offset = new Vector(0, 100000);
                 Capturer(f, dossier, "sombre-audio-mixage.png", rapport, ref erreurs);
+                {
+                    // démarrage rapide (première utilisation) : en haut de la page, étapes cochées d'après le PC
+                    AudioJeu5.ExempleReglages.AssistantFait = false; AudioJeu5.ExempleReglages.AutoJeu = false;
+                    f.Afficher("Accueil", false); f.Afficher("Audio", false);
+                    for (int k = 0; k < 4; k++) { Dispatcher.UIThread.RunJobs(); AvaloniaHeadlessPlatform.ForceRenderTimerTick(); }
+                    bool demVu = f.GetVisualDescendants().OfType<TextBlock>().Any(t => t.Text == "Terminer la configuration") && f.GetVisualDescendants().OfType<TextBlock>().Any(t => t.Text == "Equalizer APO installé");
+                    if (!demVu) { erreurs++; rapport.AppendLine("ERREUR : audio : démarrage rapide absent"); }
+                    Capturer(f, dossier, "sombre-audio-demarrage.png", rapport, ref erreurs);
+                    AudioJeu5.ExempleReglages.AssistantFait = true;
+                }
                 try { File.WriteAllBytes(Path.Combine(dossier, "scene-avant-apres.wav"), DemoAudio.Wav()); } catch { }   // (pour écouter la scène du test avant / après)
                 f.Width = 1600; f.Height = 1000; f.Afficher("Audio", false);
                 Capturer(f, dossier, "grand-audio.png", rapport, ref erreurs);

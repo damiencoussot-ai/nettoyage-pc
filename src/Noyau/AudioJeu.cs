@@ -64,6 +64,8 @@ namespace NettoyagePC
         public string CibleEcrite = "";
         /// <summary>Raccourcis clavier globaux (Ctrl+Alt+F9 : égaliseur, Ctrl+Alt+F10 : profil suivant). Désactivés par défaut.</summary>
         public bool Raccourcis;
+        /// <summary>Le démarrage rapide (première utilisation) a été fait ou masqué.</summary>
+        public bool AssistantFait;
         /// <summary>Moteur de l'égaliseur : « apo » (Equalizer APO) ou « vm » (égaliseur des bus de Voicemeeter Banana / Potato).</summary>
         public string Moteur = "apo";
         /// <summary>Bus de Voicemeeter égalisé (0 = A1), et bus dont Velox a allumé l'égaliseur (−1 : aucun).</summary>
@@ -113,7 +115,7 @@ namespace NettoyagePC
                 { "Actif", Actif }, { "Gains", Gains.Select(x => (object)x).ToArray() }, { "Intensite", Intensite }, { "Niveau", Niveau }, { "Balance", Balance },
                 { "Largeur", Largeur }, { "CoupeBas", CoupeBas }, { "Inversion", Inversion }, { "AutoJeu", AutoJeu }, { "Cible", Cible }, { "CibleEcrite", CibleEcrite },
                 { "Raccourcis", Raccourcis }, { "Moteur", Moteur }, { "BusVm", BusVm }, { "VmEcrit", VmEcrit }, { "AppareilVm", AppareilVm ?? "" },
-                { "SansEtiquetteVm", SansEtiquetteVm },
+                { "SansEtiquetteVm", SansEtiquetteVm }, { "AssistantFait", AssistantFait },
                 { "ProfilParJeu", ProfilParJeu }, { "JeuEnCours", JeuEnCours ?? "" },
                 { "CalibActive", CalibActive }, { "CalibNom", CalibNom ?? "" }, { "CalibSource", CalibSource ?? "" },
                 { "CalibFiltres", (CalibFiltres ?? new List<FiltreAudio>()).Select(f => (object)new object[] { f.Type, f.Fc, f.Gain, f.Q }).ToArray() },
@@ -139,6 +141,7 @@ namespace NettoyagePC
             r.BusVm = (int)Json.Long(d, "BusVm"); r.VmEcrit = (int)Json.Long(d, "VmEcrit", -1);
             string av = Json.Texte(d, "AppareilVm"); r.AppareilVm = av.Length <= 200 ? av : "";
             r.SansEtiquetteVm = Json.Bool(d, "SansEtiquetteVm");
+            r.AssistantFait = Json.Bool(d, "AssistantFait");
             r.ProfilParJeu = Json.Bool(d, "ProfilParJeu");
             string je = Json.Texte(d, "JeuEnCours"); r.JeuEnCours = AudioJeu.Jeux.Any(j => j.Cle == je) ? je : "";
             r.CalibActive = Json.Bool(d, "CalibActive");
