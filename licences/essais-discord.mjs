@@ -234,8 +234,15 @@ ok(nomS('💎・acheter-premium').topic.includes('9,99 €/mois'), 'organiser : 
 // /avis (le salon « avis » existe maintenant)
 const salonAvis = nomS('⭐・avis').id;
 const avis = (uid, note, texte, jeton = 'jeton-avis') => interaction({ type: 2, guild_id: GU, token: jeton, member: { user: { id: uid, username: 'pseudo' + uid.slice(-2), global_name: 'Testeur77' }, permissions: '0' }, data: { name: 'avis', options: [{ name: 'note', value: note }, { name: 'commentaire', value: texte }] } });
+// U n'a que des achats remboursés ou terminés + une clé offerte finie : avis possible, jamais « Abonné » pour un remboursement
 r = await avis('666666666666666666', 5, 'Super logiciel, vraiment rapide et clair.');
 j = await r.json(); ok(j.data.flags === 64 && /réservés aux membres/.test(j.data.content), '/avis : refusé sans clé Premium');
+const KVa = await mf.getKVNamespace('LICENCES');
+const cleRemb = crypto.randomUUID().toUpperCase();
+await KVa.put('lic:' + cleRemb, JSON.stringify({ cle: cleRemb, statut: 'disabled', raison: 'remboursée', email: '', nom: 'x', test: false, creee: new Date().toISOString(), activations: [] }));
+await KVa.put('discord:121212121212121212', JSON.stringify([cleRemb]));
+r = await avis('121212121212121212', 1, 'Remboursé tout de suite, je donne quand même mon avis.');
+j = await r.json(); ok(/réservés aux membres/.test(j.data.content), '/avis : refusé quand le seul achat a été remboursé');
 r = await avis('777777777777777777', 4, 'trop court');
 j = await r.json(); ok(/trop court/.test(j.data.content), '/avis : commentaire trop court refusé');
 r = await avis('777777777777777777', 9, 'Une note impossible mais un texte assez long.');

@@ -409,6 +409,9 @@ namespace NettoyagePC
                     string err = Json.Texte(rep, "error");
                     if (Regex.IsMatch(err, "activation limit", RegexOptions.IgnoreCase)) return Langue.F("cette clé est déjà utilisée sur {0} PC. Retire-la d'un ancien PC (Premium > Gérer la licence), puis réessaie.", Boutique.NombrePc);
                     if (code == 404 || Regex.IsMatch(err, "not found", RegexOptions.IgnoreCase)) return "clé inconnue (vérifie qu'elle est complète)";
+                    // réponses du service de licences en anglais (format Lemon Squeezy) : message en clair, traduit
+                    if (Regex.IsMatch(err, "expired", RegexOptions.IgnoreCase)) return "cette clé a expiré";
+                    if (Regex.IsMatch(err, "disabled", RegexOptions.IgnoreCase)) return "cette clé a été désactivée";
                     return err != "" ? err : "activation refusée (code " + code + ")";
                 }
                 string pb = ControlerProduit(rep);

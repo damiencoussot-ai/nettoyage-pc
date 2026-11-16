@@ -657,11 +657,13 @@ async function donnerAvis(env, i, id, utilisateur, ctx) {
   const cles = JSON.parse(await env.LICENCES.get('discord:' + id) || '[]');
   const lics = [];
   for (const c of cles) { const l = await lire(env, 'lic:' + c); if (l && !l.test) lics.push(l); }
+  if (!lics.some((l) => l.offerte || !['remboursée', 'contestée'].includes(l.raison))) lics.length = 0;   // seulement des achats remboursés : pas d'avis vérifié
   if (lics.length === 0) return reponse('Les avis vérifiés sont réservés aux membres qui ont utilisé Velox Premium (abonnement ou clé offerte). Essaie-le 7 jours avec `/essai`, puis abonne-toi avec `/premium` : tu pourras ensuite donner ton avis.');
   const etat = JSON.parse(await env.LICENCES.get('serveur') || '{}');
   const salon = /^\d{15,22}$/.test(env.DISCORD_SALON_AVIS || '') ? env.DISCORD_SALON_AVIS : ((etat.salons || {}).avis || '');
   if (!salon) return reponse('Le salon des avis n\'est pas encore prêt. Préviens le staff (page /admin → « Organiser le serveur Discord »).');
-  const achat = lics.some((l) => !l.offerte), offerte = lics.some((l) => l.offerte);
+  // un achat remboursé ou contesté ne donne pas la mention « Abonné Premium »
+  const achat = lics.some((l) => !l.offerte && !['remboursée', 'contestée'].includes(l.raison)), offerte = lics.some((l) => l.offerte);
   const origine = achat ? 'Abonné Premium' + (offerte ? ' · a aussi reçu une clé offerte' : '') : 'Testeur · a reçu une clé Premium offerte';
   const pseudo = String(utilisateur.global_name || utilisateur.username || 'Membre').slice(0, 64);
   const maintenant = new Date().toISOString();
