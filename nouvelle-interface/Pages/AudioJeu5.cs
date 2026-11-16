@@ -117,6 +117,19 @@ namespace NettoyagePC.Nouveau
                 if (principale != null && principale.PageActive == "Audio") principale.Afficher("Audio", false);
             });
             RaccourcisAudio.Activer(Premium && Reglages.Raccourcis);
+            // « Comparer » interrompu (Velox fermé de force pendant l'appui) : l'égaliseur revient au démarrage suivant.
+            // Seulement si les réglages enregistrés le disent actif et que le fichier en place est la ligne « coupé » de Velox.
+            if (!f.Simulation) Task.Run(() =>
+            {
+                try
+                {
+                    var r0 = AudioJeu.Lire();
+                    var e0 = AudioJeu.Etat();
+                    if (r0.Actif && r0.Moteur != "vm" && AudioJeu.Present && e0.Fichier && !e0.Actif)
+                        AudioJeu.Comparer(false, AudioJeu.Generer(r0, r0.CibleEcrite));
+                }
+                catch { }
+            });
         }
 
         private static void Veiller()

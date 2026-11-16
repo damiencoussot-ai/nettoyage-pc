@@ -25,7 +25,7 @@ namespace NettoyagePC
         private const string ServeurLicencesIntegre = "https://velox-licences.nettoyagepcai.workers.dev";   // service de licences de l'éditeur (clés Discord, puis Stripe)
         /// <summary>L'abonnement se prend uniquement sur le serveur Discord officiel (commande /premium du bot).</summary>
         public const string UrlDiscord = "https://discord.gg/RjUawE3SXY";
-        public const string Prix = "9,99 €";   // par mois (abonnement Stripe, sans engagement ; 4,99 € avant le 15/11/2026, prix gardé par les abonnés d'avant)
+        public const string Prix = "9,99 €";   // par mois (abonnement Stripe, sans engagement ; 4,99 € avant la 5.14, prix gardé par les abonnés d'avant)
         public const int NombrePc = 3;
 
         // Clé publique de l'éditeur pour les clés offertes (la clé privée reste chez l'éditeur)

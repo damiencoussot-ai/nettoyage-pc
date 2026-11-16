@@ -448,6 +448,7 @@ namespace NettoyagePC.Nouveau
                 File.SetAttributes(fichier, FileAttributes.Normal);
                 if (refus == "") rapport.AppendLine("Audio jeu (refus d'accès) : non essayé ici (ce compte écrit malgré la lecture seule)");
                 else verifier(refus == AudioJeu.Refus && File.ReadAllBytes(fichier).SequenceEqual(proto) && File.ReadAllBytes(config).SequenceEqual(origine), "refus d'accès : rien n'est modifié (" + refus + ")");
+                verifier(Directory.GetFiles(dossier, "*.velox-tmp").Length == 0, "écriture d'un seul coup : aucun fichier temporaire laissé dans le dossier d'Equalizer APO");
             }
             finally
             {

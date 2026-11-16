@@ -513,8 +513,27 @@ namespace NettoyagePC
         /// surveille les écritures de son dossier, et un fichier remplacé par renommage (fichier temporaire) risquerait
         /// de ne pas être relu. Texte en ASCII, sans marque d'encodage.
         /// </summary>
+        /// <summary>
+        /// Écrit le fichier d'un seul coup : contenu écrit à côté puis mis à la place (jamais de fichier à moitié écrit si
+        /// Velox ou le PC s'arrête pendant l'écriture). Si le dossier n'accepte pas de nouveau fichier (droits limités au
+        /// fichier lui-même), écriture directe comme avant.
+        /// </summary>
         private static void EcrireOctets(string chemin, byte[] octets)
         {
+            string temp = chemin + ".velox-tmp";
+            try
+            {
+                Reessayer(() =>
+                {
+                    using (var fs = new FileStream(temp, FileMode.Create, FileAccess.Write, FileShare.None)) { fs.Write(octets, 0, octets.Length); fs.Flush(true); }
+                    File.Move(temp, chemin, true);
+                    return true;
+                });
+                return;
+            }
+            catch (UnauthorizedAccessException) { }
+            catch (IOException) { }
+            finally { try { if (File.Exists(temp)) File.Delete(temp); } catch { } }
             Reessayer(() => { using (var fs = new FileStream(chemin, FileMode.Create, FileAccess.Write, FileShare.Read)) fs.Write(octets, 0, octets.Length); return true; });
         }
 
