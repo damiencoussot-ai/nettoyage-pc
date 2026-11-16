@@ -588,6 +588,25 @@ namespace NettoyagePC.Nouveau
                 var faux = new System.Collections.Generic.Dictionary<string, object> { { "CalibActive", true }, { "CalibFiltres", new object[] { new object[] { "Include", 100, 3, 1 }, new object[] { "PK", 5, 3, 1 }, new object[] { "PK", 100, 99, 1 } } } };
                 verifier(!ReglagesAudioJeu.DepuisJson(faux).CalibActive && ReglagesAudioJeu.DepuisJson(faux).CalibFiltres.Count == 0, "casques : réglages trafiqués refusés");
                 verifier(AudioJeu.Generer(new ReglagesAudioJeu { Actif = true, Gains = (double[])competitif.Clone(), CalibActive = false, CalibFiltres = eqc }, "") == AudioJeu.Generer(new ReglagesAudioJeu { Actif = true, Gains = (double[])competitif.Clone() }, ""), "casques : calibration coupée = fichier inchangé");
+                // profils par jeu et Auto jeux
+                var exes = new System.Collections.Generic.Dictionary<string, string> { { "cod.exe", "cod" }, { "VALORANT-Win64-Shipping.exe", "valorant" }, { "cs2.exe", "cs2" }, { "FortniteClient-Win64-Shipping_EAC.exe", "fortnite" },
+                    { "r5apex_dx12.exe", "apex" }, { "TslGame.exe", "pubg" }, { "RainbowSix_Vulkan.exe", "r6" }, { "EscapeFromTarkov.exe", "tarkov" }, { "Overwatch.exe", "overwatch" }, { "BF2042.exe", "bf2042" } };
+                verifier(exes.All(x => AudioJeu.JeuDe(x.Key)?.Cle == x.Value) && AudioJeu.JeuDe("notepad.exe") == null && AudioJeu.JeuDe("cs2launcher.exe") == null && AudioJeu.JeuDe(null) == null, "jeux reconnus par leur programme");
+                verifier(AudioJeu.Jeux.All(j => j.Gains.Length == AudioJeu.Bandes.Length && j.Gains.All(x => x >= -12 && x <= 12 && x * 2 == Math.Round(x * 2)) && new[] { 0, 60, 90, 120 }.Contains(j.CoupeBas)) && AudioJeu.Jeux.Select(j => j.Cle).Distinct().Count() == AudioJeu.Jeux.Length, "profils par jeu dans leurs bornes");
+                var rj = new ReglagesAudioJeu { AutoJeu = true, ProfilParJeu = true, Gains = new double[6] };
+                bool c1 = AudioJeu.SuivreJeu(rj, "VALORANT-Win64-Shipping.exe", false);
+                bool okV = c1 && rj.Actif && rj.JeuEnCours == "valorant" && rj.Gains.SequenceEqual(AudioJeu.JeuDe("cs2.exe") == null ? null : AudioJeu.Jeux.First(j => j.Cle == "valorant").Gains);
+                rj.Gains[3] = 6;   // réglé pendant la partie
+                bool c2 = AudioJeu.SuivreJeu(rj, "VALORANT-Win64-Shipping.exe", true);
+                bool c3 = AudioJeu.SuivreJeu(rj, "cs2.exe", true);
+                bool okCs = c3 && rj.JeuEnCours == "cs2" && rj.Gains.SequenceEqual(AudioJeu.Jeux.First(j => j.Cle == "cs2").Gains);
+                bool c4 = AudioJeu.SuivreJeu(rj, null, true);
+                verifier(okV && !c2 && okCs && c4 && !rj.Actif && rj.JeuEnCours == "", "Auto jeux : profil du jeu chargé au lancement, réglage de la partie gardé, coupé à la fermeture");
+                var rj2 = new ReglagesAudioJeu { AutoJeu = true, ProfilParJeu = false, Gains = (double[])competitif.Clone() };
+                verifier(AudioJeu.SuivreJeu(rj2, "r5apex.exe", false) && rj2.Actif && rj2.Gains.SequenceEqual(competitif), "Auto jeux sans profil par jeu : le profil choisi reste");
+                var rjj = ReglagesAudioJeu.DepuisJson(Json.Lire(Json.Ecrire(new ReglagesAudioJeu { ProfilParJeu = true, JeuEnCours = "tarkov" }.VersJson())) as System.Collections.Generic.Dictionary<string, object>);
+                var rjf = ReglagesAudioJeu.DepuisJson(new System.Collections.Generic.Dictionary<string, object> { { "JeuEnCours", "x\ninclude" } });
+                verifier(rjj.ProfilParJeu && rjj.JeuEnCours == "tarkov" && rjf.JeuEnCours == "", "Auto jeux : réglages enregistrés et relus (jeu inconnu refusé)");
                 // installation d'Equalizer APO par Velox : fichiers officiels figés, demande invalide refusée sans rien lancer
                 string nApo, eApo, nApoArm, eApoArm, nAutre, eAutre;
                 verifier(InstallationApo.Fichier("X64", out nApo, out eApo) && nApo == "EqualizerAPO-x64-1.4.2.exe" && eApo.Length == 64 && eApo == eApo.ToUpperInvariant()

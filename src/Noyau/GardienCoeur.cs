@@ -307,15 +307,13 @@ namespace NettoyagePC
             ReglagesAudioJeu r;
             try { r = AudioJeu.Lire(); } catch { return; }
             if (!r.AutoJeu || r.Moteur == "vm" || !AudioJeu.Present) return;
-            bool voulu = AudioJeu.JeuDetecte() != null;
             var e = AudioJeu.Etat();
-            if (e.Actif == voulu) return;
-            r.Actif = voulu;
+            if (!AudioJeu.SuivreJeu(r, AudioJeu.JeuDetecte(), e.Actif)) return;
             int etat;
             string defaut = AudioJeu.SortieParDefaut();
             string guid = AudioJeu.Resoudre(r.Cible, AudioJeu.Sorties(), defaut, out etat, AudioJeu.NomSortie(defaut), r.AppareilVm);
             string err = AudioJeu.Appliquer(r, guid, false);
-            if (err != "") JournalDemarrage.Noter("Gardien, Auto Warzone : " + err);
+            if (err != "") JournalDemarrage.Noter("Gardien, Auto jeux : " + err);
         }
 
         // ------------------------------------------------------------ Bulletin mensuel

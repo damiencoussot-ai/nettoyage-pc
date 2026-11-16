@@ -22,6 +22,15 @@ namespace NettoyagePC
 
     internal sealed class FiltreAudio { public string Type; public int Fc; public double Gain, Q; }
 
+    /// <summary>Un jeu reconnu : son programme, et le profil prévu pour lui (gains des six bandes, coupe-explosions).</summary>
+    internal sealed class JeuAudio
+    {
+        public string Cle = "", Nom = "", Texte = "";
+        public Regex Exe;
+        public double[] Gains;
+        public int CoupeBas;
+    }
+
     /// <summary>Une sortie audio de Windows où Equalizer APO est installé.</summary>
     internal sealed class SortieAudio
     {
@@ -63,6 +72,10 @@ namespace NettoyagePC
         public bool CalibActive;
         public string CalibNom = "", CalibSource = "";
         public List<FiltreAudio> CalibFiltres = new List<FiltreAudio>();
+        /// <summary>Auto jeux : au lancement d'un jeu reconnu, charger le profil prévu pour lui. JeuEnCours : dernier jeu
+        /// dont le profil a été chargé (pour ne pas écraser un réglage fait pendant la partie).</summary>
+        public bool ProfilParJeu;
+        public string JeuEnCours = "";
 
         public ReglagesAudioJeu Copie() { var c = (ReglagesAudioJeu)MemberwiseClone(); c.Gains = (double[])Gains.Clone(); c.CalibFiltres = new List<FiltreAudio>(CalibFiltres ?? new List<FiltreAudio>()); return c; }
 
@@ -97,6 +110,7 @@ namespace NettoyagePC
                 { "Largeur", Largeur }, { "CoupeBas", CoupeBas }, { "Inversion", Inversion }, { "AutoJeu", AutoJeu }, { "Cible", Cible }, { "CibleEcrite", CibleEcrite },
                 { "Raccourcis", Raccourcis }, { "Moteur", Moteur }, { "BusVm", BusVm }, { "VmEcrit", VmEcrit }, { "AppareilVm", AppareilVm ?? "" },
                 { "SansEtiquetteVm", SansEtiquetteVm },
+                { "ProfilParJeu", ProfilParJeu }, { "JeuEnCours", JeuEnCours ?? "" },
                 { "CalibActive", CalibActive }, { "CalibNom", CalibNom ?? "" }, { "CalibSource", CalibSource ?? "" },
                 { "CalibFiltres", (CalibFiltres ?? new List<FiltreAudio>()).Select(f => (object)new object[] { f.Type, f.Fc, f.Gain, f.Q }).ToArray() },
             };
@@ -121,6 +135,8 @@ namespace NettoyagePC
             r.BusVm = (int)Json.Long(d, "BusVm"); r.VmEcrit = (int)Json.Long(d, "VmEcrit", -1);
             string av = Json.Texte(d, "AppareilVm"); r.AppareilVm = av.Length <= 200 ? av : "";
             r.SansEtiquetteVm = Json.Bool(d, "SansEtiquetteVm");
+            r.ProfilParJeu = Json.Bool(d, "ProfilParJeu");
+            string je = Json.Texte(d, "JeuEnCours"); r.JeuEnCours = AudioJeu.Jeux.Any(j => j.Cle == je) ? je : "";
             r.CalibActive = Json.Bool(d, "CalibActive");
             string cn = Json.Texte(d, "CalibNom"), cs = Json.Texte(d, "CalibSource");
             r.CalibNom = cn.Length <= 150 ? cn : ""; r.CalibSource = cs.Length <= 120 ? cs : "";
@@ -209,7 +225,13 @@ namespace NettoyagePC
         }
 
         /// <summary>Nom du profil en cours (« Personnalisé » si les gains ont été changés à la main).</summary>
-        public static string NomProfil(ReglagesAudioJeu r) { var p = ProfilDe(r.Gains); return p != null ? p.Nom : "Personnalisé"; }
+        public static string NomProfil(ReglagesAudioJeu r)
+        {
+            var p = ProfilDe(r.Gains);
+            if (p != null) return p.Nom;
+            var j = Jeux.FirstOrDefault(x => x.Gains.SequenceEqual(r.Gains) && x.CoupeBas == r.CoupeBas);
+            return j != null ? j.Nom : "Personnalisé";
+        }
 
         private static readonly Regex RegexGuid = new Regex(@"^\{?([0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12})\}?$");
 
@@ -469,9 +491,51 @@ namespace NettoyagePC
         // ------------------------------------------------------------ détection du jeu (lecture seule)
 
         private static readonly Regex RegexJeu = new Regex(@"^(cod|cod\d\d-cod|sp\d\d-cod|cod-?hq|modernwarfare|warzone|blackops\w*|vanguard)\.exe$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+        private static Regex Exe(string motif) { return new Regex("^(" + motif + @")\.exe$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant); }
 
-        /// <summary>Vrai si ce programme (« cod.exe ») est Call of Duty / Warzone.</summary>
-        public static bool EstJeu(string exe) { return exe != null && RegexJeu.IsMatch(exe); }
+        /// <summary>
+        /// Jeux reconnus et leur profil (bandes : Graves 100 Hz, Bas-médium 250, Voix 1,2 k, Pas 2,5 k, Recharge 4 k, Aigus
+        /// 7,5 k). Points de départ réglés d'après le son de chaque jeu (où tombent ses pas) : chacun peut les ajuster.
+        /// </summary>
+        public static readonly JeuAudio[] Jeux =
+        {
+            new JeuAudio { Cle = "cod", Nom = "Call of Duty / Warzone", Exe = RegexJeu, Gains = new double[] { -5, -3, 2, 4, 3, -3 }, Texte = "Pas et recharges en avant, explosions calmées" },
+            new JeuAudio { Cle = "valorant", Nom = "Valorant", Exe = Exe("valorant-win64-shipping"), Gains = new double[] { -4, -2, 1, 4, 4, -2 }, Texte = "Pas secs et capacités bien détachés" },
+            new JeuAudio { Cle = "cs2", Nom = "Counter-Strike 2", Exe = Exe("cs2"), Gains = new double[] { -4, -1, 2, 4, 3, -1 }, Texte = "Pas et direction des sons" },
+            new JeuAudio { Cle = "fortnite", Nom = "Fortnite", Exe = Exe("fortniteclient-win64-shipping(_eac|_be|_eac_eos)?"), Gains = new double[] { -3, -2, 2, 4, 2, -2 }, Texte = "Pas, coffres et constructions" },
+            new JeuAudio { Cle = "apex", Nom = "Apex Legends", Exe = Exe("r5apex(_dx12)?"), Gains = new double[] { -5, -3, 2, 5, 3, -3 }, Texte = "Pas très en avant, graves calmés" },
+            new JeuAudio { Cle = "pubg", Nom = "PUBG", Exe = Exe("tslgame"), Gains = new double[] { -4, -2, 2, 4, 3, -2 }, Texte = "Pas et véhicules lointains" },
+            new JeuAudio { Cle = "r6", Nom = "Rainbow Six Siege", Exe = Exe("rainbowsix(_vulkan|_be)?"), Gains = new double[] { -3, -1, 2, 4, 3, -1 }, Texte = "Pas au-dessus et en dessous de toi" },
+            new JeuAudio { Cle = "tarkov", Nom = "Escape from Tarkov", Exe = Exe("escapefromtarkov"), Gains = new double[] { -2, 2, 2, 3, 2, -2 }, Texte = "Pas plus graves dans ce jeu : bas-médium remonté" },
+            new JeuAudio { Cle = "overwatch", Nom = "Overwatch 2", Exe = Exe("overwatch"), Gains = new double[] { -3, -2, 2, 3, 2, -1 }, Texte = "Pas et répliques des héros" },
+            new JeuAudio { Cle = "bf2042", Nom = "Battlefield 2042", Exe = Exe("bf2042"), Gains = new double[] { -6, -3, 2, 4, 3, -3 }, CoupeBas = 60, Texte = "Explosions coupées, pas et voix en avant" },
+        };
+
+        /// <summary>Le jeu reconnu pour ce programme, ou null.</summary>
+        public static JeuAudio JeuDe(string exe) { return exe == null ? null : Jeux.FirstOrDefault(j => j.Exe.IsMatch(exe)); }
+
+        /// <summary>Vrai si ce programme est un jeu reconnu (Call of Duty / Warzone, Valorant, CS2…).</summary>
+        public static bool EstJeu(string exe) { return JeuDe(exe) != null; }
+
+        /// <summary>
+        /// Auto jeux : l'égaliseur suit le jeu (allumé pendant la partie, coupé après) ; avec « profil adapté à chaque jeu »,
+        /// le profil du jeu est chargé à son lancement, une fois (un réglage fait pendant la partie n'est pas écrasé).
+        /// Modifie « r » ; vrai s'il faut réécrire. Partagé par la page Audio et le gardien.
+        /// </summary>
+        public static bool SuivreJeu(ReglagesAudioJeu r, string exe, bool actifActuel)
+        {
+            var j = JeuDe(exe);
+            bool voulu = j != null, changer = actifActuel != voulu;
+            r.Actif = voulu;
+            string cle = j != null ? j.Cle : "";
+            if (j != null && r.ProfilParJeu && r.JeuEnCours != cle)
+            {
+                r.Gains = (double[])j.Gains.Clone(); r.CoupeBas = j.CoupeBas;
+                changer = true;
+            }
+            if (r.JeuEnCours != cle) { r.JeuEnCours = cle; changer = true; }
+            return changer;
+        }
 
         /// <summary>Programme du jeu qui tourne en ce moment (« cod.exe »), ou null. Seule la liste des programmes est lue.</summary>
         public static string JeuDetecte()
@@ -763,7 +827,7 @@ namespace NettoyagePC
         /// <summary>Ligne de l'Historique qui décrit ces réglages.</summary>
         public static string Titre(ReglagesAudioJeu r)
         {
-            if (r.AutoJeu) return "Audio jeu : Auto Warzone (" + NomProfil(r) + ")";
+            if (r.AutoJeu) return "Audio jeu : Auto jeux (" + NomProfil(r) + ")";
             return r.Actif ? "Audio jeu : égaliseur actif (" + NomProfil(r) + ")" : "Audio jeu : égaliseur coupé";
         }
 

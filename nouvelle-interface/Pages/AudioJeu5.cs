@@ -168,11 +168,12 @@ namespace NettoyagePC.Nouveau
             if (!vm && !v.Etat.Present) return;
             if (r.AutoJeu)
             {
-                bool voulu = v.Jeu != null, actuel = vm ? r.Actif : v.Etat.Actif;
-                if (actuel != voulu)
+                bool actuel = vm ? r.Actif : v.Etat.Actif;
+                var jeu = AudioJeu.JeuDe(v.Jeu);
+                if (AudioJeu.SuivreJeu(r, v.Jeu, actuel))
                 {
-                    r.Actif = voulu;
-                    Ecrire(f, false, false, voulu ? Langue.F("Auto Warzone : {0} détecté, égaliseur actif.", v.Jeu) : Langue.T("Auto Warzone : jeu fermé, égaliseur coupé."));
+                    if (page != null) page.MettreAJourBientot();
+                    Ecrire(f, false, false, jeu != null ? (r.ProfilParJeu ? Langue.F("Auto jeux : {0} détecté, égaliseur actif avec son profil.", jeu.Nom) : Langue.F("Auto jeux : {0} détecté, égaliseur actif.", jeu.Nom)) : Langue.T("Auto jeux : jeu fermé, égaliseur coupé."));
                     return;
                 }
             }
@@ -432,6 +433,7 @@ namespace NettoyagePC.Nouveau
             public bool[] EtatEnvois = new bool[0];
         }
         private StackPanel zoneMix, zoneCasque;
+        private readonly List<Tuple<JeuAudio, Border>> puceJeux = new List<Tuple<JeuAudio, Border>>();
         private string signatureCasque;
         private bool rechercheCasque;
         private TextBox saisieCasque;
@@ -559,7 +561,7 @@ namespace NettoyagePC.Nouveau
             var s = new StackPanel { Spacing = 4 };
             s.Children.Add(new TextBlock { Text = Langue.T("STUDIO SON") + "  ·  " + Langue.T("AUDIO JEU"), FontFamily = Studio.Chiffres, FontSize = 11, LetterSpacing = 3, Foreground = Studio.P(Studio.Ambre) });
             s.Children.Add(new TextBlock { Text = Langue.T("Entends chaque pas."), FontFamily = Studio.Titre, FontSize = 32, FontWeight = FontWeight.Bold, Foreground = Studio.Degrade(0, Studio.Texte, Color.FromRgb(255, 200, 230), Studio.Magenta), TextWrapping = TextWrapping.Wrap });
-            s.Children.Add(Studio.T(Langue.T("Égaliseur de pas pour Call of Duty / Warzone, appliqué par Equalizer APO ou Voicemeeter. Le jeu n'est jamais touché, et chaque changement s'annule dans l'Historique."), 13, Studio.Discret));
+            s.Children.Add(Studio.T(Langue.T("Égaliseur de pas pour tes jeux de tir (Warzone, Valorant, CS2, Fortnite, Apex…), appliqué par Equalizer APO ou Voicemeeter. Le jeu n'est jamais touché, et chaque changement s'annule dans l'Historique."), 13, Studio.Discret));
             temoins = new WrapPanel { Margin = new Thickness(0, 8, 0, 0) };
             s.Children.Add(temoins);
             g.Children.Add(s);
@@ -622,6 +624,19 @@ namespace NettoyagePC.Nouveau
             var autres = new WrapPanel { Margin = new Thickness(0, 6, 0, 0) };
             foreach (var p in AudioJeu.Profils.Skip(4)) { var pp = p; autres.Children.Add(Studio.Bouton(Langue.T(p.Nom), false, () => ChoisirProfil(pp), Langue.T(p.Texte))); }
             autres.Children.Add(Studio.Bouton(Langue.T("Réglage automatique"), false, ReglageAutomatique, Langue.T("Profil compétitif, force 100 %, sortie Auto, tout le reste remis à zéro.")));
+            // profils par jeu (les mêmes que charge Auto jeux)
+            var parJeu = new WrapPanel { Margin = new Thickness(0, 4, 0, 0) };
+            parJeu.Children.Add(new TextBlock { Text = Langue.T("Par jeu :"), FontFamily = Studio.Corps, FontSize = 12.5, Foreground = Studio.P(Studio.Discret), VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 10, 8) });
+            foreach (var j in AudioJeu.Jeux)
+            {
+                var jj = j;
+                var b = Puce(j.Nom, () => ChoisirJeu(jj));
+                ToolTip.SetTip(b, Langue.T(j.Texte));
+                Marquer(b, false, Studio.Cyan);
+                puceJeux.Add(Tuple.Create(j, b));
+                parJeu.Children.Add(b);
+            }
+            autres = new WrapPanel { Children = { autres, parJeu } };
             tProfil = Studio.T("", 12.5, Studio.Discret);
             g.Children.Add(Studio.Module("Profils", new StackPanel { Children = { grille, autres, tProfil } }));
             zoneCasque = new StackPanel { Spacing = 10 };
@@ -800,11 +815,12 @@ namespace NettoyagePC.Nouveau
         /// <summary>Automatismes : Auto Warzone et raccourcis clavier globaux.</summary>
         private void Construire(StackPanel z)
         {
-            string sig = r.AutoJeu + "|" + r.Raccourcis + "|" + RaccourcisAudio.Erreur;
+            string sig = r.AutoJeu + "|" + r.ProfilParJeu + "|" + r.Raccourcis + "|" + RaccourcisAudio.Erreur;
             if (sig == signatureAuto) return;
             signatureAuto = sig;
             z.Children.Clear();
-            z.Children.Add(Ligne("Auto Warzone", "L'égaliseur s'active quand Call of Duty / Warzone tourne et se coupe quand tu le fermes. Avec le gardien activé, ça marche même Velox fermé ; sinon, tant que Velox est ouvert (même réduit).", r.AutoJeu, BasculerAuto));
+            z.Children.Add(Ligne("Auto jeux", "L'égaliseur s'active quand un jeu reconnu tourne (Warzone, Valorant, CS2, Fortnite, Apex, PUBG, Rainbow Six, Tarkov, Overwatch, Battlefield) et se coupe quand tu le fermes. Avec le gardien activé, ça marche même Velox fermé ; sinon, tant que Velox est ouvert (même réduit).", r.AutoJeu, BasculerAuto));
+            z.Children.Add(Ligne("Profil adapté à chaque jeu", "Au lancement d'un jeu, Velox charge le profil prévu pour lui (là où tombent ses pas). Tu peux l'ajuster pendant la partie : ton réglage n'est pas écrasé.", r.ProfilParJeu, BasculerProfilJeu));
             var touches = new WrapPanel { Margin = new Thickness(0, 4, 0, 0) };
             foreach (var t in new[] { Tuple.Create("F9", "égaliseur marche / arrêt"), Tuple.Create("F10", "profil suivant") })
             {
@@ -840,9 +856,10 @@ namespace NettoyagePC.Nouveau
             s.Children.Add(new TextBlock { Text = Langue.T("Le Studio son fait partie de Velox Premium"), FontFamily = Studio.Titre, FontSize = 20, FontWeight = FontWeight.Bold, Foreground = Studio.P(Studio.Texte), TextWrapping = TextWrapping.Wrap });
             foreach (var t in new[]
             {
-                "Quatre profils pensés pour Call of Duty / Warzone : les pas et les recharges passent devant, les explosions reculent.",
+                "Des profils pensés pour chaque jeu de tir (Warzone, Valorant, CS2, Fortnite, Apex…) : les pas et les recharges passent devant, les explosions reculent.",
+                "Calibration de ton casque : plus de 6 000 modèles mesurés en laboratoire, pour un son neutre de studio.",
                 "Courbe de l'égaliseur et spectre de ton son en direct, molettes et faders pour tout régler à l'oreille.",
-                "Auto Warzone : l'égaliseur s'allume avec le jeu et s'éteint avec lui. Raccourcis clavier en plein jeu.",
+                "Auto jeux : l'égaliseur s'allume avec le jeu, avec son profil, et s'éteint avec lui. Raccourcis clavier en plein jeu.",
                 "Sortie par défaut de Windows en un clic, Voicemeeter reconnu (niveaux, égaliseur de Banana et Potato).",
             }) s.Children.Add(Studio.T("◆  " + Langue.T(t), 13, Studio.Discret));
             boutonsVerrou = new WrapPanel { Margin = new Thickness(0, 6, 0, 0) };
@@ -879,7 +896,7 @@ namespace NettoyagePC.Nouveau
             var vm = Vm;
             bool moteurVm = r.Moteur == "vm";
             // ---- témoins (refaits seulement s'ils changent)
-            string t1 = moteurVm ? vm.Nom.ToUpperInvariant() : "EQUALIZER APO", t2 = v.Jeu != null ? Langue.F("JEU : {0}", v.Jeu.ToUpperInvariant()) : Langue.T("JEU NON LANCÉ"),
+            string t1 = moteurVm ? vm.Nom.ToUpperInvariant() : "EQUALIZER APO", t2 = v.Jeu != null ? Langue.F("JEU : {0}", (AudioJeu.JeuDe(v.Jeu)?.Nom ?? v.Jeu).ToUpperInvariant()) : Langue.T("JEU NON LANCÉ"),
                 t3 = vm.Lance ? vm.Nom.ToUpperInvariant() : vm.Installe ? Langue.T("VOICEMEETER ARRÊTÉ") : Langue.T("SANS VOICEMEETER");
             bool a1 = moteurVm ? vm.EgaliseurNatif : v.Etat.Present;
             string sigTemoins = t1 + a1 + "|" + t2 + "|" + t3 + vm.Lance + "|" + r.AutoJeu;
@@ -890,7 +907,7 @@ namespace NettoyagePC.Nouveau
                 temoins.Children.Add(Studio.Temoin(t1, Studio.Vert, a1));
                 temoins.Children.Add(Studio.Temoin(t2, Studio.Ambre, v.Jeu != null));
                 temoins.Children.Add(Studio.Temoin(t3, Studio.Cyan, vm.Lance));
-                if (r.AutoJeu) temoins.Children.Add(Studio.Temoin("AUTO WARZONE", Studio.Magenta, true));
+                if (r.AutoJeu) temoins.Children.Add(Studio.Temoin(Langue.T("AUTO JEUX"), Studio.Magenta, true));
             }
             marche.Actif = r.Actif;
             tMarche.Text = Langue.T(r.Actif ? "ACTIF" : "COUPÉ");
@@ -950,6 +967,7 @@ namespace NettoyagePC.Nouveau
                 c.Item2.BoxShadow = choisi ? BoxShadows.Parse("0 0 18 0 " + Habillage.Alpha(Studio.Magenta, 90)) : default(BoxShadows);
             }
             profilAffiche = courant; cartesFaites = true;
+            foreach (var pj in puceJeux) Marquer(pj.Item2, pj.Item1.Gains.SequenceEqual(r.Gains) && pj.Item1.CoupeBas == r.CoupeBas, Studio.Cyan);
             tProfil.Text = Langue.F("Profil en cours : {0} · force {1} %", Langue.T(AudioJeu.NomProfil(r)), r.Intensite);
             foreach (var m in molettes) { m.Item1.Valeur = ValeurMolette(m.Item1); m.Item2.Text = m.Item3(); }
             foreach (var c in coupes) Marquer(c.Item2, c.Item1 == r.CoupeBas);
@@ -1431,7 +1449,7 @@ namespace NettoyagePC.Nouveau
             {
                 bool auto = r.AutoJeu;
                 r.AutoJeu = false; r.Actif = voulu;
-                Changer(Langue.T(voulu ? "Égaliseur actif." : "Égaliseur coupé.") + (auto ? " " + Langue.T("Auto Warzone est désactivé : c'est toi qui pilotes l'interrupteur.") : ""), false, true);
+                Changer(Langue.T(voulu ? "Égaliseur actif." : "Égaliseur coupé.") + (auto ? " " + Langue.T("Auto jeux est désactivé : c'est toi qui pilotes l'interrupteur.") : ""), false, true);
             };
             if (voulu) AvecAccord(faire); else faire();
         }
@@ -1443,12 +1461,27 @@ namespace NettoyagePC.Nouveau
             {
                 var v = Releve;
                 r.AutoJeu = voulu;
-                if (voulu) r.Actif = v != null && v.Jeu != null;
-                string m = !voulu ? "Auto Warzone désactivé : l'égaliseur reste comme il est."
-                    : r.Actif ? "Auto Warzone activé : le jeu tourne, l'égaliseur est actif." : "Auto Warzone activé : l'égaliseur se mettra en marche au lancement du jeu.";
+                if (voulu) AudioJeu.SuivreJeu(r, v != null ? v.Jeu : null, r.Actif); else r.JeuEnCours = "";
+                string m = !voulu ? "Auto jeux désactivé : l'égaliseur reste comme il est."
+                    : r.Actif ? "Auto jeux activé : le jeu tourne, l'égaliseur est actif." : "Auto jeux activé : l'égaliseur se mettra en marche au lancement d'un jeu.";
                 Changer(Langue.T(m), voulu, true);
             };
             if (voulu) AvecAccord(faire); else faire();
+        }
+
+        private void BasculerProfilJeu(bool voulu)
+        {
+            if (exemple) return;
+            r.ProfilParJeu = voulu; signatureAuto = null;
+            r.JeuEnCours = "";   // le profil du jeu en cours sera chargé au prochain relevé (s'il tourne)
+            Changer(Langue.T(voulu ? "Profil adapté à chaque jeu : chargé au lancement de chaque jeu reconnu." : "Profil adapté à chaque jeu désactivé : ton profil reste le même pour tous les jeux."), false, true);
+        }
+
+        private void ChoisirJeu(JeuAudio j)
+        {
+            if (exemple) return;
+            r.Gains = (double[])j.Gains.Clone(); r.CoupeBas = j.CoupeBas;
+            Changer(r.Actif ? Langue.F("Profil « {0} » appliqué.", j.Nom) : Langue.F("Profil « {0} » choisi. L'égaliseur est coupé : active-le pour l'entendre.", j.Nom), false, true);
         }
 
         private void BasculerRaccourcis(bool voulu)
