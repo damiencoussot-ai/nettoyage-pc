@@ -59,8 +59,12 @@ namespace NettoyagePC
         public string AppareilVm = "";
         /// <summary>Ne pas mettre le nom « Velox Studio » dans Voicemeeter sur ce que l'égaliseur traite (mis par défaut).</summary>
         public bool SansEtiquetteVm;
+        /// <summary>Calibration du casque (base AutoEq) : active ou non, modèle, source de la mesure, filtres de correction.</summary>
+        public bool CalibActive;
+        public string CalibNom = "", CalibSource = "";
+        public List<FiltreAudio> CalibFiltres = new List<FiltreAudio>();
 
-        public ReglagesAudioJeu Copie() { var c = (ReglagesAudioJeu)MemberwiseClone(); c.Gains = (double[])Gains.Clone(); return c; }
+        public ReglagesAudioJeu Copie() { var c = (ReglagesAudioJeu)MemberwiseClone(); c.Gains = (double[])Gains.Clone(); c.CalibFiltres = new List<FiltreAudio>(CalibFiltres ?? new List<FiltreAudio>()); return c; }
 
         private static double Borne(double v, double min, double max, double pas)
         {
@@ -93,6 +97,8 @@ namespace NettoyagePC
                 { "Largeur", Largeur }, { "CoupeBas", CoupeBas }, { "Inversion", Inversion }, { "AutoJeu", AutoJeu }, { "Cible", Cible }, { "CibleEcrite", CibleEcrite },
                 { "Raccourcis", Raccourcis }, { "Moteur", Moteur }, { "BusVm", BusVm }, { "VmEcrit", VmEcrit }, { "AppareilVm", AppareilVm ?? "" },
                 { "SansEtiquetteVm", SansEtiquetteVm },
+                { "CalibActive", CalibActive }, { "CalibNom", CalibNom ?? "" }, { "CalibSource", CalibSource ?? "" },
+                { "CalibFiltres", (CalibFiltres ?? new List<FiltreAudio>()).Select(f => (object)new object[] { f.Type, f.Fc, f.Gain, f.Q }).ToArray() },
             };
         }
 
@@ -115,6 +121,26 @@ namespace NettoyagePC
             r.BusVm = (int)Json.Long(d, "BusVm"); r.VmEcrit = (int)Json.Long(d, "VmEcrit", -1);
             string av = Json.Texte(d, "AppareilVm"); r.AppareilVm = av.Length <= 200 ? av : "";
             r.SansEtiquetteVm = Json.Bool(d, "SansEtiquetteVm");
+            r.CalibActive = Json.Bool(d, "CalibActive");
+            string cn = Json.Texte(d, "CalibNom"), cs = Json.Texte(d, "CalibSource");
+            r.CalibNom = cn.Length <= 150 ? cn : ""; r.CalibSource = cs.Length <= 120 ? cs : "";
+            r.CalibFiltres = new List<FiltreAudio>();
+            var lf = Json.Valeur(d, "CalibFiltres") as System.Collections.IEnumerable;
+            if (lf != null && !(lf is string))
+                foreach (var o in lf)
+                {
+                    var t = (o as System.Collections.IEnumerable)?.Cast<object>().ToArray();
+                    if (t == null || t.Length != 4 || r.CalibFiltres.Count >= Casques.FiltresMax) continue;
+                    try
+                    {
+                        string ty = Convert.ToString(t[0], CultureInfo.InvariantCulture);
+                        double fc = Convert.ToDouble(t[1], CultureInfo.InvariantCulture), gc = Convert.ToDouble(t[2], CultureInfo.InvariantCulture), q = Convert.ToDouble(t[3], CultureInfo.InvariantCulture);
+                        if ((ty == "PK" || ty == "LSC" || ty == "HSC") && fc >= 20 && fc <= 20000 && Math.Abs(gc) <= 20 && q >= 0.1 && q <= 20)
+                            r.CalibFiltres.Add(new FiltreAudio { Type = ty, Fc = (int)Math.Round(fc), Gain = Math.Round(gc, 1), Q = Math.Round(q, 2) });
+                    }
+                    catch { }
+                }
+            if (r.CalibFiltres.Count == 0) r.CalibActive = false;
             return r.Borner();
         }
     }
@@ -205,6 +231,12 @@ namespace NettoyagePC
             double w0 = 2 * Math.PI * fc / Echantillonnage, cos = Math.Cos(w0), alpha = Math.Sin(w0) / (2 * q), A = Math.Pow(10, gain / 40);
             double b0, b1, b2, a0, a1, a2;
             if (type == "HP") { b0 = (1 + cos) / 2; b1 = -(1 + cos); b2 = b0; a0 = 1 + alpha; a1 = -2 * cos; a2 = 1 - alpha; }
+            else if (type == "HSC")
+            {
+                double s = 2 * Math.Sqrt(A) * alpha;
+                b0 = A * ((A + 1) + (A - 1) * cos + s); b1 = -2 * A * ((A - 1) + (A + 1) * cos); b2 = A * ((A + 1) + (A - 1) * cos - s);
+                a0 = (A + 1) - (A - 1) * cos + s; a1 = 2 * ((A - 1) - (A + 1) * cos); a2 = (A + 1) - (A - 1) * cos - s;
+            }
             else if (type == "LSC")
             {
                 double s = 2 * Math.Sqrt(A) * alpha;
@@ -226,6 +258,8 @@ namespace NettoyagePC
         {
             var l = new List<FiltreAudio>();
             if (r.CoupeBas > 0) l.Add(new FiltreAudio { Type = "HP", Fc = r.CoupeBas, Q = 0.7071 });
+            // calibration du casque (son neutre), puis le profil par-dessus
+            if (r.CalibActive && r.CalibFiltres != null) l.AddRange(r.CalibFiltres.Take(Casques.FiltresMax));
             for (int i = 0; i < Bandes.Length; i++)
             {
                 double g = GainEffectif(r, i);

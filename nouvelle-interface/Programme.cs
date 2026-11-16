@@ -214,10 +214,17 @@ namespace NettoyagePC.Nouveau
         }
 
         /// <summary>(captures) relevé et réglages d'exemple de l'outil « Audio jeu » : Equalizer APO présent ou absent.</summary>
+        private const string ExempleEqCasque = "Preamp: -5.9 dB\nFilter 1: ON LSC Fc 105 Hz Gain -4.1 dB Q 0.70\nFilter 2: ON PK Fc 134 Hz Gain -5.8 dB Q 0.90\nFilter 3: ON PK Fc 56 Hz Gain 4.4 dB Q 1.50\n"
+            + "Filter 4: ON PK Fc 3993 Hz Gain 5.8 dB Q 3.24\nFilter 5: ON PK Fc 341 Hz Gain 2.6 dB Q 2.32\nFilter 6: ON HSC Fc 10000 Hz Gain -1.9 dB Q 0.70\nFilter 7: ON PK Fc 6469 Hz Gain 3.7 dB Q 5.11\n"
+            + "Filter 8: ON PK Fc 9152 Hz Gain 2.7 dB Q 2.58\nFilter 9: ON PK Fc 1532 Hz Gain 2.0 dB Q 2.79\nFilter 10: ON PK Fc 824 Hz Gain -1.4 dB Q 1.88\n";
+
         private static ReglagesAudioJeu ExempleAudioJeu(out ReleveAudioJeu releve, bool present)
         {
             string casque = "11111111-2222-3333-4444-555555555555";
             var r = new ReglagesAudioJeu { Actif = true, Intensite = 110, CibleEcrite = casque };
+            // calibration d'exemple (mesure oratory1990 publiée par AutoEq pour ce casque)
+            r.CalibActive = true; r.CalibNom = "SteelSeries Arctis Nova Pro Wireless (wired)"; r.CalibSource = "oratory1990";
+            r.CalibFiltres = Casques.LireEq(ExempleEqCasque);
             releve = new ReleveAudioJeu { Dossier = @"C:\Program Files\EqualizerAPO\config" };
             if (!present) return r;
             releve.Etat = new EtatAudioJeu { Present = true, Fichier = true, Actif = true, Include = true, Contenu = AudioJeu.Generer(r, casque), Autres = { "YouSound", "HeSuVi" } };
@@ -560,6 +567,27 @@ namespace NettoyagePC.Nouveau
                     && Voicemeeter.ScriptLabels(new System.Collections.Generic.Dictionary<string, string> { { "Bus[0].Label", "Velox Studio" }, { "Strip[2].Label", "" }, { "Bus[1].Label", "x\"y" }, { "Command.Restart", "1" } }) == "Bus[0].Label=\"Velox Studio\";Strip[2].Label=\"\"", "nom « Velox Studio » : écrit seulement sans caractère risqué");
                 var annMix = new Modif { Type = "voicemeeter", Donnees = new System.Collections.Generic.Dictionary<string, object> { { "Avant", new System.Collections.Generic.Dictionary<string, object> { { "Strip[0].Gain", 99.0 } } } } };
                 verifier(Voicemeeter.Annuler(annMix).Contains("refusée par sécurité"), "table de mixage : l'Historique ne remet jamais une valeur hors bornes");
+                // calibration du casque (base AutoEq) : liste, recherche, lecture stricte des corrections, fichier écrit
+                string idx = "# Index\n- [SteelSeries Arctis Nova Pro](./Rtings/Bruel%20&%20Kjaer%205128%20over-ear/SteelSeries%20Arctis%20Nova%20Pro) by Rtings on Bruel & Kjaer 5128\n"
+                    + "- [Sennheiser HD 650](./Innerfidelity/over-ear/Sennheiser%20HD%20650) by Innerfidelity\n- [Sennheiser HD 650](./oratory1990/over-ear/Sennheiser%20HD%20650) by oratory1990\n"
+                    + "- [Piège](./../../etc/passwd) by x\n- [Piège 2](./a/b%2F..%2Fc) by x\n- [Moondrop Aria](./crinacle/711%20in-ear/Moondrop%20Aria) by crinacle on 711\n";
+                var liste = Casques.LireIndex(idx);
+                var hd = liste.FirstOrDefault(c => c.Nom == "Sennheiser HD 650");
+                verifier(liste.Count == 3 && hd != null && hd.Source == "oratory1990" && liste.First(c => c.Nom == "Moondrop Aria").IntraAuriculaire && !liste.Any(c => c.Nom.StartsWith("Piège")), "casques : liste lue, meilleure mesure gardée, chemins douteux écartés");
+                verifier(Casques.AdresseEq(hd) == "https://raw.githubusercontent.com/jaakkopasanen/AutoEq/master/results/oratory1990/over-ear/Sennheiser%20HD%20650/Sennheiser%20HD%20650%20ParametricEQ.txt", "casques : adresse de la correction");
+                verifier(Casques.Chercher(liste, "hd650").Count == 0 && Casques.Chercher(liste, "hd 650").Count == 1 && Casques.Chercher(liste, "arctis nova").Count == 1 && Casques.Chercher(liste, "a").Count == 0, "casques : recherche par mots");
+                var eqc = Casques.LireEq(ExempleEqCasque + "Include: piege.txt\nFilter 11: ON PK Fc 100 Hz Gain 3 dB Q 1 ; Include: x\nFilter 12: ON PK Fc 5 Hz Gain 3 dB Q 1\nFilter 13: ON PK Fc 100 Hz Gain 45 dB Q 1\nFilter 14: ON HP Fc 100 Hz\n");
+                verifier(eqc != null && eqc.Count == 10 && eqc[5].Type == "HSC" && eqc[5].Gain == -1.9 && eqc[3].Q == 3.24 && Casques.LireEq("Preamp: -3 dB\n") == null, "casques : seules les lignes de filtre valables sont gardées");
+                var rc = new ReglagesAudioJeu { Actif = true, Gains = (double[])competitif.Clone(), CalibActive = true, CalibNom = "Test", CalibSource = "oratory1990", CalibFiltres = eqc };
+                string gCal = AudioJeu.Generer(rc, "");
+                double creteSans = AudioJeu.Crete(AudioJeu.Filtres(new ReglagesAudioJeu { Actif = true, Gains = (double[])competitif.Clone() }));
+                verifier(gCal.Contains("Filter 1: ON LSC Fc 105 Hz Gain -4.1 dB Q 0.70") && gCal.Contains("Filter 6: ON HSC Fc 10000 Hz Gain -1.9 dB Q 0.70") && gCal.Contains("Filter 11: ON LSC Fc 100 Hz") && AudioJeu.Crete(AudioJeu.Filtres(rc)) > creteSans, "casques : correction écrite avant le profil, préampli recalculé");
+                verifier(Math.Abs(AudioJeu.Reponse("HSC", 10000, -6, 0.7, 20000) + 6) < 0.8 && Math.Abs(AudioJeu.Reponse("HSC", 10000, -6, 0.7, 50)) < 0.05 && Math.Abs(AudioJeu.Reponse("HSC", 10000, -6, 0.7, 10000) + 3) < 0.3, "casques : plateau aigu (HSC) calculé");
+                var rcj = ReglagesAudioJeu.DepuisJson(Json.Lire(Json.Ecrire(rc.VersJson())) as System.Collections.Generic.Dictionary<string, object>);
+                verifier(rcj.CalibActive && rcj.CalibNom == "Test" && rcj.CalibFiltres.Count == 10 && rcj.CalibFiltres[5].Type == "HSC" && AudioJeu.Generer(rcj, "") == gCal, "casques : calibration enregistrée et relue à l'identique");
+                var faux = new System.Collections.Generic.Dictionary<string, object> { { "CalibActive", true }, { "CalibFiltres", new object[] { new object[] { "Include", 100, 3, 1 }, new object[] { "PK", 5, 3, 1 }, new object[] { "PK", 100, 99, 1 } } } };
+                verifier(!ReglagesAudioJeu.DepuisJson(faux).CalibActive && ReglagesAudioJeu.DepuisJson(faux).CalibFiltres.Count == 0, "casques : réglages trafiqués refusés");
+                verifier(AudioJeu.Generer(new ReglagesAudioJeu { Actif = true, Gains = (double[])competitif.Clone(), CalibActive = false, CalibFiltres = eqc }, "") == AudioJeu.Generer(new ReglagesAudioJeu { Actif = true, Gains = (double[])competitif.Clone() }, ""), "casques : calibration coupée = fichier inchangé");
                 // installation d'Equalizer APO par Velox : fichiers officiels figés, demande invalide refusée sans rien lancer
                 string nApo, eApo, nApoArm, eApoArm, nAutre, eAutre;
                 verifier(InstallationApo.Fichier("X64", out nApo, out eApo) && nApo == "EqualizerAPO-x64-1.4.2.exe" && eApo.Length == 64 && eApo == eApo.ToUpperInvariant()

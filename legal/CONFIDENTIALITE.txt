@@ -90,7 +90,7 @@ La commande /score affiche dans le salon, à la vue de tous les membres, votre p
 
 5. DESTINATAIRES ET TRANSFERTS HORS DE L'UNION EUROPÉENNE
 
-Les seuls prestataires concernés sont GitHub (site officiel et mises à jour), Stripe, Link et leurs prestataires de paiement (achat), Cloudflare (service de licences, mesure d'audience du site, et test de débit à votre demande), Discord (serveur officiel, si vous le rejoignez) et Amazon Web Services (ping des serveurs de jeu, à votre demande). Certains sont situés aux États-Unis ; ils encadrent les transferts de données selon leurs propres engagements (par exemple le cadre de protection des données UE - États-Unis ou les clauses contractuelles types de la Commission européenne), décrits dans leurs politiques de confidentialité.
+Les seuls prestataires concernés sont GitHub (site officiel, mises à jour, et liste des casques de la base libre AutoEq pour la calibration du Studio son : seul le nom du fichier demandé est transmis), Stripe, Link et leurs prestataires de paiement (achat), Cloudflare (service de licences, mesure d'audience du site, et test de débit à votre demande), Discord (serveur officiel, si vous le rejoignez) et Amazon Web Services (ping des serveurs de jeu, à votre demande). Certains sont situés aux États-Unis ; ils encadrent les transferts de données selon leurs propres engagements (par exemple le cadre de protection des données UE - États-Unis ou les clauses contractuelles types de la Commission européenne), décrits dans leurs politiques de confidentialité.
 
 
 6. VOS DROITS

@@ -431,7 +431,13 @@ namespace NettoyagePC.Nouveau
             public readonly List<Tuple<string, Border>> Envois = new List<Tuple<string, Border>>();
             public bool[] EtatEnvois = new bool[0];
         }
-        private StackPanel zoneMix;
+        private StackPanel zoneMix, zoneCasque;
+        private string signatureCasque;
+        private bool rechercheCasque;
+        private TextBox saisieCasque;
+        private StackPanel resultatsCasque;
+        private TextBlock tCasque;
+        private DispatcherTimer delaiCasque;
         private string signatureMix;
         private readonly List<Tranche> tranches = new List<Tranche>();
         private static readonly Dictionary<string, float> mixEnAttente = new Dictionary<string, float>();
@@ -618,6 +624,8 @@ namespace NettoyagePC.Nouveau
             autres.Children.Add(Studio.Bouton(Langue.T("Réglage automatique"), false, ReglageAutomatique, Langue.T("Profil compétitif, force 100 %, sortie Auto, tout le reste remis à zéro.")));
             tProfil = Studio.T("", 12.5, Studio.Discret);
             g.Children.Add(Studio.Module("Profils", new StackPanel { Children = { grille, autres, tProfil } }));
+            zoneCasque = new StackPanel { Spacing = 10 };
+            g.Children.Add(Studio.Module("Calibration du casque", zoneCasque));
 
             // console : molettes, coupe-explosions, inversion
             var rang = new WrapPanel();
@@ -953,6 +961,7 @@ namespace NettoyagePC.Nouveau
 
             // ---- sorties, Voicemeeter, automatismes, fichier
             if (exemple) vu.Definir(0.42f, 0.36f);
+            MajCasque();
             MajSorties(v);
             MajVoicemeeter();
             Construire(zoneAuto);
@@ -1107,6 +1116,105 @@ namespace NettoyagePC.Nouveau
                 moteur.Children.Add(p);
             }
             zoneVm.Children.Add(moteur);
+        }
+
+        // ---------------------------------------------------------------- calibration du casque (base AutoEq)
+
+        /// <summary>
+        /// Le modèle du casque : sa correction (mesures de laboratoire, base libre AutoEq) rend le son neutre, et le profil
+        /// pas s'ajoute par-dessus. Recherche dans plus de 6 000 modèles ; la correction s'écoute tout de suite et s'annule
+        /// dans l'Historique comme le reste.
+        /// </summary>
+        private void MajCasque()
+        {
+            if (zoneCasque == null) return;
+            string sig = r.CalibActive + "|" + r.CalibNom + "|" + r.CalibSource + "|" + (r.CalibFiltres?.Count ?? 0) + "|" + rechercheCasque + "|" + r.Moteur;
+            if (sig == signatureCasque) return;
+            signatureCasque = sig;
+            zoneCasque.Children.Clear();
+            zoneCasque.Children.Add(Studio.T(Langue.T("Chaque casque colore le son à sa façon. Choisis le tien : Velox corrige ses défauts d'après des mesures de laboratoire (base libre AutoEq, plus de 6 000 modèles) pour un son neutre de studio, puis le profil pas s'ajoute par-dessus."), 12.5, Studio.Discret));
+            bool aCasque = !string.IsNullOrEmpty(r.CalibNom) && r.CalibFiltres != null && r.CalibFiltres.Count > 0;
+            if (aCasque)
+            {
+                var carte = new StackPanel { Spacing = 4 };
+                carte.Children.Add(new TextBlock { Text = r.CalibNom, FontFamily = Studio.Titre, FontSize = 16, FontWeight = FontWeight.SemiBold, Foreground = Studio.P(r.CalibActive ? Studio.Ambre : Studio.Discret), TextWrapping = TextWrapping.Wrap });
+                carte.Children.Add(Studio.T(Langue.F("Mesuré par {0} · {1} filtres de correction", r.CalibSource, r.CalibFiltres.Count), 11.5, Studio.Faible));
+                var boutons = new WrapPanel { Margin = new Thickness(0, 6, 0, 0) };
+                var bAct = Puce(Langue.T(r.CalibActive ? "Calibration active" : "Calibration coupée"), () =>
+                {
+                    if (exemple) return;
+                    r.CalibActive = !r.CalibActive;
+                    Changer(Langue.T(r.CalibActive ? "Calibration du casque active." : "Calibration du casque coupée."), false, true);
+                });
+                Marquer(bAct, r.CalibActive, Studio.Vert);
+                ToolTip.SetTip(bAct, Langue.T("Allume ou coupe la correction du casque (le profil pas reste)."));
+                boutons.Children.Add(bAct);
+                var bChanger = Puce(Langue.T(rechercheCasque ? "Fermer la recherche" : "Changer de casque"), () => { rechercheCasque = !rechercheCasque; signatureCasque = null; MajCasque(); if (rechercheCasque) saisieCasque?.Focus(); });
+                Marquer(bChanger, false);
+                boutons.Children.Add(bChanger);
+                carte.Children.Add(boutons);
+                zoneCasque.Children.Add(new Border { Child = carte, Padding = new Thickness(14, 12), CornerRadius = new CornerRadius(12), Background = Studio.P(r.CalibActive ? Studio.Ambre : Studio.Violet, r.CalibActive ? 16 : 10), BorderBrush = Studio.P(r.CalibActive ? Studio.Ambre : Studio.Bord, r.CalibActive ? 150 : 160), BorderThickness = new Thickness(1) });
+            }
+            if (!aCasque || rechercheCasque)
+            {
+                saisieCasque = new TextBox
+                {
+                    Watermark = Langue.T("Tape le modèle de ton casque (ex. Arctis Nova Pro, HD 650, Cloud II)"), FontFamily = Studio.Corps, FontSize = 13.5,
+                    Background = Studio.P(Studio.Fond1, 200), Foreground = Studio.P(Studio.Texte), BorderBrush = Studio.P(Studio.Bord), CornerRadius = new CornerRadius(10), Padding = new Thickness(12, 8),
+                };
+                AutomationProperties.SetName(saisieCasque, Langue.T("Modèle de ton casque"));
+                saisieCasque.TextChanged += (o, a) =>
+                {
+                    if (delaiCasque == null) { delaiCasque = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(220) }; delaiCasque.Tick += (s2, a2) => { delaiCasque.Stop(); ChercherCasque(); }; }
+                    delaiCasque.Stop(); delaiCasque.Start();
+                };
+                resultatsCasque = new StackPanel { Spacing = 4 };
+                tCasque = Studio.T("", 11.5, Studio.Faible); tCasque.IsVisible = false;
+                zoneCasque.Children.Add(saisieCasque);
+                zoneCasque.Children.Add(tCasque);
+                zoneCasque.Children.Add(resultatsCasque);
+            }
+            if (r.Moteur == "vm") zoneCasque.Children.Add(Studio.T(Langue.T("La calibration passe par Equalizer APO : avec l'égaliseur de Voicemeeter, elle n'est pas appliquée."), 12, Studio.Ambre));
+            zoneCasque.Children.Add(Studio.T(Langue.T("Mesures : projet AutoEq (licence MIT) et ses sources (oratory1990, crinacle, Rtings…)."), 10.5, Studio.Faible));
+        }
+
+        private void ChercherCasque()
+        {
+            if (saisieCasque == null || resultatsCasque == null) return;
+            string q = saisieCasque.Text ?? "";
+            resultatsCasque.Children.Clear();
+            if (q.Trim().Length < 2) { tCasque.IsVisible = false; return; }
+            if (exemple) return;
+            tCasque.Text = Langue.T("Recherche…"); tCasque.IsVisible = true;
+            Task.Run(() => Casques.Chercher(Casques.Index(), q, 8)).ContinueWith(t => Dispatcher.UIThread.Post(() =>
+            {
+                if (saisieCasque == null || saisieCasque.Text != q) return;   // la recherche a changé entre-temps
+                resultatsCasque.Children.Clear();
+                if (t.IsFaulted) { tCasque.Text = Langue.T((t.Exception.InnerException ?? t.Exception).Message.StartsWith("La base") ? (t.Exception.InnerException ?? t.Exception).Message : "La base des casques ne répond pas : vérifie ta connexion Internet."); return; }
+                var l = t.Result;
+                tCasque.Text = l.Count == 0 ? Langue.T("Aucun modèle trouvé : essaie avec moins de mots (marque et modèle).") : Langue.T("Choisis ton modèle :");
+                foreach (var c in l)
+                {
+                    var cc = c;
+                    var b = Puce(c.Nom + "  ·  " + c.Source, () => ChoisirCasque(cc));
+                    b.Margin = new Thickness(0); b.HorizontalAlignment = HorizontalAlignment.Left;
+                    Marquer(b, false);
+                    resultatsCasque.Children.Add(b);
+                }
+            }));
+        }
+
+        private void ChoisirCasque(CasqueAutoEq c)
+        {
+            if (exemple) return;
+            F.Statut(Langue.F("Calibration de « {0} »…", c.Nom));
+            Task.Run(() => Casques.Correction(c)).ContinueWith(t => Dispatcher.UIThread.Post(() =>
+            {
+                if (t.IsFaulted) { F.Statut(Langue.T((t.Exception.InnerException ?? t.Exception).Message), true); return; }
+                r.CalibNom = c.Nom; r.CalibSource = c.Source; r.CalibFiltres = t.Result; r.CalibActive = true;
+                rechercheCasque = false; signatureCasque = null;
+                Changer(Langue.F("Casque calibré : {0}. Écoute la différence avec le bouton « Calibration active ».", c.Nom), false, true);
+            }));
         }
 
         // ---------------------------------------------------------------- table de mixage de Voicemeeter

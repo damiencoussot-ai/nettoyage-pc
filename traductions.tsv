@@ -3609,3 +3609,27 @@ L'installation d'Equalizer APO prend trop de temps : vérifie sa fenêtre, puis 
 Equalizer APO ne s'est pas installé : réessaie, ou installe-le depuis son site officiel.	Equalizer APO did not install: try again, or install it from its official site.	Equalizer APO no se instaló: inténtalo de nuevo o instálalo desde su sitio oficial.
 ^Le site d'Equalizer APO ne répond pas \(code (\d+)\) : réessaie plus tard\.$	The Equalizer APO site is not responding (code $1): try again later.	El sitio de Equalizer APO no responde (código $1): inténtalo más tarde.
 ^L'installation d'Equalizer APO n'a pas abouti \(code (-?\d+)\)\.$	The Equalizer APO installation did not complete (code $1).	La instalación de Equalizer APO no se completó (código $1).
+Calibration du casque	Headphone calibration	Calibración de auriculares
+Chaque casque colore le son à sa façon. Choisis le tien : Velox corrige ses défauts d'après des mesures de laboratoire (base libre AutoEq, plus de 6 000 modèles) pour un son neutre de studio, puis le profil pas s'ajoute par-dessus.	Every headset colours the sound its own way. Pick yours: Velox corrects its flaws from lab measurements (free AutoEq database, over 6,000 models) for a neutral studio sound, then the footstep profile goes on top.	Cada auricular colorea el sonido a su manera. Elige el tuyo: Velox corrige sus defectos según mediciones de laboratorio (base libre AutoEq, más de 6 000 modelos) para un sonido neutro de estudio, y el perfil de pasos se añade encima.
+Mesuré par {0} · {1} filtres de correction	Measured by {0} · {1} correction filters	Medido por {0} · {1} filtros de corrección
+Calibration active	Calibration on	Calibración activa
+Calibration coupée	Calibration off	Calibración desactivada
+Calibration du casque active.	Headphone calibration on.	Calibración de auriculares activada.
+Calibration du casque coupée.	Headphone calibration off.	Calibración de auriculares desactivada.
+Allume ou coupe la correction du casque (le profil pas reste).	Turns the headphone correction on or off (the footstep profile stays).	Activa o desactiva la corrección del auricular (el perfil de pasos se mantiene).
+Fermer la recherche	Close search	Cerrar la búsqueda
+Changer de casque	Change headset	Cambiar de auricular
+Tape le modèle de ton casque (ex. Arctis Nova Pro, HD 650, Cloud II)	Type your headset model (e.g. Arctis Nova Pro, HD 650, Cloud II)	Escribe el modelo de tu auricular (p. ej. Arctis Nova Pro, HD 650, Cloud II)
+Modèle de ton casque	Your headset model	Modelo de tu auricular
+La calibration passe par Equalizer APO : avec l'égaliseur de Voicemeeter, elle n'est pas appliquée.	Calibration goes through Equalizer APO: with the Voicemeeter equalizer, it is not applied.	La calibración pasa por Equalizer APO: con el ecualizador de Voicemeeter no se aplica.
+Mesures : projet AutoEq (licence MIT) et ses sources (oratory1990, crinacle, Rtings…).	Measurements: AutoEq project (MIT licence) and its sources (oratory1990, crinacle, Rtings…).	Mediciones: proyecto AutoEq (licencia MIT) y sus fuentes (oratory1990, crinacle, Rtings…).
+Recherche…	Searching…	Buscando…
+La base des casques ne répond pas : vérifie ta connexion Internet.	The headphone database is not responding: check your Internet connection.	La base de auriculares no responde: comprueba tu conexión a Internet.
+Aucun modèle trouvé : essaie avec moins de mots (marque et modèle).	No model found: try fewer words (brand and model).	Ningún modelo encontrado: prueba con menos palabras (marca y modelo).
+Choisis ton modèle :	Pick your model:	Elige tu modelo:
+Calibration de « {0} »…	Calibrating “{0}”…	Calibrando «{0}»…
+Casque calibré : {0}. Écoute la différence avec le bouton « Calibration active ».	Headset calibrated: {0}. Hear the difference with the “Calibration on” button.	Auricular calibrado: {0}. Escucha la diferencia con el botón «Calibración activa».
+Réponse inattendue de la base des casques.	Unexpected response from the headphone database.	Respuesta inesperada de la base de auriculares.
+Casque inconnu.	Unknown headset.	Auricular desconocido.
+La correction de ce casque est illisible : choisis une autre mesure.	This headset's correction cannot be read: pick another measurement.	La corrección de este auricular no se puede leer: elige otra medición.
+^La base des casques ne répond pas \(code (\d+)\) : réessaie plus tard\.$	The headphone database is not responding (code $1): try again later.	La base de auriculares no responde (código $1): inténtalo más tarde.
