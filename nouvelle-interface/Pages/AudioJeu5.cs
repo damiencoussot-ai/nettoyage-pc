@@ -383,6 +383,30 @@ namespace NettoyagePC.Nouveau
             }));
         }
 
+        private static bool contourne;
+
+        /// <summary>
+        /// Duel à l'oreille : l'égaliseur en place est entièrement coupé pendant l'écoute (les candidats sont déjà passés
+        /// dans leurs filtres, calibration comprise), puis remis. Même file d'attente que « Comparer ».
+        /// </summary>
+        internal static void Contourner(FenetrePrincipale f, bool couper)
+        {
+            if (Exemple != null || f == null || couper == contourne) return;
+            var copie = Reglages.Copie();
+            if (couper && !copie.Actif) return;
+            contourne = couper;
+            Task<string> etape = fileComparaison.ContinueWith(_ =>
+            {
+                if (copie.Moteur == "vm") return couper ? Voicemeeter.Couper(copie.BusVm, false) : Voicemeeter.Appliquer(copie, copie.BusVm, false);
+                return AudioJeu.Comparer(couper, AudioJeu.Generer(copie, copie.CibleEcrite));
+            });
+            fileComparaison = etape.ContinueWith(t => Dispatcher.UIThread.Post(() =>
+            {
+                string err = t.IsFaulted ? (t.Exception.InnerException ?? t.Exception).Message : t.Result;
+                if (err != "") f.Statut(Langue.T(err), true);
+            }));
+        }
+
         // ---- confirmation visible d'un changement de profil
 
         /// <summary>Confirmation à afficher dès que le prochain changement est écrit : titre, détail, actif ou non.</summary>
@@ -557,6 +581,7 @@ namespace NettoyagePC.Nouveau
             DetachedFromVisualTree += (s, e) =>
             {
                 ArreterDemo();
+                ArreterDuel(false);
                 if (comparaison) Comparer(F, false);   // bouton « Comparer » encore maintenu : l'égaliseur revient
                 Appliquer();   // un réglage encore en attente n'est pas perdu
                 Direct(false);
@@ -1231,7 +1256,15 @@ namespace NettoyagePC.Nouveau
         // ---------------------------------------------------------------- test avant / après à l'oreille
 
         private TextBlock tDemo, tDemoDetail;
-        private Border bDemo, carteSans, carteAvec;
+        private Border bDemo, carteSans, carteAvec, bDuel;
+        private StackPanel zoneDuel;
+        // duel à l'oreille : candidats (nom, réglages), sons rendus, champion, challenger, ordre d'écoute, étape
+        private List<Tuple<string, ReglagesAudioJeu>> duelCandidats;
+        private List<byte[]> duelSons;
+        private int duelChampion, duelChallenger, duelEtape, duelNumero;
+        private bool duelInverse;
+        private DispatcherTimer minuterieDuel;
+        private static readonly Random hasardDuel = new Random();
         private DispatcherTimer minuterieDemo;
         private int etapeDemo;
 
@@ -1246,7 +1279,10 @@ namespace NettoyagePC.Nouveau
             g.Children.Add(carteSans); g.Children.Add(carteAvec);
             pile.Children.Add(g);
             bDemo = Studio.Bouton(Langue.T("▶  Écouter la différence"), true, LancerDemo, Langue.T("Joue la scène deux fois : sans, puis avec le Studio son (calibration du casque comprise)."));
-            pile.Children.Add(new WrapPanel { Children = { bDemo } });
+            bDuel = Studio.Bouton(Langue.T("Duel à l'oreille"), false, LancerDuel, Langue.T("Choisis ton profil à l'aveugle : la même scène passée par plusieurs profils, au même volume, deux par deux. Tu gardes celui où tu entends le mieux les pas."));
+            pile.Children.Add(new WrapPanel { Children = { bDemo, bDuel } });
+            zoneDuel = new StackPanel { Spacing = 10, IsVisible = false };
+            pile.Children.Add(zoneDuel);
             tDemoDetail = Studio.T(Langue.T("Monte un peu le volume. La scène passe par ta sortie par défaut de Windows."), 11.5, Studio.Faible);
             pile.Children.Add(tDemoDetail);
             MarquerDemo(0);
@@ -1281,6 +1317,7 @@ namespace NettoyagePC.Nouveau
         {
             if (exemple) return;
             if (etapeDemo != 0) { ArreterDemo(); F.Statut(Langue.T("Écoute arrêtée.")); return; }
+            ArreterDuel(false);
             if (!OperatingSystem.IsWindows()) return;
             if (simulation) { F.Statut(Langue.T("Simulation : l'écoute avant / après a besoin de couper l'égaliseur un instant, rien n'est modifié ici."), true); return; }
             if (!r.Actif) { F.Statut(Langue.T("Allume d'abord l'égaliseur (gros bouton en haut), puis écoute la différence."), true); return; }
@@ -1320,6 +1357,148 @@ namespace NettoyagePC.Nouveau
             if (comparaison) Comparer(F, false);   // l'égaliseur revient toujours
             etapeDemo = 0;
             MarquerDemo(0);
+        }
+
+        // ---------------------------------------------------------------- duel à l'oreille (choix du profil à l'aveugle)
+
+        /// <summary>Candidats du duel : les trois profils pour les pas, celui du jeu visé, et tes réglages s'ils sont
+        /// différents ; chacun avec ta calibration, ta force et ton coupe-explosions. Au plus quatre, dans le désordre.</summary>
+        internal static List<Tuple<string, ReglagesAudioJeu>> CandidatsDuel(ReglagesAudioJeu r, string exeJeu)
+        {
+            var l = new List<Tuple<string, ReglagesAudioJeu>>();
+            Action<string, double[]> ajouter = (nom, gains) =>
+            {
+                if (l.Count >= 4 || l.Any(x => x.Item2.Gains.SequenceEqual(gains))) return;
+                var c = r.Copie(); c.Actif = true; c.Gains = (double[])gains.Clone();
+                l.Add(Tuple.Create(nom, c));
+            };
+            var jeu = AudioJeu.JeuVise(exeJeu, r);
+            ajouter(Langue.F("Tes réglages ({0})", Langue.T(AudioJeu.NomProfil(r))), r.Gains);
+            foreach (var cle in new[] { "competitif", "extreme", "equilibre" }) { var p = AudioJeu.Profils.First(x => x.Cle == cle); ajouter(Langue.T(p.Nom), p.Gains); }
+            ajouter(jeu.Nom, jeu.Gains);
+            return l.OrderBy(x => hasardDuel.Next()).ToList();
+        }
+
+        private void LancerDuel()
+        {
+            if (exemple) return;
+            if (duelEtape != 0) { ArreterDuel(true); F.Statut(Langue.T("Duel arrêté : tes réglages n'ont pas changé.")); return; }
+            if (!OperatingSystem.IsWindows()) return;
+            if (simulation) { F.Statut(Langue.T("Simulation : le duel a besoin de couper l'égaliseur un instant, rien n'est modifié ici."), true); return; }
+            ArreterDemo();
+            duelCandidats = CandidatsDuel(r, Releve?.Jeu);
+            duelEtape = 1; duelChampion = 0; duelChallenger = 1; duelNumero = 1;
+            AfficherDuel(Langue.T("Préparation des sons…"), false);
+            var cands = duelCandidats.Select(x => x.Item2).ToList();
+            Task.Run(() => DemoAudio.Duel(cands)).ContinueWith(t => Dispatcher.UIThread.Post(() =>
+            {
+                if (duelEtape != 1) return;
+                if (t.IsFaulted) { ArreterDuel(true); F.Statut(Langue.T("Le duel n'a pas pu préparer les sons."), true); return; }
+                duelSons = t.Result;
+                Contourner(F, true);   // les sons sont déjà égalisés : rien ne doit s'ajouter par-dessus
+                JouerDuel();
+            }));
+        }
+
+        /// <summary>Joue le duel en cours : son 1 puis son 2 (ordre tiré au hasard), puis attend ton choix.</summary>
+        private void JouerDuel()
+        {
+            if (duelEtape == 0) return;
+            if (minuterieDuel == null) { minuterieDuel = new DispatcherTimer(); minuterieDuel.Tick += (o, a) => EtapeDuel(); }
+            duelInverse = hasardDuel.Next(2) == 1;
+            duelEtape = 2;
+            AfficherDuel(Langue.F("Duel {0} sur {1} : écoute le son 1…", duelNumero, duelCandidats.Count - 1), false);
+            minuterieDuel.Interval = TimeSpan.FromMilliseconds(500);   // (Equalizer APO relit son fichier)
+            minuterieDuel.Start();
+        }
+
+        private void EtapeDuel()
+        {
+            minuterieDuel.Stop();
+            int a = duelInverse ? duelChallenger : duelChampion, b = duelInverse ? duelChampion : duelChallenger;
+            switch (duelEtape)
+            {
+                case 2: DemoAudio.Jouer(duelSons[a]); duelEtape = 3; MarquerDuel(1); minuterieDuel.Interval = TimeSpan.FromSeconds(DemoAudio.Duree + 0.4); break;
+                case 3: DemoAudio.Jouer(duelSons[b]); duelEtape = 4; MarquerDuel(2); AfficherDuel(Langue.F("Duel {0} sur {1} : écoute le son 2…", duelNumero, duelCandidats.Count - 1), false); minuterieDuel.Interval = TimeSpan.FromSeconds(DemoAudio.Duree + 0.4); break;
+                default: duelEtape = 5; MarquerDuel(0); AfficherDuel(Langue.T("Dans lequel entends-tu le mieux les pas (et d'où ils viennent) ?"), true); return;
+            }
+            minuterieDuel.Start();
+        }
+
+        /// <summary>Ton choix : 1 ou 2. Le gagnant affronte le suivant ; à la fin, le profil gagnant est proposé.</summary>
+        private void ChoisirDuel(int son)
+        {
+            if (duelEtape != 5) return;
+            int a = duelInverse ? duelChallenger : duelChampion, b = duelInverse ? duelChampion : duelChallenger;
+            duelChampion = son == 1 ? a : b;
+            duelChallenger++; duelNumero++;
+            if (duelChallenger < duelCandidats.Count) { JouerDuel(); return; }
+            // fin : l'égaliseur revient, le gagnant est dévoilé
+            Contourner(F, false);
+            duelEtape = 6;
+            var g = duelCandidats[duelChampion];
+            zoneDuel.Children.Clear();
+            zoneDuel.Children.Add(Studio.T(Langue.F("Ton oreille a choisi : {0}", g.Item1), 15, Studio.Ambre));
+            bool deja = g.Item2.Gains.SequenceEqual(r.Gains);
+            zoneDuel.Children.Add(Studio.T(Langue.T(deja ? "C'est déjà ton réglage : il est fait pour toi." : "Choisi à l'aveugle, au même volume que les autres : c'est vraiment le profil qui te fait le mieux entendre les pas avec ton casque."), 12, Studio.Discret));
+            var ligne = new WrapPanel();
+            if (!deja) ligne.Children.Add(Studio.Bouton(Langue.T("Appliquer ce profil"), true, () =>
+            {
+                r.Gains = (double[])g.Item2.Gains.Clone();
+                AnnoncerApres(Langue.T(r.Actif ? "Profil appliqué" : "Profil choisi"), g.Item1);
+                ArreterDuel(false);
+                Changer(Langue.F("Profil « {0} » appliqué (choisi au duel à l'oreille).", g.Item1), false, true);
+            }));
+            ligne.Children.Add(Studio.Bouton(Langue.T(deja ? "Fermer" : "Garder mes réglages"), false, () => ArreterDuel(false)));
+            zoneDuel.Children.Add(ligne);
+            if (bDuel != null && bDuel.Child is TextBlock tb) tb.Text = Langue.T("Duel à l'oreille");
+        }
+
+        private void AfficherDuel(string texte, bool choix)
+        {
+            zoneDuel.IsVisible = true;
+            zoneDuel.Children.Clear();
+            zoneDuel.Children.Add(Studio.T(texte, 13.5, Studio.Texte));
+            if (choix)
+            {
+                var l = new WrapPanel();
+                l.Children.Add(Studio.Bouton(Langue.T("Le son 1"), true, () => ChoisirDuel(1)));
+                l.Children.Add(Studio.Bouton(Langue.T("Le son 2"), true, () => ChoisirDuel(2)));
+                l.Children.Add(Studio.Bouton(Langue.T("Réécouter"), false, JouerDuel));
+                zoneDuel.Children.Add(l);
+            }
+            zoneDuel.Children.Add(Studio.T(Langue.T("À l'aveugle : les noms des profils sont cachés, et tous les sons ont le même volume."), 11.5, Studio.Faible));
+            if (bDuel != null && bDuel.Child is TextBlock tb) tb.Text = Langue.T("■  Arrêter le duel");
+        }
+
+        /// <summary>Allume la carte du son en cours (1 ou 2, 0 : aucune), avec les cartes SANS / AVEC de la démo.</summary>
+        private void MarquerDuel(int son)
+        {
+            if (carteSans == null) return;
+            foreach (var c in new[] { carteSans, carteAvec })
+            {
+                bool on = (c == carteSans && son == 1) || (c == carteAvec && son == 2);
+                c.Background = on ? Studio.Degrade(1, Habillage.Alpha(Studio.Cyan, 50), Habillage.Alpha(Studio.Violet, 30)) : Studio.P(Studio.Fond1, 150);
+                c.BorderBrush = on ? Studio.P(Studio.Cyan, 220) : Studio.P(Studio.Bord);
+                if (c.Child is StackPanel sp && sp.Children.Count == 2 && sp.Children[0] is TextBlock t0 && sp.Children[1] is TextBlock t1)
+                {
+                    t0.Text = duelEtape == 0 ? Langue.T(c == carteSans ? "SANS" : "AVEC") : Langue.T(c == carteSans ? "SON 1" : "SON 2");
+                    t1.Text = duelEtape == 0 ? Langue.T(c == carteSans ? "le son d'origine" : "le Studio son") : Langue.T("profil caché");
+                }
+            }
+        }
+
+        private void ArreterDuel(bool remettre)
+        {
+            if (duelEtape == 0) return;
+            if (minuterieDuel != null) minuterieDuel.Stop();
+            DemoAudio.Arreter();
+            Contourner(F, false);   // l'égaliseur revient toujours
+            duelEtape = 0; duelSons = null;
+            if (zoneDuel != null) { zoneDuel.Children.Clear(); zoneDuel.IsVisible = false; }
+            MarquerDuel(0);
+            MarquerDemo(0);
+            if (bDuel != null && bDuel.Child is TextBlock tb) tb.Text = Langue.T("Duel à l'oreille");
         }
 
         // ---------------------------------------------------------------- son 7.1 virtuel (pilotage de HeSuVi)

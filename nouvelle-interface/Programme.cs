@@ -622,6 +622,12 @@ namespace NettoyagePC.Nouveau
                 string gCal = AudioJeu.Generer(rc, "");
                 double creteSans = AudioJeu.Crete(AudioJeu.Filtres(new ReglagesAudioJeu { Actif = true, Gains = (double[])competitif.Clone() }));
                 verifier(gCal.Contains("Filter 1: ON LSC Fc 105 Hz Gain -4.1 dB Q 0.70") && gCal.Contains("Filter 6: ON HSC Fc 10000 Hz Gain -1.9 dB Q 0.70") && gCal.Contains("Filter 11: ON LSC Fc 100 Hz") && AudioJeu.Crete(AudioJeu.Filtres(rc)) > creteSans, "casques : correction écrite avant le profil, préampli recalculé");
+                {
+                    // pic étroit (Q 12 à 3 300 Hz, +10 dB) : il tombe entre deux points de la grille, la crête doit quand même le voir
+                    var etroit = new System.Collections.Generic.List<FiltreAudio> { new FiltreAudio { Type = "PK", Fc = 3300, Gain = 10, Q = 12 } };
+                    double ce = AudioJeu.Crete(etroit);
+                    verifier(ce >= 10 && ce <= 10.3, "crête d'un filtre étroit bien relevée (" + ce.ToString("F2", System.Globalization.CultureInfo.InvariantCulture) + " dB, préampli assez bas pour ne pas saturer)");
+                }
                 verifier(Math.Abs(AudioJeu.Reponse("HSC", 10000, -6, 0.7, 20000) + 6) < 0.8 && Math.Abs(AudioJeu.Reponse("HSC", 10000, -6, 0.7, 50)) < 0.05 && Math.Abs(AudioJeu.Reponse("HSC", 10000, -6, 0.7, 10000) + 3) < 0.3, "casques : plateau aigu (HSC) calculé");
                 var rcj = ReglagesAudioJeu.DepuisJson(Json.Lire(Json.Ecrire(rc.VersJson())) as System.Collections.Generic.Dictionary<string, object>);
                 verifier(rcj.CalibActive && rcj.CalibNom == "Test" && rcj.CalibFiltres.Count == 10 && rcj.CalibFiltres[5].Type == "HSC" && AudioJeu.Generer(rcj, "") == gCal, "casques : calibration enregistrée et relue à l'identique");
@@ -668,6 +674,24 @@ namespace NettoyagePC.Nouveau
                 string vs = AudioJeu.VolumeSeul(rcomp, "11111111-2222-3333-4444-555555555555", ecartV);
                 verifier(ecartV < -3 && ecartV >= -12 && ecartN == 0 && vs.Contains("Preamp: " + ecartV.ToString("F1", System.Globalization.CultureInfo.InvariantCulture) + " dB") && !vs.Contains("Filter") && vs.Contains("11111111-2222-3333-4444-555555555555")
                     && !AudioJeu.ContenuActif(vs), "comparaison au même volume : « sans » baissé de " + ecartV + " dB, sans filtre, compté comme égaliseur coupé");
+                // duel à l'oreille : candidats différents, tous au même volume, aucun ne sature
+                {
+                    var cands = AudioJeu5.CandidatsDuel(rcomp, "cod.exe");
+                    var sons = DemoAudio.Duel(cands.Select(x => x.Item2).ToList());
+                    Func<byte[], Tuple<double, int>> mesure = w =>
+                    {
+                        double e = 0; int crete = 0, n = (w.Length - 44) / 2;
+                        for (int i = 44; i + 1 < w.Length; i += 2) { int v = BitConverter.ToInt16(w, i); e += (double)v * v; crete = Math.Max(crete, Math.Abs(v)); }
+                        return Tuple.Create(10 * Math.Log10(e / n + 1e-9), crete);
+                    };
+                    var m = sons.Select(mesure).ToList();
+                    bool memeVolume = m.Max(x => x.Item1) - m.Min(x => x.Item1) < 0.3;
+                    bool sansSaturer = m.All(x => x.Item2 <= 31200) && m.Max(x => x.Item2) >= 30500;
+                    bool differents = cands.Select(x => string.Join(",", x.Item2.Gains)).Distinct().Count() == cands.Count && sons.Select(x => Convert.ToBase64String(System.Security.Cryptography.SHA256.HashData(x))).Distinct().Count() == sons.Count;
+                    bool calibres = cands.All(x => x.Item2.CalibActive && x.Item2.Actif);
+                    verifier(cands.Count >= 3 && cands.Count <= 4 && memeVolume && sansSaturer && differents && calibres,
+                        "duel à l'oreille : " + cands.Count + " profils différents (calibration comprise), même volume (écart " + (m.Max(x => x.Item1) - m.Min(x => x.Item1)).ToString("F2", System.Globalization.CultureInfo.InvariantCulture) + " dB), sans saturer");
+                }
                 // installation d'Equalizer APO par Velox : fichiers officiels figés, demande invalide refusée sans rien lancer
                 string nApo, eApo, nApoArm, eApoArm, nAutre, eAutre;
                 verifier(InstallationApo.Fichier("X64", out nApo, out eApo) && nApo == "EqualizerAPO-x64-1.4.2.exe" && eApo.Length == 64 && eApo == eApo.ToUpperInvariant()

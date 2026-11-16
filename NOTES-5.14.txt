@@ -17,6 +17,10 @@ Nouveau : la rubrique Audio (Premium), le « Studio son »
   choix du modèle (GSX, Dolby Atmos, DTS Headphone:X…) en un clic. Alerte si le 7.1 virtuel s'ajoute au son
   spatial du jeu (Mode casque amélioré de Call of Duty, HRTF de Valorant…).
 - Conseils de réglage du menu audio du jeu (Warzone : effets, musique, mono, acouphènes, mix).
+- Duel à l'oreille : choisis ton profil à l'aveugle. La même scène passe par 3 ou 4 profils, tous au même
+  volume, écoutés deux par deux sans leur nom ; Velox applique celui où tu entends le mieux les pas.
+- Anti-saturation plus précise avec la calibration du casque : les pics étroits de la correction sont mesurés
+  exactement (avant, jusqu'à 7 dB pouvaient échapper au préampli et faire saturer les explosions).
 - Equalizer APO installé par Velox (fichier officiel vérifié) : tu n'as rien à installer toi-même.
 - Voicemeeter (Standard, Banana, Potato) piloté depuis Velox : table de mixage (volume, mute et envois de
   chaque entrée, volume et mute de chaque bus), égaliseur possible avant le mixage (« Voicemeeter Input »),

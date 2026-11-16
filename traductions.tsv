@@ -3731,3 +3731,28 @@ Dolby Atmos pour casque	Dolby Atmos for Headphones	Dolby Atmos para auriculares
 Dans {0}, coupe l'option « {1} » tant que le 7.1 virtuel est allumé : deux spatialisations l'une sur l'autre brouillent la direction des pas. Ou fais l'inverse : garde l'option du jeu et coupe le 7.1 virtuel. Essaie les deux, garde celle où tu situes le mieux les pas.	In {0}, turn off the “{1}” option while virtual 7.1 is on: two spatializations stacked blur the direction of footsteps. Or the other way round: keep the game's option and turn virtual 7.1 off. Try both, keep the one where you locate footsteps best.	En {0}, desactiva la opción «{1}» mientras el 7.1 virtual esté activado: dos espacializaciones a la vez difuminan la dirección de los pasos. O al revés: deja la opción del juego y desactiva el 7.1 virtual. Prueba las dos y quédate con la que mejor sitúe los pasos.
 Counter-Strike 2 spatialise déjà le son au casque : coupe le 7.1 virtuel pendant tes parties de CS2.	Counter-Strike 2 already spatializes sound on headphones: turn virtual 7.1 off while playing CS2.	Counter-Strike 2 ya espacializa el sonido en auriculares: desactiva el 7.1 virtual mientras juegas a CS2.
 Une seule spatialisation à la fois : laisse aussi coupés le son spatial de Windows (Windows Sonic, Dolby Atmos, DTS) sur cette sortie et le surround virtuel du logiciel de ton casque.	One spatialization at a time: also keep Windows spatial sound (Windows Sonic, Dolby Atmos, DTS) off on this output, and your headset software's virtual surround.	Una sola espacialización a la vez: deja también desactivados el sonido espacial de Windows (Windows Sonic, Dolby Atmos, DTS) en esta salida y el surround virtual del software de tus auriculares.
+Duel à l'oreille	Ear duel	Duelo de oído
+Choisis ton profil à l'aveugle : la même scène passée par plusieurs profils, au même volume, deux par deux. Tu gardes celui où tu entends le mieux les pas.	Pick your profile blind: the same scene through several profiles, at the same volume, two at a time. You keep the one where you hear footsteps best.	Elige tu perfil a ciegas: la misma escena con varios perfiles, al mismo volumen, de dos en dos. Te quedas con el que mejor te deja oír los pasos.
+Tes réglages ({0})	Your settings ({0})	Tus ajustes ({0})
+Duel arrêté : tes réglages n'ont pas changé.	Duel stopped: your settings did not change.	Duelo detenido: tus ajustes no han cambiado.
+Simulation : le duel a besoin de couper l'égaliseur un instant, rien n'est modifié ici.	Simulation: the duel needs to turn the equalizer off for a moment, nothing is changed here.	Simulación: el duelo necesita apagar el ecualizador un momento, aquí no se modifica nada.
+Préparation des sons…	Preparing the sounds…	Preparando los sonidos…
+Le duel n'a pas pu préparer les sons.	The duel could not prepare the sounds.	El duelo no ha podido preparar los sonidos.
+Duel {0} sur {1} : écoute le son 1…	Duel {0} of {1}: listen to sound 1…	Duelo {0} de {1}: escucha el sonido 1…
+Duel {0} sur {1} : écoute le son 2…	Duel {0} of {1}: listen to sound 2…	Duelo {0} de {1}: escucha el sonido 2…
+Dans lequel entends-tu le mieux les pas (et d'où ils viennent) ?	In which one do you hear footsteps best (and where they come from)?	¿En cuál oyes mejor los pasos (y de dónde vienen)?
+Ton oreille a choisi : {0}	Your ears chose: {0}	Tu oído ha elegido: {0}
+C'est déjà ton réglage : il est fait pour toi.	That's already your setting: it suits you.	Ya es tu ajuste: está hecho para ti.
+Choisi à l'aveugle, au même volume que les autres : c'est vraiment le profil qui te fait le mieux entendre les pas avec ton casque.	Chosen blind, at the same volume as the others: it really is the profile that lets you hear footsteps best with your headset.	Elegido a ciegas, al mismo volumen que los demás: es de verdad el perfil con el que mejor oyes los pasos con tus auriculares.
+Appliquer ce profil	Apply this profile	Aplicar este perfil
+Garder mes réglages	Keep my settings	Mantener mis ajustes
+Profil « {0} » appliqué (choisi au duel à l'oreille).	Profile “{0}” applied (chosen in the ear duel).	Perfil «{0}» aplicado (elegido en el duelo de oído).
+Le son 1	Sound 1	El sonido 1
+Le son 2	Sound 2	El sonido 2
+Réécouter	Listen again	Volver a escuchar
+À l'aveugle : les noms des profils sont cachés, et tous les sons ont le même volume.	Blind: profile names are hidden, and all sounds have the same volume.	A ciegas: los nombres de los perfiles están ocultos y todos los sonidos tienen el mismo volumen.
+■  Arrêter le duel	■  Stop the duel	■  Detener el duelo
+SON 1	SOUND 1	SONIDO 1
+SON 2	SOUND 2	SONIDO 2
+profil caché	hidden profile	perfil oculto
+Duel à l'oreille : choisis ton profil à l'aveugle, au même volume, deux sons à la fois ; Velox garde celui où tu entends le mieux les pas.	Ear duel: pick your profile blind, at the same volume, two sounds at a time; Velox keeps the one where you hear footsteps best.	Duelo de oído: elige tu perfil a ciegas, al mismo volumen, dos sonidos a la vez; Velox se queda con el que mejor te deja oír los pasos.

@@ -295,17 +295,31 @@ namespace NettoyagePC
             return l;
         }
 
-        /// <summary>Plus forte amplification de l'ensemble des filtres (jamais négative), relevée sur 71 fréquences de 20 Hz à 20 kHz.</summary>
+        /// <summary>
+        /// Plus forte amplification de l'ensemble des filtres (jamais négative), relevée sur 71 fréquences de 20 Hz à 20 kHz.
+        /// Les filtres étroits (Q &gt; 2, ceux de la calibration du casque) ont un pic plus fin que cette grille : il peut tomber
+        /// entre deux points (jusqu'à 7 dB manqués, et le son sature). Autour de chacun, 41 points de plus sur ±1/(2Q) octave,
+        /// et 0,2 dB de marge (écart restant mesuré : 0,15 dB au pire).
+        /// </summary>
         internal static double Crete(List<FiltreAudio> filtres)
         {
             double max = 0;
-            for (int k = 0; k <= 70; k++)
+            Action<double> point = f =>
             {
-                double f = 20 * Math.Pow(1000, k / 70.0), somme = 0;
+                if (f < 20 || f > 20000) return;
+                double somme = 0;
                 foreach (var x in filtres) somme += Reponse(x.Type, x.Fc, x.Gain, x.Q, f);
                 if (somme > max) max = somme;
+            };
+            for (int k = 0; k <= 70; k++) point(20 * Math.Pow(1000, k / 70.0));
+            bool etroits = false;
+            foreach (var x in filtres)
+            {
+                if (x.Type == "HP" || x.Q <= 2 || x.Gain <= 0) continue;
+                etroits = true;
+                for (int j = -20; j <= 20; j++) point(x.Fc * Math.Pow(2, j / (40.0 * x.Q)));
             }
-            return max;
+            return max > 0 && etroits ? max + 0.2 : max;
         }
 
         /// <summary>Élargissement stéréo (0 à 0,5) : part du canal opposé retranchée à chaque canal.</summary>

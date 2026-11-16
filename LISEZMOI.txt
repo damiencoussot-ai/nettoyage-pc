@@ -54,6 +54,10 @@ Nouveautés de la version 5.14
   du modèle (GSX, Dolby Atmos, DTS Headphone:X…) en un clic, annulable dans l'Historique.
 - Conseils de réglage dans le menu audio du jeu (Warzone : effets, musique, mono, acouphènes, mix), et alerte
   si le 7.1 virtuel s'ajoute au son spatial du jeu (Mode casque amélioré de Call of Duty, HRTF de Valorant…).
+- Duel à l'oreille : choisis ton profil à l'aveugle. La même scène passe par 3 ou 4 profils, tous au même
+  volume, écoutés deux par deux sans leur nom ; Velox applique celui où tu entends le mieux les pas.
+- Anti-saturation plus précise avec la calibration du casque : les pics étroits de la correction sont mesurés
+  exactement (avant, jusqu'à 7 dB pouvaient échapper au préampli et faire saturer les explosions).
 - Table de mixage Voicemeeter dans le Studio son : volume, mute et envois vers les bus de chaque entrée, volume
   et mute de chaque bus, pilotés depuis Velox et annulables dans l'Historique (Voicemeeter, Banana et Potato).
 - L'égaliseur peut agir avant le mixage, sur « Voicemeeter Input » (Equalizer APO installé dessus), et Voicemeeter
