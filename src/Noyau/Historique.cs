@@ -188,6 +188,8 @@ namespace NettoyagePC
                         return Reseau.AnnulerDns(e);
                     case "audiojeu":
                         return AudioJeu.Annuler(e);
+                    case "hesuvi":
+                        return HeSuVi.Annuler(e);
                     case "sortieaudio":
                         return AudioWindows.Annuler(e);
                     case "voicemeeter":

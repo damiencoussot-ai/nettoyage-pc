@@ -3564,6 +3564,29 @@ namespace NettoyagePC
             "Casque calibré", "Headset calibrated", "Auricular calibrado",
             "Profil du jeu appliqué", "Game profile applied", "Perfil del juego aplicado",
             "simulation : rien n'est écrit", "simulation: nothing is written", "simulación: no se escribe nada",
+            "Son 7.1 virtuel", "Virtual 7.1 sound", "Sonido 7.1 virtual",
+            "Le son spatial au casque : en 7.1, tu entends d'où viennent les pas (devant, derrière, sur les côtés). Velox pilote HeSuVi, gratuit et libre, déjà prévu pour Equalizer APO.", "Spatial sound on headphones: in 7.1 you hear where footsteps come from (front, back, sides). Velox controls HeSuVi, free and open source, built for Equalizer APO.", "Sonido espacial en auriculares: en 7.1 oyes de dónde vienen los pasos (delante, detrás, a los lados). Velox controla HeSuVi, gratuito y libre, pensado para Equalizer APO.",
+            "HeSuVi n'est pas installé. Installe-le (gratuit), puis reviens ici : Velox l'allume, l'éteint et choisit son modèle pour toi.", "HeSuVi is not installed. Install it (free), then come back here: Velox turns it on and off and picks its model for you.", "HeSuVi no está instalado. Instálalo (gratis) y vuelve aquí: Velox lo enciende, lo apaga y elige su modelo por ti.",
+            "Ouvrir la page de HeSuVi", "Open the HeSuVi page", "Abrir la página de HeSuVi",
+            "HeSuVi est installé mais pas branché dans Equalizer APO : ouvre HeSuVi une fois, il s'y branche lui-même.", "HeSuVi is installed but not hooked into Equalizer APO: open HeSuVi once and it hooks itself in.", "HeSuVi está instalado pero no conectado a Equalizer APO: abre HeSuVi una vez y se conecta solo.",
+            "Ouvrir HeSuVi", "Open HeSuVi", "Abrir HeSuVi",
+            "Son 7.1 virtuel actif", "Virtual 7.1 sound on", "Sonido 7.1 virtual activado",
+            "Son 7.1 virtuel coupé", "Virtual 7.1 sound off", "Sonido 7.1 virtual desactivado",
+            "Modèle :", "Model:", "Modelo:",
+            "Moins de modèles", "Fewer models", "Menos modelos",
+            "Tous les modèles ({0})", "All models ({0})", "Todos los modelos ({0})",
+            "En ce moment : {0}", "Right now: {0}", "Ahora mismo: {0}",
+            "YouSound fait aussi sa propre spatialisation : n'en garde qu'une, sinon le son devient flou.", "YouSound also does its own spatialization: keep only one, or the sound gets blurry.", "YouSound también hace su propia espacialización: deja solo una o el sonido se vuelve borroso.",
+            "Pour un vrai 7.1, ta sortie Windows doit être réglée en 7.1 (Paramètres > Son > ta sortie > Configurer), ou passe par Voicemeeter Input en 7.1. En stéréo, HeSuVi spatialise quand même la gauche et la droite. Le 7.1 maison de Velox arrive dans une prochaine version.", "For true 7.1, your Windows output must be set to 7.1 (Settings > Sound > your output > Configure), or go through Voicemeeter Input in 7.1. In stereo, HeSuVi still spatializes left and right. Velox's own 7.1 is coming in a future version.", "Para un 7.1 real, tu salida de Windows debe estar en 7.1 (Configuración > Sonido > tu salida > Configurar), o pasa por Voicemeeter Input en 7.1. En estéreo, HeSuVi espacializa igualmente izquierda y derecha. El 7.1 propio de Velox llegará en una próxima versión.",
+            "Simulation : HeSuVi serait réglé, rien n'est modifié.", "Simulation: HeSuVi would be set, nothing is changed.", "Simulación: HeSuVi se ajustaría, no se modifica nada.",
+            "Modèle de spatialisation appliqué", "Spatialization model applied", "Modelo de espacialización aplicado",
+            "Réglage de HeSuVi appliqué (annulable dans l'Historique).", "HeSuVi setting applied (can be undone in History).", "Ajuste de HeSuVi aplicado (se puede deshacer en el Historial).",
+            "HeSuVi n'est pas installé : rien n'a été modifié.", "HeSuVi is not installed: nothing was changed.", "HeSuVi no está instalado: no se ha modificado nada.",
+            "Ce modèle de HeSuVi n'est pas installé : rien n'a été modifié.", "This HeSuVi model is not installed: nothing was changed.", "Este modelo de HeSuVi no está instalado: no se ha modificado nada.",
+            "Windows refuse l'écriture dans le dossier de HeSuVi : rien n'a été modifié.", "Windows refuses to write to the HeSuVi folder: nothing was changed.", "Windows no permite escribir en la carpeta de HeSuVi: no se ha modificado nada.",
+            "HeSuVi n'est plus installé", "HeSuVi is no longer installed", "HeSuVi ya no está instalado",
+            "Son 7.1 virtuel coupé (HeSuVi)", "Virtual 7.1 sound off (HeSuVi)", "Sonido 7.1 virtual desactivado (HeSuVi)",
+            "Son 7.1 virtuel au casque : Velox pilote HeSuVi (gratuit, à installer à part) : allumé, coupé et modèle (GSX, Dolby Atmos, DTS…) en un clic.", "Virtual 7.1 sound on headphones: Velox controls HeSuVi (free, installed separately): on, off and model (GSX, Dolby Atmos, DTS…) in one click.", "Sonido 7.1 virtual en auriculares: Velox controla HeSuVi (gratis, se instala aparte): encendido, apagado y modelo (GSX, Dolby Atmos, DTS…) en un clic.",
         };
         private static readonly string[] Prefixes =
         {
@@ -3685,6 +3708,7 @@ namespace NettoyagePC
             "^La base des casques ne répond pas \\(code (\\d+)\\) : réessaie plus tard\\.$", "The headphone database is not responding (code $1): try again later.", "La base de auriculares no responde (código $1): inténtalo más tarde.",
             "^Audio jeu : égaliseur actif \\((Call of Duty / Warzone|Valorant|Counter-Strike 2|Fortnite|Apex Legends|PUBG|Rainbow Six Siege|Escape from Tarkov|Overwatch 2|Battlefield 2042)\\)$", "Game audio: equalizer on ($1)", "Audio de juego: ecualizador activo ($1)",
             "^Audio jeu : Auto jeux \\((Call of Duty / Warzone|Valorant|Counter-Strike 2|Fortnite|Apex Legends|PUBG|Rainbow Six Siege|Escape from Tarkov|Overwatch 2|Battlefield 2042)\\)$", "Game audio: Auto games ($1)", "Audio de juego: Auto juegos ($1)",
+            "^Son 7\\.1 virtuel : (.+) \\(HeSuVi\\)$", "Virtual 7.1 sound: $1 (HeSuVi)", "Sonido 7.1 virtual: $1 (HeSuVi)",
         };
     }
 }

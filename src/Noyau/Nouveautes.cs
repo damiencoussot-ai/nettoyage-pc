@@ -11,6 +11,7 @@ namespace NettoyagePC
                 "Quatre profils, courbe avec le spectre du son en direct, molettes, faders et bouton « Comparer ». Auto Warzone (avec le gardien, même Velox fermé) et raccourcis Ctrl+Alt+F9 / F10 en plein jeu.",
                 "Sorties audio : VU-mètre, sortie par défaut de Windows en un clic, Voicemeeter reconnu. Raccourcis : Ctrl+7 ouvre Audio, Réglages passe à Ctrl+0.",
                 "Calibration de ton casque (plus de 6 000 modèles mesurés, base libre AutoEq), profils par jeu avec Auto jeux (Warzone, Valorant, CS2, Fortnite, Apex…), et test « Avant / après » à l'oreille, au même volume.",
+                "Son 7.1 virtuel au casque : Velox pilote HeSuVi (gratuit, à installer à part) : allumé, coupé et modèle (GSX, Dolby Atmos, DTS…) en un clic.",
                 "Voicemeeter piloté depuis le Studio son : table de mixage (volume, mute et envois de chaque entrée et de chaque bus, annulables), égaliseur possible avant le mixage (Voicemeeter Input), et « Velox Studio » affiché dans Voicemeeter sur ce que Velox traite.",
                 "Premium passe à 9,99 € par mois pour les nouveaux abonnements. Si tu es déjà abonné, ton prix ne change pas. Les clés offertes sur Discord peuvent maintenant avoir une date de fin, affichée dans l'onglet Premium."),
             N("5.13", "Nouveau : Autopilote du mode jeu (Premium). Velox essaie chaque réglage sur tes vraies parties, avec et sans, et garde seulement ce qui marche sur ton PC, preuve à l'appui.",

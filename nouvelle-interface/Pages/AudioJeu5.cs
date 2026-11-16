@@ -34,6 +34,7 @@ namespace NettoyagePC.Nouveau
         public string Defaut = "", NomDefaut = "", Jeu;
         public string Dossier = "";
         public bool Configurator;
+        public EtatHeSuVi HeSuVi = new EtatHeSuVi();
 
         public static ReleveAudioJeu Lire()
         {
@@ -49,6 +50,7 @@ namespace NettoyagePC.Nouveau
                 {
                     r.Sorties = AudioJeu.Sorties();
                     r.Configurator = AudioJeu.Configurator != null;
+                    r.HeSuVi = NettoyagePC.HeSuVi.Etat();
                 }
                 var d = r.Sorties.FirstOrDefault(s => s.Guid == r.Defaut);
                 r.NomDefaut = d != null ? d.Libelle : AudioJeu.NomSortie(r.Defaut);
@@ -400,6 +402,14 @@ namespace NettoyagePC.Nouveau
         /// « ✔ Profil appliqué » : bandeau en haut de la fenêtre pendant 2,5 s ; si Velox n'est pas au premier plan (en
         /// jeu, Auto jeux), la petite bulle à l'écran le dit aussi.
         /// </summary>
+        /// <summary>(captures) Retire tout de suite la confirmation affichée.</summary>
+        internal static void RetirerConfirmation(FenetrePrincipale f)
+        {
+            if (minuterieToast != null) minuterieToast.Stop();
+            if (toast != null && f != null) f.RetirerCalque(toast);
+            toast = null;
+        }
+
         internal static void Confirmer(FenetrePrincipale f, string titre, string detail, bool actif)
         {
             if (f == null) return;
@@ -499,7 +509,9 @@ namespace NettoyagePC.Nouveau
             public readonly List<Tuple<string, Border>> Envois = new List<Tuple<string, Border>>();
             public bool[] EtatEnvois = new bool[0];
         }
-        private StackPanel zoneMix, zoneCasque;
+        private StackPanel zoneMix, zoneCasque, zoneSurround;
+        private string signatureSurround;
+        private bool tousModeles;
         private readonly List<Tuple<JeuAudio, Border>> puceJeux = new List<Tuple<JeuAudio, Border>>();
         private string signatureCasque;
         private bool rechercheCasque;
@@ -710,6 +722,8 @@ namespace NettoyagePC.Nouveau
             g.Children.Add(Studio.Module("Profils", new StackPanel { Children = { grille, autres, tProfil } }));
             zoneCasque = new StackPanel { Spacing = 10 };
             g.Children.Add(Studio.Module("Calibration du casque", zoneCasque));
+            zoneSurround = new StackPanel { Spacing = 10 };
+            g.Children.Add(Studio.Module("Son 7.1 virtuel", zoneSurround));
 
             // console : molettes, coupe-explosions, inversion
             var rang = new WrapPanel();
@@ -1049,6 +1063,7 @@ namespace NettoyagePC.Nouveau
             // ---- sorties, Voicemeeter, automatismes, fichier
             if (exemple) vu.Definir(0.42f, 0.36f);
             MajCasque();
+            MajSurround(v);
             MajSorties(v);
             MajVoicemeeter();
             Construire(zoneAuto);
@@ -1297,6 +1312,82 @@ namespace NettoyagePC.Nouveau
             if (comparaison) Comparer(F, false);   // l'égaliseur revient toujours
             etapeDemo = 0;
             MarquerDemo(0);
+        }
+
+        // ---------------------------------------------------------------- son 7.1 virtuel (pilotage de HeSuVi)
+
+        /// <summary>
+        /// HeSuVi (gratuit, libre) spatialise le son au casque : allumé ou coupé, et le modèle de virtualisation (GSX, Dolby
+        /// Atmos, DTS…) choisi ici. Velox n'écrit que les trois petits réglages de HeSuVi, annulables dans l'Historique.
+        /// </summary>
+        private void MajSurround(ReleveAudioJeu v)
+        {
+            if (zoneSurround == null) return;
+            var h = v.HeSuVi ?? new EtatHeSuVi();
+            bool youSound = v.Etat.Autres.Contains("YouSound");
+            string sig = h.Present + "|" + h.Inclus + "|" + h.Actif + "|" + h.Modele + "|" + h.Modeles.Count + "|" + youSound + "|" + tousModeles;
+            if (sig == signatureSurround) return;
+            signatureSurround = sig;
+            zoneSurround.Children.Clear();
+            zoneSurround.Children.Add(Studio.T(Langue.T("Le son spatial au casque : en 7.1, tu entends d'où viennent les pas (devant, derrière, sur les côtés). Velox pilote HeSuVi, gratuit et libre, déjà prévu pour Equalizer APO."), 12.5, Studio.Discret));
+            if (!h.Present)
+            {
+                zoneSurround.Children.Add(Studio.T(Langue.T("HeSuVi n'est pas installé. Installe-le (gratuit), puis reviens ici : Velox l'allume, l'éteint et choisit son modèle pour toi."), 12, Studio.Ambre));
+                zoneSurround.Children.Add(new WrapPanel { Children = { Studio.Bouton(Langue.T("Ouvrir la page de HeSuVi"), false, () => { if (!exemple) Programmes.Ouvrir(NettoyagePC.HeSuVi.Site); }) } });
+                return;
+            }
+            if (!h.Inclus)
+            {
+                zoneSurround.Children.Add(Studio.T(Langue.T("HeSuVi est installé mais pas branché dans Equalizer APO : ouvre HeSuVi une fois, il s'y branche lui-même."), 12, Studio.Ambre));
+                zoneSurround.Children.Add(new WrapPanel { Children = { Studio.Bouton(Langue.T("Ouvrir HeSuVi"), false, () => { if (!exemple) Programmes.Ouvrir(Path.Combine(NettoyagePC.HeSuVi.Dossier, "HeSuVi.exe")); }) } });
+                return;
+            }
+            var bAct = Puce(Langue.T(h.Actif ? "Son 7.1 virtuel actif" : "Son 7.1 virtuel coupé"), () => ReglerSurround(!h.Actif, null));
+            Marquer(bAct, h.Actif, Studio.Vert);
+            zoneSurround.Children.Add(new WrapPanel { Children = { bAct } });
+            var modeles = h.Modeles;
+            var conseilles = modeles.Where(m => NettoyagePC.HeSuVi.Conseilles.Contains(m.Nom)).ToList();
+            var montres = tousModeles ? modeles : (conseilles.Count > 0 ? conseilles : modeles.Take(8).ToList());
+            if (!montres.Any(m => m.Nom == h.Modele)) { var c = modeles.FirstOrDefault(m => m.Nom == h.Modele); if (c != null) montres = new[] { c }.Concat(montres).ToList(); }
+            var choix = new WrapPanel();
+            choix.Children.Add(new TextBlock { Text = Langue.T("Modèle :"), FontFamily = Studio.Corps, FontSize = 12.5, Foreground = Studio.P(Studio.Discret), VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 10, 8) });
+            foreach (var m in montres)
+            {
+                var mm = m;
+                var b = Puce(m.Nom.ToUpperInvariant(), () => ReglerSurround(null, mm.Nom));
+                if (m.Description != "") ToolTip.SetTip(b, m.Description);
+                AutomationProperties.SetName(b, m.Nom + (m.Description != "" ? " : " + m.Description : ""));
+                Marquer(b, m.Nom == h.Modele, Studio.Cyan);
+                choix.Children.Add(b);
+            }
+            if (modeles.Count > conseilles.Count && conseilles.Count > 0)
+            {
+                var bTous = Puce(tousModeles ? Langue.T("Moins de modèles") : Langue.F("Tous les modèles ({0})", modeles.Count), () => { tousModeles = !tousModeles; signatureSurround = null; MajSurround(Releve ?? new ReleveAudioJeu()); });
+                Marquer(bTous, false);
+                choix.Children.Add(bTous);
+            }
+            zoneSurround.Children.Add(choix);
+            var actuel = modeles.FirstOrDefault(m => m.Nom == h.Modele);
+            if (actuel != null && actuel.Description != "") zoneSurround.Children.Add(Studio.T(Langue.F("En ce moment : {0}", actuel.Description), 11.5, Studio.Faible));
+            if (youSound && h.Actif) zoneSurround.Children.Add(Studio.T(Langue.T("YouSound fait aussi sa propre spatialisation : n'en garde qu'une, sinon le son devient flou."), 12, Studio.Ambre));
+            zoneSurround.Children.Add(Studio.T(Langue.T("Pour un vrai 7.1, ta sortie Windows doit être réglée en 7.1 (Paramètres > Son > ta sortie > Configurer), ou passe par Voicemeeter Input en 7.1. En stéréo, HeSuVi spatialise quand même la gauche et la droite. Le 7.1 maison de Velox arrive dans une prochaine version."), 11.5, Studio.Faible));
+        }
+
+        private void ReglerSurround(bool? actif, string modele)
+        {
+            if (exemple) return;
+            if (simulation) { F.Statut(Langue.T("Simulation : HeSuVi serait réglé, rien n'est modifié."), true); return; }
+            var f = F;
+            Task.Run(() => NettoyagePC.HeSuVi.Appliquer(actif, modele)).ContinueWith(t => Dispatcher.UIThread.Post(() =>
+            {
+                string err = t.IsFaulted ? (t.Exception.InnerException ?? t.Exception).Message : t.Result;
+                if (err != "") { f.Statut(Langue.T(err), true); return; }
+                if (actif == false) Confirmer(f, Langue.T("Son 7.1 virtuel coupé"), "HeSuVi", false);
+                else Confirmer(f, Langue.T(modele != null ? "Modèle de spatialisation appliqué" : "Son 7.1 virtuel actif"), (modele ?? (Releve?.HeSuVi?.Modele ?? "")).ToUpperInvariant() + " · HeSuVi", true);
+                f.Statut(Langue.T("Réglage de HeSuVi appliqué (annulable dans l'Historique)."));
+                signatureSurround = null;
+                Relever();
+            }));
         }
 
         // ---------------------------------------------------------------- calibration du casque (base AutoEq)

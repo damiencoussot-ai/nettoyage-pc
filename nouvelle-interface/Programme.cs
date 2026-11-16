@@ -231,6 +231,9 @@ namespace NettoyagePC.Nouveau
             releve.Sorties.Add(new SortieAudio { Guid = casque, Nom = "Casque", Carte = "Arctis Nova Pro" });
             releve.Sorties.Add(new SortieAudio { Guid = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee", Nom = "Haut-parleurs", Carte = "Realtek(R) Audio" });
             releve.Defaut = casque; releve.NomDefaut = "Casque (Arctis Nova Pro)"; releve.Jeu = "cod.exe"; releve.Configurator = true;
+            releve.HeSuVi = new EtatHeSuVi { Present = true, Inclus = true, Actif = true, Modele = "gsx", Appareil = "Casque (Arctis Nova Pro)" };
+            foreach (var m in new[] { "gsx;Sennheiser GSX", "atmos;Dolby Atmos for Headphones", "dtshx;DTS Headphone:X", "razer;Razer Surround", "sbx;Sound Blaster X-Fi MB", "cmss_game;Creative CMSS-3D Game", "dh-;Dolby Headphone", "oal;OpenAL" })
+                releve.HeSuVi.Modeles.Add(new ModeleHeSuVi { Nom = m.Split(';')[0], Description = m.Split(';')[1] });
             releve.Windows.Add(new SortieWindows { Id = "{0.0.0.00000000}.{" + casque + "}", Guid = casque, Nom = "Casque (Arctis Nova Pro)", ParDefaut = true });
             releve.Windows.Add(new SortieWindows { Id = "{0.0.0.00000000}.{aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee}", Guid = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee", Nom = "Haut-parleurs (Realtek(R) Audio)" });
             releve.Windows.Add(new SortieWindows { Id = "{0.0.0.00000000}.{12345678-90ab-cdef-1234-567890abcdef}", Guid = "12345678-90ab-cdef-1234-567890abcdef", Nom = "Voicemeeter Input (VB-Audio Voicemeeter VAIO)" });
@@ -453,6 +456,43 @@ namespace NettoyagePC.Nouveau
                     && AudioJeu.Comparer(false, AudioJeu.Generer(cmp, "")) == "" && File.ReadAllText(fichier) == ecritCmp && notes() == notesCmp && AudioJeu.Lire().Actif, "comparer : coupé pendant l'appui, puis rétabli, sans Historique ni réglages changés");
                 File.WriteAllText(fichier, "Preamp: -3 dB\r\n");
                 verifier(AudioJeu.Comparer(true, AudioJeu.Generer(cmp, "")) != "" && File.ReadAllText(fichier) == "Preamp: -3 dB\r\n", "comparer : fichier d'un autre outil pas touché");
+
+                // ---- son 7.1 virtuel : pilotage de HeSuVi (seulement deact.txt, conv.txt, conv44.txt)
+                {
+                    string hs = Path.Combine(dossier, "HeSuVi"), hr = Path.Combine(hs, "hrir");
+                    verifier(!NettoyagePC.HeSuVi.Etat().Present && NettoyagePC.HeSuVi.Appliquer(true, null) != "" && !Directory.Exists(hs), "HeSuVi absent : rien n'est créé");
+                    Directory.CreateDirectory(Path.Combine(hr, "44"));
+                    File.WriteAllText(Path.Combine(hs, "hesuvi.txt"), "Include: deact.txt\r\n");
+                    foreach (var n in new[] { "gsx", "atmos", "none", "zzz_autre" }) File.WriteAllBytes(Path.Combine(hr, n + ".wav"), new byte[] { 1 });
+                    File.WriteAllBytes(Path.Combine(hr, "44", "gsx.wav"), new byte[] { 1 });
+                    File.WriteAllText(Path.Combine(hr, "info.csv"), "gsx;Sennheiser GSX\natmos;Dolby Atmos\n", System.Text.Encoding.UTF8);
+                    File.WriteAllText(Path.Combine(hs, "deact.txt"), "Eval: active=false\r\n");
+                    File.WriteAllText(Path.Combine(hs, "conv.txt"), "Convolution: hrir\\atmos.wav\r\n");
+                    File.WriteAllText(Path.Combine(hs, "devna.txt"), "Eval: device=\"Casque\"\r\n");
+                    string cfgAvant = File.ReadAllText(config);
+                    File.WriteAllText(config, "Preamp: -6 dB\r\n");
+                    int fusionAvant = AudioJeu.FusionSecondes; AudioJeu.FusionSecondes = 120;
+                    var eh = NettoyagePC.HeSuVi.Etat();
+                    verifier(eh.Present && !eh.Inclus && !eh.Actif && eh.Modele == "atmos" && eh.Appareil == "Casque", "HeSuVi : état lu (" + eh.Modele + ")");
+                    verifier(eh.Modeles.Select(m => m.Nom).SequenceEqual(new[] { "gsx", "atmos", "zzz_autre" }) && eh.Modeles[0].Description == "Sennheiser GSX", "HeSuVi : modèles installés, conseillés d'abord, « none » écarté");
+                    File.WriteAllText(config, "Preamp: -6 dB\r\nInclude: HeSuVi\\hesuvi.txt\r\n");
+                    verifier(NettoyagePC.HeSuVi.Etat().Inclus, "HeSuVi : branché dans config.txt");
+                    Historique.Modifier(l => { l.Clear(); return true; });
+                    verifier(NettoyagePC.HeSuVi.Appliquer(null, "../../x") != "" && NettoyagePC.HeSuVi.Appliquer(null, "inconnu") != "" && File.ReadAllText(Path.Combine(hs, "conv.txt")) == "Convolution: hrir\\atmos.wav\r\n", "HeSuVi : modèle absent ou invalide refusé");
+                    string cfgH = File.ReadAllText(config);
+                    verifier(NettoyagePC.HeSuVi.Appliquer(true, "gsx") == "" && NettoyagePC.HeSuVi.Etat().Actif && NettoyagePC.HeSuVi.Etat().Modele == "gsx"
+                        && File.ReadAllText(Path.Combine(hs, "conv44.txt")) == "Convolution: hrir\\44\\gsx.wav\r\n" && File.ReadAllText(config) == cfgH, "HeSuVi : allumé en GSX (44,1 kHz aussi), config.txt pas touché");
+                    verifier(NettoyagePC.HeSuVi.Appliquer(false, null) == "" && !NettoyagePC.HeSuVi.Etat().Actif, "HeSuVi : coupé");
+                    var hh = Historique.Lire().Where(m => m.Type == "hesuvi").ToList();
+                    verifier(hh.Count == 1 && Historique.Annuler(hh[0]) == "" && File.ReadAllText(Path.Combine(hs, "deact.txt")) == "Eval: active=false\r\n"
+                        && File.ReadAllText(Path.Combine(hs, "conv.txt")) == "Convolution: hrir\\atmos.wav\r\n" && !File.Exists(Path.Combine(hs, "conv44.txt")), "HeSuVi : annulation (fusionnée), état d'avant à l'octet près, conv44.txt qui n'existait pas retiré");
+                    var piege = new Modif { Type = "hesuvi", Donnees = new System.Collections.Generic.Dictionary<string, object> { { "Avant", new System.Collections.Generic.Dictionary<string, object> { { "conv.txt", Convert.ToBase64String(System.Text.Encoding.ASCII.GetBytes("Include: C:\\piege.txt\r\n")) } } } } };
+                    var piege2 = new Modif { Type = "hesuvi", Donnees = new System.Collections.Generic.Dictionary<string, object> { { "Avant", new System.Collections.Generic.Dictionary<string, object> { { "..\\config.txt", "" } } } } };
+                    verifier(NettoyagePC.HeSuVi.Annuler(piege) != "" && NettoyagePC.HeSuVi.Annuler(piege2) != "" && NettoyagePC.HeSuVi.Annuler(new Modif { Type = "hesuvi", Donnees = new System.Collections.Generic.Dictionary<string, object> { { "Avant", new System.Collections.Generic.Dictionary<string, object> { { "deact.txt", Convert.ToBase64String(System.Text.Encoding.ASCII.GetBytes("Eval: x=os.execute(1)\r\n")) } } } } }) != "" && File.ReadAllText(Path.Combine(hs, "conv.txt")) == "Convolution: hrir\\atmos.wav\r\n" && File.Exists(config), "HeSuVi : entrée d'historique piégée refusée");
+                    verifier(Directory.GetFiles(hs, "*.velox-tmp").Length == 0, "HeSuVi : aucun fichier temporaire laissé");
+                    File.WriteAllText(config, cfgAvant); Directory.Delete(hs, true); AudioJeu.FusionSecondes = fusionAvant;
+                    Historique.Modifier(l => { l.Clear(); return true; });
+                }
 
                 // Windows refuse l'écriture (fichier en lecture seule) : rien n'est modifié, et c'est dit
                 File.WriteAllBytes(config, origine); File.WriteAllBytes(fichier, proto);
@@ -1431,12 +1471,22 @@ namespace NettoyagePC.Nouveau
                 AudioJeu5.Confirmer(f, Langue.T("Profil appliqué"), "Valorant", true);
                 for (int k = 0; k < 30; k++) { Dispatcher.UIThread.RunJobs(); AvaloniaHeadlessPlatform.ForceRenderTimerTick(); System.Threading.Thread.Sleep(10); }
                 Capturer(f, dossier, "sombre-audio-confirmation.png", rapport, ref erreurs);
+                AudioJeu5.RetirerConfirmation(f);
                 foreach (var defil in f.GetVisualDescendants().OfType<ScrollViewer>().Where(x => x.Content is AudioJeu5).Take(1)) defil.Offset = new Vector(0, 760);
                 Capturer(f, dossier, "sombre-audio-bas.png", rapport, ref erreurs);
                 foreach (var defil in f.GetVisualDescendants().OfType<ScrollViewer>().Where(x => x.Content is AudioJeu5).Take(1)) defil.Offset = new Vector(0, 1750);
                 Capturer(f, dossier, "sombre-audio-sorties.png", rapport, ref erreurs);
                 foreach (var defil in f.GetVisualDescendants().OfType<ScrollViewer>().Where(x => x.Content is AudioJeu5).Take(1)) defil.Offset = new Vector(0, 2400);
                 Capturer(f, dossier, "sombre-audio-fin.png", rapport, ref erreurs);
+                {
+                    var page = f.GetVisualDescendants().OfType<AudioJeu5>().FirstOrDefault();
+                    var titre = f.GetVisualDescendants().OfType<TextBlock>().FirstOrDefault(t => (t.Text ?? "").StartsWith("Le son spatial au casque"));
+                    var pos = page != null && titre != null ? titre.TranslatePoint(new Point(0, 0), page) : null;
+                    bool surroundVu = pos.HasValue && f.GetVisualDescendants().OfType<TextBlock>().Any(t => t.Text == "GSX") && f.GetVisualDescendants().OfType<TextBlock>().Any(t => t.Text == "Son 7.1 virtuel actif");
+                    if (!surroundVu) { erreurs++; rapport.AppendLine("ERREUR : audio : module Son 7.1 virtuel (HeSuVi) absent de la page"); }
+                    if (pos.HasValue) foreach (var defil in f.GetVisualDescendants().OfType<ScrollViewer>().Where(x => x.Content is AudioJeu5).Take(1)) defil.Offset = new Vector(0, Math.Max(0, pos.Value.Y - 90));
+                    Capturer(f, dossier, "sombre-audio-surround.png", rapport, ref erreurs);
+                }
                 foreach (var defil in f.GetVisualDescendants().OfType<ScrollViewer>().Where(x => x.Content is AudioJeu5).Take(1)) defil.Offset = new Vector(0, 100000);
                 Capturer(f, dossier, "sombre-audio-mixage.png", rapport, ref erreurs);
                 try { File.WriteAllBytes(Path.Combine(dossier, "scene-avant-apres.wav"), DemoAudio.Wav()); } catch { }   // (pour écouter la scène du test avant / après)
