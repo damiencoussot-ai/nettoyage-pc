@@ -315,7 +315,7 @@ namespace NettoyagePC
 
         public static bool Present { get { try { return Directory.Exists(DossierConfig); } catch { return false; } } }
 
-        /// <summary>Le Configurator d'Equalizer APO (choix des sorties où il est installé), ou null.</summary>
+        /// <summary>Le choix des sorties d'Equalizer APO (« Device Selector » depuis la version 1.4, « Configurator » avant), ou null.</summary>
         public static string Configurator
         {
             get
@@ -326,7 +326,8 @@ namespace NettoyagePC
                 dossiers.Add(Path.Combine(Chemins.ProgramFiles, "EqualizerAPO"));
                 foreach (var d in dossiers)
                 {
-                    try { if (!string.IsNullOrEmpty(d) && File.Exists(Path.Combine(d, "Configurator.exe"))) return Path.Combine(d, "Configurator.exe"); } catch { }
+                    foreach (var exe in new[] { "DeviceSelector.exe", "Configurator.exe" })
+                        try { if (!string.IsNullOrEmpty(d) && File.Exists(Path.Combine(d, exe))) return Path.Combine(d, exe); } catch { }
                 }
                 return null;
             }

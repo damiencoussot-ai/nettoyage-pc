@@ -560,6 +560,15 @@ namespace NettoyagePC.Nouveau
                     && Voicemeeter.ScriptLabels(new System.Collections.Generic.Dictionary<string, string> { { "Bus[0].Label", "Velox Studio" }, { "Strip[2].Label", "" }, { "Bus[1].Label", "x\"y" }, { "Command.Restart", "1" } }) == "Bus[0].Label=\"Velox Studio\";Strip[2].Label=\"\"", "nom « Velox Studio » : écrit seulement sans caractère risqué");
                 var annMix = new Modif { Type = "voicemeeter", Donnees = new System.Collections.Generic.Dictionary<string, object> { { "Avant", new System.Collections.Generic.Dictionary<string, object> { { "Strip[0].Gain", 99.0 } } } } };
                 verifier(Voicemeeter.Annuler(annMix).Contains("refusée par sécurité"), "table de mixage : l'Historique ne remet jamais une valeur hors bornes");
+                // installation d'Equalizer APO par Velox : fichiers officiels figés, demande invalide refusée sans rien lancer
+                string nApo, eApo, nApoArm, eApoArm, nAutre, eAutre;
+                verifier(InstallationApo.Fichier("X64", out nApo, out eApo) && nApo == "EqualizerAPO-x64-1.4.2.exe" && eApo.Length == 64 && eApo == eApo.ToUpperInvariant()
+                    && InstallationApo.Fichier("Arm64", out nApoArm, out eApoArm) && nApoArm == "EqualizerAPO-ARM64-1.4.2.exe" && eApoArm != eApo && !InstallationApo.Fichier("X86", out nAutre, out eAutre)
+                    && InstallationApo.Adresse(nApo) == "https://downloads.sourceforge.net/project/equalizerapo/1.4.2/EqualizerAPO-x64-1.4.2.exe", "Equalizer APO : installateur officiel figé (nom, adresse, empreinte)");
+                string fauxApo = Path.Combine(Path.GetTempPath(), "velox-essai-autre-nom.exe");
+                File.WriteAllText(fauxApo, "x");
+                try { verifier(InstallationApo.InstallerEnAdmin(new[] { "installer-apo" }) == 3 && InstallationApo.InstallerEnAdmin(new[] { "installer-apo", fauxApo }) == 3 && InstallationApo.InstallerEnAdmin(new[] { "installer-apo", Path.Combine(Path.GetTempPath(), "absent", nApo) }) == 3, "Equalizer APO : demande invalide refusée (rien n'est lancé)"); }
+                finally { File.Delete(fauxApo); }
                 verifier(AudioWindows.ChangerEnProcessus(new[] { "--sortie-audio-defaut", "C:\\Windows\\x.dll", "0" }) == 3 && AudioWindows.ChangerEnProcessus(new[] { "--sortie-audio-defaut", "{0.0.0.00000000}.{0a1b2c3d-4e5f-6789-abcd-ef0123456789}", "0,7" }) == 3, "changement de sortie (processus à part) : arguments vérifiés");
             }
 

@@ -869,8 +869,9 @@ namespace NettoyagePC.Nouveau
             if (simulation) avertir(Langue.T("Mode simulation : tes essais ici ne sont pas écrits, le fichier d'Equalizer APO ne change pas."), Studio.Ambre);
             if (!moteurVm && !v.Etat.Present)
             {
-                avertir(Langue.T("Equalizer APO n'est pas installé sur ce PC. Installe-le (gratuit, sourceforge.net/projects/equalizerapo), coche ta sortie (casque ou haut-parleurs) dans la fenêtre qu'il ouvre, redémarre le PC, puis reviens ici. Tant qu'il n'est pas là, Velox ne modifie rien."), Studio.Rouge);
-                avis.Children.Add(new WrapPanel { Children = { Studio.Bouton(Langue.T("Ouvrir la page d'Equalizer APO"), true, () => { if (!exemple) Programmes.Ouvrir(AudioJeu.Site); }), Studio.Bouton(Langue.T("Vérifier à nouveau"), false, () => { if (!exemple) { F.Statut(Langue.T("Recherche d'Equalizer APO…")); Relever(); } }) } });
+                avertir(Langue.T("Equalizer APO n'est pas installé sur ce PC. Velox l'installe pour toi : gratuit, depuis son site officiel, vérifié avant d'être lancé. Tant qu'il n'est pas là, Velox ne modifie rien."), Studio.Rouge);
+                var bInstaller = Studio.Bouton(Langue.T(installationApo ? "Installation en cours…" : "Installer Equalizer APO pour moi"), true, () => InstallerApo(v.NomDefaut));
+                avis.Children.Add(new WrapPanel { Children = { bInstaller, Studio.Bouton(Langue.T("Vérifier à nouveau"), false, () => { if (!exemple) { F.Statut(Langue.T("Recherche d'Equalizer APO…")); Relever(); } }), Studio.Bouton(Langue.T("Ouvrir la page d'Equalizer APO"), false, () => { if (!exemple) Programmes.Ouvrir(AudioJeu.Site); }) } });
             }
             if (!moteurVm && v.Etat.Present)
             {
@@ -1335,6 +1336,47 @@ namespace NettoyagePC.Nouveau
                 signatureSorties = null;
                 Relever();
             }));
+        }
+
+        // ---- installation d'Equalizer APO par Velox
+        private static bool installationApo;
+
+        /// <summary>
+        /// Télécharge l'installateur officiel d'Equalizer APO, le vérifie et l'installe (autorisation de Windows). À la fin,
+        /// la fenêtre d'Equalizer APO demande de cocher la sortie : Velox dit laquelle (la sortie par défaut).
+        /// </summary>
+        private void InstallerApo(string sortie)
+        {
+            if (exemple || installationApo) return;
+            if (simulation) { F.Statut(Langue.T("Simulation : Equalizer APO serait téléchargé et installé, rien n'est modifié."), true); return; }
+            if (!OperatingSystem.IsWindows()) return;
+            string nomSortie = string.IsNullOrEmpty(sortie) ? Langue.T("ton casque ou tes haut-parleurs") : sortie;
+            F.Demander(Langue.T("Installer Equalizer APO"),
+                Langue.F("Velox va télécharger Equalizer APO {0} (logiciel libre, environ 12 Mo) depuis son site officiel, vérifier que c'est bien le fichier officiel, puis l'installer. Windows te demandera l'autorisation.", InstallationApo.Version) + "\n\n"
+                + Langue.F("Ensuite, une fenêtre d'Equalizer APO s'ouvre : coche « {0} », puis clique sur OK. Il relance le son de Windows et vérifie que tout marche.", nomSortie) + "\n\n"
+                + Langue.T("Désinstallable à tout moment dans Paramètres > Applications."),
+                Langue.T("Installer"), Langue.T("Annuler"), oui =>
+                {
+                    if (!oui) return;
+                    installationApo = true; page?.MettreAJour();
+                    F.Statut(Langue.T("Téléchargement d'Equalizer APO…"));
+                    var f = F;
+                    Task.Run(() =>
+                    {
+                        string fichier = InstallationApo.Telecharger(p => Dispatcher.UIThread.Post(() => f.Statut(p >= 0 ? Langue.F("Téléchargement d'Equalizer APO… {0} %", p) : Langue.T("Téléchargement d'Equalizer APO…"))), CancellationToken.None);
+                        Dispatcher.UIThread.Post(() => f.Statut(Langue.F("Installation d'Equalizer APO : accepte l'autorisation de Windows, puis coche « {0} » dans sa fenêtre.", nomSortie)));
+                        return InstallationApo.Installer(fichier);
+                    }).ContinueWith(t => Dispatcher.UIThread.Post(() =>
+                    {
+                        installationApo = false;
+                        string err = t.IsFaulted ? (t.Exception.InnerException ?? t.Exception).Message : t.Result;
+                        if (err != "") f.Statut(Langue.T(err), true);
+                        else f.Statut(Langue.T("Equalizer APO est installé. Si tu n'entends aucune différence une fois l'égaliseur allumé, redémarre le PC."));
+                        signatureSorties = null;
+                        Relever();
+                        page?.MettreAJour();
+                    }));
+                });
         }
 
         private void OuvrirConfigurator()
