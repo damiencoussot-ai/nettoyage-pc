@@ -400,11 +400,9 @@ namespace NettoyagePC.Nouveau
         private readonly FenetrePrincipale F;
         private readonly bool exemple, simulation, deverrouille;
         private ReglagesAudioJeu r;   // réglages montrés : les vrais, ou une copie en simulation (rien n'en est gardé)
-        private readonly DispatcherTimer delai = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(350) };
+        private readonly DispatcherTimer delai = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(150) };
         private bool attente, attenteToujours, enDirect;
         private string attenteMessage;
-        private Action<long> ambiance;
-        private long dernierImage;
 
         private Marche5 marche;
         private TextBlock tMarche, tProfil, tFichier, tChemin, tAideBandes, tMoteur, tEcoute;
@@ -424,6 +422,7 @@ namespace NettoyagePC.Nouveau
         private sealed class Tranche
         {
             public string Prefixe = "";   // « Strip[2] » ou « Bus[0] »
+            public int Index;
             public bool EstBus, Muet;
             public Fader5 Fader;
             public TextBlock TGain;
@@ -438,7 +437,9 @@ namespace NettoyagePC.Nouveau
         private static readonly Dictionary<string, float> mixEnAttente = new Dictionary<string, float>();
         private static DateTime mixLocal = DateTime.MinValue;
         private DispatcherTimer delaiMix;
-        private string signatureSorties, signatureVm, signatureAuto;
+        private string signatureSorties, signatureVm, signatureAuto, signatureTemoins, signatureAvis;
+        private ProfilAudio profilAffiche;
+        private bool cartesFaites;
         private bool? deuxColonnes;
         private WrapPanel boutonsVerrou;
         private Control bCouper;
@@ -481,34 +482,54 @@ namespace NettoyagePC.Nouveau
             if (exemple || !deverrouille || F.Source.Immediat || !OperatingSystem.IsWindows()) return;
             if (oui == enDirect) return;
             enDirect = oui;
+            // Minuterie propre à la page (et non l'horloge des animations) : le direct continue quand Velox n'est pas au
+            // premier plan (Voicemeeter ou le jeu dans une autre fenêtre), plus lentement, et s'arrête si Velox est réduit.
             if (oui)
             {
                 EcouteDirecte.Demarrer();
-                ambiance = t =>
+                if (minuterieDirect == null)
                 {
-                    if (t - dernierImage < 33) return;   // 30 images par seconde
-                    dernierImage = t;
-                    if (courbe != null) { courbe.Spectre = EcouteDirecte.Spectre; courbe.InvalidateVisual(); }
-                    if (vu != null) vu.Definir(EcouteDirecte.CreteG, EcouteDirecte.CreteD);
-                    if (tEcoute != null) { string err = EcouteDirecte.Erreur == "" ? "" : Langue.T(EcouteDirecte.Erreur); if (tEcoute.Text != err) { tEcoute.Text = err; tEcoute.IsVisible = err != ""; } }
-                    var e = Voicemeeter.Etat;
-                    foreach (var x in vuBus) { var b = e.Bus.FirstOrDefault(y => y.Index == x.Item1.Index); if (b != null) x.Item2.Definir(b.G, b.D); }
-                    foreach (var tr in tranches)
-                    {
-                        if (tr.EstBus) { var b = e.Bus.FirstOrDefault(y => "Bus[" + y.Index + "]" == tr.Prefixe); if (b != null) tr.Vu.Definir(b.G, b.D); }
-                        else { var x = e.Entrees.FirstOrDefault(y => "Strip[" + y.Index + "]" == tr.Prefixe); if (x != null) tr.Vu.Definir(x.G, x.D); }
-                    }
-                    if (t % 1000 < 40) MajVoicemeeter();
-                };
-                Horloge.Ambiance(ambiance);
+                    minuterieDirect = new DispatcherTimer(DispatcherPriority.Render) { Interval = TimeSpan.FromMilliseconds(33) };
+                    minuterieDirect.Tick += (s, a) => ImageDirect();
+                }
+                minuterieDirect.Start();
             }
             else
             {
                 EcouteDirecte.Arreter();
-                if (ambiance != null) Horloge.RetirerAmbiance(ambiance);
-                ambiance = null;
+                if (minuterieDirect != null) minuterieDirect.Stop();
             }
         }
+
+        private DispatcherTimer minuterieDirect;
+        private int imagesFond;
+        private EtatVoicemeeter dernierEtatVm;
+        private long derniereMajVm;
+
+        /// <summary>Une image du direct : spectre, VU-mètres, niveaux de Voicemeeter, et la table suit Voicemeeter dès
+        /// qu'un nouvel état arrive. 30 images par seconde au premier plan, 10 derrière, aucune si Velox est réduit.</summary>
+        private void ImageDirect()
+        {
+            if (F.WindowState == WindowState.Minimized) return;
+            if (!F.IsActive && ++imagesFond % 3 != 0) return;
+            if (courbe != null) courbe.DefinirSpectre(EcouteDirecte.Spectre);
+            if (vu != null) vu.Definir(EcouteDirecte.CreteG, EcouteDirecte.CreteD);
+            if (tEcoute != null) { string err = EcouteDirecte.Erreur == "" ? "" : Langue.T(EcouteDirecte.Erreur); if (tEcoute.Text != err) { tEcoute.Text = err; tEcoute.IsVisible = err != ""; } }
+            var e = Voicemeeter.Etat;
+            if (e == null) return;
+            foreach (var x in vuBus) { var b = Bus(e, x.Item1.Index); if (b != null) x.Item2.Definir(b.G, b.D); }
+            foreach (var tr in tranches)
+            {
+                if (tr.EstBus) { var b = Bus(e, tr.Index); if (b != null) tr.Vu.Definir(b.G, b.D); }
+                else { var x = Entree(e, tr.Index); if (x != null) tr.Vu.Definir(x.G, x.D); }
+            }
+            // nouvel état de Voicemeeter (jusqu'à 10 par seconde) : la table et le module suivent sans attendre
+            long t = Horloge.Maintenant;
+            if (!ReferenceEquals(e, dernierEtatVm) && t - derniereMajVm >= 90) { dernierEtatVm = e; derniereMajVm = t; MajVoicemeeter(); }
+        }
+
+        private static BusVoicemeeter Bus(EtatVoicemeeter e, int i) { foreach (var b in e.Bus) if (b.Index == i) return b; return null; }
+        private static EntreeVoicemeeter Entree(EtatVoicemeeter e, int i) { foreach (var x in e.Entrees) if (x.Index == i) return x; return null; }
 
         private void Recharger()
         {
@@ -849,29 +870,33 @@ namespace NettoyagePC.Nouveau
             }
             var vm = Vm;
             bool moteurVm = r.Moteur == "vm";
-            // ---- témoins
-            temoins.Children.Clear();
-            temoins.Children.Add(Studio.Temoin(moteurVm ? vm.Nom.ToUpperInvariant() : "EQUALIZER APO", Studio.Vert, moteurVm ? vm.EgaliseurNatif : v.Etat.Present));
-            temoins.Children.Add(Studio.Temoin(v.Jeu != null ? Langue.F("JEU : {0}", v.Jeu.ToUpperInvariant()) : Langue.T("JEU NON LANCÉ"), Studio.Ambre, v.Jeu != null));
-            temoins.Children.Add(Studio.Temoin(vm.Lance ? vm.Nom.ToUpperInvariant() : vm.Installe ? Langue.T("VOICEMEETER ARRÊTÉ") : Langue.T("SANS VOICEMEETER"), Studio.Cyan, vm.Lance));
-            if (r.AutoJeu) temoins.Children.Add(Studio.Temoin("AUTO WARZONE", Studio.Magenta, true));
+            // ---- témoins (refaits seulement s'ils changent)
+            string t1 = moteurVm ? vm.Nom.ToUpperInvariant() : "EQUALIZER APO", t2 = v.Jeu != null ? Langue.F("JEU : {0}", v.Jeu.ToUpperInvariant()) : Langue.T("JEU NON LANCÉ"),
+                t3 = vm.Lance ? vm.Nom.ToUpperInvariant() : vm.Installe ? Langue.T("VOICEMEETER ARRÊTÉ") : Langue.T("SANS VOICEMEETER");
+            bool a1 = moteurVm ? vm.EgaliseurNatif : v.Etat.Present;
+            string sigTemoins = t1 + a1 + "|" + t2 + "|" + t3 + vm.Lance + "|" + r.AutoJeu;
+            if (sigTemoins != signatureTemoins)
+            {
+                signatureTemoins = sigTemoins;
+                temoins.Children.Clear();
+                temoins.Children.Add(Studio.Temoin(t1, Studio.Vert, a1));
+                temoins.Children.Add(Studio.Temoin(t2, Studio.Ambre, v.Jeu != null));
+                temoins.Children.Add(Studio.Temoin(t3, Studio.Cyan, vm.Lance));
+                if (r.AutoJeu) temoins.Children.Add(Studio.Temoin("AUTO WARZONE", Studio.Magenta, true));
+            }
             marche.Actif = r.Actif;
             tMarche.Text = Langue.T(r.Actif ? "ACTIF" : "COUPÉ");
             tMarche.Foreground = Studio.P(r.Actif ? Studio.Ambre : Studio.Faible);
 
-            // ---- avis
-            avis.Children.Clear();
-            Action<string, Color> avertir = (t, c) => avis.Children.Add(new Border
-            {
-                Padding = new Thickness(14, 9), CornerRadius = new CornerRadius(12), Background = Studio.P(c, 22), BorderBrush = Studio.P(c, 120), BorderThickness = new Thickness(1),
-                Child = Studio.T(t, 12.5, Studio.Texte),
-            });
+            // ---- avis (préparés, puis refaits seulement s'ils changent : pas de clignotement ni de mise en page à chaque relevé)
+            var messages = new List<Tuple<string, Color>>();
+            int boutonsApo = -1;
+            Action<string, Color> avertir = (t, c) => messages.Add(Tuple.Create(t, c));
             if (simulation) avertir(Langue.T("Mode simulation : tes essais ici ne sont pas écrits, le fichier d'Equalizer APO ne change pas."), Studio.Ambre);
             if (!moteurVm && !v.Etat.Present)
             {
                 avertir(Langue.T("Equalizer APO n'est pas installé sur ce PC. Velox l'installe pour toi : gratuit, depuis son site officiel, vérifié avant d'être lancé. Tant qu'il n'est pas là, Velox ne modifie rien."), Studio.Rouge);
-                var bInstaller = Studio.Bouton(Langue.T(installationApo ? "Installation en cours…" : "Installer Equalizer APO pour moi"), true, () => InstallerApo(v.NomDefaut));
-                avis.Children.Add(new WrapPanel { Children = { bInstaller, Studio.Bouton(Langue.T("Vérifier à nouveau"), false, () => { if (!exemple) { F.Statut(Langue.T("Recherche d'Equalizer APO…")); Relever(); } }), Studio.Bouton(Langue.T("Ouvrir la page d'Equalizer APO"), false, () => { if (!exemple) Programmes.Ouvrir(AudioJeu.Site); }) } });
+                boutonsApo = messages.Count;
             }
             if (!moteurVm && v.Etat.Present)
             {
@@ -887,10 +912,28 @@ namespace NettoyagePC.Nouveau
                     avertir(Langue.T("Le fichier en place ne vient pas de ces réglages (autre outil, ou modifié à la main) : ton prochain réglage ici le remplacera."), Studio.Violet);
             }
             if (r.Niveau > 0) avertir(Langue.T("Niveau au-dessus de 0 dB : le son peut saturer (grésillements). Baisse-le si tu en entends."), Studio.Ambre);
+            string sigAvis = string.Join("\n", messages.Select(m => m.Item1 + m.Item2)) + "|" + boutonsApo + installationApo + v.NomDefaut;
+            if (sigAvis != signatureAvis)
+            {
+                signatureAvis = sigAvis;
+                avis.Children.Clear();
+                for (int i = 0; i < messages.Count; i++)
+                {
+                    var m = messages[i];
+                    avis.Children.Add(new Border { Padding = new Thickness(14, 9), CornerRadius = new CornerRadius(12), Background = Studio.P(m.Item2, 22), BorderBrush = Studio.P(m.Item2, 120), BorderThickness = new Thickness(1), Child = Studio.T(m.Item1, 12.5, Studio.Texte) });
+                    if (i + 1 == boutonsApo)
+                    {
+                        string defaut = v.NomDefaut;
+                        var bInstaller = Studio.Bouton(Langue.T(installationApo ? "Installation en cours…" : "Installer Equalizer APO pour moi"), true, () => InstallerApo(defaut));
+                        avis.Children.Add(new WrapPanel { Children = { bInstaller, Studio.Bouton(Langue.T("Vérifier à nouveau"), false, () => { if (!exemple) { F.Statut(Langue.T("Recherche d'Equalizer APO…")); Relever(); } }), Studio.Bouton(Langue.T("Ouvrir la page d'Equalizer APO"), false, () => { if (!exemple) Programmes.Ouvrir(AudioJeu.Site); }) } });
+                    }
+                }
+            }
 
             // ---- courbe, profils, molettes, bandes
-            courbe.Reglages = r; courbe.Allume = r.Actif; courbe.Actualiser();
+            courbe.Reglages = r; courbe.Allume = r.Actif; courbe.InvalidateVisual();   // (la courbe se recalcule seule si les réglages ont changé)
             var courant = AudioJeu.ProfilDe(r.Gains);
+            if (courant != profilAffiche || !cartesFaites)
             foreach (var c in cartes)
             {
                 bool choisi = courant == c.Item1;
@@ -898,6 +941,7 @@ namespace NettoyagePC.Nouveau
                 c.Item2.BorderBrush = choisi ? (IBrush)Studio.Degrade(0, Studio.Ambre, Studio.Magenta) : Studio.P(Studio.Bord);
                 c.Item2.BoxShadow = choisi ? BoxShadows.Parse("0 0 18 0 " + Habillage.Alpha(Studio.Magenta, 90)) : default(BoxShadows);
             }
+            profilAffiche = courant; cartesFaites = true;
             tProfil.Text = Langue.F("Profil en cours : {0} · force {1} %", Langue.T(AudioJeu.NomProfil(r)), r.Intensite);
             foreach (var m in molettes) { m.Item1.Valeur = ValeurMolette(m.Item1); m.Item2.Text = m.Item3(); }
             foreach (var c in coupes) Marquer(c.Item2, c.Item1 == r.CoupeBas);
@@ -1083,12 +1127,12 @@ namespace NettoyagePC.Nouveau
                 ConstruireMixage(e);
                 return;
             }
-            if (mixEnAttente.Count > 0 || (DateTime.Now - mixLocal).TotalSeconds < 1.5) return;   // réglage en cours ici : Voicemeeter n'a pas encore suivi
+            if (mixEnAttente.Count > 0 || envoiMix || (DateTime.Now - mixLocal).TotalMilliseconds < 600) return;   // réglage en cours ici : Voicemeeter n'a pas encore suivi
             foreach (var t in tranches)
             {
                 float gain; bool muet; bool[] envois = null;
-                if (t.EstBus) { var b = e.Bus.FirstOrDefault(y => "Bus[" + y.Index + "]" == t.Prefixe); if (b == null) continue; gain = b.Gain; muet = b.Muet; }
-                else { var x = e.Entrees.FirstOrDefault(y => "Strip[" + y.Index + "]" == t.Prefixe); if (x == null) continue; gain = x.Gain; muet = x.Muet; envois = x.Envois; }
+                if (t.EstBus) { var b = Bus(e, t.Index); if (b == null) continue; gain = b.Gain; muet = b.Muet; }
+                else { var x = Entree(e, t.Index); if (x == null) continue; gain = x.Gain; muet = x.Muet; envois = x.Envois; }
                 if (t.Fader.Valeur != gain) { t.Fader.Valeur = gain; t.TGain.Text = TexteGain(gain); }
                 if (t.Muet != muet) { t.Muet = muet; Marquer(t.BMute, muet, Studio.Rouge); }
                 if (envois != null)
@@ -1117,7 +1161,7 @@ namespace NettoyagePC.Nouveau
             {
                 string nom = x.Label != "" ? x.Label : x.Virtuelle ? x.Nom : Langue.F("Entrée {0}", x.Index + 1);
                 string sous = x.Label != "" ? (x.Virtuelle ? x.Nom : Langue.F("Entrée {0}", x.Index + 1)) : (x.Virtuelle ? Langue.T("virtuelle") : Langue.T("physique"));
-                var t = new Tranche { Prefixe = "Strip[" + x.Index + "]", Muet = x.Muet, EtatEnvois = (bool[])x.Envois.Clone() };
+                var t = new Tranche { Prefixe = "Strip[" + x.Index + "]", Index = x.Index, Muet = x.Muet, EtatEnvois = (bool[])x.Envois.Clone() };
                 var bloc = CreerTranche(t, nom, sous, x.Virtuelle ? Studio.Cyan : Studio.Ambre, x.Gain, x.G, x.D);
                 ent.Children.Add(bloc);
                 var envois = new WrapPanel { MaxWidth = 92, HorizontalAlignment = HorizontalAlignment.Center };
@@ -1140,7 +1184,7 @@ namespace NettoyagePC.Nouveau
             {
                 string nom = b.Label != "" ? b.Label : b.Nom;
                 string sous = b.Label != "" ? b.Nom + (b.Appareil != "" ? " · " + b.Appareil : "") : (b.Appareil != "" ? b.Appareil : Langue.T(b.Physique ? "physique" : "virtuel"));
-                var t = new Tranche { Prefixe = "Bus[" + b.Index + "]", EstBus = true, Muet = b.Muet };
+                var t = new Tranche { Prefixe = "Bus[" + b.Index + "]", Index = b.Index, EstBus = true, Muet = b.Muet };
                 sorties.Children.Add(CreerTranche(t, nom, sous, b.Physique ? Studio.Ambre : Studio.Cyan, b.Gain, b.G, b.D));
                 tranches.Add(t);
             }
@@ -1193,24 +1237,32 @@ namespace NettoyagePC.Nouveau
             mixLocal = DateTime.Now;
             if (delaiMix == null)
             {
-                delaiMix = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(150) };
-                delaiMix.Tick += (o, a) => EnvoyerMixage();
+                delaiMix = new DispatcherTimer(DispatcherPriority.Input) { Interval = TimeSpan.FromMilliseconds(40) };
+                delaiMix.Tick += (o, a) => { delaiMix.Stop(); EnvoyerMixage(); };
             }
-            delaiMix.Stop(); delaiMix.Start();
+            // pendant le geste : envoyé tout de suite, puis au plus toutes les 40 ms (Voicemeeter suit le fader en direct)
+            if (!envoiMix && (DateTime.Now - dernierEnvoiMix).TotalMilliseconds >= 40) EnvoyerMixage();
+            else if (!delaiMix.IsEnabled) delaiMix.Start();
         }
+
+        private static bool envoiMix;
+        private static DateTime dernierEnvoiMix = DateTime.MinValue;
 
         private void EnvoyerMixage()
         {
-            delaiMix.Stop();
             if (mixEnAttente.Count == 0) return;
+            if (envoiMix) { if (!delaiMix.IsEnabled) delaiMix.Start(); return; }   // un envoi à la fois
             var envoi = new Dictionary<string, float>(mixEnAttente);
             mixEnAttente.Clear();
+            envoiMix = true; dernierEnvoiMix = DateTime.Now;
             mixLocal = DateTime.Now;
             Task.Run(() => Voicemeeter.Mixer(envoi)).ContinueWith(t => Dispatcher.UIThread.Post(() =>
             {
+                envoiMix = false; mixLocal = DateTime.Now;
                 string err = t.IsFaulted ? (t.Exception.InnerException ?? t.Exception).Message : t.Result;
                 if (err != "") { F.Statut(Langue.T(err), true); mixLocal = DateTime.MinValue; }
-            }));
+                if (mixEnAttente.Count > 0 && delaiMix != null && !delaiMix.IsEnabled) delaiMix.Start();
+            }, DispatcherPriority.Input));
         }
 
         // ---------------------------------------------------------------- changements
@@ -1219,14 +1271,27 @@ namespace NettoyagePC.Nouveau
         /// nouveau changement (une molette qu'on tourne ne réécrit pas le fichier à chaque pas).</summary>
         private void Changer(string message = null, bool toujours = false, bool toutDeSuite = false)
         {
-            MettreAJour();
+            MettreAJourBientot();
             if (exemple) return;
             if (simulation) { F.Statut(Langue.T("Simulation : le fichier d'Equalizer APO serait réécrit, rien n'est modifié."), true); return; }
             version++;
             attente = true; attenteToujours |= toujours;
             if (message != null) attenteMessage = message;
             delai.Stop();
-            if (toutDeSuite) Appliquer(); else delai.Start();
+            // pendant qu'on tourne une molette ou glisse un fader : écrit tout de suite, puis au plus toutes les 150 ms
+            // (on entend l'effet en direct) ; la dernière valeur part quand on s'arrête
+            if (toutDeSuite || (!enEcriture && (DateTime.Now - derniereEcriture).TotalMilliseconds >= 150)) Appliquer(); else delai.Start();
+        }
+
+        private static DateTime derniereEcriture = DateTime.MinValue;
+        private bool majPrevue;
+
+        /// <summary>Affichage remis à jour une seule fois pour toute une rafale de réglages (une image), pas à chaque pas.</summary>
+        private void MettreAJourBientot()
+        {
+            if (majPrevue) return;
+            majPrevue = true;
+            Dispatcher.UIThread.Post(() => { majPrevue = false; MettreAJour(); }, DispatcherPriority.Render);
         }
 
         private void Appliquer()
@@ -1234,6 +1299,7 @@ namespace NettoyagePC.Nouveau
             delai.Stop();
             if (!attente) return;
             attente = false;
+            derniereEcriture = DateTime.Now;
             string m = attenteMessage ?? Langue.T(r.Actif ? "Réglage appliqué." : "Réglage gardé : il s'entendra dès que l'égaliseur sera actif.");
             bool tj = attenteToujours;
             attenteMessage = null; attenteToujours = false;

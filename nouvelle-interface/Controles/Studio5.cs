@@ -13,6 +13,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Layout;
 using Avalonia.Media;
+using Avalonia.Media.Immutable;
 
 namespace NettoyagePC.Nouveau
 {
@@ -29,13 +30,40 @@ namespace NettoyagePC.Nouveau
         public static readonly FontFamily Corps = new FontFamily(Polices + "IBM Plex Sans, Segoe UI, DejaVu Sans, sans-serif");
         public static readonly FontFamily Chiffres = new FontFamily(Polices + "JetBrains Mono, Cascadia Mono, Consolas, DejaVu Sans Mono, monospace");
 
-        public static IBrush P(Color c, int a = 255) { return Habillage.Pinceau(c, a); }
+        // ---- pinceaux, dégradés et textes gardés : la page Audio se redessine jusqu'à 30 fois par seconde (spectre,
+        // VU-mètres) ; en créer de nouveaux à chaque image chargeait la mémoire et faisait saccader l'affichage.
+        private static readonly Dictionary<uint, IBrush> pinceaux = new Dictionary<uint, IBrush>();
+        private static readonly Dictionary<string, IBrush> degrades = new Dictionary<string, IBrush>();
+        private static readonly Dictionary<string, FormattedText> textes = new Dictionary<string, FormattedText>();
 
-        public static LinearGradientBrush Degrade(double angle, params Color[] c)
+        /// <summary>Pinceau d'une couleur (opacité de 0 à 255), partagé et immuable.</summary>
+        public static IBrush P(Color c, int a = 255)
         {
-            var g = new LinearGradientBrush { StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative), EndPoint = angle == 0 ? new RelativePoint(1, 0, RelativeUnit.Relative) : new RelativePoint(0, 1, RelativeUnit.Relative) };
-            for (int i = 0; i < c.Length; i++) g.GradientStops.Add(new GradientStop(c[i], c.Length == 1 ? 0 : (double)i / (c.Length - 1)));
-            return g;
+            var k = Habillage.Alpha(c, a);
+            uint cle = k.ToUInt32();
+            lock (pinceaux)
+            {
+                IBrush b;
+                if (!pinceaux.TryGetValue(cle, out b)) { b = new ImmutableSolidColorBrush(k); pinceaux[cle] = b; }
+                return b;
+            }
+        }
+
+        /// <summary>Dégradé horizontal (angle 0) ou vertical, partagé et immuable.</summary>
+        public static IBrush Degrade(double angle, params Color[] c)
+        {
+            string cle = (angle == 0 ? "h" : "v") + string.Join(",", c.Select(x => x.ToUInt32()));
+            lock (degrades)
+            {
+                IBrush b;
+                if (degrades.TryGetValue(cle, out b)) return b;
+                var g = new LinearGradientBrush { StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative), EndPoint = angle == 0 ? new RelativePoint(1, 0, RelativeUnit.Relative) : new RelativePoint(0, 1, RelativeUnit.Relative) };
+                for (int i = 0; i < c.Length; i++) g.GradientStops.Add(new GradientStop(c[i], c.Length == 1 ? 0 : (double)i / (c.Length - 1)));
+                b = g.ToImmutable();
+                if (degrades.Count > 300) degrades.Clear();
+                degrades[cle] = b;
+                return b;
+            }
         }
 
         /// <summary>Le fond de la console (dégradé violet nuit, bord lumineux en haut).</summary>
@@ -117,9 +145,20 @@ namespace NettoyagePC.Nouveau
         /// <summary>Contour de focus clavier, commun aux contrôles du Studio.</summary>
         public static void Focus(DrawingContext ctx, Rect r, double rayon) { ctx.DrawRectangle(null, new Pen(P(Ambre, 200), 1, new DashStyle(new double[] { 2, 2 }, 0)), new RoundedRect(r, rayon)); }
 
+        /// <summary>Texte mis en forme pour le dessin (gardé : les graduations de la courbe sont redessinées à chaque image).</summary>
         public static FormattedText Mesure(string t, double taille, Color c, FontFamily police = null, bool gras = false)
         {
-            return new FormattedText(t, CultureInfo.CurrentCulture, FlowDirection.LeftToRight, new Typeface(police ?? Chiffres, FontStyle.Normal, gras ? FontWeight.SemiBold : FontWeight.Normal), taille, P(c));
+            var pol = police ?? Chiffres;
+            string cle = t + "\u0001" + taille.ToString(CultureInfo.InvariantCulture) + "\u0001" + c.ToUInt32() + "\u0001" + pol.Name + "\u0001" + gras;
+            lock (textes)
+            {
+                FormattedText f;
+                if (textes.TryGetValue(cle, out f)) return f;
+                f = new FormattedText(t, CultureInfo.CurrentCulture, FlowDirection.LeftToRight, new Typeface(pol, FontStyle.Normal, gras ? FontWeight.SemiBold : FontWeight.Normal), taille, P(c));
+                if (textes.Count > 500) textes.Clear();
+                textes[cle] = f;
+                return f;
+            }
         }
 
         public static string Db(double v, int dec = 1) { return (v > 0.0001 ? "+" : v < -0.0001 ? "−" : "") + Math.Abs(v).ToString(dec == 0 ? "0" : "0.0", Langue.Culture) + " dB"; }
@@ -377,12 +416,19 @@ namespace NettoyagePC.Nouveau
             g = Math.Max(ng, g - 2.5); d = Math.Max(nd, d - 2.5);   // retombée douce
             if (ng >= crG || t - tG > 1000) { crG = ng; tG = t; }
             if (nd >= crD || t - tD > 1000) { crD = nd; tD = t; }
+            // redessiné seulement si un segment change (allumé ou crête) : la plupart des images, rien ne bouge
+            int sig = Segments(g) | Segments(crG) << 6 | Segments(d) << 12 | Segments(crD) << 18;
+            if (sig == dernier) return;
+            dernier = sig;
             InvalidateVisual();
         }
 
+        private int dernier = -1;
+        private const int N = 30; private const double bas = -48, haut = 3;
+        private static int Segments(double v) { return (int)Math.Max(0, Math.Min(N + 1, Math.Floor((v - bas) / (haut - bas) * N + 0.5))); }
+
         public override void Render(DrawingContext ctx)
         {
-            const int N = 30; const double bas = -48, haut = 3;
             double w = Bounds.Width, h = (Bounds.Height - 4) / 2, pas = w / N;
             for (int ligne = 0; ligne < 2; ligne++)
             {
@@ -415,9 +461,14 @@ namespace NettoyagePC.Nouveau
         public event Action<int, double> GainChange;
         private int choisie = -1, survol = -1;
         private bool glisse;
-        private string cle;
         private Point[] points;
+        private StreamGeometry aire, ligne;
+        private double[] cleGains; private int cleIntensite = -1, cleCoupe = -1; private double cleL = -1, cleH = -1;
         private const double PlageDb = 15;
+        private static readonly double[] Graduations = { 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000 };
+        private static readonly IPen TraitGrille = new Pen(Studio.P(Studio.Bord, 110), 1), TraitDecade = new Pen(Studio.P(Studio.Bord, 200), 1),
+            TraitZero = new Pen(Studio.P(Studio.Discret, 150), 1), TraitDb = new Pen(Studio.P(Studio.Bord, 110), 1, new DashStyle(new double[] { 3, 4 }, 0)),
+            TraitCadre = new Pen(Studio.P(Studio.Bord), 1);
 
         public CourbeEq5(bool compact = false)
         {
@@ -431,14 +482,13 @@ namespace NettoyagePC.Nouveau
         private double X(double f, Rect z) { return z.X + z.Width * Math.Log10(f / 20) / 3; }
         private double Y(double db, Rect z) { double p = Compact ? 12 : PlageDb; return z.Y + z.Height * (p - Math.Max(-p, Math.Min(p, db))) / (2 * p); }
 
-        public void Actualiser() { cle = null; InvalidateVisual(); }
+        public void Actualiser() { cleGains = null; InvalidateVisual(); }
 
         private void Calculer(Rect z)
         {
             var r = Reglages ?? new ReglagesAudioJeu();
-            string k = string.Join(",", r.Gains) + "|" + r.Intensite + "|" + r.CoupeBas + "|" + z.Width + "|" + z.Height;
-            if (k == cle && points != null) return;
-            cle = k;
+            if (points != null && cleGains != null && cleGains.SequenceEqual(r.Gains) && cleIntensite == r.Intensite && cleCoupe == r.CoupeBas && cleL == z.Width && cleH == z.Height) return;
+            cleGains = (double[])r.Gains.Clone(); cleIntensite = r.Intensite; cleCoupe = r.CoupeBas; cleL = z.Width; cleH = z.Height;
             var filtres = AudioJeu.Filtres(r);
             int n = Compact ? 60 : 180;
             points = new Point[n];
@@ -448,6 +498,31 @@ namespace NettoyagePC.Nouveau
                 foreach (var x in filtres) s += AudioJeu.Reponse(x.Type, x.Fc, x.Gain, x.Q, f);
                 points[i] = new Point(X(f, z), Y(s, z));
             }
+            // tracé gardé : recalculé seulement quand les réglages ou la taille changent
+            double y0 = Y(0, z);
+            aire = new StreamGeometry();
+            using (var g = aire.Open())
+            {
+                g.BeginFigure(new Point(points[0].X, y0), true);
+                foreach (var p in points) g.LineTo(p);
+                g.LineTo(new Point(points[points.Length - 1].X, y0));
+                g.EndFigure(true);
+            }
+            ligne = new StreamGeometry();
+            using (var g = ligne.Open())
+            {
+                g.BeginFigure(points[0], false);
+                for (int i = 1; i < points.Length; i++) g.LineTo(points[i]);
+                g.EndFigure(false);
+            }
+        }
+
+        /// <summary>Nouveau spectre : redessiné seulement s'il a changé.</summary>
+        public void DefinirSpectre(float[] s)
+        {
+            if (ReferenceEquals(s, Spectre)) return;
+            Spectre = s;
+            InvalidateVisual();
         }
 
         private Point Poignee(int k, Rect z) { var r = Reglages ?? new ReglagesAudioJeu(); return new Point(X(AudioJeu.Bandes[k].Fc, z), Y(AudioJeu.GainEffectif(r, k), z)); }
@@ -519,18 +594,18 @@ namespace NettoyagePC.Nouveau
             if (!Compact)
             {
                 // fond et grille : décades de fréquence, lignes de gain tous les 6 dB
-                ctx.DrawRectangle(Studio.P(Color.FromRgb(8, 4, 16), 230), new Pen(Studio.P(Studio.Bord), 1), new RoundedRect(new Rect(Bounds.Size), 14));
-                foreach (double f in new double[] { 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000 })
+                ctx.DrawRectangle(Studio.P(Color.FromRgb(8, 4, 16), 230), TraitCadre, new RoundedRect(new Rect(Bounds.Size), 14));
+                foreach (double f in Graduations)
                 {
                     double x = X(f, z);
-                    ctx.DrawLine(new Pen(Studio.P(Studio.Bord, f == 100 || f == 1000 || f == 10000 ? 200 : 110), 1), new Point(x, z.Top), new Point(x, z.Bottom));
+                    ctx.DrawLine(f == 100 || f == 1000 || f == 10000 ? TraitDecade : TraitGrille, new Point(x, z.Top), new Point(x, z.Bottom));
                     var t = Studio.Mesure(f >= 1000 ? (f / 1000) + "k" : f.ToString(CultureInfo.InvariantCulture), 10, Studio.Faible);
                     ctx.DrawText(t, new Point(Math.Max(z.Left, Math.Min(z.Right - t.Width, x - t.Width / 2)), z.Bottom + 6));
                 }
                 for (double db = -12; db <= 12; db += 6)
                 {
                     double y = Y(db, z);
-                    ctx.DrawLine(new Pen(Studio.P(db == 0 ? Studio.Discret : Studio.Bord, db == 0 ? 150 : 110), 1, db == 0 ? null : new DashStyle(new double[] { 3, 4 }, 0)), new Point(z.Left, y), new Point(z.Right, y));
+                    ctx.DrawLine(db == 0 ? TraitZero : TraitDb, new Point(z.Left, y), new Point(z.Right, y));
                     var t = Studio.Mesure((db > 0 ? "+" : "") + db, 10, Studio.Faible);
                     ctx.DrawText(t, new Point(z.Left - t.Width - 8, y - t.Height / 2));
                 }
@@ -539,32 +614,18 @@ namespace NettoyagePC.Nouveau
                 if (sp != null && sp.Length == AnalyseurSpectre.NbBandes)
                 {
                     double larg = z.Width / sp.Length;
+                    var barre = Studio.Degrade(1, Habillage.Alpha(Studio.Cyan, 150), Habillage.Alpha(Studio.Violet, 30));
                     for (int i = 0; i < sp.Length; i++)
                     {
                         double niv = Math.Max(0, Math.Min(1, (sp[i] + 84) / 84.0));
                         if (niv <= 0.005) continue;
                         double hb = z.Height * niv, x = z.X + i * larg;
-                        ctx.DrawRectangle(Studio.Degrade(1, Habillage.Alpha(Studio.Cyan, 150), Habillage.Alpha(Studio.Violet, 30)), null, new RoundedRect(new Rect(x + 1, z.Bottom - hb, Math.Max(1, larg - 2), hb), 2, 2, 0, 0));
+                        ctx.DrawRectangle(barre, null, new RoundedRect(new Rect(x + 1, z.Bottom - hb, Math.Max(1, larg - 2), hb), 2, 2, 0, 0));
                     }
                 }
             }
-            // la courbe : remplissage depuis 0 dB, halo, trait
+            // la courbe : remplissage depuis 0 dB, halo, trait (tracés gardés, voir Calculer)
             double y0 = Y(0, z);
-            var aire = new StreamGeometry();
-            using (var g = aire.Open())
-            {
-                g.BeginFigure(new Point(points[0].X, y0), true);
-                foreach (var p in points) g.LineTo(p);
-                g.LineTo(new Point(points[points.Length - 1].X, y0));
-                g.EndFigure(true);
-            }
-            var ligne = new StreamGeometry();
-            using (var g = ligne.Open())
-            {
-                g.BeginFigure(points[0], false);
-                for (int i = 1; i < points.Length; i++) g.LineTo(points[i]);
-                g.EndFigure(false);
-            }
             int alpha = Allume ? 255 : 110;
             ctx.DrawGeometry(Studio.Degrade(1, Habillage.Alpha(Studio.Magenta, Allume ? 70 : 25), Habillage.Alpha(Studio.Violet, 8)), null, aire);
             var trait = Studio.Degrade(0, Habillage.Alpha(Studio.Ambre, alpha), Habillage.Alpha(Studio.Magenta, alpha), Habillage.Alpha(Studio.Violet, alpha));

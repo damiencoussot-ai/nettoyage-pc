@@ -586,7 +586,7 @@ namespace NettoyagePC
                 while (!parent.HasExited)
                 {
                     sortie.WriteLine(Ligne(CapteurAudio.Spectre, CapteurAudio.CreteG, CapteurAudio.CreteD, CapteurAudio.Erreur));
-                    if (montre.ElapsedMilliseconds - dernierVm >= 250) { dernierVm = montre.ElapsedMilliseconds; sortie.WriteLine("V " + Json.Compact(Voicemeeter.Etat.VersJson())); }
+                    if (montre.ElapsedMilliseconds - dernierVm >= 100) { dernierVm = montre.ElapsedMilliseconds; sortie.WriteLine("V " + Json.Compact(Voicemeeter.Etat.VersJson())); }
                     sortie.Flush();
                     Thread.Sleep(33);
                 }
@@ -923,7 +923,7 @@ namespace NettoyagePC
                 try
                 {
                     long t = montre.ElapsedMilliseconds;
-                    bool complet = t - dernier >= 1000;
+                    bool complet = t - dernier >= 2000;   // (et dès que Voicemeeter signale un changement, voir Relever)
                     if (complet) dernier = t;
                     Etat = Relever(complet, Etat);
                 }
@@ -944,11 +944,13 @@ namespace NettoyagePC
         {
             var e = new EtatVoicemeeter { Installe = Dossier() != null };
             if (!e.Installe || !Charger()) { e.Erreur = e.Installe ? "Bibliothèque de Voicemeeter illisible." : ""; return e; }
-            try { sale(); } catch { }   // (à appeler régulièrement : met à jour les paramètres lus)
+            // (à appeler régulièrement : met à jour les paramètres lus ; 1 = un réglage a changé dans Voicemeeter)
+            bool change = false;
+            try { change = sale() == 1; } catch { }
             int type;
             if (lireType(out type) != 0 || type < 1) return e;
             e.Lance = true; e.Type = Math.Min(3, type);
-            if (!complet && avant != null && avant.Lance && avant.Type == e.Type)
+            if (!complet && !change && avant != null && avant.Lance && avant.Type == e.Type)
             {
                 // relevé rapide : seulement les niveaux
                 e.Version = avant.Version;
@@ -1084,10 +1086,41 @@ namespace NettoyagePC
                 }
                 int res = script(Ascii(Script(valeurs)));
                 if (res != 0) return "Voicemeeter a refusé le réglage (code " + res + ") : rien n'a été modifié.";
-                if (titre != null) Noter(titre, avant, sujet);
+                if (titre != null) { if (sujet == "mixage") NoterPlusTard(titre, avant); else Noter(titre, avant, sujet); }
                 return "";
             });
             return r ?? "Voicemeeter ne répond pas.";
+        }
+
+        // ---- table de mixage : un fader glissé envoie jusqu'à 25 réglages par seconde ; l'Historique (fichier sur le disque)
+        // n'est écrit qu'une fois le geste fini (1,5 s sans nouveau réglage), avec les valeurs d'avant le premier
+        private static readonly object verrouNotes = new object();
+        private static Dictionary<string, object> notesAvant;
+        private static string notesTitre;
+        private static Timer minuterieNotes;
+
+        private static void NoterPlusTard(string titre, Dictionary<string, object> avant)
+        {
+            lock (verrouNotes)
+            {
+                if (notesAvant == null)
+                {
+                    notesAvant = new Dictionary<string, object>();
+                    if (minuterieNotes == null) AppDomain.CurrentDomain.ProcessExit += (s, e) => EcrireNotes();
+                }
+                foreach (var kv in avant) if (!notesAvant.ContainsKey(kv.Key)) notesAvant[kv.Key] = kv.Value;
+                notesTitre = titre;
+                if (minuterieNotes == null) minuterieNotes = new Timer(_ => EcrireNotes());
+                minuterieNotes.Change(1500, Timeout.Infinite);
+            }
+        }
+
+        /// <summary>Écrit dans l'Historique les réglages de la table encore en attente (aussi à la fermeture de Velox).</summary>
+        public static void EcrireNotes()
+        {
+            Dictionary<string, object> a; string t;
+            lock (verrouNotes) { a = notesAvant; t = notesTitre; notesAvant = null; }
+            if (a != null && a.Count > 0) Noter(t, a, "mixage");
         }
 
         private static void Noter(string titre, Dictionary<string, object> avant, string sujet)
