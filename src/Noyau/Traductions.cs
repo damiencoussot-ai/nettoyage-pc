@@ -3556,6 +3556,14 @@ namespace NettoyagePC
             "Écoute terminée. Rejoue-la après chaque réglage pour comparer.", "Listening finished. Play it again after each setting to compare.", "Escucha terminada. Vuelve a reproducirla después de cada ajuste para comparar.",
             "Comparaison : égaliseur coupé (au même volume) tant que tu maintiens le bouton.", "Comparing: equalizer off (at the same volume) while you hold the button.", "Comparación: ecualizador desactivado (al mismo volumen) mientras mantienes el botón.",
             "Calibration de ton casque (plus de 6 000 modèles mesurés, base libre AutoEq), profils par jeu avec Auto jeux (Warzone, Valorant, CS2, Fortnite, Apex…), et test « Avant / après » à l'oreille, au même volume.", "Calibration for your headset (over 6,000 measured models, free AutoEq database), per-game profiles with Auto games (Warzone, Valorant, CS2, Fortnite, Apex…), and a “Before / after” listening test, at the same volume.", "Calibración de tus auriculares (más de 6 000 modelos medidos, base libre AutoEq), perfiles por juego con Auto juegos (Warzone, Valorant, CS2, Fortnite, Apex…) y prueba «Antes / después» de oído, al mismo volumen.",
+            "Profil appliqué", "Profile applied", "Perfil aplicado",
+            "Profil choisi", "Profile selected", "Perfil elegido",
+            "au lancement du jeu", "when the game starts", "al iniciar el juego",
+            "égaliseur coupé", "equalizer off", "ecualizador desactivado",
+            "Réglage automatique appliqué", "Automatic setting applied", "Ajuste automático aplicado",
+            "Casque calibré", "Headset calibrated", "Auricular calibrado",
+            "Profil du jeu appliqué", "Game profile applied", "Perfil del juego aplicado",
+            "simulation : rien n'est écrit", "simulation: nothing is written", "simulación: no se escribe nada",
         };
         private static readonly string[] Prefixes =
         {

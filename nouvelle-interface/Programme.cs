@@ -1428,6 +1428,9 @@ namespace NettoyagePC.Nouveau
                 bool studioVu = vus.OfType<Marche5>().Count() == 1 && vus.OfType<CourbeEq5>().Count() == 5 && vus.OfType<Molette5>().Count() == 4 && vus.OfType<Fader5>().Count() == 6 + AudioJeu5.ExempleVoicemeeter.Entrees.Count + AudioJeu5.ExempleVoicemeeter.Bus.Count && vus.OfType<VuMetre5>().Count() >= 3
                     && vus.OfType<TextBlock>().Any(t => t.Text == "COMPARER") && Avalonia.Automation.AutomationProperties.GetName(vus.OfType<Molette5>().First()) == "Force";
                 Capturer(f, dossier, "sombre-audio.png", rapport, ref erreurs);
+                AudioJeu5.Confirmer(f, Langue.T("Profil appliqué"), "Valorant", true);
+                for (int k = 0; k < 30; k++) { Dispatcher.UIThread.RunJobs(); AvaloniaHeadlessPlatform.ForceRenderTimerTick(); System.Threading.Thread.Sleep(10); }
+                Capturer(f, dossier, "sombre-audio-confirmation.png", rapport, ref erreurs);
                 foreach (var defil in f.GetVisualDescendants().OfType<ScrollViewer>().Where(x => x.Content is AudioJeu5).Take(1)) defil.Offset = new Vector(0, 760);
                 Capturer(f, dossier, "sombre-audio-bas.png", rapport, ref erreurs);
                 foreach (var defil in f.GetVisualDescendants().OfType<ScrollViewer>().Where(x => x.Content is AudioJeu5).Take(1)) defil.Offset = new Vector(0, 1750);

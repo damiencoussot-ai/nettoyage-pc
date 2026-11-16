@@ -173,6 +173,7 @@ namespace NettoyagePC.Nouveau
                 if (AudioJeu.SuivreJeu(r, v.Jeu, actuel))
                 {
                     if (page != null) page.MettreAJourBientot();
+                    if (jeu != null) avisApres = Tuple.Create(Langue.T(r.ProfilParJeu ? "Profil du jeu appliqué" : "Égaliseur actif"), jeu.Nom, true);
                     Ecrire(f, false, false, jeu != null ? (r.ProfilParJeu ? Langue.F("Auto jeux : {0} détecté, égaliseur actif avec son profil.", jeu.Nom) : Langue.F("Auto jeux : {0} détecté, égaliseur actif.", jeu.Nom)) : Langue.T("Auto jeux : jeu fermé, égaliseur coupé."));
                     return;
                 }
@@ -241,6 +242,7 @@ namespace NettoyagePC.Nouveau
                 if (!t.IsFaulted) { releve = t.Result.Item3; dejaReleve = true; }
                 if (erreur != "")
                 {
+                    avisApres = null;
                     // rien n'a été changé : l'interrupteur revient à ce que dit le fichier, et la veille ne réessaie pas en boucle
                     if (releve != null && r.Moteur != "vm") r.Actif = releve.Etat.Actif;
                     // passage vers Voicemeeter refusé : on reste sur le moteur enregistré (Equalizer APO n'a pas été coupé)
@@ -254,6 +256,9 @@ namespace NettoyagePC.Nouveau
                     r.CibleEcrite = t.Result.Item2.CibleEcrite; r.VmEcrit = t.Result.Item2.VmEcrit;
                     if (t.Result.Item4 != "") f.Statut(t.Result.Item4, true);
                     else if (message != null) f.Statut(message);
+                    // le profil est vraiment écrit : la confirmation s'affiche maintenant (pas avant)
+                    var a = avisApres; avisApres = null;
+                    if (a != null) Confirmer(f, a.Item1, a.Item2, a.Item3);
                 }
                 if (page != null) page.MettreAJour();
                 if (aRefaire)
@@ -374,6 +379,67 @@ namespace NettoyagePC.Nouveau
                 if (err != "") { f.Statut(Langue.T(err), true); return; }
                 f.Statut(Langue.T(appuye ? "Comparaison : égaliseur coupé (au même volume) tant que tu maintiens le bouton." : "Comparaison terminée : l'égaliseur est de nouveau actif."));
             }));
+        }
+
+        // ---- confirmation visible d'un changement de profil
+
+        /// <summary>Confirmation à afficher dès que le prochain changement est écrit : titre, détail, actif ou non.</summary>
+        private static Tuple<string, string, bool> avisApres;
+        private static Control toast;
+        private static DispatcherTimer minuterieToast;
+
+        /// <summary>Le prochain changement écrit affichera cette confirmation (en simulation : tout de suite, rien n'étant écrit).</summary>
+        private void AnnoncerApres(string titre, string detail)
+        {
+            if (exemple) return;
+            if (simulation) { Confirmer(F, titre, detail + " · " + Langue.T("simulation : rien n'est écrit"), false); return; }
+            avisApres = Tuple.Create(titre, detail, r.Actif || r.AutoJeu);
+        }
+
+        /// <summary>
+        /// « ✔ Profil appliqué » : bandeau en haut de la fenêtre pendant 2,5 s ; si Velox n'est pas au premier plan (en
+        /// jeu, Auto jeux), la petite bulle à l'écran le dit aussi.
+        /// </summary>
+        internal static void Confirmer(FenetrePrincipale f, string titre, string detail, bool actif)
+        {
+            if (f == null) return;
+            try
+            {
+                if (!f.IsActive || f.WindowState == WindowState.Minimized) BulleAudio.Montrer(titre.ToUpper(Langue.Culture), detail, actif);
+                if (toast != null) f.RetirerCalque(toast);
+                var coche = new Border { Width = 26, Height = 26, CornerRadius = new CornerRadius(13), Background = Studio.P(actif ? Studio.Vert : Studio.Ambre, 220), VerticalAlignment = VerticalAlignment.Center,
+                    Child = new TextBlock { Text = actif ? "✔" : "•", FontSize = 14, FontWeight = FontWeight.Bold, Foreground = Studio.P(Studio.Fond1), HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center } };
+                var textes = new StackPanel { Spacing = 1, VerticalAlignment = VerticalAlignment.Center };
+                textes.Children.Add(new TextBlock { Text = titre, FontFamily = Studio.Titre, FontSize = 15, FontWeight = FontWeight.Bold, Foreground = Studio.P(Studio.Texte) });
+                if (!string.IsNullOrEmpty(detail)) textes.Children.Add(new TextBlock { Text = detail, FontFamily = Studio.Corps, FontSize = 12, Foreground = Studio.P(Studio.Ambre) });
+                var cadre = new Border
+                {
+                    Child = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 12, Children = { coche, textes } },
+                    Padding = new Thickness(16, 10, 20, 10), CornerRadius = new CornerRadius(16), Background = Studio.P(Color.FromRgb(18, 10, 32), 238),
+                    BorderBrush = Studio.Degrade(0, Studio.Ambre, Studio.Magenta), BorderThickness = new Thickness(1.5),
+                    BoxShadow = BoxShadows.Parse("0 6 26 0 " + Habillage.Alpha(Studio.Magenta, 90)),
+                    HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Top, Margin = new Thickness(0, 70, 0, 0),
+                    IsHitTestVisible = false, Opacity = 0,
+                    Transitions = new Avalonia.Animation.Transitions { new Avalonia.Animation.DoubleTransition { Property = Visual.OpacityProperty, Duration = TimeSpan.FromMilliseconds(180) } },
+                };
+                Avalonia.Automation.AutomationProperties.SetLiveSetting(cadre, Avalonia.Automation.AutomationLiveSetting.Polite);
+                Avalonia.Automation.AutomationProperties.SetName(cadre, titre + (string.IsNullOrEmpty(detail) ? "" : ". " + detail));
+                toast = cadre;
+                f.AjouterCalque(cadre);
+                Dispatcher.UIThread.Post(() => cadre.Opacity = 1, DispatcherPriority.Background);
+                if (minuterieToast != null) minuterieToast.Stop();
+                minuterieToast = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(2500) };
+                minuterieToast.Tick += (o, e) =>
+                {
+                    minuterieToast.Stop();
+                    cadre.Opacity = 0;
+                    var fin = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(260) };
+                    fin.Tick += (o2, e2) => { fin.Stop(); f.RetirerCalque(cadre); if (toast == cadre) toast = null; };
+                    fin.Start();
+                };
+                minuterieToast.Start();
+            }
+            catch (Exception ex) { JournalDemarrage.Erreur("confirmation de l'audio", ex); }
         }
 
         /// <summary>Petits bips pour savoir, en plein jeu, ce que le raccourci a fait (un bip par numéro de profil).</summary>
@@ -1259,6 +1325,7 @@ namespace NettoyagePC.Nouveau
                 {
                     if (exemple) return;
                     r.CalibActive = !r.CalibActive;
+                    AnnoncerApres(Langue.T(r.CalibActive ? "Calibration active" : "Calibration coupée"), r.CalibNom);
                     Changer(Langue.T(r.CalibActive ? "Calibration du casque active." : "Calibration du casque coupée."), false, true);
                 });
                 Marquer(bAct, r.CalibActive, Studio.Vert);
@@ -1328,6 +1395,7 @@ namespace NettoyagePC.Nouveau
                 if (t.IsFaulted) { F.Statut(Langue.T((t.Exception.InnerException ?? t.Exception).Message), true); return; }
                 r.CalibNom = c.Nom; r.CalibSource = c.Source; r.CalibFiltres = t.Result; r.CalibActive = true;
                 rechercheCasque = false; signatureCasque = null;
+                AnnoncerApres(Langue.T("Casque calibré"), c.Nom);
                 Changer(Langue.F("Casque calibré : {0}. Écoute la différence avec le bouton « Calibration active ».", c.Nom), false, true);
             }));
         }
@@ -1578,6 +1646,7 @@ namespace NettoyagePC.Nouveau
         {
             if (exemple) return;
             r.Gains = (double[])j.Gains.Clone(); r.CoupeBas = j.CoupeBas;
+            AnnoncerApres(Langue.T(r.Actif ? "Profil appliqué" : "Profil choisi"), j.Nom + (r.Actif ? "" : " · " + Langue.T("égaliseur coupé")));
             Changer(r.Actif ? Langue.F("Profil « {0} » appliqué.", j.Nom) : Langue.F("Profil « {0} » choisi. L'égaliseur est coupé : active-le pour l'entendre.", j.Nom), false, true);
         }
 
@@ -1599,6 +1668,7 @@ namespace NettoyagePC.Nouveau
             if (exemple) return;
             r.Gains = (double[])p.Gains.Clone();
             string nom = Langue.T(p.Nom);
+            AnnoncerApres(Langue.T(r.Actif ? "Profil appliqué" : "Profil choisi"), nom + (r.Actif ? "" : " · " + Langue.T(r.AutoJeu ? "au lancement du jeu" : "égaliseur coupé")));
             Changer(r.Actif ? Langue.F("Profil « {0} » appliqué.", nom)
                 : r.AutoJeu ? Langue.F("Profil « {0} » choisi : il s'appliquera au lancement du jeu.", nom)
                 : Langue.F("Profil « {0} » choisi. L'égaliseur est coupé : active-le pour l'entendre.", nom), false, true);
@@ -1609,6 +1679,7 @@ namespace NettoyagePC.Nouveau
             if (exemple) return;
             r.Gains = (double[])AudioJeu.Profils[0].Gains.Clone();
             r.Intensite = 100; r.Cible = "auto"; r.Niveau = 0; r.Balance = 0; r.Largeur = 0; r.CoupeBas = 0; r.Inversion = false;
+            AnnoncerApres(Langue.T("Réglage automatique appliqué"), Langue.T("Pas / compétitif") + " · 100 %");
             Changer(Langue.T("Réglage automatique : profil compétitif, force 100 %, sortie Auto, le reste remis à zéro.") + (r.Actif || r.AutoJeu ? "" : " " + Langue.T("L'égaliseur est coupé : active-le pour l'entendre.")), false, true);
         }
 
