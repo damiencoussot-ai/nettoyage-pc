@@ -365,13 +365,14 @@ namespace NettoyagePC.Nouveau
             Task<string> etape = fileComparaison.ContinueWith(_ =>
             {
                 if (copie.Moteur == "vm") return appuye ? Voicemeeter.Couper(copie.BusVm, false) : Voicemeeter.Appliquer(copie, copie.BusVm, false);
-                return AudioJeu.Comparer(appuye, AudioJeu.Generer(copie, copie.CibleEcrite));
+                // « sans » au même volume que « avec » : on n'entend que le travail de l'égaliseur (comparaison honnête)
+                return AudioJeu.Comparer(appuye, AudioJeu.Generer(copie, copie.CibleEcrite), AudioJeu.VolumeSeul(copie, copie.CibleEcrite, DemoAudio.EcartNiveau(copie)));
             });
             fileComparaison = etape.ContinueWith(t => Dispatcher.UIThread.Post(() =>
             {
                 string err = t.IsFaulted ? (t.Exception.InnerException ?? t.Exception).Message : t.Result;
                 if (err != "") { f.Statut(Langue.T(err), true); return; }
-                f.Statut(Langue.T(appuye ? "Comparaison : égaliseur coupé tant que tu maintiens le bouton." : "Comparaison terminée : l'égaliseur est de nouveau actif."));
+                f.Statut(Langue.T(appuye ? "Comparaison : égaliseur coupé (au même volume) tant que tu maintiens le bouton." : "Comparaison terminée : l'égaliseur est de nouveau actif."));
             }));
         }
 
@@ -476,6 +477,7 @@ namespace NettoyagePC.Nouveau
             };
             DetachedFromVisualTree += (s, e) =>
             {
+                ArreterDemo();
                 if (comparaison) Comparer(F, false);   // bouton « Comparer » encore maintenu : l'égaliseur revient
                 Appliquer();   // un réglage encore en attente n'est pas perdu
                 Direct(false);
@@ -616,6 +618,7 @@ namespace NettoyagePC.Nouveau
             legende.Children.Add(Legende(Studio.Magenta, "Égaliseur"));
             var bloc = new StackPanel { Spacing = 8, Children = { courbe, Studio.T(Langue.T("Glisse un point pour régler sa bande (ou flèches du clavier). En fond, ce que joue ta sortie en ce moment."), 12, Studio.Faible) } };
             g.Children.Add(Studio.Module("Réponse en fréquence", bloc, legende));
+            g.Children.Add(Studio.Module("Avant / après", ConstruireDemo()));
 
             // profils
             var grille = new UniformGrid { Columns = 4 };
@@ -1134,6 +1137,100 @@ namespace NettoyagePC.Nouveau
                 moteur.Children.Add(p);
             }
             zoneVm.Children.Add(moteur);
+        }
+
+        // ---------------------------------------------------------------- test avant / après à l'oreille
+
+        private TextBlock tDemo, tDemoDetail;
+        private Border bDemo, carteSans, carteAvec;
+        private DispatcherTimer minuterieDemo;
+        private int etapeDemo;
+
+        private Control ConstruireDemo()
+        {
+            var pile = new StackPanel { Spacing = 12 };
+            pile.Children.Add(Studio.T(Langue.T("Une scène de jeu de six secondes (des pas qui passent de gauche à droite, une explosion qui les couvre, des tirs, une recharge), jouée sans le Studio son puis avec : écoute la différence au casque."), 12.5, Studio.Discret));
+            var g = new Grid { ColumnDefinitions = new ColumnDefinitions("*,12,*") };
+            carteSans = CarteDemo(Langue.T("SANS"), Langue.T("le son d'origine"), Studio.Faible);
+            carteAvec = CarteDemo(Langue.T("AVEC"), Langue.T("le Studio son"), Studio.Magenta);
+            Grid.SetColumn(carteAvec, 2);
+            g.Children.Add(carteSans); g.Children.Add(carteAvec);
+            pile.Children.Add(g);
+            bDemo = Studio.Bouton(Langue.T("▶  Écouter la différence"), true, LancerDemo, Langue.T("Joue la scène deux fois : sans, puis avec le Studio son (calibration du casque comprise)."));
+            pile.Children.Add(new WrapPanel { Children = { bDemo } });
+            tDemoDetail = Studio.T(Langue.T("Monte un peu le volume. La scène passe par ta sortie par défaut de Windows."), 11.5, Studio.Faible);
+            pile.Children.Add(tDemoDetail);
+            MarquerDemo(0);
+            return pile;
+        }
+
+        private Border CarteDemo(string titre, string sous, Color c)
+        {
+            var s = new StackPanel { Spacing = 2, HorizontalAlignment = HorizontalAlignment.Center };
+            s.Children.Add(new TextBlock { Text = titre, FontFamily = Studio.Titre, FontSize = 22, FontWeight = FontWeight.Bold, Foreground = Studio.P(c), HorizontalAlignment = HorizontalAlignment.Center });
+            s.Children.Add(new TextBlock { Text = sous, FontFamily = Studio.Corps, FontSize = 12, Foreground = Studio.P(Studio.Discret), HorizontalAlignment = HorizontalAlignment.Center });
+            return new Border { Child = s, Padding = new Thickness(12, 14), CornerRadius = new CornerRadius(14), BorderThickness = new Thickness(1.5) };
+        }
+
+        /// <summary>0 : au repos ; 1 : « sans » en cours ; 2 : « avec » en cours.</summary>
+        private void MarquerDemo(int phase)
+        {
+            if (carteSans == null) return;
+            carteSans.Background = phase == 1 ? Studio.P(Studio.Texte, 22) : Studio.P(Studio.Fond1, 150);
+            carteSans.BorderBrush = phase == 1 ? Studio.P(Studio.Texte, 200) : Studio.P(Studio.Bord);
+            carteAvec.Background = phase == 2 ? Studio.Degrade(1, Habillage.Alpha(Studio.Magenta, 60), Habillage.Alpha(Studio.Violet, 30)) : Studio.P(Studio.Fond1, 150);
+            carteAvec.BorderBrush = phase == 2 ? Studio.Degrade(0, Studio.Ambre, Studio.Magenta) : Studio.P(Studio.Bord);
+            carteAvec.BoxShadow = phase == 2 ? BoxShadows.Parse("0 0 22 0 " + Habillage.Alpha(Studio.Magenta, 110)) : default(BoxShadows);
+            if (bDemo != null && bDemo.Child is TextBlock tb) tb.Text = Langue.T(phase == 0 ? "▶  Écouter la différence" : "■  Arrêter");
+        }
+
+        /// <summary>
+        /// Sans (égaliseur contourné comme avec « Comparer ») puis avec : chaque fois, un court instant pour qu'Equalizer
+        /// APO relise son fichier, puis la scène. Arrêt à tout moment ; l'égaliseur revient toujours à la fin.
+        /// </summary>
+        private void LancerDemo()
+        {
+            if (exemple) return;
+            if (etapeDemo != 0) { ArreterDemo(); F.Statut(Langue.T("Écoute arrêtée.")); return; }
+            if (!OperatingSystem.IsWindows()) return;
+            if (simulation) { F.Statut(Langue.T("Simulation : l'écoute avant / après a besoin de couper l'égaliseur un instant, rien n'est modifié ici."), true); return; }
+            if (!r.Actif) { F.Statut(Langue.T("Allume d'abord l'égaliseur (gros bouton en haut), puis écoute la différence."), true); return; }
+            var v = Releve;
+            if (v != null && r.Moteur != "vm")
+            {
+                int etat; string cible = Cible(v, out etat);
+                if (cible != "" && AudioJeu.NormaliserGuid(cible) != AudioJeu.NormaliserGuid(v.Defaut))
+                    F.Statut(Langue.T("L'égaliseur vise une autre sortie que celle de Windows : la scène s'entend sur la sortie par défaut, sans l'effet."), true);
+            }
+            if (minuterieDemo == null) { minuterieDemo = new DispatcherTimer(); minuterieDemo.Tick += (o, a) => EtapeDemo(); }
+            etapeDemo = 1;
+            Comparer(F, true);   // sans le Studio son
+            MarquerDemo(1);
+            minuterieDemo.Interval = TimeSpan.FromMilliseconds(450);
+            minuterieDemo.Start();
+        }
+
+        private void EtapeDemo()
+        {
+            minuterieDemo.Stop();
+            switch (etapeDemo)
+            {
+                case 1: DemoAudio.Jouer(); etapeDemo = 2; minuterieDemo.Interval = TimeSpan.FromSeconds(DemoAudio.Duree + 0.3); break;
+                case 2: Comparer(F, false); MarquerDemo(2); etapeDemo = 3; minuterieDemo.Interval = TimeSpan.FromMilliseconds(450); break;   // avec
+                case 3: DemoAudio.Jouer(); etapeDemo = 4; minuterieDemo.Interval = TimeSpan.FromSeconds(DemoAudio.Duree + 0.3); break;
+                default: ArreterDemo(); F.Statut(Langue.T("Écoute terminée. Rejoue-la après chaque réglage pour comparer.")); return;
+            }
+            minuterieDemo.Start();
+        }
+
+        private void ArreterDemo()
+        {
+            if (etapeDemo == 0) return;
+            if (minuterieDemo != null) minuterieDemo.Stop();
+            DemoAudio.Arreter();
+            if (comparaison) Comparer(F, false);   // l'égaliseur revient toujours
+            etapeDemo = 0;
+            MarquerDemo(0);
         }
 
         // ---------------------------------------------------------------- calibration du casque (base AutoEq)

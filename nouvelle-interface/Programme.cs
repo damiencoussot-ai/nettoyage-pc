@@ -607,6 +607,25 @@ namespace NettoyagePC.Nouveau
                 var rjj = ReglagesAudioJeu.DepuisJson(Json.Lire(Json.Ecrire(new ReglagesAudioJeu { ProfilParJeu = true, JeuEnCours = "tarkov" }.VersJson())) as System.Collections.Generic.Dictionary<string, object>);
                 var rjf = ReglagesAudioJeu.DepuisJson(new System.Collections.Generic.Dictionary<string, object> { { "JeuEnCours", "x\ninclude" } });
                 verifier(rjj.ProfilParJeu && rjj.JeuEnCours == "tarkov" && rjf.JeuEnCours == "", "Auto jeux : réglages enregistrés et relus (jeu inconnu refusé)");
+                // test avant / après : la scène de démonstration
+                var wavDemo = DemoAudio.Wav();
+                int nDemo = (int)(DemoAudio.Duree * DemoAudio.Frequence);
+                bool enTete = System.Text.Encoding.ASCII.GetString(wavDemo, 0, 4) == "RIFF" && System.Text.Encoding.ASCII.GetString(wavDemo, 8, 4) == "WAVE" && BitConverter.ToInt16(wavDemo, 22) == 2
+                    && BitConverter.ToInt32(wavDemo, 24) == 48000 && BitConverter.ToInt16(wavDemo, 34) == 16 && BitConverter.ToInt32(wavDemo, 40) == nDemo * 4 && wavDemo.Length == 44 + nDemo * 4;
+                float[] sgA, sdA, sgB, sdB; DemoAudio.Scene(out sgA, out sdA); DemoAudio.Scene(out sgB, out sdB);
+                float creteDemo = 0; for (int i = 0; i < sgA.Length; i++) creteDemo = Math.Max(creteDemo, Math.Max(Math.Abs(sgA[i]), Math.Abs(sdA[i])));
+                // le premier pas (avant l'explosion) s'entend : son énergie dépasse nettement celle du fond juste avant
+                Func<float[], double, double, double> energie = (x, t0, t1) => { double e = 0; for (int i = (int)(t0 * 48000); i < (int)(t1 * 48000); i++) e += x[i] * x[i]; return e / ((t1 - t0) * 48000); };
+                double pas1 = energie(sgA, 0.45, 0.55), fondAvant = energie(sgA, 0.30, 0.40);
+                // le premier pas part à gauche, le dernier à droite
+                double eg1 = energie(sgA, 0.45, 0.6), ed1 = energie(sdA, 0.45, 0.6), eg8 = energie(sgA, 3.95, 4.1), ed8 = energie(sdA, 3.95, 4.1);
+                verifier(enTete && sgA.SequenceEqual(sgB) && creteDemo <= 0.8001f && creteDemo > 0.79f && pas1 > 4 * fondAvant && eg1 > 2 * ed1 && ed8 > 2 * eg8, "avant / après : scène WAV 48 kHz stéréo, identique à chaque fois, sans saturation, pas de gauche à droite");
+                // comparaison au même volume : écart mesuré sur la scène, fichier « volume seul » reconnu et réversible
+                var rcomp = new ReglagesAudioJeu { Actif = true, Gains = (double[])competitif.Clone(), CalibActive = true, CalibFiltres = eqc };
+                double ecartV = DemoAudio.EcartNiveau(rcomp), ecartN = DemoAudio.EcartNiveau(new ReglagesAudioJeu { Actif = true, Gains = new double[6] });
+                string vs = AudioJeu.VolumeSeul(rcomp, "11111111-2222-3333-4444-555555555555", ecartV);
+                verifier(ecartV < -3 && ecartV >= -12 && ecartN == 0 && vs.Contains("Preamp: " + ecartV.ToString("F1", System.Globalization.CultureInfo.InvariantCulture) + " dB") && !vs.Contains("Filter") && vs.Contains("11111111-2222-3333-4444-555555555555")
+                    && !AudioJeu.ContenuActif(vs), "comparaison au même volume : « sans » baissé de " + ecartV + " dB, sans filtre, compté comme égaliseur coupé");
                 // installation d'Equalizer APO par Velox : fichiers officiels figés, demande invalide refusée sans rien lancer
                 string nApo, eApo, nApoArm, eApoArm, nAutre, eAutre;
                 verifier(InstallationApo.Fichier("X64", out nApo, out eApo) && nApo == "EqualizerAPO-x64-1.4.2.exe" && eApo.Length == 64 && eApo == eApo.ToUpperInvariant()
@@ -1417,6 +1436,7 @@ namespace NettoyagePC.Nouveau
                 Capturer(f, dossier, "sombre-audio-fin.png", rapport, ref erreurs);
                 foreach (var defil in f.GetVisualDescendants().OfType<ScrollViewer>().Where(x => x.Content is AudioJeu5).Take(1)) defil.Offset = new Vector(0, 100000);
                 Capturer(f, dossier, "sombre-audio-mixage.png", rapport, ref erreurs);
+                try { File.WriteAllBytes(Path.Combine(dossier, "scene-avant-apres.wav"), DemoAudio.Wav()); } catch { }   // (pour écouter la scène du test avant / après)
                 f.Width = 1600; f.Height = 1000; f.Afficher("Audio", false);
                 Capturer(f, dossier, "grand-audio.png", rapport, ref erreurs);
                 f.Width = 1240; f.Height = 800;

@@ -782,6 +782,7 @@ namespace NettoyagePC
         /// <summary>Vrai si ce contenu applique quelque chose : au moins une ligne qui n'est ni vide ni un commentaire.</summary>
         internal static bool ContenuActif(string contenu)
         {
+            if (EstVolumeSeul(contenu)) return false;   // comparaison en cours : égaliseur coupé (seul le volume reste)
             return Lignes(contenu).Select((x, i) => SansFin(x, i == 0).Trim()).Any(x => x != "" && !x.StartsWith("#"));
         }
 
@@ -880,7 +881,7 @@ namespace NettoyagePC
         /// était. Rien n'est enregistré ni noté dans l'Historique. Seulement si le fichier en place est celui de Velox
         /// (« attendu ») : un fichier écrit par un autre outil n'est jamais touché. Renvoie "" si c'est fait.
         /// </summary>
-        public static string Comparer(bool couper, string attendu)
+        public static string Comparer(bool couper, string attendu, string sansEgaliseur = null)
         {
             lock (verrou)
             {
@@ -889,14 +890,33 @@ namespace NettoyagePC
                     if (!Present || string.IsNullOrEmpty(attendu)) return Absent;
                     var avant = LireOctets(Fichier);
                     if (avant == null) return Absent;
-                    string actuel = Octets.GetString(avant), voulu = couper ? LigneCoupe + "\r\n" : attendu;
-                    if (actuel != attendu && actuel != LigneCoupe + "\r\n") return "Le fichier en place ne vient pas de Velox : rien n'a été modifié.";
+                    // « sans » : égaliseur coupé, ou seulement un volume (même niveau que « avec » : comparaison honnête)
+                    string coupe = sansEgaliseur ?? LigneCoupe + "\r\n";
+                    string actuel = Octets.GetString(avant), voulu = couper ? coupe : attendu;
+                    if (actuel != attendu && actuel != coupe && actuel != LigneCoupe + "\r\n" && !EstVolumeSeul(actuel)) return "Le fichier en place ne vient pas de Velox : rien n'a été modifié.";
                     if (actuel != voulu) EcrireOctets(Fichier, Encoding.ASCII.GetBytes(voulu));
                     return "";
                 }
                 catch (Exception ex) { return Raison(ex); }
             }
         }
+
+        /// <summary>
+        /// Fichier « sans égaliseur, même volume » pour comparer : le même en-tête et la même sortie visée que le fichier de
+        /// l'égaliseur, mais un seul réglage de volume (aucun filtre).
+        /// </summary>
+        public static string VolumeSeul(ReglagesAudioJeu r, string guid, double db)
+        {
+            var c = CultureInfo.InvariantCulture;
+            const string sansMicro = "(sizeof(regexSearch(\"capture\", stage)) == 0)";
+            guid = NormaliserGuid(guid);
+            db = Math.Max(-12, Math.Min(6, db));
+            return Entete + "\r\n" + (guid != "" ? "If: (sizeof(regexSearch(\"" + guid + "\", tolower(deviceGuid))) > 0) and " + sansMicro : "If: " + sansMicro) + "\r\n"
+                + "Preamp: " + db.ToString("F1", c) + " dB\r\n" + MarqueVolumeSeul + "\r\nEndIf:\r\n";
+        }
+
+        private const string MarqueVolumeSeul = "# Velox : comparaison, egaliseur coupe au meme volume";
+        private static bool EstVolumeSeul(string contenu) { return contenu != null && contenu.StartsWith(Entete, StringComparison.Ordinal) && contenu.Contains(MarqueVolumeSeul) && !contenu.Contains("Filter") && !contenu.Contains("Include") && !contenu.Contains("Copy"); }
 
         // ------------------------------------------------------------ Historique : noter, annuler
 

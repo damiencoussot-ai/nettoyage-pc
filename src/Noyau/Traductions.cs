@@ -3541,6 +3541,21 @@ namespace NettoyagePC
             "Audio jeu : Auto jeux (Voix / chat)", "Game audio: Auto games (Voice / chat)", "Audio de juego: Auto juegos (Voz / chat)",
             "Audio jeu : Auto jeux (Neutre)", "Game audio: Auto games (Neutral)", "Audio de juego: Auto juegos (Neutro)",
             "Audio jeu : Auto jeux (Personnalisé)", "Game audio: Auto games (Custom)", "Audio de juego: Auto juegos (Personalizado)",
+            "Une scène de jeu de six secondes (des pas qui passent de gauche à droite, une explosion qui les couvre, des tirs, une recharge), jouée sans le Studio son puis avec : écoute la différence au casque.", "A six-second game scene (footsteps moving from left to right, an explosion covering them, gunshots, a reload), played without the Sound studio and then with it: hear the difference on your headset.", "Una escena de juego de seis segundos (pasos que van de izquierda a derecha, una explosión que los tapa, disparos, una recarga), reproducida sin el Estudio de sonido y luego con él: escucha la diferencia con los auriculares.",
+            "SANS", "WITHOUT", "SIN",
+            "AVEC", "WITH", "CON",
+            "le son d'origine", "the original sound", "el sonido original",
+            "le Studio son", "the Sound studio", "el Estudio de sonido",
+            "▶  Écouter la différence", "▶  Hear the difference", "▶  Escuchar la diferencia",
+            "Joue la scène deux fois : sans, puis avec le Studio son (calibration du casque comprise).", "Plays the scene twice: without, then with the Sound studio (headphone calibration included).", "Reproduce la escena dos veces: sin y luego con el Estudio de sonido (calibración de auriculares incluida).",
+            "Monte un peu le volume. La scène passe par ta sortie par défaut de Windows.", "Turn the volume up a little. The scene plays on your Windows default output.", "Sube un poco el volumen. La escena suena por tu salida predeterminada de Windows.",
+            "Écoute arrêtée.", "Listening stopped.", "Escucha detenida.",
+            "Simulation : l'écoute avant / après a besoin de couper l'égaliseur un instant, rien n'est modifié ici.", "Simulation: the before/after listening needs to switch the equalizer off for a moment, nothing is changed here.", "Simulación: la escucha antes / después necesita desactivar el ecualizador un momento, aquí no se modifica nada.",
+            "Allume d'abord l'égaliseur (gros bouton en haut), puis écoute la différence.", "Turn the equalizer on first (big button at the top), then hear the difference.", "Enciende primero el ecualizador (botón grande arriba) y luego escucha la diferencia.",
+            "L'égaliseur vise une autre sortie que celle de Windows : la scène s'entend sur la sortie par défaut, sans l'effet.", "The equalizer targets another output than Windows' default: the scene plays on the default output, without the effect.", "El ecualizador apunta a otra salida distinta de la de Windows: la escena suena en la salida predeterminada, sin el efecto.",
+            "Écoute terminée. Rejoue-la après chaque réglage pour comparer.", "Listening finished. Play it again after each setting to compare.", "Escucha terminada. Vuelve a reproducirla después de cada ajuste para comparar.",
+            "Comparaison : égaliseur coupé (au même volume) tant que tu maintiens le bouton.", "Comparing: equalizer off (at the same volume) while you hold the button.", "Comparación: ecualizador desactivado (al mismo volumen) mientras mantienes el botón.",
+            "Calibration de ton casque (plus de 6 000 modèles mesurés, base libre AutoEq), profils par jeu avec Auto jeux (Warzone, Valorant, CS2, Fortnite, Apex…), et test « Avant / après » à l'oreille, au même volume.", "Calibration for your headset (over 6,000 measured models, free AutoEq database), per-game profiles with Auto games (Warzone, Valorant, CS2, Fortnite, Apex…), and a “Before / after” listening test, at the same volume.", "Calibración de tus auriculares (más de 6 000 modelos medidos, base libre AutoEq), perfiles por juego con Auto juegos (Warzone, Valorant, CS2, Fortnite, Apex…) y prueba «Antes / después» de oído, al mismo volumen.",
         };
         private static readonly string[] Prefixes =
         {

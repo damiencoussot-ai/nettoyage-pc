@@ -43,6 +43,13 @@ Nouveautés de la version 5.14
   défaut, Voicemeeter) est noté dans l'Historique et s'annule de là. Aussi dans Ctrl+K, les favoris et
   Accélérer > Jeux. Ctrl+7 ouvre la rubrique Audio (Mises à jour passe à Ctrl+8, Historique à Ctrl+9,
   et Réglages s'ouvre avec Ctrl+0).
+- Calibration du casque : choisis ton modèle parmi plus de 6 000 casques et écouteurs mesurés en laboratoire
+  (base libre AutoEq) ; Velox corrige ses défauts pour un son neutre, puis le profil pas s'ajoute par-dessus.
+- Profils par jeu et « Auto jeux » (remplace Auto Warzone) : Warzone, Valorant, CS2, Fortnite, Apex, PUBG,
+  Rainbow Six, Tarkov, Overwatch 2, Battlefield 2042 ; le profil du jeu se charge à son lancement.
+- Test « Avant / après » : une scène de jeu jouée sans puis avec le Studio son, au même volume (comparaison
+  honnête) ; « Comparer » garde lui aussi le même volume.
+- Velox installe Equalizer APO pour toi (fichier officiel vérifié), et la page Audio est beaucoup plus fluide.
 - Table de mixage Voicemeeter dans le Studio son : volume, mute et envois vers les bus de chaque entrée, volume
   et mute de chaque bus, pilotés depuis Velox et annulables dans l'Historique (Voicemeeter, Banana et Potato).
 - L'égaliseur peut agir avant le mixage, sur « Voicemeeter Input » (Equalizer APO installé dessus), et Voicemeeter
