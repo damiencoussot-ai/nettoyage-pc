@@ -823,6 +823,7 @@ const PLAN_SERVEUR = [
   { cle: 'cat-bienvenue', nom: '👋 BIENVENUE', salons: [
     { cle: 'regles', nom: '📜・règles', alias: ['regles', 'reglement', 'rules'], lecture: true, sujet: 'Les règles du serveur Velox' },
     { cle: 'bienvenue', nom: '👋・bienvenue', alias: ['bienvenue', 'welcome', 'accueil'], lecture: true, sujet: 'Bienvenue ! Par où commencer' },
+    { cle: 'decouvrir', nom: '✨・découvrir-velox', alias: ['decouvrir-velox', 'decouvrir', 'presentation', 'fonctionnalites'], lecture: true, sujet: 'Tout ce que fait Velox, en images : entretien du PC, mode jeu, Studio son, Premium' },
     { cle: 'annonces', nom: '📢・annonces', alias: ['annonce', 'annonces'], lecture: true, sujet: 'Les nouveautés de Velox' },
     { cle: 'maj', nom: '🆕・mises-à-jour', alias: ['mises-a-jour', 'mise-a-jour', 'maj'], lecture: true, sujet: 'Chaque nouvelle version de Velox' }] },
   { cle: 'cat-velox', nom: '⚡ VELOX', salons: [
@@ -966,12 +967,42 @@ function messagesServeur(env, etat) {
     ['bienvenue', 'bienvenue', { allowed_mentions: sansMention, embeds: [{
       title: '👋 Bienvenue sur le serveur officiel de Velox !', color: VIOLET,
       description: '**Velox** nettoie, accélère et protège ton PC Windows : gratuit, sans pub, et rien n\'est supprimé sans ton accord.\n\n' +
-        '**Par où commencer ?**\n📜 Lis les ' + m('regles') + '\n🎭 Choisis tes rôles dans ' + m('roles') + '\n💬 Présente-toi dans ' + m('general') + '\n⭐ Donne ton avis avec `/avis` dans ' + m('avis') + '\n🏆 Montre ton rang de joueur : `/score` dans ' + m('captures') + '\n💎 Débloque tout avec Premium dans ' + m('acheter') + '\n🛟 Une question ? ' + m('support'),
+        '**Par où commencer ?**\n✨ Découvre tout ce que fait Velox dans ' + m('decouvrir') + '\n📜 Lis les ' + m('regles') + '\n🎭 Choisis tes rôles dans ' + m('roles') + '\n💬 Présente-toi dans ' + m('general') + '\n⭐ Donne ton avis avec `/avis` dans ' + m('avis') + '\n🏆 Montre ton rang de joueur : `/score` dans ' + m('captures') + '\n💎 Débloque tout avec Premium dans ' + m('acheter') + '\n🛟 Une question ? ' + m('support'),
       footer: { text: 'Velox · Windows 10 et 11' } }],
       components: [{ type: 1, components: [
         { type: 2, style: 1, label: 'Télécharger Velox', emoji: { name: '⬇️' }, custom_id: 'telecharger' },
         { type: 2, style: 1, label: 'Velox Premium', emoji: { name: '💎' }, custom_id: 'premium' },
       ].concat(s.roles ? [{ type: 2, style: 5, label: 'Choisir mes rôles', emoji: { name: '🎭' }, url: lien(s.roles) }] : []) }] }],
+    // vitrine : Velox, le Studio son, les joueurs, Premium (images du site officiel)
+    ['decouvrir', 'decouvrir', { allowed_mentions: sansMention, embeds: [
+      { title: '⚡ Velox : ton PC Windows rapide, propre et protégé', color: VIOLET, url: SITE,
+        description: '**Gratuit, sans pub, sans pistage.** Windows 10 et 11.\n\n' +
+          '🧹 **Nettoyer** : fichiers inutiles, disques, mémoire\n🚀 **Accélérer** : démarrage, réglages des jeux, plein potentiel du matériel\n' +
+          '🛡️ **Protéger** : bouclier anti-arnaque, sécurité, mises à jour, pilotes\n💾 **Outils** : sauvegarde, réseau, aide à distance, mode simple pour tes proches\n\n' +
+          '**Rien n\'est supprimé sans ton accord**, chaque action est expliquée, et tout s\'annule depuis l\'Historique.',
+        image: { url: SITE + 'img/accueil.png' } },
+      { title: '🎧 Studio son : entends chaque pas', color: MAGENTA,
+        description: 'Un égaliseur fait pour **Call of Duty / Warzone** : les pas et les recharges ressortent, les explosions ne t\'assourdissent plus.\n\n' +
+          '🎚️ **4 profils** : Compétitif, Équilibré, Pas extrême, Immersion\n📈 **Spectre en direct** : glisse les points de la courbe pour régler chaque bande\n' +
+          '🔁 **Comparer** : maintiens le bouton pour entendre la différence\n🎮 **Auto Warzone** : l\'égaliseur s\'allume quand le jeu tourne, se coupe quand tu le fermes\n' +
+          '⌨️ **En pleine partie** : Ctrl+Alt+F9 (marche / arrêt), Ctrl+Alt+F10 (profil suivant)\n🔊 Marche avec **Equalizer APO** (gratuit) ou **Voicemeeter** Banana / Potato\n\n' +
+          '**Le jeu n\'est jamais touché** : Velox règle seulement ton son, et tout s\'annule en un clic. Inclus dans Premium.',
+        image: { url: SITE + 'img/studio-son.webp' } },
+      { title: '🎮 Pour les joueurs', color: OR,
+        description: '🏆 **QG Gamer** : ton rang, tes succès, tes défis du jour, et ta carte de joueur à montrer ici avec `/score`\n' +
+          '⚡ **BOOST** : le mode jeu explique ce qu\'il fait, ligne par ligne\n💎 **Mode jeu automatique** et **Autopilote** : Velox garde seulement les réglages qui marchent sur ton PC\n' +
+          '💎 **Preuve en FPS** : tes images par seconde mesurées avant / après\n💎 **Moniteur en direct** : processeur, carte graphique, températures',
+        image: { url: SITE + 'img/qg.webp' } },
+      { title: '💎 Velox Premium · ' + PRIX_COURT, color: OR,
+        description: 'Tous les outils de pro, débloqués d\'un coup :\n' +
+          '🎧 Studio son · 🛡️ Gardien en temps réel · 🔍 « Pourquoi mon PC ralentit ? » · 🩺 Santé prédictive\n' +
+          '💾 Sauvegarde automatique · 💥 Analyse des plantages et du démarrage · 🤖 Assistant local · ⚡ Coût en électricité\n\n' +
+          '🎁 **Essai gratuit 7 jours** dans Velox, sans carte bancaire.\nSans engagement · satisfait ou remboursé 14 jours · ' + LIMITE_PC + ' PC.',
+        footer: { text: 'Velox · Windows 10 et 11' } }],
+      components: [{ type: 1, components: [
+        { type: 2, style: 1, label: 'Télécharger Velox', emoji: { name: '⬇️' }, custom_id: 'telecharger' },
+        { type: 2, style: 2, label: 'Essai gratuit 7 jours', emoji: { name: '🎁' }, custom_id: 'essai' },
+        { type: 2, style: 3, label: 'S\'abonner', emoji: { name: '💎' }, custom_id: 'premium' }] }] }],
     ['roles', 'roles', { allowed_mentions: sansMention, embeds: [{
       title: '🎭 Choisis tes rôles', color: MAGENTA,
       description: 'Clique sur un bouton pour **ajouter** le rôle, reclique pour **l\'enlever**.\n\n' + ROLES_CHOIX.map((r) => '**' + r.nom + '** : ' + r.texte).join('\n') +
