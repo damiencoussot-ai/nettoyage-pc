@@ -52,6 +52,8 @@ Nouveautés de la version 5.14
 - Velox installe Equalizer APO pour toi (fichier officiel vérifié), et la page Audio est beaucoup plus fluide.
 - Son 7.1 virtuel au casque : Velox pilote HeSuVi (gratuit, libre, installé à part) : allumé ou coupé, et choix
   du modèle (GSX, Dolby Atmos, DTS Headphone:X…) en un clic, annulable dans l'Historique.
+- Conseils de réglage dans le menu audio du jeu (Warzone : effets, musique, mono, acouphènes, mix), et alerte
+  si le 7.1 virtuel s'ajoute au son spatial du jeu (Mode casque amélioré de Call of Duty, HRTF de Valorant…).
 - Table de mixage Voicemeeter dans le Studio son : volume, mute et envois vers les bus de chaque entrée, volume
   et mute de chaque bus, pilotés depuis Velox et annulables dans l'Historique (Voicemeeter, Banana et Potato).
 - L'égaliseur peut agir avant le mixage, sur « Voicemeeter Input » (Equalizer APO installé dessus), et Voicemeeter

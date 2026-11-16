@@ -26,6 +26,10 @@ namespace NettoyagePC
     internal sealed class JeuAudio
     {
         public string Cle = "", Nom = "", Texte = "";
+        /// <summary>Option de son spatial intégrée au jeu ("" si aucune connue) : à ne pas cumuler avec le 7.1 virtuel.</summary>
+        public string Spatial = "";
+        /// <summary>Réglages conseillés dans le menu audio du jeu ("" si aucun).</summary>
+        public string DansLeJeu = "";
         public Regex Exe;
         public double[] Gains;
         public int CoupeBas;
@@ -499,15 +503,21 @@ namespace NettoyagePC
         /// </summary>
         public static readonly JeuAudio[] Jeux =
         {
-            new JeuAudio { Cle = "cod", Nom = "Call of Duty / Warzone", Exe = RegexJeu, Gains = new double[] { -5, -3, 2, 4, 3, -3 }, Texte = "Pas et recharges en avant, explosions calmées" },
-            new JeuAudio { Cle = "valorant", Nom = "Valorant", Exe = Exe("valorant-win64-shipping"), Gains = new double[] { -4, -2, 1, 4, 4, -2 }, Texte = "Pas secs et capacités bien détachés" },
-            new JeuAudio { Cle = "cs2", Nom = "Counter-Strike 2", Exe = Exe("cs2"), Gains = new double[] { -4, -1, 2, 4, 3, -1 }, Texte = "Pas et direction des sons" },
-            new JeuAudio { Cle = "fortnite", Nom = "Fortnite", Exe = Exe("fortniteclient-win64-shipping(_eac|_be|_eac_eos)?"), Gains = new double[] { -3, -2, 2, 4, 2, -2 }, Texte = "Pas, coffres et constructions" },
+            new JeuAudio { Cle = "cod", Nom = "Call of Duty / Warzone", Exe = RegexJeu, Gains = new double[] { -5, -3, 2, 4, 3, -3 }, Texte = "Pas et recharges en avant, explosions calmées",
+                Spatial = "Mode casque amélioré (Enhanced Headphone Mode)",
+                DansLeJeu = "effets à 100, musique à 0, dialogues vers 40, audio mono désactivé et réduction des acouphènes activée (elle calme les explosions). Essaie le mix Treyarch puis le mix Casque : garde celui où tu situes le mieux les pas." },
+            new JeuAudio { Cle = "valorant", Nom = "Valorant", Exe = Exe("valorant-win64-shipping"), Gains = new double[] { -4, -2, 1, 4, 4, -2 }, Texte = "Pas secs et capacités bien détachés",
+                Spatial = "HRTF", DansLeJeu = "musique au minimum ; l'option HRTF (Paramètres > Audio) place les sons autour de toi au casque." },
+            new JeuAudio { Cle = "cs2", Nom = "Counter-Strike 2", Exe = Exe("cs2"), Gains = new double[] { -4, -1, 2, 4, 3, -1 }, Texte = "Pas et direction des sons",
+                DansLeJeu = "le jeu spatialise déjà le son au casque : n'y ajoute pas le 7.1 virtuel. Musique au minimum." },
+            new JeuAudio { Cle = "fortnite", Nom = "Fortnite", Exe = Exe("fortniteclient-win64-shipping(_eac|_be|_eac_eos)?"), Gains = new double[] { -3, -2, 2, 4, 2, -2 }, Texte = "Pas, coffres et constructions",
+                Spatial = "Casque 3D (3D Headphones)", DansLeJeu = "musique au minimum ; l'option Casque 3D (menu Audio) spatialise les pas au casque." },
             new JeuAudio { Cle = "apex", Nom = "Apex Legends", Exe = Exe("r5apex(_dx12)?"), Gains = new double[] { -5, -3, 2, 5, 3, -3 }, Texte = "Pas très en avant, graves calmés" },
             new JeuAudio { Cle = "pubg", Nom = "PUBG", Exe = Exe("tslgame"), Gains = new double[] { -4, -2, 2, 4, 3, -2 }, Texte = "Pas et véhicules lointains" },
             new JeuAudio { Cle = "r6", Nom = "Rainbow Six Siege", Exe = Exe("rainbowsix(_vulkan|_be)?"), Gains = new double[] { -3, -1, 2, 4, 3, -1 }, Texte = "Pas au-dessus et en dessous de toi" },
             new JeuAudio { Cle = "tarkov", Nom = "Escape from Tarkov", Exe = Exe("escapefromtarkov"), Gains = new double[] { -2, 2, 2, 3, 2, -2 }, Texte = "Pas plus graves dans ce jeu : bas-médium remonté" },
-            new JeuAudio { Cle = "overwatch", Nom = "Overwatch 2", Exe = Exe("overwatch"), Gains = new double[] { -3, -2, 2, 3, 2, -1 }, Texte = "Pas et répliques des héros" },
+            new JeuAudio { Cle = "overwatch", Nom = "Overwatch 2", Exe = Exe("overwatch"), Gains = new double[] { -3, -2, 2, 3, 2, -1 }, Texte = "Pas et répliques des héros",
+                Spatial = "Dolby Atmos pour casque", DansLeJeu = "musique au minimum ; l'option Dolby Atmos pour casque (menu Son) spatialise le son au casque." },
             new JeuAudio { Cle = "bf2042", Nom = "Battlefield 2042", Exe = Exe("bf2042"), Gains = new double[] { -6, -3, 2, 4, 3, -3 }, CoupeBas = 60, Texte = "Explosions coupées, pas et voix en avant" },
         };
 
@@ -516,6 +526,14 @@ namespace NettoyagePC
 
         /// <summary>Vrai si ce programme est un jeu reconnu (Call of Duty / Warzone, Valorant, CS2…).</summary>
         public static bool EstJeu(string exe) { return JeuDe(exe) != null; }
+
+        /// <summary>Le jeu dont on parle : celui qui tourne, sinon celui dont le profil est chargé, sinon Call of Duty / Warzone.</summary>
+        public static JeuAudio JeuVise(string exeEnCours, ReglagesAudioJeu r)
+        {
+            return JeuDe(exeEnCours)
+                ?? (r == null ? null : Jeux.FirstOrDefault(j => j.Gains.SequenceEqual(r.Gains) && j.CoupeBas == r.CoupeBas))
+                ?? Jeux[0];
+        }
 
         /// <summary>
         /// Auto jeux : l'égaliseur suit le jeu (allumé pendant la partie, coupé après) ; avec « profil adapté à chaque jeu »,

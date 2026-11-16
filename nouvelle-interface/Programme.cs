@@ -633,6 +633,8 @@ namespace NettoyagePC.Nouveau
                     { "r5apex_dx12.exe", "apex" }, { "TslGame.exe", "pubg" }, { "RainbowSix_Vulkan.exe", "r6" }, { "EscapeFromTarkov.exe", "tarkov" }, { "Overwatch.exe", "overwatch" }, { "BF2042.exe", "bf2042" } };
                 verifier(exes.All(x => AudioJeu.JeuDe(x.Key)?.Cle == x.Value) && AudioJeu.JeuDe("notepad.exe") == null && AudioJeu.JeuDe("cs2launcher.exe") == null && AudioJeu.JeuDe(null) == null, "jeux reconnus par leur programme");
                 verifier(AudioJeu.Jeux.All(j => j.Gains.Length == AudioJeu.Bandes.Length && j.Gains.All(x => x >= -12 && x <= 12 && x * 2 == Math.Round(x * 2)) && new[] { 0, 60, 90, 120 }.Contains(j.CoupeBas)) && AudioJeu.Jeux.Select(j => j.Cle).Distinct().Count() == AudioJeu.Jeux.Length, "profils par jeu dans leurs bornes");
+                verifier(AudioJeu.JeuVise("valorant-win64-shipping.exe", null).Cle == "valorant" && AudioJeu.JeuVise(null, new ReglagesAudioJeu { Gains = (double[])AudioJeu.Jeux.First(j => j.Cle == "fortnite").Gains.Clone() }).Cle == "fortnite"
+                    && AudioJeu.JeuVise("notepad.exe", null).Cle == "cod" && AudioJeu.Jeux[0].Spatial != "" && AudioJeu.Jeux[0].DansLeJeu != "", "jeu visé par les conseils (en cours, profil chargé, sinon Warzone)");
                 var rj = new ReglagesAudioJeu { AutoJeu = true, ProfilParJeu = true, Gains = new double[6] };
                 bool c1 = AudioJeu.SuivreJeu(rj, "VALORANT-Win64-Shipping.exe", false);
                 bool okV = c1 && rj.Actif && rj.JeuEnCours == "valorant" && rj.Gains.SequenceEqual(AudioJeu.JeuDe("cs2.exe") == null ? null : AudioJeu.Jeux.First(j => j.Cle == "valorant").Gains);

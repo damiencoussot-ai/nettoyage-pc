@@ -510,6 +510,7 @@ namespace NettoyagePC.Nouveau
             public bool[] EtatEnvois = new bool[0];
         }
         private StackPanel zoneMix, zoneCasque, zoneSurround;
+        private TextBlock tDansLeJeu;
         private string signatureSurround;
         private bool tousModeles;
         private readonly List<Tuple<JeuAudio, Border>> puceJeux = new List<Tuple<JeuAudio, Border>>();
@@ -719,7 +720,9 @@ namespace NettoyagePC.Nouveau
             }
             autres = new WrapPanel { Children = { autres, parJeu } };
             tProfil = Studio.T("", 12.5, Studio.Discret);
-            g.Children.Add(Studio.Module("Profils", new StackPanel { Children = { grille, autres, tProfil } }));
+            tDansLeJeu = Studio.T("", 12, Studio.Faible);
+            tDansLeJeu.Margin = new Thickness(0, 6, 0, 0);
+            g.Children.Add(Studio.Module("Profils", new StackPanel { Children = { grille, autres, tProfil, tDansLeJeu } }));
             zoneCasque = new StackPanel { Spacing = 10 };
             g.Children.Add(Studio.Module("Calibration du casque", zoneCasque));
             zoneSurround = new StackPanel { Spacing = 10 };
@@ -1052,6 +1055,11 @@ namespace NettoyagePC.Nouveau
             profilAffiche = courant; cartesFaites = true;
             foreach (var pj in puceJeux) Marquer(pj.Item2, pj.Item1.Gains.SequenceEqual(r.Gains) && pj.Item1.CoupeBas == r.CoupeBas, Studio.Cyan);
             tProfil.Text = Langue.F("Profil en cours : {0} · force {1} %", Langue.T(AudioJeu.NomProfil(r)), r.Intensite);
+            {
+                var jv = AudioJeu.JeuVise(Releve?.Jeu, r);
+                tDansLeJeu.Text = jv.DansLeJeu == "" ? "" : Langue.F("Dans {0} : {1}", jv.Nom, Langue.T(jv.DansLeJeu));
+                tDansLeJeu.IsVisible = tDansLeJeu.Text != "";
+            }
             foreach (var m in molettes) { m.Item1.Valeur = ValeurMolette(m.Item1); m.Item2.Text = m.Item3(); }
             foreach (var c in coupes) Marquer(c.Item2, c.Item1 == r.CoupeBas);
             Marquer(bInversion, r.Inversion);
@@ -1325,7 +1333,8 @@ namespace NettoyagePC.Nouveau
             if (zoneSurround == null) return;
             var h = v.HeSuVi ?? new EtatHeSuVi();
             bool youSound = v.Etat.Autres.Contains("YouSound");
-            string sig = h.Present + "|" + h.Inclus + "|" + h.Actif + "|" + h.Modele + "|" + h.Modeles.Count + "|" + youSound + "|" + tousModeles;
+            var jeuVise = AudioJeu.JeuVise(v.Jeu, r);
+            string sig = h.Present + "|" + h.Inclus + "|" + h.Actif + "|" + h.Modele + "|" + h.Modeles.Count + "|" + youSound + "|" + tousModeles + "|" + jeuVise.Cle;
             if (sig == signatureSurround) return;
             signatureSurround = sig;
             zoneSurround.Children.Clear();
@@ -1370,6 +1379,11 @@ namespace NettoyagePC.Nouveau
             var actuel = modeles.FirstOrDefault(m => m.Nom == h.Modele);
             if (actuel != null && actuel.Description != "") zoneSurround.Children.Add(Studio.T(Langue.F("En ce moment : {0}", actuel.Description), 11.5, Studio.Faible));
             if (youSound && h.Actif) zoneSurround.Children.Add(Studio.T(Langue.T("YouSound fait aussi sa propre spatialisation : n'en garde qu'une, sinon le son devient flou."), 12, Studio.Ambre));
+            if (h.Actif && jeuVise.Spatial != "")
+                zoneSurround.Children.Add(Studio.T(Langue.F("Dans {0}, coupe l'option « {1} » tant que le 7.1 virtuel est allumé : deux spatialisations l'une sur l'autre brouillent la direction des pas. Ou fais l'inverse : garde l'option du jeu et coupe le 7.1 virtuel. Essaie les deux, garde celle où tu situes le mieux les pas.", jeuVise.Nom, Langue.T(jeuVise.Spatial)), 12, Studio.Ambre));
+            else if (h.Actif && jeuVise.Cle == "cs2")
+                zoneSurround.Children.Add(Studio.T(Langue.T("Counter-Strike 2 spatialise déjà le son au casque : coupe le 7.1 virtuel pendant tes parties de CS2."), 12, Studio.Ambre));
+            if (h.Actif) zoneSurround.Children.Add(Studio.T(Langue.T("Une seule spatialisation à la fois : laisse aussi coupés le son spatial de Windows (Windows Sonic, Dolby Atmos, DTS) sur cette sortie et le surround virtuel du logiciel de ton casque."), 11.5, Studio.Faible));
             zoneSurround.Children.Add(Studio.T(Langue.T("Pour un vrai 7.1, ta sortie Windows doit être réglée en 7.1 (Paramètres > Son > ta sortie > Configurer), ou passe par Voicemeeter Input en 7.1. En stéréo, HeSuVi spatialise quand même la gauche et la droite. Le 7.1 maison de Velox arrive dans une prochaine version."), 11.5, Studio.Faible));
         }
 
