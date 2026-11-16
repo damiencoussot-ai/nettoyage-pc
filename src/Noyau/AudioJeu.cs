@@ -57,6 +57,8 @@ namespace NettoyagePC
         public int BusVm, VmEcrit = -1;
         /// <summary>Dernier appareil vu sur le bus A de Voicemeeter (pour viser la bonne sortie quand Voicemeeter est la sortie par défaut).</summary>
         public string AppareilVm = "";
+        /// <summary>Ne pas mettre le nom « Velox Studio » dans Voicemeeter sur ce que l'égaliseur traite (mis par défaut).</summary>
+        public bool SansEtiquetteVm;
 
         public ReglagesAudioJeu Copie() { var c = (ReglagesAudioJeu)MemberwiseClone(); c.Gains = (double[])Gains.Clone(); return c; }
 
@@ -90,6 +92,7 @@ namespace NettoyagePC
                 { "Actif", Actif }, { "Gains", Gains.Select(x => (object)x).ToArray() }, { "Intensite", Intensite }, { "Niveau", Niveau }, { "Balance", Balance },
                 { "Largeur", Largeur }, { "CoupeBas", CoupeBas }, { "Inversion", Inversion }, { "AutoJeu", AutoJeu }, { "Cible", Cible }, { "CibleEcrite", CibleEcrite },
                 { "Raccourcis", Raccourcis }, { "Moteur", Moteur }, { "BusVm", BusVm }, { "VmEcrit", VmEcrit }, { "AppareilVm", AppareilVm ?? "" },
+                { "SansEtiquetteVm", SansEtiquetteVm },
             };
         }
 
@@ -111,6 +114,7 @@ namespace NettoyagePC
             r.Raccourcis = Json.Bool(d, "Raccourcis"); r.Moteur = Json.Texte(d, "Moteur", "apo");
             r.BusVm = (int)Json.Long(d, "BusVm"); r.VmEcrit = (int)Json.Long(d, "VmEcrit", -1);
             string av = Json.Texte(d, "AppareilVm"); r.AppareilVm = av.Length <= 200 ? av : "";
+            r.SansEtiquetteVm = Json.Bool(d, "SansEtiquetteVm");
             return r.Borner();
         }
     }

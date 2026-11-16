@@ -202,7 +202,8 @@ namespace NettoyagePC.Nouveau
             var copie = r.Copie();
             Task.Run(() =>
             {
-                string erreur, avert = "";
+                string erreur, avert = "", guidEcrit = "";
+                List<SortieAudio> sortiesLues = null;
                 if (copie.Moteur == "vm")
                 {
                     // l'égaliseur passe par Voicemeeter. Celui d'Equalizer APO n'est coupé (pour ne pas doubler l'effet) qu'une
@@ -224,11 +225,13 @@ namespace NettoyagePC.Nouveau
                 {
                     int etat;
                     string defaut = AudioJeu.SortieParDefaut();
-                    string guid = AudioJeu.Resoudre(copie.Cible, AudioJeu.Sorties(), defaut, out etat, AudioJeu.NomSortie(defaut), copie.AppareilVm);
+                    sortiesLues = AudioJeu.Sorties();
+                    string guid = AudioJeu.Resoudre(copie.Cible, sortiesLues, defaut, out etat, AudioJeu.NomSortie(defaut), copie.AppareilVm);
+                    guidEcrit = guid;
                     erreur = AudioJeu.Appliquer(copie, guid, utilisateur, toujours);
                     if (erreur == "" && copie.VmEcrit >= 0 && Voicemeeter.Couper(copie.VmEcrit, utilisateur) == "") copie.VmEcrit = -1;
                 }
-                if (erreur == "") AudioJeu.Enregistrer(copie);
+                if (erreur == "") { AudioJeu.Enregistrer(copie); EtiqueterVm(copie, guidEcrit, sortiesLues); }
                 return Tuple.Create(erreur, copie, ReleveAudioJeu.Lire(), avert);
             }).ContinueWith(t => Dispatcher.UIThread.Post(() =>
             {
@@ -259,6 +262,38 @@ namespace NettoyagePC.Nouveau
                     Ecrire(f, u, tj, m);
                 }
             }));
+        }
+
+        /// <summary>
+        /// Nom « Velox Studio » dans Voicemeeter sur ce que l'égaliseur traite : le bus égalisé par Voicemeeter, l'entrée
+        /// virtuelle (Voicemeeter Input…) ou le bus dont l'appareil est la sortie égalisée par Equalizer APO. Seulement si
+        /// Voicemeeter est lancé ; un nom donné par l'utilisateur n'est jamais remplacé. Égaliseur coupé : le nom est retiré.
+        /// </summary>
+        private static void EtiqueterVm(ReglagesAudioJeu c, string guid, List<SortieAudio> sorties)
+        {
+            try
+            {
+                // état relu (page fermée : celui reçu de l'écoute peut être ancien) ; Voicemeeter absent : rien n'est chargé
+                if (Voicemeeter.Dossier() == null) return;
+                var e = Voicemeeter.Lire();
+                if (e == null || !e.Lance) return;
+                int bus = -1, entree = -1;
+                if (c.Actif && !c.SansEtiquetteVm)
+                {
+                    if (c.Moteur == "vm") bus = c.BusVm;
+                    else if (!string.IsNullOrEmpty(guid) && sorties != null)
+                    {
+                        entree = Voicemeeter.EntreeVirtuelle(AudioJeu.NomSortie(guid), e.Type);
+                        if (entree < 0)
+                        {
+                            var b = e.Bus.FirstOrDefault(x => x.Physique && x.Appareil != "" && AudioJeu.SortieVoicemeeter(x.Appareil, sorties) == guid);
+                            if (b != null) bus = b.Index;
+                        }
+                    }
+                }
+                Voicemeeter.Etiqueter(bus, entree);
+            }
+            catch { }
         }
 
         /// <summary>Un changement a été annulé depuis l'Historique : réglages et fichier sont relus.</summary>
@@ -384,6 +419,25 @@ namespace NettoyagePC.Nouveau
         private Fader5[] faders;
         private TextBlock[] tFaders;
         private readonly List<Tuple<BusVoicemeeter, VuMetre5>> vuBus = new List<Tuple<BusVoicemeeter, VuMetre5>>();
+
+        // ---- table de mixage de Voicemeeter (entrées et bus)
+        private sealed class Tranche
+        {
+            public string Prefixe = "";   // « Strip[2] » ou « Bus[0] »
+            public bool EstBus, Muet;
+            public Fader5 Fader;
+            public TextBlock TGain;
+            public Border BMute;
+            public VuMetre5 Vu;
+            public readonly List<Tuple<string, Border>> Envois = new List<Tuple<string, Border>>();
+            public bool[] EtatEnvois = new bool[0];
+        }
+        private StackPanel zoneMix;
+        private string signatureMix;
+        private readonly List<Tranche> tranches = new List<Tranche>();
+        private static readonly Dictionary<string, float> mixEnAttente = new Dictionary<string, float>();
+        private static DateTime mixLocal = DateTime.MinValue;
+        private DispatcherTimer delaiMix;
         private string signatureSorties, signatureVm, signatureAuto;
         private bool? deuxColonnes;
         private WrapPanel boutonsVerrou;
@@ -439,6 +493,11 @@ namespace NettoyagePC.Nouveau
                     if (tEcoute != null) { string err = EcouteDirecte.Erreur == "" ? "" : Langue.T(EcouteDirecte.Erreur); if (tEcoute.Text != err) { tEcoute.Text = err; tEcoute.IsVisible = err != ""; } }
                     var e = Voicemeeter.Etat;
                     foreach (var x in vuBus) { var b = e.Bus.FirstOrDefault(y => y.Index == x.Item1.Index); if (b != null) x.Item2.Definir(b.G, b.D); }
+                    foreach (var tr in tranches)
+                    {
+                        if (tr.EstBus) { var b = e.Bus.FirstOrDefault(y => "Bus[" + y.Index + "]" == tr.Prefixe); if (b != null) tr.Vu.Definir(b.G, b.D); }
+                        else { var x = e.Entrees.FirstOrDefault(y => "Strip[" + y.Index + "]" == tr.Prefixe); if (x != null) tr.Vu.Definir(x.G, x.D); }
+                    }
                     if (t % 1000 < 40) MajVoicemeeter();
                 };
                 Horloge.Ambiance(ambiance);
@@ -616,6 +675,8 @@ namespace NettoyagePC.Nouveau
             Disposer(1000);
             corps.SizeChanged += (o, a) => Disposer(a.NewSize.Width);
             pile.Children.Add(corps);
+            zoneMix = new StackPanel { Spacing = 10 };
+            pile.Children.Add(Studio.Module("Table de mixage", zoneMix));
             Construire(zoneAuto);
             return pile;
         }
@@ -913,7 +974,13 @@ namespace NettoyagePC.Nouveau
         {
             if (zoneVm == null) return;
             var e = Vm;
-            string sig = e.Installe + "|" + e.Lance + "|" + e.Type + "|" + e.Version + "|" + string.Join(",", e.Bus.Select(b => b.Nom + b.Label + b.Appareil)) + "|" + r.Moteur + r.BusVm;
+            MajMixage();
+            var rel = Releve;
+            var premiereVirt = e.Entrees.FirstOrDefault(x => x.Virtuelle);
+            var vmEntree = rel == null || premiereVirt == null ? null : rel.Windows.FirstOrDefault(w => Voicemeeter.EntreeVirtuelle(w.Nom, e.Type) == premiereVirt.Index);
+            bool vmEntreeApo = vmEntree != null && rel.Sorties.Any(x => x.Guid == vmEntree.Guid);
+            string sig = e.Installe + "|" + e.Lance + "|" + e.Type + "|" + e.Version + "|" + string.Join(",", e.Bus.Select(b => b.Nom + b.Label + b.Appareil)) + "|" + r.Moteur + r.BusVm
+                + "|" + (vmEntree != null ? vmEntree.Guid : "") + vmEntreeApo + "|" + r.Cible + "|" + r.SansEtiquetteVm;
             if (sig == signatureVm) return;
             signatureVm = sig;
             zoneVm.Children.Clear(); vuBus.Clear();
@@ -950,6 +1017,34 @@ namespace NettoyagePC.Nouveau
                 signatureSorties = null;
             }
             zoneVm.Children.Add(Studio.T(Langue.F("Avec Voicemeeter, le son du jeu passe d'abord par « Voicemeeter Input », puis sort sur l'appareil du bus {0}{1}. Equalizer APO agit sur la sortie où il est installé : vise celle où tu entends l'effet.", a != null ? a.Nom : "A", a != null && a.Appareil != "" ? " (" + a.Appareil + ")" : ""), 12, Studio.Faible));
+
+            // égaliser AVANT le mixage : Equalizer APO installé sur « Voicemeeter Input »
+            if (vmEntree != null && r.Moteur != "vm")
+            {
+                var avant = new WrapPanel();
+                if (vmEntreeApo)
+                {
+                    string g = vmEntree.Guid;
+                    bool vise = AudioJeu.NormaliserGuid(r.Cible) == AudioJeu.NormaliserGuid(g);
+                    var bAvant = Puce(Langue.T("Égaliser avant le mixage (Voicemeeter Input)"), () => { if (exemple) return; r.Cible = vise ? "auto" : g; Changer(Langue.T(vise ? "Sortie visée : automatique." : "L'égaliseur agit maintenant sur Voicemeeter Input, avant le mixage."), false, true); });
+                    Marquer(bAvant, vise, Studio.Cyan);
+                    ToolTip.SetTip(bAvant, Langue.T("Tout ce qui entre dans Voicemeeter par cette entrée est égalisé, avant tes réglages de mixage. Reclique pour revenir au choix automatique."));
+                    avant.Children.Add(bAvant);
+                    zoneVm.Children.Add(avant);
+                }
+                else
+                {
+                    zoneVm.Children.Add(Studio.T(Langue.T("Pour égaliser avant le mixage, coche « Voicemeeter Input » dans le Configurator d'Equalizer APO, puis redémarre le PC : Velox pourra alors viser cette entrée."), 12, Studio.Faible));
+                    avant.Children.Add(Studio.Bouton(Langue.T("Ouvrir le Configurator"), false, OuvrirConfigurator));
+                    zoneVm.Children.Add(avant);
+                }
+            }
+
+            // nom « Velox Studio » dans Voicemeeter
+            var bNom = Puce(Langue.T("Nom « Velox Studio » dans Voicemeeter"), () => { if (exemple) return; r.SansEtiquetteVm = !r.SansEtiquetteVm; Changer(Langue.T(r.SansEtiquetteVm ? "Velox ne met plus son nom dans Voicemeeter." : "Voicemeeter affiche « Velox Studio » sur ce que l'égaliseur traite."), false, true); });
+            Marquer(bNom, !r.SansEtiquetteVm, Studio.Magenta);
+            ToolTip.SetTip(bNom, Langue.T("Le bus ou l'entrée que l'égaliseur de Velox traite s'appelle « Velox Studio » dans Voicemeeter (seulement s'il n'a pas déjà un nom). Le nom est retiré quand l'égaliseur est coupé."));
+            zoneVm.Children.Add(new WrapPanel { Children = { bNom } });
             if (!e.EgaliseurNatif)
             {
                 zoneVm.Children.Add(Studio.T(Langue.T("L'égaliseur des bus n'existe que dans Voicemeeter Banana et Potato : ici, l'égaliseur passe par Equalizer APO."), 12, Studio.Discret));
@@ -967,6 +1062,154 @@ namespace NettoyagePC.Nouveau
                 moteur.Children.Add(p);
             }
             zoneVm.Children.Add(moteur);
+        }
+
+        // ---------------------------------------------------------------- table de mixage de Voicemeeter
+
+        /// <summary>
+        /// Entrées et bus de Voicemeeter, pilotés d'ici : volume (fader), mute, envois vers les bus (A1, B1…). Chaque
+        /// réglage passe par Voicemeeter et s'annule dans l'Historique. Les valeurs suivent celles de Voicemeeter, sauf
+        /// pendant un réglage fait ici.
+        /// </summary>
+        private void MajMixage()
+        {
+            if (zoneMix == null) return;
+            var e = Vm;
+            string sig = e.Lance + "|" + e.Type + "|" + string.Join(",", e.Entrees.Select(x => x.Label)) + "|" + string.Join(",", e.Bus.Select(b => b.Label + b.Appareil));
+            if (sig != signatureMix)
+            {
+                signatureMix = sig;
+                ConstruireMixage(e);
+                return;
+            }
+            if (mixEnAttente.Count > 0 || (DateTime.Now - mixLocal).TotalSeconds < 1.5) return;   // réglage en cours ici : Voicemeeter n'a pas encore suivi
+            foreach (var t in tranches)
+            {
+                float gain; bool muet; bool[] envois = null;
+                if (t.EstBus) { var b = e.Bus.FirstOrDefault(y => "Bus[" + y.Index + "]" == t.Prefixe); if (b == null) continue; gain = b.Gain; muet = b.Muet; }
+                else { var x = e.Entrees.FirstOrDefault(y => "Strip[" + y.Index + "]" == t.Prefixe); if (x == null) continue; gain = x.Gain; muet = x.Muet; envois = x.Envois; }
+                if (t.Fader.Valeur != gain) { t.Fader.Valeur = gain; t.TGain.Text = TexteGain(gain); }
+                if (t.Muet != muet) { t.Muet = muet; Marquer(t.BMute, muet, Studio.Rouge); }
+                if (envois != null)
+                    for (int k = 0; k < t.Envois.Count && k < envois.Length; k++)
+                        if (t.EtatEnvois[k] != envois[k]) { t.EtatEnvois[k] = envois[k]; Marquer(t.Envois[k].Item2, envois[k], Studio.Cyan); }
+            }
+        }
+
+        private static string TexteGain(double g) { return (g > 0 ? "+" : "") + g.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture) + " dB"; }
+
+        private void ConstruireMixage(EtatVoicemeeter e)
+        {
+            zoneMix.Children.Clear(); tranches.Clear();
+            if (!e.Lance)
+            {
+                zoneMix.Children.Add(Studio.T(Langue.T(e.Installe ? "Lance Voicemeeter pour piloter ses entrées et ses bus d'ici." : "Voicemeeter n'est pas installé : la table de mixage pilote Voicemeeter (gratuit, VB-Audio)."), 12.5, Studio.Discret));
+                return;
+            }
+            zoneMix.Children.Add(Studio.T(Langue.F("{0} : volume, mute et envois de chaque entrée vers les bus. Chaque réglage s'annule dans l'Historique. Double-clic sur un fader : 0 dB.", e.Nom), 12, Studio.Faible));
+            var rang = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
+            var routes = Voicemeeter.Routes(e.Type);
+            var nomsBus = e.Bus.Select(b => b.Nom).ToArray();
+            var ent = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
+            rang.Children.Add(new StackPanel { Spacing = 6, Children = { Etiquette(Langue.T("Entrées")), ent } });
+            foreach (var x in e.Entrees)
+            {
+                string nom = x.Label != "" ? x.Label : x.Virtuelle ? x.Nom : Langue.F("Entrée {0}", x.Index + 1);
+                string sous = x.Label != "" ? (x.Virtuelle ? x.Nom : Langue.F("Entrée {0}", x.Index + 1)) : (x.Virtuelle ? Langue.T("virtuelle") : Langue.T("physique"));
+                var t = new Tranche { Prefixe = "Strip[" + x.Index + "]", Muet = x.Muet, EtatEnvois = (bool[])x.Envois.Clone() };
+                var bloc = CreerTranche(t, nom, sous, x.Virtuelle ? Studio.Cyan : Studio.Ambre, x.Gain, x.G, x.D);
+                ent.Children.Add(bloc);
+                var envois = new WrapPanel { MaxWidth = 92, HorizontalAlignment = HorizontalAlignment.Center };
+                for (int k = 0; k < routes.Length && k < nomsBus.Length; k++)
+                {
+                    int kk = k; var tt = t;
+                    var p = PetitePuce(nomsBus[k], () => { tt.EtatEnvois[kk] = !tt.EtatEnvois[kk]; Marquer(tt.Envois[kk].Item2, tt.EtatEnvois[kk], Studio.Cyan); Planifier(tt.Prefixe + "." + routes[kk], tt.EtatEnvois[kk] ? 1 : 0); });
+                    AutomationProperties.SetName(p, Langue.F("Envoyer « {0} » vers le bus {1}", nom, nomsBus[k]));
+                    Marquer(p, k < x.Envois.Length && x.Envois[k], Studio.Cyan);
+                    t.Envois.Add(Tuple.Create(routes[k], p));
+                    envois.Children.Add(p);
+                }
+                ((StackPanel)bloc.Child).Children.Add(envois);
+                tranches.Add(t);
+            }
+            rang.Children.Add(new Border { Width = 1, Background = Studio.P(Studio.Bord), Margin = new Thickness(6, 22, 6, 0) });
+            var sorties = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
+            rang.Children.Add(new StackPanel { Spacing = 6, Children = { Etiquette(Langue.T("Bus")), sorties } });
+            foreach (var b in e.Bus)
+            {
+                string nom = b.Label != "" ? b.Label : b.Nom;
+                string sous = b.Label != "" ? b.Nom + (b.Appareil != "" ? " · " + b.Appareil : "") : (b.Appareil != "" ? b.Appareil : Langue.T(b.Physique ? "physique" : "virtuel"));
+                var t = new Tranche { Prefixe = "Bus[" + b.Index + "]", EstBus = true, Muet = b.Muet };
+                sorties.Children.Add(CreerTranche(t, nom, sous, b.Physique ? Studio.Ambre : Studio.Cyan, b.Gain, b.G, b.D));
+                tranches.Add(t);
+            }
+            zoneMix.Children.Add(new ScrollViewer { Content = rang, HorizontalScrollBarVisibility = ScrollBarVisibility.Auto, VerticalScrollBarVisibility = ScrollBarVisibility.Disabled });
+        }
+
+        private static Control Etiquette(string texte)
+        {
+            return new TextBlock { Text = texte.ToUpper(Langue.Culture), FontFamily = Studio.Chiffres, FontSize = 10.5, LetterSpacing = 2, Foreground = Studio.P(Studio.Faible), Margin = new Thickness(4, 0, 0, 0) };
+        }
+
+        private Border CreerTranche(Tranche t, string nom, string sous, Color couleur, float gain, float g, float d)
+        {
+            var pile = new StackPanel { Spacing = 6, Width = 92 };
+            pile.Children.Add(new TextBlock { Text = nom, FontFamily = Studio.Titre, FontSize = 13, FontWeight = FontWeight.SemiBold, Foreground = Studio.P(couleur), TextTrimming = TextTrimming.CharacterEllipsis, HorizontalAlignment = HorizontalAlignment.Center });
+            var ts = new TextBlock { Text = sous, FontFamily = Studio.Corps, FontSize = 10.5, Foreground = Studio.P(Studio.Faible), TextTrimming = TextTrimming.CharacterEllipsis, HorizontalAlignment = HorizontalAlignment.Center };
+            ToolTip.SetTip(ts, sous);
+            pile.Children.Add(ts);
+            t.Vu = new VuMetre5 { Height = 10, MinWidth = 70, Width = 76, HorizontalAlignment = HorizontalAlignment.Center };
+            if (exemple) t.Vu.Definir(g, d);
+            pile.Children.Add(t.Vu);
+            t.Fader = new Fader5(-60, 12, 0.5, gain) { Height = 150, HorizontalAlignment = HorizontalAlignment.Center };
+            AutomationProperties.SetName(t.Fader, Langue.F("Volume de « {0} »", nom));
+            t.TGain = new TextBlock { Text = TexteGain(t.Fader.Valeur), FontFamily = Studio.Chiffres, FontSize = 11.5, Foreground = Studio.P(Studio.Texte), HorizontalAlignment = HorizontalAlignment.Center };
+            t.Fader.Change += v => { t.TGain.Text = TexteGain(v); Planifier(t.Prefixe + ".Gain", (float)v); };
+            pile.Children.Add(t.Fader); pile.Children.Add(t.TGain);
+            t.BMute = PetitePuce("MUTE", () => { t.Muet = !t.Muet; Marquer(t.BMute, t.Muet, Studio.Rouge); Planifier(t.Prefixe + ".Mute", t.Muet ? 1 : 0); });
+            t.BMute.HorizontalAlignment = HorizontalAlignment.Center;
+            AutomationProperties.SetName(t.BMute, Langue.F("Couper « {0} »", nom));
+            Marquer(t.BMute, t.Muet, Studio.Rouge);
+            pile.Children.Add(t.BMute);
+            return new Border { Child = pile, Padding = new Thickness(6, 10), CornerRadius = new CornerRadius(12), Background = Studio.P(Studio.Violet, 10), BorderBrush = Studio.P(Studio.Bord, 160), BorderThickness = new Thickness(1) };
+        }
+
+        private Border PetitePuce(string texte, Action clic)
+        {
+            var b = Puce(texte, clic);
+            b.Padding = new Thickness(7, 3); b.Margin = new Thickness(2); b.CornerRadius = new CornerRadius(8);
+            if (b.Child is TextBlock tb) tb.FontSize = 10.5;
+            return b;
+        }
+
+        /// <summary>Un réglage de la table : envoyé à Voicemeeter après un court instant sans autre changement (un fader
+        /// qu'on glisse n'envoie pas chaque pas).</summary>
+        private void Planifier(string parametre, float valeur)
+        {
+            if (exemple) return;
+            if (simulation) { F.Statut(Langue.T("Simulation : Voicemeeter serait réglé, rien n'est modifié."), true); signatureMix = null; return; }
+            mixEnAttente[parametre] = valeur;
+            mixLocal = DateTime.Now;
+            if (delaiMix == null)
+            {
+                delaiMix = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(150) };
+                delaiMix.Tick += (o, a) => EnvoyerMixage();
+            }
+            delaiMix.Stop(); delaiMix.Start();
+        }
+
+        private void EnvoyerMixage()
+        {
+            delaiMix.Stop();
+            if (mixEnAttente.Count == 0) return;
+            var envoi = new Dictionary<string, float>(mixEnAttente);
+            mixEnAttente.Clear();
+            mixLocal = DateTime.Now;
+            Task.Run(() => Voicemeeter.Mixer(envoi)).ContinueWith(t => Dispatcher.UIThread.Post(() =>
+            {
+                string err = t.IsFaulted ? (t.Exception.InnerException ?? t.Exception).Message : t.Result;
+                if (err != "") { F.Statut(Langue.T(err), true); mixLocal = DateTime.MinValue; }
+            }));
         }
 
         // ---------------------------------------------------------------- changements

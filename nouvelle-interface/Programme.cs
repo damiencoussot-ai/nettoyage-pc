@@ -237,6 +237,12 @@ namespace NettoyagePC.Nouveau
             e.Bus = Voicemeeter.Disposition(2);
             e.Bus[0].Appareil = "Casque (Arctis Nova Pro)"; e.Bus[0].G = 0.5f; e.Bus[0].D = 0.42f;
             e.Bus[3].Label = "Discord"; e.Bus[3].G = 0.12f; e.Bus[3].D = 0.1f;
+            e.Bus[0].Gain = -2; e.Bus[1].Muet = true;
+            e.Entrees = Voicemeeter.DispositionEntrees(2);
+            e.Entrees[0].Label = "Micro"; e.Entrees[0].Gain = 3; e.Entrees[0].G = 0.3f; e.Entrees[0].D = 0.3f; e.Entrees[0].Envois[3] = true;
+            e.Entrees[2].Muet = true;
+            e.Entrees[3].Label = "Jeu"; e.Entrees[3].Gain = -4.5f; e.Entrees[3].G = 0.62f; e.Entrees[3].D = 0.55f; e.Entrees[3].Envois[0] = true;
+            e.Entrees[4].Label = "Discord"; e.Entrees[4].G = 0.2f; e.Entrees[4].D = 0.18f; e.Entrees[4].Envois[0] = true; e.Entrees[4].Envois[1] = true;
             return e;
         }
 
@@ -474,16 +480,16 @@ namespace NettoyagePC.Nouveau
                 verifier(string.Join(",", d1.Select(x => x.Nom + x.PremierCanal)) == "A0,B8" && string.Join(",", d2.Select(x => x.Nom + x.PremierCanal)) == "A10,A28,A316,B124,B232"
                     && d3.Count == 8 && d3[5].Nom == "B1" && d3[5].PremierCanal == 40 && d3[7].PremierCanal == 56 && d3.Count(x => x.Physique) == 5, "Voicemeeter : bus et canaux");
                 verifier(Voicemeeter.ParametreAutorise("Bus[0].EQ.on") && Voicemeeter.ParametreAutorise("Bus[4].EQ.channel[1].cell[5].gain") && Voicemeeter.ParametreAutorise("Bus[7].EQ.channel[0].Trim")
-                    && !Voicemeeter.ParametreAutorise("Bus[0].Gain") && !Voicemeeter.ParametreAutorise("Bus[0].EQ.channel[2].cell[0].gain") && !Voicemeeter.ParametreAutorise("Strip[0].Mute") && !Voicemeeter.ParametreAutorise("Bus[0].EQ.on;Strip[0].Mute=1") && !Voicemeeter.ParametreAutorise(null), "Voicemeeter : paramètres autorisés");
+                    && Voicemeeter.ParametreAutorise("Bus[0].Gain") && Voicemeeter.ParametreAutorise("Strip[0].Mute") && !Voicemeeter.ParametreAutorise("Bus[0].EQ.channel[2].cell[0].gain") && !Voicemeeter.ParametreAutorise("Strip[0].Comp") && !Voicemeeter.ParametreAutorise("Command.Shutdown") && !Voicemeeter.ParametreAutorise("Bus[0].EQ.on;Strip[0].Mute=1") && !Voicemeeter.ParametreAutorise(null), "Voicemeeter : paramètres autorisés");
                 var vm = Voicemeeter.ScriptEq(new ReglagesAudioJeu { Actif = true, Gains = (double[])competitif.Clone(), Balance = 2 }, 0);
                 verifier(vm.Count == 1 + 2 * (6 * 5 + 1) && vm["Bus[0].EQ.on"] == 1 && vm["Bus[0].EQ.channel[0].cell[0].type"] == 5 && vm["Bus[0].EQ.channel[1].cell[3].type"] == 0
                     && vm["Bus[0].EQ.channel[0].cell[3].f"] == 2500 && vm["Bus[0].EQ.channel[1].cell[3].gain"] == 4 && vm["Bus[0].EQ.channel[0].cell[0].q"] == 1 && vm["Bus[0].EQ.channel[0].cell[5].q"] == 2
                     && vm["Bus[0].EQ.channel[1].Trim"] == -5.2f && vm["Bus[0].EQ.channel[0].Trim"] == -7.2f, "Voicemeeter : égaliseur (plateau grave, cloches, Q, compensation, balance)");
                 var vm2 = Voicemeeter.ScriptEq(new ReglagesAudioJeu { Actif = false, Gains = (double[])competitif.Clone(), CoupeBas = 90 }, 3);
                 verifier(vm2["Bus[3].EQ.on"] == 0 && vm2["Bus[3].EQ.channel[0].cell[0].type"] == 4 && vm2["Bus[3].EQ.channel[0].cell[0].f"] == 90 && vm2["Bus[3].EQ.channel[1].cell[0].on"] == 1 && vm2.Keys.All(Voicemeeter.ParametreAutorise), "Voicemeeter : coupe-explosions dans la première cellule, égaliseur coupé");
-                string sc = Voicemeeter.Script(new System.Collections.Generic.Dictionary<string, float> { { "Bus[0].EQ.on", 1 }, { "Bus[0].EQ.channel[0].Trim", -5.25f }, { "Strip[0].Mute", 1 } });
+                string sc = Voicemeeter.Script(new System.Collections.Generic.Dictionary<string, float> { { "Bus[0].EQ.on", 1 }, { "Bus[0].EQ.channel[0].Trim", -5.25f }, { "Strip[0].Comp", 1 }, { "Command.Shutdown", 1 } });
                 verifier(sc == "Bus[0].EQ.on=1;Bus[0].EQ.channel[0].Trim=-5.25", "Voicemeeter : script (point décimal, paramètres inconnus écartés) : " + sc);
-                verifier(Voicemeeter.Annuler(new Modif { Type = "voicemeeter", Donnees = new System.Collections.Generic.Dictionary<string, object> { { "Avant", new System.Collections.Generic.Dictionary<string, object> { { "Strip[0].Mute", 1 } } } } }).StartsWith("entrée de l'historique invalide")
+                verifier(Voicemeeter.Annuler(new Modif { Type = "voicemeeter", Donnees = new System.Collections.Generic.Dictionary<string, object> { { "Avant", new System.Collections.Generic.Dictionary<string, object> { { "Command.Shutdown", 1 } } } } }).StartsWith("entrée de l'historique invalide")
                     && Voicemeeter.Annuler(new Modif { Type = "voicemeeter" }).StartsWith("entrée de l'historique invalide"), "Voicemeeter : annulation refusée pour un paramètre inconnu");
 
                 // sortie par défaut : seuls de vrais identifiants de sortie sont acceptés
@@ -529,6 +535,31 @@ namespace NettoyagePC.Nouveau
                 verifier(evr.Lance && evr.Type == 2 && evr.Version == "2.1.1.8" && evr.Bus.Count == 5 && evr.Bus[0].Appareil == "Casque (Arctis Nova Pro)" && Math.Abs(evr.Bus[0].G - 0.5f) < 0.001 && evr.Bus[3].Label == "Discord" && evr.EgaliseurNatif, "écoute : état de Voicemeeter relu");
                 Voicemeeter.Etat = etatAvant;
                 verifier(EtatVoicemeeter.DepuisJson(null) == null && EtatVoicemeeter.DepuisJson(new System.Collections.Generic.Dictionary<string, object> { { "T", 99 } }).Type == 3, "écoute : état de Voicemeeter borné");
+                EcouteDirecte.Traiter("V " + Json.Compact(evm.VersJson()));
+                var em = Voicemeeter.Etat; Voicemeeter.Etat = etatAvant;
+                verifier(em.Entrees.Count == 5 && em.Entrees[3].Label == "Jeu" && Math.Abs(em.Entrees[3].Gain + 4.5f) < 0.01 && em.Entrees[3].Envois.Length == 5 && em.Entrees[3].Envois[0] && !em.Entrees[3].Envois[1]
+                    && em.Entrees[2].Muet && em.Bus[1].Muet && Math.Abs(em.Bus[0].Gain + 2) < 0.01 && em.Entrees[3].Virtuelle && !em.Entrees[0].Virtuelle, "table de mixage : entrées, volumes, mute et envois relus");
+                var hors = new System.Collections.Generic.Dictionary<string, object> { { "L", true }, { "T", 2 }, { "S", new object[] { new System.Collections.Generic.Dictionary<string, object> { { "i", 99 }, { "k", 500 }, { "c", 999 }, { "r", "1111111111111" } } } } };
+                var eh = EtatVoicemeeter.DepuisJson(hors);
+                verifier(eh.Entrees.Count == 1 && eh.Entrees[0].Index == 7 && eh.Entrees[0].Gain == 12 && eh.Entrees[0].PremierCanal == 33 && eh.Entrees[0].Envois.Length == 0, "table de mixage : valeurs reçues bornées");
+                // disposition des entrées (Voicemeeter Remote API : canaux des niveaux, 2 par entrée physique, 8 par entrée virtuelle)
+                verifier(string.Join(",", Voicemeeter.DispositionEntrees(1).Select(x => x.PremierCanal)) == "0,2,4" && string.Join(",", Voicemeeter.DispositionEntrees(2).Select(x => x.PremierCanal)) == "0,2,4,6,14"
+                    && string.Join(",", Voicemeeter.DispositionEntrees(3).Select(x => x.PremierCanal)) == "0,2,4,6,8,10,18,26" && Voicemeeter.DispositionEntrees(3).Count(x => x.Virtuelle) == 3, "table de mixage : entrées de chaque version");
+                verifier(Voicemeeter.Routes(1).Length == Voicemeeter.Disposition(1).Count && Voicemeeter.Routes(2).Length == Voicemeeter.Disposition(2).Count && Voicemeeter.Routes(3).Length == Voicemeeter.Disposition(3).Count
+                    && string.Join(",", Voicemeeter.Routes(1)) == "A1,B1", "table de mixage : un envoi par bus (Voicemeeter : A1 et B1)");
+                verifier(Voicemeeter.EntreeVirtuelle("VoiceMeeter Input (VB-Audio VoiceMeeter VAIO)", 1) == 2 && Voicemeeter.EntreeVirtuelle("VoiceMeeter Aux Input (VB-Audio VoiceMeeter AUX VAIO)", 2) == 4
+                    && Voicemeeter.EntreeVirtuelle("VoiceMeeter VAIO3 Input (VB-Audio VoiceMeeter VAIO3)", 3) == 7 && Voicemeeter.EntreeVirtuelle("Casque (Arctis Nova Pro)", 2) == -1
+                    && Voicemeeter.EntreeVirtuelle("VoiceMeeter Aux Input (VB-Audio VoiceMeeter AUX VAIO)", 1) == -1, "Voicemeeter Input reconnu comme entrée de Voicemeeter");
+                // ce que Velox accepte d'écrire dans Voicemeeter
+                verifier(Voicemeeter.ValeurValide("Strip[0].Gain", -6) && Voicemeeter.ValeurValide("Bus[7].Gain", 12) && !Voicemeeter.ValeurValide("Strip[0].Gain", 13) && !Voicemeeter.ValeurValide("Strip[0].Gain", -61)
+                    && Voicemeeter.ValeurValide("Strip[3].A1", 1) && !Voicemeeter.ValeurValide("Strip[3].A1", 2) && !Voicemeeter.ValeurValide("Strip[3].A6", 1) && !Voicemeeter.ValeurValide("Strip[8].Gain", 0)
+                    && !Voicemeeter.ValeurValide("Strip[0].Gain;Bus[0].Mute", 0) && !Voicemeeter.ValeurValide("Strip[0].Label", 0) && !Voicemeeter.ValeurValide("Command.Shutdown", 1)
+                    && Voicemeeter.ValeurValide("Bus[0].EQ.channel[0].cell[0].gain", -3) && !Voicemeeter.ValeurValide("Strip[0].Mute", double.NaN), "table de mixage : seuls les réglages connus, dans leurs bornes");
+                verifier(Voicemeeter.Mixer(new System.Collections.Generic.Dictionary<string, float> { { "Strip[0].Gain", 40 } }).StartsWith("Réglage de Voicemeeter refusé") && Voicemeeter.Mixer(new System.Collections.Generic.Dictionary<string, float> { { "Bus[0].EQ.on", 1 } }).StartsWith("Réglage de Voicemeeter refusé"), "table de mixage : valeur hors bornes ou égaliseur refusés");
+                verifier(Voicemeeter.LabelSur("Velox Studio") == "Velox Studio" && Voicemeeter.LabelSur("a\"b") == null && Voicemeeter.LabelSur("a;Command.Shutdown=1") == null && Voicemeeter.LabelSur(new string('x', 33)) == null
+                    && Voicemeeter.ScriptLabels(new System.Collections.Generic.Dictionary<string, string> { { "Bus[0].Label", "Velox Studio" }, { "Strip[2].Label", "" }, { "Bus[1].Label", "x\"y" }, { "Command.Restart", "1" } }) == "Bus[0].Label=\"Velox Studio\";Strip[2].Label=\"\"", "nom « Velox Studio » : écrit seulement sans caractère risqué");
+                var annMix = new Modif { Type = "voicemeeter", Donnees = new System.Collections.Generic.Dictionary<string, object> { { "Avant", new System.Collections.Generic.Dictionary<string, object> { { "Strip[0].Gain", 99.0 } } } } };
+                verifier(Voicemeeter.Annuler(annMix).Contains("refusée par sécurité"), "table de mixage : l'Historique ne remet jamais une valeur hors bornes");
                 verifier(AudioWindows.ChangerEnProcessus(new[] { "--sortie-audio-defaut", "C:\\Windows\\x.dll", "0" }) == 3 && AudioWindows.ChangerEnProcessus(new[] { "--sortie-audio-defaut", "{0.0.0.00000000}.{0a1b2c3d-4e5f-6789-abcd-ef0123456789}", "0,7" }) == 3, "changement de sortie (processus à part) : arguments vérifiés");
             }
 
@@ -1319,7 +1350,7 @@ namespace NettoyagePC.Nouveau
                 f.Afficher("Audio", false);
                 for (int k = 0; k < 4; k++) { Dispatcher.UIThread.RunJobs(); AvaloniaHeadlessPlatform.ForceRenderTimerTick(); }
                 var vus = f.GetVisualDescendants().ToList();
-                bool studioVu = vus.OfType<Marche5>().Count() == 1 && vus.OfType<CourbeEq5>().Count() == 5 && vus.OfType<Molette5>().Count() == 4 && vus.OfType<Fader5>().Count() == 6 && vus.OfType<VuMetre5>().Count() >= 3
+                bool studioVu = vus.OfType<Marche5>().Count() == 1 && vus.OfType<CourbeEq5>().Count() == 5 && vus.OfType<Molette5>().Count() == 4 && vus.OfType<Fader5>().Count() == 6 + AudioJeu5.ExempleVoicemeeter.Entrees.Count + AudioJeu5.ExempleVoicemeeter.Bus.Count && vus.OfType<VuMetre5>().Count() >= 3
                     && vus.OfType<TextBlock>().Any(t => t.Text == "COMPARER") && Avalonia.Automation.AutomationProperties.GetName(vus.OfType<Molette5>().First()) == "Force";
                 Capturer(f, dossier, "sombre-audio.png", rapport, ref erreurs);
                 foreach (var defil in f.GetVisualDescendants().OfType<ScrollViewer>().Where(x => x.Content is AudioJeu5).Take(1)) defil.Offset = new Vector(0, 760);
@@ -1328,6 +1359,8 @@ namespace NettoyagePC.Nouveau
                 Capturer(f, dossier, "sombre-audio-sorties.png", rapport, ref erreurs);
                 foreach (var defil in f.GetVisualDescendants().OfType<ScrollViewer>().Where(x => x.Content is AudioJeu5).Take(1)) defil.Offset = new Vector(0, 2400);
                 Capturer(f, dossier, "sombre-audio-fin.png", rapport, ref erreurs);
+                foreach (var defil in f.GetVisualDescendants().OfType<ScrollViewer>().Where(x => x.Content is AudioJeu5).Take(1)) defil.Offset = new Vector(0, 100000);
+                Capturer(f, dossier, "sombre-audio-mixage.png", rapport, ref erreurs);
                 f.Width = 1600; f.Height = 1000; f.Afficher("Audio", false);
                 Capturer(f, dossier, "grand-audio.png", rapport, ref erreurs);
                 f.Width = 1240; f.Height = 800;

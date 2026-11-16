@@ -37,6 +37,7 @@ namespace NettoyagePC
             {
                 int code = AudioJeu.Retirer();
                 try { var r = AudioJeu.Lire(); if (r.VmEcrit >= 0) Voicemeeter.Couper(r.VmEcrit, false); } catch { }
+                try { Voicemeeter.Etiqueter(-1, -1); } catch { }   // nom « Velox Studio » retiré de Voicemeeter (s'il est lancé)
                 return code;
             }
             if (args[0] == "--mesurer")

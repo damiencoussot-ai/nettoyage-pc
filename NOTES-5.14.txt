@@ -17,6 +17,9 @@ Nouveau en 5.14 :
 - Comme partout dans Velox : rien n'est écrit en mode simulation, chaque changement est noté dans l'Historique
   et s'annule de là, et la désinstallation retire ce que l'outil a écrit.
 - Raccourcis : Ctrl+7 ouvre Audio, Mises à jour passe à Ctrl+8, Historique à Ctrl+9, Réglages à Ctrl+0.
+- Voicemeeter piloté depuis Velox : table de mixage (volume, mute et envois vers les bus de chaque entrée,
+  volume et mute de chaque bus), chaque réglage annulable dans l'Historique. L'égaliseur peut agir avant le
+  mixage (« Voicemeeter Input »), et Voicemeeter affiche « Velox Studio » sur ce que Velox traite.
 
 Premium :
 - Nouveau prix : 9,99 € TTC par mois pour les nouveaux abonnements. Si tu es déjà

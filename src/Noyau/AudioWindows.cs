@@ -602,8 +602,21 @@ namespace NettoyagePC
     {
         public int Index, PremierCanal;
         public string Nom = "", Label = "", Appareil = "";
-        public bool Physique;
+        public bool Physique, Muet;
         public float G, D;   // niveaux (0 à 1)
+        /// <summary>Volume du bus (dB, de -60 à +12).</summary>
+        public float Gain;
+    }
+
+    /// <summary>Entrée de Voicemeeter (« Strip ») : physique (micro, carte son) ou virtuelle (Voicemeeter Input, AUX, VAIO3).</summary>
+    internal sealed class EntreeVoicemeeter
+    {
+        public int Index, PremierCanal;
+        public string Nom = "", Label = "";
+        public bool Virtuelle, Muet;
+        public float Gain, G, D;
+        /// <summary>Envoi vers chaque bus, dans l'ordre de Voicemeeter.Routes(type).</summary>
+        public bool[] Envois = new bool[0];
     }
 
     internal sealed class EtatVoicemeeter
@@ -613,6 +626,7 @@ namespace NettoyagePC
         public int Type;
         public string Version = "", Erreur = "";
         public List<BusVoicemeeter> Bus = new List<BusVoicemeeter>();
+        public List<EntreeVoicemeeter> Entrees = new List<EntreeVoicemeeter>();
         public string Nom { get { return Type == 3 ? "Voicemeeter Potato" : Type == 2 ? "Voicemeeter Banana" : Type == 1 ? "Voicemeeter" : ""; } }
         /// <summary>Égaliseur paramétrique des bus : Banana et Potato seulement.</summary>
         public bool EgaliseurNatif { get { return Lance && Type >= 2; } }
@@ -623,7 +637,8 @@ namespace NettoyagePC
             return new Dictionary<string, object>
             {
                 { "I", Installe }, { "L", Lance }, { "T", Type }, { "V", Version }, { "E", Erreur },
-                { "B", Bus.Select(b => (object)new Dictionary<string, object> { { "i", b.Index }, { "n", b.Nom }, { "l", b.Label }, { "a", b.Appareil }, { "p", b.Physique }, { "c", b.PremierCanal }, { "g", Math.Round(b.G, 4) }, { "d", Math.Round(b.D, 4) } }).ToArray() },
+                { "B", Bus.Select(b => (object)new Dictionary<string, object> { { "i", b.Index }, { "n", b.Nom }, { "l", b.Label }, { "a", b.Appareil }, { "p", b.Physique }, { "c", b.PremierCanal }, { "g", Math.Round(b.G, 4) }, { "d", Math.Round(b.D, 4) }, { "k", Math.Round(b.Gain, 2) }, { "m", b.Muet } }).ToArray() },
+                { "S", Entrees.Select(x => (object)new Dictionary<string, object> { { "i", x.Index }, { "n", x.Nom }, { "l", x.Label }, { "v", x.Virtuelle }, { "c", x.PremierCanal }, { "g", Math.Round(x.G, 4) }, { "d", Math.Round(x.D, 4) }, { "k", Math.Round(x.Gain, 2) }, { "m", x.Muet }, { "r", new string(x.Envois.Select(o => o ? '1' : '0').ToArray()) } }).ToArray() },
             };
         }
 
@@ -637,7 +652,19 @@ namespace NettoyagePC
                 {
                     Index = (int)Math.Max(0, Math.Min(7, Json.Long(b, "i"))), Nom = Json.Texte(b, "n"), Label = Json.Texte(b, "l"), Appareil = Json.Texte(b, "a"), Physique = Json.Bool(b, "p"),
                     PremierCanal = (int)Math.Max(0, Math.Min(63, Json.Long(b, "c"))), G = (float)Json.Double(b, "g"), D = (float)Json.Double(b, "d"),
+                    Gain = Voicemeeter.BornerGain(Json.Double(b, "k")), Muet = Json.Bool(b, "m"),
                 });
+            foreach (var x in Json.Objets(Json.Valeur(d, "S")).Take(8))
+            {
+                string r = Json.Texte(x, "r");
+                e.Entrees.Add(new EntreeVoicemeeter
+                {
+                    Index = (int)Math.Max(0, Math.Min(7, Json.Long(x, "i"))), Nom = Json.Texte(x, "n"), Label = Json.Texte(x, "l"), Virtuelle = Json.Bool(x, "v"),
+                    PremierCanal = (int)Math.Max(0, Math.Min(33, Json.Long(x, "c"))), G = (float)Json.Double(x, "g"), D = (float)Json.Double(x, "d"),
+                    Gain = Voicemeeter.BornerGain(Json.Double(x, "k")), Muet = Json.Bool(x, "m"),
+                    Envois = r.Length <= 8 ? r.Select(ch => ch == '1').ToArray() : new bool[0],
+                });
+            }
             return e;
         }
     }
@@ -655,9 +682,69 @@ namespace NettoyagePC
             return noms.Select((n, i) => new BusVoicemeeter { Index = i, Nom = n, PremierCanal = 8 * i, Physique = n.StartsWith("A") }).ToList();
         }
 
+        /// <summary>
+        /// Entrées de chaque version (« Strip[i] ») : nom, entrée virtuelle ou non, premier canal de ses niveaux
+        /// (VBVMR_GetLevel, types 0 à 2). Entrées physiques : 2 canaux ; virtuelles : 8. D'après la Voicemeeter Remote API.
+        /// </summary>
+        public static List<EntreeVoicemeeter> DispositionEntrees(int type)
+        {
+            int phys = type == 3 ? 5 : type == 2 ? 3 : type == 1 ? 2 : 0;
+            string[] virt = type == 3 ? new[] { "Voicemeeter VAIO", "Voicemeeter AUX", "VAIO3" } : type == 2 ? new[] { "Voicemeeter VAIO", "Voicemeeter AUX" } : type == 1 ? new[] { "Voicemeeter VAIO" } : new string[0];
+            var l = new List<EntreeVoicemeeter>();
+            for (int i = 0; i < phys; i++) l.Add(new EntreeVoicemeeter { Index = i, Nom = "Entrée " + (i + 1).ToString(CultureInfo.InvariantCulture), PremierCanal = 2 * i });
+            for (int j = 0; j < virt.Length; j++) l.Add(new EntreeVoicemeeter { Index = phys + j, Nom = virt[j], Virtuelle = true, PremierCanal = 2 * phys + 8 * j });
+            int n = Routes(type).Length;
+            foreach (var x in l) x.Envois = new bool[n];
+            return l;
+        }
+
+        /// <summary>Envois possibles d'une entrée vers les bus : noms des paramètres « Strip[i].X », dans l'ordre des bus
+        /// (Voicemeeter : A1 et B1 pour ses bus A et B).</summary>
+        public static string[] Routes(int type)
+        {
+            return type == 3 ? new[] { "A1", "A2", "A3", "A4", "A5", "B1", "B2", "B3" } : type == 2 ? new[] { "A1", "A2", "A3", "B1", "B2" } : type == 1 ? new[] { "A1", "B1" } : new string[0];
+        }
+
+        /// <summary>Entrée virtuelle qui correspond à cette sortie de Windows (« Voicemeeter Input », « … AUX Input »,
+        /// « … VAIO3 Input »), ou -1.</summary>
+        public static int EntreeVirtuelle(string nomSortie, int type)
+        {
+            if (!AudioJeu.EstVoicemeeter(nomSortie) || type < 1) return -1;
+            string n = nomSortie.ToLowerInvariant();
+            int phys = type == 3 ? 5 : type == 2 ? 3 : 2;
+            if (n.Contains("vaio3")) return type == 3 ? phys + 2 : -1;
+            if (n.Contains("aux")) return type >= 2 ? phys + 1 : -1;
+            return n.Contains("input") ? phys : -1;
+        }
+
+        public static float BornerGain(double v) { return double.IsNaN(v) || double.IsInfinity(v) ? 0 : (float)Math.Max(-60, Math.Min(12, v)); }
+
+        /// <summary>Nom que Velox met sur le bus ou l'entrée de Voicemeeter qu'il égalise (seulement si son nom est vide).</summary>
+        public const string EtiquetteVelox = "Velox Studio";
+
         // ---- noms de paramètres que Velox écrit (seuls ceux-là peuvent être rétablis par l'Historique)
-        private static readonly Regex RegexParam = new Regex(@"^Bus\[[0-7]\]\.EQ\.(on|channel\[[01]\]\.(cell\[[0-5]\]\.(on|type|f|gain|q)|Trim))$", RegexOptions.CultureInvariant);
+        private static readonly Regex RegexParam = new Regex(@"^(Bus\[[0-7]\]\.EQ\.(on|channel\[[01]\]\.(cell\[[0-5]\]\.(on|type|f|gain|q)|Trim))|Strip\[[0-7]\]\.(Gain|Mute|A[1-5]|B[1-3])|Bus\[[0-7]\]\.(Gain|Mute))$", RegexOptions.CultureInvariant);
+        private static readonly Regex RegexLabel = new Regex(@"^(Strip|Bus)\[[0-7]\]\.Label$", RegexOptions.CultureInvariant);
         public static bool ParametreAutorise(string nom) { return nom != null && RegexParam.IsMatch(nom); }
+        public static bool LabelAutorise(string nom) { return nom != null && RegexLabel.IsMatch(nom); }
+
+        /// <summary>Valeur acceptée pour ce paramètre : volumes de -60 à +12 dB, boutons à 0 ou 1, égaliseur borné.</summary>
+        public static bool ValeurValide(string nom, double v)
+        {
+            if (!ParametreAutorise(nom) || double.IsNaN(v) || double.IsInfinity(v)) return false;
+            if (nom.EndsWith(".Gain", StringComparison.Ordinal) && !nom.Contains(".EQ.")) return v >= -60 && v <= 12;
+            if (!nom.Contains(".EQ.")) return v == 0 || v == 1;   // Mute, A1…, B1…
+            return Math.Abs(v) <= 100000;
+        }
+
+        /// <summary>Nom de bus ou d'entrée qu'un script peut écrire sans risque (pas de guillemet, de point-virgule ni de
+        /// signe égal), ou null.</summary>
+        public static string LabelSur(string s)
+        {
+            if (s == null || s.Length > 32) return null;
+            foreach (char c in s) if (char.IsControl(c) || c == '"' || c == ';' || c == '=' || c == ',' || c == '\\') return null;
+            return s;
+        }
 
         /// <summary>
         /// Réglages de l'égaliseur du bus, pour les deux premiers canaux (gauche, droite) : six cellules pour les six
@@ -702,6 +789,12 @@ namespace NettoyagePC
         {
             return string.Join(";", valeurs.Where(v => ParametreAutorise(v.Key) && !float.IsNaN(v.Value) && !float.IsInfinity(v.Value))
                 .Select(v => v.Key + "=" + v.Value.ToString("0.###", CultureInfo.InvariantCulture)));
+        }
+
+        /// <summary>Script des noms (« Bus[0].Label="Velox Studio" »), seulement pour des noms sans caractère risqué.</summary>
+        public static string ScriptLabels(Dictionary<string, string> noms)
+        {
+            return string.Join(";", noms.Where(v => LabelAutorise(v.Key) && LabelSur(v.Value) != null).Select(v => v.Key + "=\"" + v.Value + "\""));
         }
 
         // ---------------------------------------------------------------- bibliothèque de Voicemeeter
@@ -859,7 +952,8 @@ namespace NettoyagePC
             {
                 // relevé rapide : seulement les niveaux
                 e.Version = avant.Version;
-                e.Bus = avant.Bus.Select(x => new BusVoicemeeter { Index = x.Index, Nom = x.Nom, Label = x.Label, Appareil = x.Appareil, Physique = x.Physique, PremierCanal = x.PremierCanal }).ToList();
+                e.Bus = avant.Bus.Select(x => new BusVoicemeeter { Index = x.Index, Nom = x.Nom, Label = x.Label, Appareil = x.Appareil, Physique = x.Physique, PremierCanal = x.PremierCanal, Gain = x.Gain, Muet = x.Muet }).ToList();
+                e.Entrees = avant.Entrees.Select(x => new EntreeVoicemeeter { Index = x.Index, Nom = x.Nom, Label = x.Label, Virtuelle = x.Virtuelle, PremierCanal = x.PremierCanal, Gain = x.Gain, Muet = x.Muet, Envois = (bool[])x.Envois.Clone() }).ToList();
             }
             else
             {
@@ -870,16 +964,43 @@ namespace NettoyagePC
                 {
                     b.Label = Texte("Bus[" + b.Index + "].Label");
                     if (b.Physique) b.Appareil = Texte("Bus[" + b.Index + "].device.name");
+                    b.Gain = BornerGain(Flottant("Bus[" + b.Index + "].Gain"));
+                    b.Muet = Flottant("Bus[" + b.Index + "].Mute") >= 0.5;
+                }
+                e.Entrees = DispositionEntrees(e.Type);
+                var routes = Routes(e.Type);
+                foreach (var x in e.Entrees)
+                {
+                    string s = "Strip[" + x.Index + "]";
+                    x.Label = Texte(s + ".Label");
+                    x.Gain = BornerGain(Flottant(s + ".Gain"));
+                    x.Muet = Flottant(s + ".Mute") >= 0.5;
+                    for (int k = 0; k < routes.Length; k++) x.Envois[k] = Flottant(s + "." + routes[k]) >= 0.5;
                 }
             }
             if (niveau != null)
+            {
                 foreach (var b in e.Bus)
                 {
                     float g, d;
                     if (niveau(3, b.PremierCanal, out g) == 0) b.G = g;
                     if (niveau(3, b.PremierCanal + 1, out d) == 0) b.D = d;
                 }
+                // entrées : niveau après le volume et le mute (type 2), deux premiers canaux
+                foreach (var x in e.Entrees)
+                {
+                    float g, d;
+                    if (niveau(2, x.PremierCanal, out g) == 0) x.G = g;
+                    if (niveau(2, x.PremierCanal + 1, out d) == 0) x.D = d;
+                }
+            }
             return e;
+        }
+
+        private static double Flottant(string nom)
+        {
+            float v;
+            try { return lireFloat != null && lireFloat(Ascii(nom), out v) == 0 ? v : double.NaN; } catch { return double.NaN; }
         }
 
         /// <summary>Relevé immédiat (pour décider avant d'écrire). Null si Voicemeeter ne répond pas.</summary>
@@ -895,23 +1016,64 @@ namespace NettoyagePC
         public static string Appliquer(ReglagesAudioJeu r, int bus, bool utilisateur)
         {
             var valeurs = ScriptEq(r, bus);
-            return Ecrire(valeurs, utilisateur ? AudioJeu.Titre(r) : null);
+            return Ecrire(valeurs, utilisateur ? AudioJeu.Titre(r) : null, true, "eq");
         }
 
         /// <summary>Coupe l'égaliseur de ce bus (sans toucher à ses réglages).</summary>
         public static string Couper(int bus, bool utilisateur)
         {
-            return Ecrire(new Dictionary<string, float> { { "Bus[" + bus + "].EQ.on", 0 } }, utilisateur ? "Audio jeu : égaliseur Voicemeeter coupé" : null);
+            return Ecrire(new Dictionary<string, float> { { "Bus[" + bus + "].EQ.on", 0 } }, utilisateur ? "Audio jeu : égaliseur Voicemeeter coupé" : null, true, "eq");
         }
 
-        private static string Ecrire(Dictionary<string, float> valeurs, string titre)
+        /// <summary>
+        /// Table de mixage : volumes, mute et envois vers les bus. Chaque valeur est vérifiée ; les valeurs d'avant sont
+        /// notées dans l'Historique (une seule ligne pour des réglages rapprochés). Renvoie "" si c'est fait.
+        /// </summary>
+        public static string Mixer(Dictionary<string, float> valeurs)
+        {
+            if (valeurs == null || valeurs.Count == 0) return "";
+            foreach (var v in valeurs) if (v.Key.Contains(".EQ.") || !ValeurValide(v.Key, v.Value)) return "Réglage de Voicemeeter refusé : rien n'a été modifié.";
+            return Ecrire(valeurs, "Voicemeeter : table de mixage", false, "mixage");
+        }
+
+        /// <summary>
+        /// Met le nom « Velox Studio » sur le bus (ou l'entrée) que l'égaliseur de Velox traite, s'il n'a pas déjà un nom
+        /// donné par l'utilisateur, et le retire des autres où Velox l'avait mis. -1 : aucun. Rien n'est noté dans
+        /// l'Historique (ce n'est qu'un nom, que Velox retire lui-même). Renvoie "" si c'est fait ou s'il n'y a rien à faire.
+        /// </summary>
+        public static string Etiqueter(int bus, int entree)
+        {
+            if (!Natif.EstWindows) return "";
+            var r = Executer(() =>
+            {
+                var e = Relever(true, null); Etat = e;
+                if (!e.Lance || script == null) return "";
+                var noms = new Dictionary<string, string>();
+                foreach (var b in e.Bus)
+                {
+                    if (b.Index == bus && b.Label == "") noms["Bus[" + b.Index + "].Label"] = EtiquetteVelox;
+                    else if (b.Index != bus && b.Label == EtiquetteVelox) noms["Bus[" + b.Index + "].Label"] = "";
+                }
+                foreach (var x in e.Entrees)
+                {
+                    if (x.Index == entree && x.Label == "") noms["Strip[" + x.Index + "].Label"] = EtiquetteVelox;
+                    else if (x.Index != entree && x.Label == EtiquetteVelox) noms["Strip[" + x.Index + "].Label"] = "";
+                }
+                if (noms.Count == 0) return "";
+                int res = script(Ascii(ScriptLabels(noms)));
+                return res == 0 ? "" : "Voicemeeter a refusé le nom (code " + res + ").";
+            });
+            return r ?? "";
+        }
+
+        private static string Ecrire(Dictionary<string, float> valeurs, string titre, bool exigeEq, string sujet)
         {
             if (!Natif.EstWindows) return "Windows uniquement.";
             var r = Executer(() =>
             {
                 var e = Relever(true, null); Etat = e;
                 if (!e.Lance) return "Voicemeeter n'est pas lancé : rien n'a été modifié.";
-                if (!e.EgaliseurNatif) return "Cette version de Voicemeeter n'a pas d'égaliseur sur ses bus (Banana ou Potato seulement).";
+                if (exigeEq && !e.EgaliseurNatif) return "Cette version de Voicemeeter n'a pas d'égaliseur sur ses bus (Banana ou Potato seulement).";
                 if (script == null || lireFloat == null) return "Bibliothèque de Voicemeeter incomplète : rien n'a été modifié.";
                 var avant = new Dictionary<string, object>();
                 foreach (var k in valeurs.Keys)
@@ -922,19 +1084,21 @@ namespace NettoyagePC
                 }
                 int res = script(Ascii(Script(valeurs)));
                 if (res != 0) return "Voicemeeter a refusé le réglage (code " + res + ") : rien n'a été modifié.";
-                if (titre != null) Noter(titre, avant);
+                if (titre != null) Noter(titre, avant, sujet);
                 return "";
             });
             return r ?? "Voicemeeter ne répond pas.";
         }
 
-        private static void Noter(string titre, Dictionary<string, object> avant)
+        private static void Noter(string titre, Dictionary<string, object> avant, string sujet)
         {
             string maintenant = DateTime.Now.ToString("o", CultureInfo.InvariantCulture);
             Historique.Modifier(l =>
             {
                 var d = l.LastOrDefault(m => m.Type == "voicemeeter");
                 DateTime maj;
+                // (anciennes lignes sans « Sujet » : égaliseur)
+                if (d != null && (d.D("Sujet") == "" ? "eq" : d.D("Sujet")) != sujet) d = null;
                 if (d != null && !d.Annule && DateTime.TryParse(d.D("Maj"), CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out maj) && (DateTime.Now - maj).TotalSeconds >= 0 && (DateTime.Now - maj).TotalSeconds < AudioJeu.FusionSecondes)
                 {
                     // changements rapprochés : une seule ligne ; les valeurs d'avant le premier sont gardées
@@ -943,7 +1107,7 @@ namespace NettoyagePC
                     d.Donnees["Avant"] = a; d.Titre = titre; d.Donnees["Maj"] = maintenant;
                     return true;
                 }
-                l.Add(new Modif { Type = "voicemeeter", Titre = titre, Donnees = new Dictionary<string, object> { { "Avant", avant }, { "Maj", maintenant } } });
+                l.Add(new Modif { Type = "voicemeeter", Titre = titre, Donnees = new Dictionary<string, object> { { "Avant", avant }, { "Maj", maintenant }, { "Sujet", sujet } } });
                 return true;
             });
         }
@@ -958,7 +1122,7 @@ namespace NettoyagePC
             {
                 double v;
                 try { v = Convert.ToDouble(kv.Value, CultureInfo.InvariantCulture); } catch { return "entrée de l'historique invalide (refusée par sécurité)"; }
-                if (!ParametreAutorise(kv.Key) || double.IsNaN(v) || double.IsInfinity(v) || Math.Abs(v) > 100000) return "entrée de l'historique invalide (refusée par sécurité)";
+                if (!ValeurValide(kv.Key, v)) return "entrée de l'historique invalide (refusée par sécurité)";
                 valeurs[kv.Key] = (float)v;
             }
             if (!Natif.EstWindows) return "Windows uniquement.";
