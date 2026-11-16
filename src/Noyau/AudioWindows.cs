@@ -180,13 +180,25 @@ namespace NettoyagePC
             if ((console != "" && !IdValide(console)) || (multimedia != "" && !IdValide(multimedia))) return "entrée de l'historique invalide (refusée par sécurité)";
             if (console == "" && multimedia == "") return "";
             if (!Natif.EstWindows) return "Windows uniquement.";
+            // tout est vérifié avant de changer quoi que ce soit : pas de retour à moitié fait
             var actives = Lister().Select(s => s.Id).ToList();
-            foreach (var x in new[] { Tuple.Create(console, RoleConsole), Tuple.Create(multimedia, RoleMultimedia) })
+            if ((console != "" && !actives.Contains(console)) || (multimedia != "" && !actives.Contains(multimedia)))
+                return "la sortie d'avant n'est plus branchée : branche-la, puis annule de nouveau";
+            string avantConsole = ParDefaut(RoleConsole);
+            if (console != "")
             {
-                if (x.Item1 == "") continue;
-                if (!actives.Contains(x.Item1)) return "la sortie d'avant n'est plus branchée : branche-la, puis annule de nouveau";
-                string err = Changer(x.Item1, x.Item2);
+                string err = Changer(console, RoleConsole);
                 if (err != "") return err;
+            }
+            if (multimedia != "")
+            {
+                string err = Changer(multimedia, RoleMultimedia);
+                if (err != "")
+                {
+                    // le deuxième rôle a échoué : le premier est remis comme il était, pour ne pas laisser deux sorties différentes
+                    if (console != "" && IdValide(avantConsole)) Changer(avantConsole, RoleConsole);
+                    return err;
+                }
             }
             return "";
         }

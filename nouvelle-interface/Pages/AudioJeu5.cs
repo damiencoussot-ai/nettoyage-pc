@@ -189,14 +189,23 @@ namespace NettoyagePC.Nouveau
             var copie = r.Copie();
             Task.Run(() =>
             {
-                string erreur;
+                string erreur, avert = "";
                 if (copie.Moteur == "vm")
                 {
-                    // l'égaliseur passe par Voicemeeter : celui d'Equalizer APO est coupé, pour ne pas doubler l'effet
-                    if (AudioJeu.Present) { var sansApo = copie.Copie(); sansApo.Actif = false; AudioJeu.Appliquer(sansApo, "", utilisateur); }
+                    // l'égaliseur passe par Voicemeeter. Celui d'Equalizer APO n'est coupé (pour ne pas doubler l'effet) qu'une
+                    // fois Voicemeeter réglé : si Voicemeeter est fermé ou refuse, l'égaliseur d'APO reste en place.
                     if (copie.VmEcrit >= 0 && copie.VmEcrit != copie.BusVm) Voicemeeter.Couper(copie.VmEcrit, utilisateur);
                     erreur = Voicemeeter.Appliquer(copie, copie.BusVm, utilisateur);
-                    if (erreur == "") copie.VmEcrit = copie.Actif ? copie.BusVm : -1;
+                    if (erreur == "")
+                    {
+                        copie.VmEcrit = copie.Actif ? copie.BusVm : -1;
+                        if (AudioJeu.Present && AudioJeu.Etat().Actif)
+                        {
+                            var sansApo = copie.Copie(); sansApo.Actif = false;
+                            string e2 = AudioJeu.Appliquer(sansApo, "", utilisateur);
+                            if (e2 != "") avert = Langue.T("Voicemeeter est réglé, mais l'égaliseur d'Equalizer APO n'a pas pu être coupé : les deux s'ajoutent.") + " " + Langue.T(e2);
+                        }
+                    }
                 }
                 else
                 {
@@ -207,7 +216,7 @@ namespace NettoyagePC.Nouveau
                     if (erreur == "" && copie.VmEcrit >= 0 && Voicemeeter.Couper(copie.VmEcrit, utilisateur) == "") copie.VmEcrit = -1;
                 }
                 if (erreur == "") AudioJeu.Enregistrer(copie);
-                return Tuple.Create(erreur, copie, ReleveAudioJeu.Lire());
+                return Tuple.Create(erreur, copie, ReleveAudioJeu.Lire(), avert);
             }).ContinueWith(t => Dispatcher.UIThread.Post(() =>
             {
                 enEcriture = false; version++;
@@ -217,6 +226,8 @@ namespace NettoyagePC.Nouveau
                 {
                     // rien n'a été changé : l'interrupteur revient à ce que dit le fichier, et la veille ne réessaie pas en boucle
                     if (releve != null && r.Moteur != "vm") r.Actif = releve.Etat.Actif;
+                    // passage vers Voicemeeter refusé : on reste sur le moteur enregistré (Equalizer APO n'a pas été coupé)
+                    if (!t.IsFaulted && t.Result.Item2.Moteur == "vm") { try { var lu = AudioJeu.Lire(); r.Moteur = lu.Moteur; r.BusVm = lu.BusVm; } catch { } }
                     if (!utilisateur) autoBloque = true;
                     aRefaire = false;
                     f.Statut(Langue.T(erreur) + (erreur == AudioJeu.Refus ? " " + Langue.T("Vérifie les droits du dossier (clic droit > Propriétés > Sécurité), ou réinstalle Equalizer APO.") : ""), true);
@@ -224,7 +235,8 @@ namespace NettoyagePC.Nouveau
                 else
                 {
                     r.CibleEcrite = t.Result.Item2.CibleEcrite; r.VmEcrit = t.Result.Item2.VmEcrit;
-                    if (message != null) f.Statut(message);
+                    if (t.Result.Item4 != "") f.Statut(t.Result.Item4, true);
+                    else if (message != null) f.Statut(message);
                 }
                 if (page != null) page.MettreAJour();
                 if (aRefaire)
