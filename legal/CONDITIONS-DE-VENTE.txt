@@ -1,5 +1,5 @@
 ﻿CONDITIONS DE VENTE DE VELOX PREMIUM
-Version du 10 novembre 2026
+Version du 16 novembre 2026
 
 
 1. LES PARTIES
@@ -49,7 +49,7 @@ Essai gratuit : avant d'acheter, vous pouvez essayer Premium gratuitement pendan
 
 3. PRIX
 
-Le prix est de 4,99 € TTC (toutes taxes comprises) par mois. L'abonnement se renouvelle automatiquement chaque mois, à la date anniversaire de la souscription, jusqu'à sa résiliation. Il est sans engagement : vous pouvez le résilier à tout moment, en un clic, depuis le lien de gestion reçu par e-mail de la part de Stripe ou en écrivant à l'Éditeur ; la résiliation prend effet à la fin du mois déjà payé, sans autres frais, et Premium reste actif jusque-là. Le prix final, taxes comprises selon votre pays, est affiché sur la page de paiement avant validation. En cas d'échec du paiement mensuel, Stripe réessaie pendant quelques jours ; sans paiement, l'abonnement prend fin et la clé est désactivée.
+Le prix est de 9,99 € TTC (toutes taxes comprises) par mois pour tout abonnement souscrit à compter de la date de la présente version des conditions de vente. Les abonnements souscrits auparavant gardent leur prix de 4,99 € TTC par mois tant qu'ils ne sont pas résiliés. L'abonnement se renouvelle automatiquement chaque mois, à la date anniversaire de la souscription, jusqu'à sa résiliation. Il est sans engagement : vous pouvez le résilier à tout moment, en un clic, depuis le lien de gestion reçu par e-mail de la part de Stripe ou en écrivant à l'Éditeur ; la résiliation prend effet à la fin du mois déjà payé, sans autres frais, et Premium reste actif jusque-là. Le prix final, taxes comprises selon votre pays, est affiché sur la page de paiement avant validation. En cas d'échec du paiement mensuel, Stripe réessaie pendant quelques jours ; sans paiement, l'abonnement prend fin et la clé est désactivée.
 
 
 4. COMMANDE ET PAIEMENT

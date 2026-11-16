@@ -201,6 +201,12 @@ def fabriquer(dossier, apercu=False):
     print('%s : version %s, achat %s, %d passage(s) à compléter dans les textes légaux' % (dossier, VERSION, 'actif' if URL_ACHAT else 'pas encore ouvert', a_completer))
 
 if __name__ == '__main__':
+    # Attention : le modèle site/accueil.html est resté à l'ancienne offre (Premium payé une fois) ; la page d'accueil
+    # et les pages légales de docs/ ont été mises à jour à la main depuis (abonnement, 9,99 € par mois). Lancer ce
+    # script écraserait ces pages par des versions périmées : il refuse donc de tourner sans --forcer.
+    if '--forcer' not in sys.argv:
+        sys.exit("fabriquer-site.py est périmé (site/accueil.html décrit l'ancienne offre) : il écraserait docs/ par d'anciennes pages. "
+                 "Mets d'abord site/accueil.html à jour, puis relance avec --forcer.")
     fabriquer(SORTIE)
     if '--apercu' in sys.argv:
         fabriquer(sys.argv[sys.argv.index('--apercu') + 1], apercu=True)

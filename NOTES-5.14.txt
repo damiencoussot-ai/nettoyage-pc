@@ -1,0 +1,40 @@
+Velox 5.14 : le Studio son
+
+Nouveau : la rubrique Audio (Premium), le « Studio son »
+- Un égaliseur pensé pour entendre les pas et les recharges dans Call of Duty / Warzone et les autres jeux
+  compétitifs, avec un look de console de mixage. Le jeu n'est jamais touché.
+- Quatre profils (Compétitif, Équilibré, Pas extrême, Immersion), courbe avec le spectre du son en direct
+  (glisse les points pour régler chaque bande), molettes (force, niveau, balance, largeur), faders,
+  coupe-explosions, inversion gauche / droite et bouton « Comparer ».
+- Profils par jeu et « Auto jeux » : Warzone, Valorant, CS2, Fortnite, Apex, PUBG, Rainbow Six, Tarkov,
+  Overwatch 2, Battlefield 2042. L'égaliseur s'allume au lancement du jeu avec son profil, et se coupe quand
+  tu le fermes (avec le gardien, même Velox fermé). Une notification confirme chaque profil appliqué.
+- Calibration du casque : choisis ton modèle parmi plus de 6 000 casques et écouteurs mesurés en laboratoire
+  (base libre AutoEq). Velox corrige ses défauts pour un son neutre, puis le profil s'ajoute par-dessus.
+- Test « Avant / après » : une scène de jeu jouée sans puis avec le Studio son, au même volume (comparaison
+  honnête). « Comparer » garde lui aussi le même volume.
+- Son 7.1 virtuel au casque : Velox pilote HeSuVi (gratuit, libre, à installer à part) : allumé, coupé et
+  choix du modèle (GSX, Dolby Atmos, DTS Headphone:X…) en un clic. Alerte si le 7.1 virtuel s'ajoute au son
+  spatial du jeu (Mode casque amélioré de Call of Duty, HRTF de Valorant…).
+- Conseils de réglage du menu audio du jeu (Warzone : effets, musique, mono, acouphènes, mix).
+- Equalizer APO installé par Velox (fichier officiel vérifié) : tu n'as rien à installer toi-même.
+- Voicemeeter (Standard, Banana, Potato) piloté depuis Velox : table de mixage (volume, mute et envois de
+  chaque entrée, volume et mute de chaque bus), égaliseur possible avant le mixage (« Voicemeeter Input »),
+  et « Velox Studio » affiché dans Voicemeeter sur ce que Velox traite.
+- Sorties audio : VU-mètre, choix de la sortie égalisée, sortie par défaut de Windows changée en un clic.
+- Raccourcis en plein jeu (désactivés par défaut) : Ctrl+Alt+F9 (égaliseur) et Ctrl+Alt+F10 (profil
+  suivant), avec une bulle à l'écran.
+- Comme partout dans Velox : rien n'est écrit en mode simulation, chaque changement est noté dans
+  l'Historique et s'annule de là, et la désinstallation retire ce que l'outil a écrit.
+- Raccourcis clavier : Ctrl+7 ouvre Audio, Mises à jour passe à Ctrl+8, Historique à Ctrl+9, Réglages à Ctrl+0.
+
+Premium
+- Nouveau prix : 9,99 € TTC par mois pour les nouveaux abonnements. Si tu es déjà abonné, ton prix de
+  4,99 € ne change pas tant que tu ne résilies pas. Conditions de vente mises à jour.
+- Les clés offertes sur le serveur Discord peuvent avoir une date de fin, affichée dans l'onglet Premium ;
+  Premium s'arrête à cette date, même sans Internet. Politique de confidentialité mise à jour (commande /avis).
+
+L'installateur est publié sous les deux noms : Velox-Setup-5.14.exe (winget, site) et
+NettoyagePC-Setup-5.14.exe (mise à jour des anciennes versions).
+
+SHA256 de Velox-Setup-5.14.exe : voir le fichier Velox-Setup-5.14.sha256

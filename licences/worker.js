@@ -1,4 +1,5 @@
 // Velox - service de licences (Cloudflare Worker, gratuit).
+// Aussi : le bot Discord (abonnement, clés, /telecharger qui donne directement l'installateur, /avis, annonces).
 //
 // Rôle : quand Stripe confirme un paiement de « Velox Premium », créer une clé unique, la montrer
 // au client juste après le paiement, la donner à l'application qui a lancé l'achat, et répondre aux
@@ -20,22 +21,27 @@
 //   GET  /v1/achats/<référence>     l'application récupère la clé de l'achat qu'elle a lancé
 //   POST /v1/licenses/activate|validate|deactivate   vérifications de l'application
 //   GET/POST /admin                 page de l'éditeur : chercher une clé par e-mail, désactiver, libérer les PC
-//   POST /discord                   commandes Discord (/premium, /ma-cle, /telecharger, /cle-offerte)
+//   POST /discord                   commandes Discord (/premium, /ma-cle, /telecharger, /essai, /score, /avis, /cle-offerte)
 //
 // Discord (facultatif) : vendre Premium sur le serveur Discord et y donner les clés.
 //   Variable      DISCORD_APP_ID           (« Application ID » de l'application Discord)
 //   Variable      DISCORD_PUBLIC_KEY       (« Public Key » de l'application Discord)
 //   Secret        DISCORD_BOT_TOKEN        (jeton du bot : messages privés et rôle Premium)
-//   Variable      LIEN_PAIEMENT            (lien de paiement Stripe « https://buy.stripe.com/… », abonnement 4,99 €/mois)
+//   Variable      LIEN_PAIEMENT            (lien de paiement Stripe « https://buy.stripe.com/… », abonnement 9,99 €/mois)
 //   Variable      LIEN_GESTION             (facultatif : portail client Stripe « https://billing.stripe.com/p/login/… » pour résilier)
 //   Variable      DISCORD_GUILD_ID         (facultatif : identifiant du serveur, pour donner le rôle)
 //   Variable      DISCORD_ROLE_PREMIUM     (facultatif : identifiant du rôle « Premium »)
 //   Dans le portail Discord : « Interactions Endpoint URL » = https://<ce worker>/discord
-//   Puis, une fois : page /admin, bouton « Installer les commandes Discord ».
+//   Variable      DISCORD_SALON_AVIS       (facultatif : salon des avis /avis ; sinon le salon « avis » créé par « Organiser le serveur »)
+//   Puis, une fois : page /admin, bouton « Installer les commandes Discord » (à refaire quand une commande change).
+//
+// Clés offertes (/cle-offerte) : à vie, ou pour 7, 30, 90 ou 365 jours. À la date de fin, la clé est désactivée
+// (vérification de l'application et déclencheur Cron horaire), le rôle Premium est retiré si le membre n'a plus
+// d'autre clé active, et le membre reçoit un message privé.
 
 const LIMITE_PC = 3;
 const PRODUIT = 'Velox Premium';
-const PRIX = '4,99 € par mois';
+const PRIX = '9,99 € par mois', PRIX_COURT = '9,99 €/mois';
 const CONTACT = 'nettoyagepcai@gmail.com';
 const SITE = 'https://damiencoussot-ai.github.io/nettoyage-pc/';
 const ENTETES_PAGE = {
@@ -62,9 +68,10 @@ export default {
       return json({ error: 'internal error' }, 500);
     }
   },
-  // déclencheur Cron de Cloudflare (toutes les heures) : annonce une nouvelle version de Velox sur Discord
+  // déclencheur Cron de Cloudflare (toutes les heures) : annonce une nouvelle version de Velox sur Discord et termine les clés offertes arrivées à leur fin
   async scheduled(evenement, env, ctx) {
     ctx.waitUntil(annoncerVersion(env, false).then((t) => console.log('annonce', t)).catch((e) => console.log('annonce', e)));
+    ctx.waitUntil(expirerClesOffertes(env).then((n) => console.log('clés offertes expirées', n)).catch((e) => console.log('expiration', e)));
   },
 };
 
@@ -86,6 +93,51 @@ async function lire(env, cle) { const v = await env.LICENCES.get(cle); return v 
 async function ecrire(env, lic) { await env.LICENCES.put('lic:' + lic.cle, JSON.stringify(lic)); }
 const formatCle = (c) => /^[A-F0-9]{8}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{12}$/.test(c || '');
 const formatRef = (r) => /^[A-Za-z0-9_-]{24,200}$/.test(r || '');
+
+// ------------------------------------------------------------ clés offertes à durée limitée
+const JOUR = 86400000, DUREES = [0, 7, 30, 90, 365], RAISON_FIN = 'clé offerte expirée';
+const expiree = (lic) => !!(lic && lic.fin) && Date.parse(lic.fin) <= Date.now();
+/** « 2026-12-15T… » → « 15/12/2026 » (date UTC, comme la date de fin enregistrée). */
+const dateFr = (iso) => { const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso || ''); return m ? m[3] + '/' + m[2] + '/' + m[1] : ''; };
+const nomDuree = (j) => (j === 0 ? 'à vie' : j === 365 ? '1 an' : j + ' jours');
+
+/** Le membre n'a plus aucune clé active : le rôle Premium lui est retiré (une clé désactivée ne retire pas le rôle donné par une autre). */
+async function retirerRoleSiPlusRien(env, id) {
+  const liste = JSON.parse(await env.LICENCES.get('discord:' + id) || '[]');
+  for (const c of liste) { const l = await lire(env, 'lic:' + c); if (l && l.statut === 'active' && !expiree(l)) return; }
+  await roleDiscord(env, id, false);
+}
+
+/** Clé offerte arrivée à sa date de fin : désactivée (une seule fois), rôle retiré, message privé au membre. Vrai si elle vient d'expirer. */
+async function expirerSiBesoin(env, lic) {
+  if (!expiree(lic) || lic.statut !== 'active') return false;
+  lic.statut = 'disabled'; lic.raison = RAISON_FIN; lic.modifiee = new Date().toISOString();
+  await ecrire(env, lic);
+  await env.LICENCES.delete('fin:' + lic.fin + ':' + lic.cle);
+  if (lic.discord) {
+    await retirerRoleSiPlusRien(env, lic.discord);
+    const canal = await appelDiscord(env, 'POST', '/users/@me/channels', { recipient_id: lic.discord });
+    if (canal && canal.id) await appelDiscord(env, 'POST', '/channels/' + canal.id + '/messages', { allowed_mentions: { parse: [] }, embeds: [{
+      title: 'Ta clé Velox Premium offerte est terminée', color: OR,
+      description: 'Merci d\'avoir testé **' + PRODUIT + '** ! Les outils Premium se verrouillent sur tes PC (rien n\'est supprimé).\n\n' +
+        '• Ton avis compte : `/avis` sur le serveur, positif ou négatif, il est publié tel quel.\n• Pour garder Premium : `/premium` (' + PRIX_COURT + ', sans engagement).' }] });
+  }
+  return true;
+}
+
+/** Déclencheur Cron : désactive les clés offertes arrivées à leur fin (10 par passage, les plus anciennes d'abord). */
+async function expirerClesOffertes(env) {
+  const liste = await env.LICENCES.list({ prefix: 'fin:', limit: 10 });
+  let n = 0;
+  for (const k of liste.keys) {
+    const reste = k.name.slice(4), i = reste.lastIndexOf(':'), fin = reste.slice(0, i), cle = reste.slice(i + 1);
+    if (Date.parse(fin) > Date.now()) break;                    // clés triées par date de fin : les suivantes ne sont pas finies
+    const lic = await lire(env, 'lic:' + cle);
+    if (lic && lic.fin === fin && await expirerSiBesoin(env, lic)) n++;
+    await env.LICENCES.delete(k.name);
+  }
+  return n;
+}
 
 // ------------------------------------------------------------ webhook Stripe
 async function signatureValide(corps, entete, secret) {
@@ -175,7 +227,7 @@ async function suivreAbonnement(env, sub, type) {
   if (fini && lic.statut === 'active') {
     lic.statut = 'disabled'; lic.raison = 'abonnement terminé'; lic.modifiee = new Date().toISOString();
     await ecrire(env, lic);
-    if (lic.discord) await roleDiscord(env, lic.discord, false);
+    if (lic.discord) await retirerRoleSiPlusRien(env, lic.discord);
   } else if (actif && lic.statut === 'disabled' && lic.raison === 'abonnement terminé') {
     lic.statut = 'active'; lic.raison = ''; lic.modifiee = new Date().toISOString();
     await ecrire(env, lic);
@@ -191,7 +243,7 @@ async function desactiverParPaiement(env, paiement, raison) {
   if (!lic) return;
   lic.statut = 'disabled'; lic.raison = raison; lic.modifiee = new Date().toISOString();
   await ecrire(env, lic);
-  if (lic.discord) await roleDiscord(env, lic.discord, false);   // remboursement : le rôle Premium est retiré
+  if (lic.discord) await retirerRoleSiPlusRien(env, lic.discord);   // remboursement : le rôle Premium est retiré (sauf autre clé active)
 }
 
 // ------------------------------------------------------------ après le paiement
@@ -252,7 +304,7 @@ function meta(lic, env) {
   return { store_id: Number(env.STORE_ID || 1), product_id: Number(env.PRODUCT_ID || 1), product_name: PRODUIT, order_id: lic.session, customer_name: lic.nom, customer_email: lic.email };
 }
 function infoCle(lic) {
-  return { status: lic.statut === 'active' ? 'active' : 'disabled', key: lic.cle, activation_limit: LIMITE_PC, activation_usage: lic.activations.length, created_at: lic.creee, expires_at: null };
+  return { status: lic.statut === 'active' ? 'active' : lic.raison === RAISON_FIN ? 'expired' : 'disabled', key: lic.cle, activation_limit: LIMITE_PC, activation_usage: lic.activations.length, created_at: lic.creee, expires_at: lic.fin || null };
 }
 
 async function licences(action, requete, env) {
@@ -263,12 +315,14 @@ async function licences(action, requete, env) {
   if (!absente) return json({ error: 'not found' }, 404);
   const lic = formatCle(cle) ? await lire(env, 'lic:' + cle) : null;
   if (!lic || (lic.test && env.ACCEPTER_TEST !== 'oui')) return json({ [absente]: false, error: 'license_key not found.' }, 404);
+  await expirerSiBesoin(env, lic);
   const m = meta(lic, env);
+  const refus = lic.raison === RAISON_FIN ? 'This license key has expired.' : 'This license key is disabled.';
 
   if (action === 'activate') {
     const nom = String(champs.get('instance_name') || '').slice(0, 64);
     if (!nom) return json({ activated: false, error: 'instance_name is required.' }, 400);
-    if (lic.statut !== 'active') return json({ activated: false, error: 'This license key is disabled.', license_key: infoCle(lic), meta: m }, 400);
+    if (lic.statut !== 'active') return json({ activated: false, error: refus, license_key: infoCle(lic), meta: m }, 400);
     let inst = lic.activations.find((a) => a.name === nom);    // même PC : on réutilise son activation
     if (!inst) {
       if (lic.activations.length >= LIMITE_PC) return json({ activated: false, error: 'This license key has reached the activation limit.', license_key: infoCle(lic), meta: m }, 400);
@@ -283,7 +337,7 @@ async function licences(action, requete, env) {
   const inst = lic.activations.find((a) => a.id === id) || null;
   if (action === 'validate') {
     const valide = lic.statut === 'active' && (id === '' || inst !== null);
-    return json({ valid: valide, error: valide ? null : (lic.statut !== 'active' ? 'This license key is disabled.' : 'instance not found.'), license_key: infoCle(lic), instance: inst, meta: m });
+    return json({ valid: valide, error: valide ? null : (lic.statut !== 'active' ? refus : 'instance not found.'), license_key: infoCle(lic), instance: inst, meta: m });
   }
   // deactivate
   if (!inst) return json({ deactivated: false, error: 'instance not found.', license_key: infoCle(lic), meta: m }, 404);
@@ -323,36 +377,61 @@ async function admin(requete, env) {
   if (action && formatCle(cible)) {
     const lic = await lire(env, 'lic:' + cible);
     if (lic) {
+      const finAvant = lic.fin || '';
       if (action === 'desactiver') { lic.statut = 'disabled'; lic.raison = 'désactivée par l\'éditeur'; }
-      if (action === 'reactiver') { lic.statut = 'active'; lic.raison = ''; }
+      if (action === 'reactiver' && !expiree(lic)) { lic.statut = 'active'; lic.raison = ''; }
       if (action === 'liberer') lic.activations = [];
+      // clé offerte : +30 jours (à partir d'aujourd'hui si elle est déjà finie) ou à vie ; une clé expirée redevient active
+      if ((action === 'prolonger' || action === 'avie') && lic.offerte) {
+        lic.fin = action === 'avie' ? '' : new Date(Math.max(Date.now(), Date.parse(lic.fin || '') || Date.now()) + 30 * JOUR).toISOString();
+        if (lic.raison === RAISON_FIN) { lic.statut = 'active'; lic.raison = ''; }
+      }
       lic.modifiee = new Date().toISOString();
       await ecrire(env, lic);
-      message = '<p><b>Fait :</b> ' + echapper(action) + ' pour ' + echapper(cible) + '.</p>';
+      if ((lic.fin || '') !== finAvant) {
+        if (finAvant) await env.LICENCES.delete('fin:' + finAvant + ':' + lic.cle);
+        if (lic.fin) await env.LICENCES.put('fin:' + lic.fin + ':' + lic.cle, '1');
+      }
+      if (lic.discord) { if (lic.statut === 'active') await roleDiscord(env, lic.discord, true); else await retirerRoleSiPlusRien(env, lic.discord); }
+      const noms = { desactiver: 'désactivée', reactiver: lic.statut === 'active' ? 'réactivée' : 'pas réactivée (clé offerte arrivée à sa fin : utilise « +30 jours » ou « À vie »)', liberer: 'PC libérés', prolonger: 'prolongée jusqu\'au ' + dateFr(lic.fin), avie: 'valable à vie' };
+      message = '<p><b>Fait :</b> clé ' + echapper(noms[action] || action) + ' (' + echapper(cible) + ').</p>';
       if (!recherche) recherche = cible.toLowerCase();
     }
   }
   const champ = (n, v) => '<input type="hidden" name="' + n + '" value="' + echapper(v) + '">';
   let resultats = '';
+  if (action === 'offertes') recherche = 'offertes';
   if (recherche) {
     const cles = [];
+    const membre = /^(?:<@!?)?(\d{15,22})>?$/.exec(recherche);
     if (formatCle(recherche.toUpperCase())) cles.push(recherche.toUpperCase());
-    else {
+    else if (membre) cles.push(...JSON.parse(await env.LICENCES.get('discord:' + membre[1]) || '[]'));   // identifiant ou mention Discord
+    else if (recherche === 'offertes') {
+      const liste = await env.LICENCES.list({ prefix: 'off:', limit: 100 });
+      for (const k of liste.keys) cles.push(k.name.slice(4));
+    } else {
       const liste = await env.LICENCES.list({ prefix: 'mail:' + recherche + ':', limit: 100 });
       for (const k of liste.keys) cles.push(k.name.split(':').pop());
     }
     for (const c of cles) {
       const lic = await lire(env, 'lic:' + c);
       if (!lic) continue;
+      const avis = lic.discord ? await lire(env, 'avis:' + lic.discord) : null;
+      const details = [lic.nom, lic.email, lic.creee.slice(0, 10)].filter(Boolean).map(echapper).join(' · ') + (lic.test ? ' · TEST' : '') +
+        (lic.discord ? '<br>Discord : ' + echapper(lic.discord) + (avis ? ' · avis ' + avis.note + '/5 le ' + echapper(dateFr(avis.date)) : ' · pas encore d\'avis') : '') +
+        (lic.offerte ? '<br>Offerte (' + echapper(lic.offerte) + ') · ' + (lic.fin ? (expiree(lic) ? 'finie le ' : 'jusqu\'au ') + echapper(dateFr(lic.fin)) : 'à vie') : '');
       const bouton = (a, t) => '<form method="post" style="display:inline">' + champ('jeton', jeton) + champ('recherche', recherche) + champ('action', a) + champ('cle', lic.cle) + '<button style="margin:4px 6px 0 0">' + t + '</button></form>';
       resultats += '<div style="border:1px solid var(--bord);background:var(--carte);padding:12px;margin:10px 0"><div class="cle" style="font-size:1rem;margin:0 0 8px">' + echapper(lic.cle) + '</div>' +
-        '<div class="petit">' + echapper(lic.nom) + ' · ' + echapper(lic.email) + ' · ' + echapper(lic.creee.slice(0, 10)) + (lic.test ? ' · TEST' : '') + '<br>État : ' + echapper(lic.statut) + (lic.raison ? ' (' + echapper(lic.raison) + ')' : '') +
+        '<div class="petit">' + details + '<br>État : ' + echapper(lic.statut) + (lic.raison ? ' (' + echapper(lic.raison) + ')' : '') +
         ' · PC : ' + lic.activations.length + '/' + LIMITE_PC + (lic.activations.length ? ' (' + lic.activations.map((a) => echapper(a.name)).join(', ') + ')' : '') + '</div>' +
-        (lic.statut === 'active' ? bouton('desactiver', 'Désactiver') : bouton('reactiver', 'Réactiver')) + bouton('liberer', 'Libérer les PC') + '</div>';
+        (lic.statut === 'active' ? bouton('desactiver', 'Désactiver') : bouton('reactiver', 'Réactiver')) + bouton('liberer', 'Libérer les PC') +
+        (lic.offerte ? bouton('prolonger', '+30 jours') + (lic.fin ? bouton('avie', 'À vie') : '') : '') + '</div>';
     }
     if (!resultats) resultats = '<p>Aucune clé trouvée pour « ' + echapper(recherche) + ' ».</p>';
   }
-  const formRecherche = '<form method="post">' + champ('jeton', jeton) + '<p><label>E-mail de l\'acheteur ou clé<br><input name="recherche" value="' + echapper(recherche) + '" style="font-size:1rem;padding:8px;width:100%"></label></p><p><button>Chercher</button></p></form>';
+  const formRecherche = '<form method="post">' + champ('jeton', jeton) + '<p><label>E-mail de l\'acheteur, clé, ou identifiant Discord du membre<br><input name="recherche" value="' + echapper(recherche === 'offertes' ? '' : recherche) + '" style="font-size:1rem;padding:8px;width:100%"></label></p><p><button>Chercher</button></p></form>' +
+    '<form method="post">' + champ('jeton', jeton) + champ('action', 'offertes') + '<button>Voir les clés offertes</button></form>' +
+    '<p class="petit">Identifiant Discord : clic droit sur le membre → « Copier l\'identifiant » (mode développeur de Discord).</p>';
   // Discord : installer (ou mettre à jour) les commandes du bot
   if (action === 'commandes-discord') message = '<p><b>Discord :</b> ' + echapper(await installerCommandes(env)) + '</p>';
   if (action === 'annoncer-version') message = '<p><b>Annonce :</b> ' + echapper(await annoncerVersion(env, true)) + '</p>';
@@ -394,7 +473,8 @@ const MAGENTA = 0xff2bd6;
 function carteCle(lic, titre) {
   return {
     title: titre, color: MAGENTA,
-    description: 'Ta clé **' + PRODUIT + '** :\n```' + lic.cle + '```\nDans Velox : onglet **Premium**, bouton **« J\'ai une clé »**, puis colle-la. Elle marche sur ' + LIMITE_PC + ' PC.',
+    description: 'Ta clé **' + PRODUIT + '** :\n```' + lic.cle + '```\nDans Velox : onglet **Premium**, bouton **« J\'ai une clé »**, puis colle-la. Elle marche sur ' + LIMITE_PC + ' PC.' +
+      (lic.fin ? '\n\n' + (expiree(lic) ? 'Clé offerte terminée le **' : 'Clé offerte valable jusqu\'au **') + dateFr(lic.fin) + '**.' : ''),
     footer: { text: 'Garde-la pour toi : elle ne sera jamais demandée par le support.' },
   };
 }
@@ -421,10 +501,10 @@ async function discord(requete, env, ctx) {
     return reponse({
       embeds: [{
         title: PRODUIT + ' · ' + PRIX, color: MAGENTA,
-        description: '19 outils de pro débloqués d\'un coup : gardien en temps réel, mode jeu automatique, preuve en FPS, moniteur en direct, sauvegarde automatique…\n\n' +
+        description: 'Tous les outils de pro débloqués d\'un coup : gardien en temps réel, mode jeu automatique, preuve en FPS, moniteur en direct, sauvegarde automatique…\n\n' +
           '• Paiement sécurisé par **Stripe**, **sans engagement** : tu arrêtes quand tu veux\n• Ta clé arrive ici **en message privé** juste après le paiement\n• Valable sur ' + LIMITE_PC + ' PC tant que l\'abonnement est actif\n• Rétractation possible pendant 14 jours',
       }],
-      components: [{ type: 1, components: [{ type: 2, style: 5, label: 'S\'abonner · 4,99 €/mois', url: lien }, { type: 2, style: 5, label: 'Voir le site', url: SITE }] }],
+      components: [{ type: 1, components: [{ type: 2, style: 5, label: 'S\'abonner · ' + PRIX_COURT, url: lien }, { type: 2, style: 5, label: 'Voir le site', url: SITE }] }],
     });
   }
 
@@ -434,23 +514,22 @@ async function discord(requete, env, ctx) {
     const embeds = [];
     for (const c of liste.slice(-5)) {
       const lic = await lire(env, 'lic:' + c);
+      if (lic) await expirerSiBesoin(env, lic);
       if (lic) embeds.push(carteCle(lic, lic.statut === 'active' ? 'Ta clé Premium' : 'Clé désactivée (' + (lic.raison || lic.statut) + ')'));
     }
     const gestion = env.LIEN_GESTION ? [{ type: 1, components: [{ type: 2, style: 5, label: 'Gérer ou résilier mon abonnement', url: env.LIEN_GESTION }] }] : [];
     return reponse({ embeds, components: gestion });
   }
 
-  if (nom === 'telecharger') {
-    return reponse({ content: 'Télécharge **Velox** (gratuit, Windows 10 et 11) :', components: [{ type: 1, components: [{ type: 2, style: 5, label: 'Télécharger Velox', url: SITE }] }] });
-  }
+  if (nom === 'telecharger') return reponse(await carteTelechargement(env));
 
   if (nom === 'essai') {
     return reponse({
       embeds: [{
         title: '🎁 Essai gratuit de Velox Premium · 7 jours', color: OR,
-        description: 'L\'essai est **intégré à Velox**, sans carte bancaire et sans inscription :\n\n1. Télécharge et ouvre **Velox**\n2. Onglet **Premium**\n3. Clique sur **« Essayer gratuitement 7 jours »**\n\nTous les outils Premium sont débloqués tout de suite. Ça te plaît ? Garde-les avec `/premium` (4,99 €/mois, sans engagement).',
+        description: 'L\'essai est **intégré à Velox**, sans carte bancaire et sans inscription :\n\n1. Télécharge **Velox** ici (bouton ci-dessous) et installe-le\n2. Onglet **Premium**\n3. Clique sur **« Essayer gratuitement 7 jours »**\n\nTous les outils Premium sont débloqués tout de suite. Ça te plaît ? Garde-les avec `/premium` (' + PRIX_COURT + ', sans engagement).',
       }],
-      components: [{ type: 1, components: [{ type: 2, style: 5, label: 'Télécharger Velox', url: SITE }, { type: 2, style: 3, label: 'S\'abonner', custom_id: 'premium' }] }],
+      components: [{ type: 1, components: [{ type: 2, style: 1, label: 'Télécharger Velox', emoji: { name: '⬇️' }, custom_id: 'telecharger' }, { type: 2, style: 3, label: 'S\'abonner', custom_id: 'premium' }] }],
     });
   }
 
@@ -474,6 +553,8 @@ async function discord(requete, env, ctx) {
       footer: { text: 'Toi aussi : QG Gamer → « Partager sur Discord », puis /score' } }] } });
   }
 
+  if (nom === 'avis') return await donnerAvis(env, i, id, utilisateur, ctx);
+
   if (nom === 'cle-offerte') {
     // réservé aux administrateurs du serveur (vérifié ici, pas seulement par Discord)
     let droits = 0n;
@@ -484,17 +565,28 @@ async function discord(requete, env, ctx) {
     const opts = (i.data.options || []);
     const cible = String((opts.find((o) => o.name === 'membre') || {}).value || '');
     const raison = String((opts.find((o) => o.name === 'raison') || {}).value || 'clé offerte').slice(0, 100);
+    const optDuree = opts.find((o) => o.name === 'duree');
     if (!/^\d{15,22}$/.test(cible)) return reponse('Membre inconnu.');
+    if (!optDuree) return reponse('Choisis une durée. Si l\'option « duree » n\'apparaît pas, clique sur « Installer les commandes Discord » dans la page /admin du service de licences.');
+    const duree = Number(optDuree.value);
+    if (!DUREES.includes(duree)) return reponse('Durée inconnue (7, 30, 90, 365 jours ou à vie).');
+    const u = ((i.data.resolved || {}).users || {})[cible] || {};
+    const pseudo = String(u.global_name || u.username || 'Membre Discord').slice(0, 64);
     // Discord attend une réponse en moins de 3 secondes : on répond tout de suite « en cours… », puis on crée la clé,
     // on donne le rôle, on envoie le message privé, et on remplace la réponse par le résultat.
     const travail = (async () => {
       const lic = {
-        cle: crypto.randomUUID().toUpperCase(), statut: 'active', raison: '', email: '', nom: 'Discord ' + cible, session: '', paiement: '', ref: '',
+        cle: crypto.randomUUID().toUpperCase(), statut: 'active', raison: '', email: '', nom: pseudo, session: '', paiement: '', ref: '',
         montant: 0, devise: 'eur', test: false, offerte: raison, offertePar: id, creee: new Date().toISOString(), activations: [],
+        fin: duree ? new Date(Date.now() + duree * JOUR).toISOString() : '',
       };
       await ecrire(env, lic);
+      await env.LICENCES.put('off:' + lic.cle, '1');
+      if (lic.fin) await env.LICENCES.put('fin:' + lic.fin + ':' + lic.cle, '1');
       const envoyee = await donnerSurDiscord(env, cible, lic, 'offerte');
-      const texte = 'Clé offerte à <@' + cible + '> (' + raison + ').' + (envoyee ? ' Elle lui a été envoyée en message privé.' : ' Ses messages privés sont fermés : voici la clé à lui transmettre toi-même :\n```' + lic.cle + '```');
+      const texte = 'Clé offerte à <@' + cible + '> ' + (duree ? 'pour ' + nomDuree(duree) + ', jusqu\'au ' + dateFr(lic.fin) : 'à vie') + ' (' + raison + ').' +
+        (envoyee ? ' Elle lui a été envoyée en message privé.' : ' Ses messages privés sont fermés : voici la clé à lui transmettre toi-même :\n```' + lic.cle + '```') +
+        '\nPour la prolonger ou l\'arrêter : page /admin, recherche « ' + cible + ' ».';
       await modifierReponse(env, i.token, texte);
     })().catch((e) => console.log('cle-offerte', e));
     if (ctx && ctx.waitUntil) { ctx.waitUntil(travail); return json({ type: 5, data: { flags: EPHEMERE } }); }
@@ -502,6 +594,93 @@ async function discord(requete, env, ctx) {
     return json({ type: 5, data: { flags: EPHEMERE } });
   }
   return reponse('Commande inconnue.');
+}
+
+// ------------------------------------------------------------ /telecharger : l'installateur directement, sans passer par le site
+// Le fichier (plus de 40 Mo) ne peut pas être envoyé dans Discord (limite d'envoi des serveurs) : le bot donne le lien direct
+// vers l'installateur de la dernière version publiée sur GitHub. Un clic lance le téléchargement, sans page web à parcourir.
+// La version est demandée à GitHub au plus toutes les 10 minutes ; si GitHub ne répond pas, la dernière connue est gardée.
+async function derniereVersion(env) {
+  let cache = null;
+  try { cache = JSON.parse(await env.LICENCES.get('telechargement') || 'null'); } catch (e) { cache = null; }
+  if (cache && Date.now() - cache.lu < 10 * 60000) return cache;
+  try {
+    const r = await fetch('https://api.github.com/repos/' + DEPOT + '/releases/latest', { headers: { 'User-Agent': 'velox-licences', Accept: 'application/vnd.github+json' } });
+    if (r.ok) {
+      const rel = await r.json(), version = String(rel.tag_name || '').replace(/^v/i, '');
+      const fichiers = rel.assets || [];
+      const exe = fichiers.find((a) => a.name === 'Velox-Setup-' + version + '.exe') || fichiers.find((a) => a.name === 'NettoyagePC-Setup-' + version + '.exe');
+      const lien = exe ? String(exe.browser_download_url || '') : '';
+      // seulement un fichier de ce dépôt (jamais un lien venu d'ailleurs)
+      if (/^[\d.]+$/.test(version) && lien.startsWith('https://github.com/' + DEPOT + '/releases/download/')) {
+        const sha = /^sha256:([0-9a-f]{64})$/i.exec(String(exe.digest || ''));
+        const info = { version, url: lien, nom: exe.name, taille: Number(exe.size) || 0, sha256: sha ? sha[1].toLowerCase() : '', lu: Date.now() };
+        await env.LICENCES.put('telechargement', JSON.stringify(info));
+        return info;
+      }
+    }
+  } catch (e) { console.log('github', e); }
+  return cache;
+}
+
+async function carteTelechargement(env) {
+  const v = await derniereVersion(env);
+  if (!v) return { content: 'GitHub ne répond pas pour le moment : réessaie dans une minute avec `/telecharger`.' };
+  const mo = v.taille ? ' · ' + (v.taille / 1048576).toFixed(1).replace('.', ',') + ' Mo' : '';
+  return {
+    embeds: [{
+      title: '⬇️ Velox ' + v.version, color: VIOLET,
+      description: 'Gratuit, sans pub · Windows 10 et 11' + mo + '\n\n' +
+        '1. Clique sur **Télécharger** : le fichier `' + v.nom + '` arrive directement, sans passer par le site.\n' +
+        '2. Ouvre-le et suis l\'installation.\n3. Déjà installé ? Velox se met à jour tout seul.' +
+        (v.sha256 ? '\n\nEmpreinte SHA256 :\n`' + v.sha256 + '`' : ''),
+      footer: { text: 'Fichier officiel, publié sur GitHub par l\'éditeur de Velox' } }],
+    components: [{ type: 1, components: [{ type: 2, style: 5, label: 'Télécharger Velox ' + v.version, emoji: { name: '⬇️' }, url: v.url }] }],
+  };
+}
+
+// ------------------------------------------------------------ /avis : avis des membres Premium et des testeurs
+// Réservé aux membres qui ont (ou ont eu) une clé liée à leur compte Discord : achat ou clé offerte. Un avis par membre :
+// le refaire remplace le précédent (le message du salon est modifié). L'origine est toujours affichée (« clé offerte »).
+const ETOILES = (n) => '★'.repeat(n) + '☆'.repeat(5 - n);
+const COULEURS_NOTE = [0, 0xe74c3c, 0xe67e22, 0xf1c40f, 0x9bd65c, 0x2ecc71];
+
+async function donnerAvis(env, i, id, utilisateur, ctx) {
+  if (!env.DISCORD_GUILD_ID || i.guild_id !== env.DISCORD_GUILD_ID) return reponse('Les avis se donnent sur le serveur officiel de Velox.');
+  const opts = (i.data && i.data.options) || [];
+  const note = Number((opts.find((o) => o.name === 'note') || {}).value);
+  // liens retirés (pas de pub ni de lien piégé dans les avis), espaces ramenés à un seul, 1000 caractères au plus
+  const texte = String((opts.find((o) => o.name === 'commentaire') || {}).value || '')
+    .replace(/(?:https?:\/\/|www\.|discord\.gg\/)\S+/gi, '[lien retiré]').replace(/[ \t]+/g, ' ').replace(/\n{3,}/g, '\n\n').trim().slice(0, 1000);
+  if (!Number.isInteger(note) || note < 1 || note > 5) return reponse('Choisis une note de 1 à 5.');
+  if (texte.length < 20) return reponse('Ton commentaire est trop court : dis en une ou deux phrases ce que tu aimes ou ce qui manque (20 caractères au moins).');
+  const cles = JSON.parse(await env.LICENCES.get('discord:' + id) || '[]');
+  const lics = [];
+  for (const c of cles) { const l = await lire(env, 'lic:' + c); if (l && !l.test) lics.push(l); }
+  if (!lics.some((l) => l.offerte || !['remboursée', 'contestée'].includes(l.raison))) lics.length = 0;   // seulement des achats remboursés : pas d'avis vérifié
+  if (lics.length === 0) return reponse('Les avis vérifiés sont réservés aux membres qui ont utilisé Velox Premium (abonnement ou clé offerte). Essaie-le 7 jours avec `/essai`, puis abonne-toi avec `/premium` : tu pourras ensuite donner ton avis.');
+  const etat = JSON.parse(await env.LICENCES.get('serveur') || '{}');
+  const salon = /^\d{15,22}$/.test(env.DISCORD_SALON_AVIS || '') ? env.DISCORD_SALON_AVIS : ((etat.salons || {}).avis || '');
+  if (!salon) return reponse('Le salon des avis n\'est pas encore prêt. Préviens le staff (page /admin → « Organiser le serveur Discord »).');
+  // un achat remboursé ou contesté ne donne pas la mention « Abonné Premium »
+  const achat = lics.some((l) => !l.offerte && !['remboursée', 'contestée'].includes(l.raison)), offerte = lics.some((l) => l.offerte);
+  const origine = achat ? 'Abonné Premium' + (offerte ? ' · a aussi reçu une clé offerte' : '') : 'Testeur · a reçu une clé Premium offerte';
+  const pseudo = String(utilisateur.global_name || utilisateur.username || 'Membre').slice(0, 64);
+  const maintenant = new Date().toISOString();
+  const contenu = { allowed_mentions: { parse: [] }, embeds: [{
+    author: { name: pseudo }, title: ETOILES(note) + '  ' + note + '/5', color: COULEURS_NOTE[note], description: texte,
+    footer: { text: origine + ' · avis vérifié par le bot Velox' }, timestamp: maintenant }] };
+  const travail = (async () => {
+    const ancien = await lire(env, 'avis:' + id);
+    let m = null;
+    if (ancien && ancien.canal === salon && ancien.message) m = await appelDiscord(env, 'PATCH', '/channels/' + salon + '/messages/' + ancien.message, contenu);
+    if (!m) m = await appelDiscord(env, 'POST', '/channels/' + salon + '/messages', contenu);
+    if (!m || !m.id) { await modifierReponse(env, i.token, 'Impossible de publier ton avis pour le moment (le bot n\'a pas accès au salon). Réessaie plus tard ou préviens le staff.'); return; }
+    await env.LICENCES.put('avis:' + id, JSON.stringify({ note, texte, date: maintenant, canal: salon, message: m.id, origine: achat ? 'achat' : 'offerte' }));
+    await modifierReponse(env, i.token, (ancien ? 'Ton avis est mis à jour' : 'Merci ! Ton avis est publié') + ' dans <#' + salon + '>. Tu peux le modifier à tout moment avec `/avis`.');
+  })().catch((e) => console.log('avis', e));
+  if (ctx && ctx.waitUntil) ctx.waitUntil(travail); else await travail;
+  return json({ type: 5, data: { flags: EPHEMERE } });
 }
 
 /** Remplace la réponse « en cours… » d'une commande (jeton de l'interaction, valable 15 minutes ; pas besoin du jeton du bot). */
@@ -539,7 +718,11 @@ async function donnerSurDiscord(env, id, lic, origine) {
   const canal = await appelDiscord(env, 'POST', '/users/@me/channels', { recipient_id: id });
   if (!canal || !canal.id) return false;
   const titre = origine === 'offerte' ? 'Tu as reçu une clé Velox Premium !' : 'Merci pour ton achat !';
-  return !!await appelDiscord(env, 'POST', '/channels/' + canal.id + '/messages', { embeds: [carteCle(lic, titre)], allowed_mentions: { parse: [] } });
+  const embeds = [carteCle(lic, titre)];
+  if (origine === 'offerte') embeds.push({ title: '⭐ Ton avis nous intéresse', color: OR,
+    description: 'Après quelques jours d\'utilisation, donne ton **avis honnête** avec `/avis` sur le serveur Velox : une note de 1 à 5 et ce que tu en penses.\n\n' +
+      'Positif ou négatif, il est publié tel quel, avec la mention « clé offerte ». Tu n\'es pas obligé d\'en donner un pour garder ta clé.' });
+  return !!await appelDiscord(env, 'POST', '/channels/' + canal.id + '/messages', { embeds, allowed_mentions: { parse: [] } });
 }
 
 // ------------------------------------------------------------ /score : code de joueur copié depuis Velox
@@ -610,16 +793,21 @@ async function annoncerVersion(env, forcer) {
 async function installerCommandes(env) {
   if (!env.DISCORD_APP_ID || !env.DISCORD_BOT_TOKEN) return 'DISCORD_APP_ID ou DISCORD_BOT_TOKEN manquant.';
   const commandes = [
-    { name: 'premium', description: 'S\'abonner à Velox Premium (4,99 €/mois, sans engagement) : clé en message privé', type: 1 },
+    { name: 'premium', description: 'S\'abonner à Velox Premium (' + PRIX_COURT + ', sans engagement) : clé en message privé', type: 1 },
     { name: 'ma-cle', description: 'Revoir ta clé Velox Premium (visible seulement par toi)', type: 1 },
-    { name: 'telecharger', description: 'Télécharger Velox (gratuit)', type: 1 },
+    { name: 'telecharger', description: 'Télécharger Velox (gratuit) : l\'installateur directement, sans passer par le site', type: 1 },
     { name: 'essai', description: 'Essayer Velox Premium gratuitement pendant 7 jours', type: 1 },
     { name: 'score', description: 'Montrer ton rang de joueur Velox (code copié depuis le QG Gamer)', type: 1, options: [{ type: 3, name: 'code', description: 'Ton code VLX1-… (Velox : QG Gamer → Partager sur Discord)', required: true, max_length: 60 }] },
+    { name: 'avis', description: 'Donner ton avis sur Velox Premium (membres Premium et testeurs)', type: 1, dm_permission: false,
+      options: [{ type: 4, name: 'note', description: 'Ta note', required: true, choices: [5, 4, 3, 2, 1].map((n) => ({ name: ETOILES(n) + ' ' + n + '/5', value: n })) },
+        { type: 3, name: 'commentaire', description: 'Ce que tu aimes, ce qui manque (publié tel quel)', required: true, min_length: 20, max_length: 1000 }] },
     { name: 'cle-offerte', description: 'Admin : offrir une clé Velox Premium à un membre', type: 1, default_member_permissions: '8', dm_permission: false,
-      options: [{ type: 6, name: 'membre', description: 'Le membre qui reçoit la clé', required: true }, { type: 3, name: 'raison', description: 'Concours, partenariat…', required: false, max_length: 100 }] },
+      options: [{ type: 6, name: 'membre', description: 'Le membre qui reçoit la clé', required: true },
+        { type: 4, name: 'duree', description: 'Durée de la clé (elle s\'arrête toute seule)', required: true, choices: DUREES.slice(1).map((j) => ({ name: nomDuree(j), value: j })).concat([{ name: 'À vie', value: 0 }]) },
+        { type: 3, name: 'raison', description: 'Testeur, concours, partenariat…', required: false, max_length: 100 }] },
   ];
   const r = await appelDiscord(env, 'PUT', '/applications/' + env.DISCORD_APP_ID + '/commands', commandes);
-  return r ? commandes.length + ' commandes installées (/premium, /ma-cle, /telecharger, /essai, /score, /cle-offerte).' : 'échec : vérifie DISCORD_APP_ID et DISCORD_BOT_TOKEN.';
+  return r ? commandes.length + ' commandes installées (/premium, /ma-cle, /telecharger, /essai, /score, /avis, /cle-offerte).' : 'échec : vérifie DISCORD_APP_ID et DISCORD_BOT_TOKEN.';
 }
 
 // ------------------------------------------------------------ organisation du serveur Discord (bouton de /admin)
@@ -637,16 +825,17 @@ const PLAN_SERVEUR = [
   { cle: 'cat-bienvenue', nom: '👋 BIENVENUE', salons: [
     { cle: 'regles', nom: '📜・règles', alias: ['regles', 'reglement', 'rules'], lecture: true, sujet: 'Les règles du serveur Velox' },
     { cle: 'bienvenue', nom: '👋・bienvenue', alias: ['bienvenue', 'welcome', 'accueil'], lecture: true, sujet: 'Bienvenue ! Par où commencer' },
+    { cle: 'decouvrir', nom: '✨・découvrir-velox', alias: ['decouvrir-velox', 'decouvrir', 'presentation', 'fonctionnalites'], lecture: true, sujet: 'Tout ce que fait Velox, en images : entretien du PC, mode jeu, Studio son, Premium' },
     { cle: 'annonces', nom: '📢・annonces', alias: ['annonce', 'annonces'], lecture: true, sujet: 'Les nouveautés de Velox' },
     { cle: 'maj', nom: '🆕・mises-à-jour', alias: ['mises-a-jour', 'mise-a-jour', 'maj'], lecture: true, sujet: 'Chaque nouvelle version de Velox' }] },
   { cle: 'cat-velox', nom: '⚡ VELOX', salons: [
     { cle: 'general', nom: '💬・général', alias: ['general', 'discussion'], sujet: 'Discute de tout avec la communauté' },
     { cle: 'gaming', nom: '🎮・gaming', alias: ['gaming', 'jeux'], sujet: 'Tes jeux, tes FPS, tes réglages' },
     { cle: 'captures', nom: '📸・tes-captures', alias: ['tes-captures', 'captures'], sujet: 'Montre ton score Velox, ta carte de joueur, ton setup' },
-    { cle: 'avis', nom: '⭐・avis', alias: ['avis', 'reviews'], sujet: 'Ton avis sur Velox : ce que tu aimes, ce qui manque' },
+    { cle: 'avis', nom: '⭐・avis', alias: ['avis', 'reviews'], sujet: 'Les avis vérifiés (/avis) et tes retours sur Velox : ce que tu aimes, ce qui manque' },
     { cle: 'roles', nom: '🎭・rôles', alias: ['roles'], lecture: true, sujet: 'Choisis tes rôles en un clic' }] },
   { cle: 'cat-premium', nom: '💎 PREMIUM', salons: [
-    { cle: 'acheter', nom: '💎・acheter-premium', alias: ['acheter-premium', 'premium-boutique', 'boutique'], lecture: true, sujet: 'Velox Premium : 4,99 €/mois sans engagement' },
+    { cle: 'acheter', nom: '💎・acheter-premium', alias: ['acheter-premium', 'premium-boutique', 'boutique'], lecture: true, sujet: 'Velox Premium : ' + PRIX_COURT + ' sans engagement' },
     { cle: 'salon-premium', nom: '👑・salon-premium', alias: ['salon-premium'], premium: true, sujet: 'Réservé aux membres Premium' }] },
   { cle: 'cat-aide', nom: '🛟 AIDE', salons: [
     { cle: 'support', nom: '🛟・support', alias: ['support', 'aide'], sujet: 'Un souci avec Velox ? Explique-le ici (ne donne jamais ta clé)' },
@@ -780,20 +969,50 @@ function messagesServeur(env, etat) {
     ['bienvenue', 'bienvenue', { allowed_mentions: sansMention, embeds: [{
       title: '👋 Bienvenue sur le serveur officiel de Velox !', color: VIOLET,
       description: '**Velox** nettoie, accélère et protège ton PC Windows : gratuit, sans pub, et rien n\'est supprimé sans ton accord.\n\n' +
-        '**Par où commencer ?**\n📜 Lis les ' + m('regles') + '\n🎭 Choisis tes rôles dans ' + m('roles') + '\n💬 Présente-toi dans ' + m('general') + '\n⭐ Donne ton avis dans ' + m('avis') + '\n🏆 Montre ton rang de joueur : `/score` dans ' + m('captures') + '\n💎 Débloque tout avec Premium dans ' + m('acheter') + '\n🛟 Une question ? ' + m('support'),
+        '**Par où commencer ?**\n✨ Découvre tout ce que fait Velox dans ' + m('decouvrir') + '\n📜 Lis les ' + m('regles') + '\n🎭 Choisis tes rôles dans ' + m('roles') + '\n💬 Présente-toi dans ' + m('general') + '\n⭐ Donne ton avis avec `/avis` dans ' + m('avis') + '\n🏆 Montre ton rang de joueur : `/score` dans ' + m('captures') + '\n💎 Débloque tout avec Premium dans ' + m('acheter') + '\n🛟 Une question ? ' + m('support'),
       footer: { text: 'Velox · Windows 10 et 11' } }],
       components: [{ type: 1, components: [
-        { type: 2, style: 5, label: 'Télécharger Velox', emoji: { name: '⬇️' }, url: SITE },
+        { type: 2, style: 1, label: 'Télécharger Velox', emoji: { name: '⬇️' }, custom_id: 'telecharger' },
         { type: 2, style: 1, label: 'Velox Premium', emoji: { name: '💎' }, custom_id: 'premium' },
       ].concat(s.roles ? [{ type: 2, style: 5, label: 'Choisir mes rôles', emoji: { name: '🎭' }, url: lien(s.roles) }] : []) }] }],
+    // vitrine : Velox, le Studio son, les joueurs, Premium (images du site officiel)
+    ['decouvrir', 'decouvrir', { allowed_mentions: sansMention, embeds: [
+      { title: '⚡ Velox : ton PC Windows rapide, propre et protégé', color: VIOLET, url: SITE,
+        description: '**Gratuit, sans pub, sans pistage.** Windows 10 et 11.\n\n' +
+          '🧹 **Nettoyer** : fichiers inutiles, disques, mémoire\n🚀 **Accélérer** : démarrage, réglages des jeux, plein potentiel du matériel\n' +
+          '🛡️ **Protéger** : bouclier anti-arnaque, sécurité, mises à jour, pilotes\n💾 **Outils** : sauvegarde, réseau, aide à distance, mode simple pour tes proches\n\n' +
+          '**Rien n\'est supprimé sans ton accord**, chaque action est expliquée, et tout s\'annule depuis l\'Historique.',
+        image: { url: SITE + 'img/accueil.png' } },
+      { title: '🎧 Studio son : entends chaque pas', color: MAGENTA,
+        description: 'Un égaliseur fait pour **Call of Duty / Warzone** : les pas et les recharges ressortent, les explosions ne t\'assourdissent plus.\n\n' +
+          '🎚️ **4 profils** : Compétitif, Équilibré, Pas extrême, Immersion\n📈 **Spectre en direct** : glisse les points de la courbe pour régler chaque bande\n' +
+          '🔁 **Comparer** : maintiens le bouton pour entendre la différence\n🎮 **Auto Warzone** : l\'égaliseur s\'allume quand le jeu tourne, se coupe quand tu le fermes\n' +
+          '⌨️ **En pleine partie** : Ctrl+Alt+F9 (marche / arrêt), Ctrl+Alt+F10 (profil suivant)\n🔊 Marche avec **Equalizer APO** (gratuit) ou **Voicemeeter** Banana / Potato\n\n' +
+          '**Le jeu n\'est jamais touché** : Velox règle seulement ton son, et tout s\'annule en un clic. Inclus dans Premium.',
+        image: { url: SITE + 'img/studio-son.webp' } },
+      { title: '🎮 Pour les joueurs', color: OR,
+        description: '🏆 **QG Gamer** : ton rang, tes succès, tes défis du jour, et ta carte de joueur à montrer ici avec `/score`\n' +
+          '⚡ **BOOST** : le mode jeu explique ce qu\'il fait, ligne par ligne\n💎 **Mode jeu automatique** et **Autopilote** : Velox garde seulement les réglages qui marchent sur ton PC\n' +
+          '💎 **Preuve en FPS** : tes images par seconde mesurées avant / après\n💎 **Moniteur en direct** : processeur, carte graphique, températures',
+        image: { url: SITE + 'img/qg.webp' } },
+      { title: '💎 Velox Premium · ' + PRIX_COURT, color: OR,
+        description: 'Tous les outils de pro, débloqués d\'un coup :\n' +
+          '🎧 Studio son · 🛡️ Gardien en temps réel · 🔍 « Pourquoi mon PC ralentit ? » · 🩺 Santé prédictive\n' +
+          '💾 Sauvegarde automatique · 💥 Analyse des plantages et du démarrage · 🤖 Assistant local · ⚡ Coût en électricité\n\n' +
+          '🎁 **Essai gratuit 7 jours** dans Velox, sans carte bancaire.\nSans engagement · satisfait ou remboursé 14 jours · ' + LIMITE_PC + ' PC.',
+        footer: { text: 'Velox · Windows 10 et 11' } }],
+      components: [{ type: 1, components: [
+        { type: 2, style: 1, label: 'Télécharger Velox', emoji: { name: '⬇️' }, custom_id: 'telecharger' },
+        { type: 2, style: 2, label: 'Essai gratuit 7 jours', emoji: { name: '🎁' }, custom_id: 'essai' },
+        { type: 2, style: 3, label: 'S\'abonner', emoji: { name: '💎' }, custom_id: 'premium' }] }] }],
     ['roles', 'roles', { allowed_mentions: sansMention, embeds: [{
       title: '🎭 Choisis tes rôles', color: MAGENTA,
       description: 'Clique sur un bouton pour **ajouter** le rôle, reclique pour **l\'enlever**.\n\n' + ROLES_CHOIX.map((r) => '**' + r.nom + '** : ' + r.texte).join('\n') +
         '\n\n**💎 Premium** est donné automatiquement quand tu t\'abonnes.' }],
       components: [{ type: 1, components: ROLES_CHOIX.map((r) => ({ type: 2, style: 2, label: r.nom.replace(/^\S+\s/, ''), emoji: { name: r.nom.split(' ')[0] }, custom_id: 'role:' + r.cle })) }] }],
     ['acheter', 'acheter', { allowed_mentions: sansMention, embeds: [{
-      title: '💎 Velox Premium · 4,99 €/mois', color: OR,
-      description: '**19 outils de pro débloqués d\'un coup :**\n' +
+      title: '💎 Velox Premium · ' + PRIX_COURT, color: OR,
+      description: '**Tous les outils de pro débloqués d\'un coup :**\n' +
         '🛡️ Gardien en temps réel (alerte quand un programme abuse)\n🎮 Mode jeu automatique dès que tu lances un jeu\n📈 Preuve en FPS avant / après\n' +
         '📊 Moniteur en direct (processeur, carte graphique, températures)\n💾 Sauvegarde automatique de tes dossiers\n🔄 Mise à jour automatique de tes applications\n…et bien plus.\n\n' +
         '**Comment ça marche ?**\n1. Clique sur **S\'abonner** (ou tape `/premium`)\n2. Paie en toute sécurité avec **Stripe**\n3. Ta clé arrive **en message privé** + le rôle 💎 Premium\n4. Dans Velox : onglet **Premium** → **J\'ai une clé**',

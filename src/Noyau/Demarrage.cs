@@ -28,6 +28,18 @@ namespace NettoyagePC
                 return CommandesAdmin.Executer(cmd);
             }
             if (args[0] == "--gardien-arreter") { Gardien.Arreter(); return 0; }
+            // (désinstallation) retire le fichier de l'égaliseur « Audio jeu » et sa ligne Include du dossier d'Equalizer APO,
+            // et coupe l'égaliseur de Voicemeeter si c'est Velox qui l'avait allumé
+            // (Audio jeu) processus à part : écoute du son et relevés de Voicemeeter, changement de la sortie par défaut
+            if (args[0] == "--ecoute-audio") return EcouteDirecte.Executer(args);
+            if (args[0] == "--sortie-audio-defaut") return AudioWindows.ChangerEnProcessus(args);
+            if (args[0] == "--retirer-audio-jeu")
+            {
+                int code = AudioJeu.Retirer();
+                try { var r = AudioJeu.Lire(); if (r.VmEcrit >= 0) Voicemeeter.Couper(r.VmEcrit, false); } catch { }
+                try { Voicemeeter.Etiqueter(-1, -1); } catch { }   // nom « Velox Studio » retiré de Voicemeeter (s'il est lancé)
+                return code;
+            }
             if (args[0] == "--mesurer")
             {
                 var r = Benchmark.Lancer(Path.GetTempPath(), (t, p) => Console.WriteLine(p + " % " + t));

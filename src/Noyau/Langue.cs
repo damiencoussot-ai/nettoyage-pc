@@ -73,6 +73,9 @@ namespace NettoyagePC
             try { return string.Format(T(modele), valeurs); } catch { return string.Format(modele, valeurs); }
         }
 
+        /// <summary>Vrai si cette phrase entière a une traduction dans la langue choisie (faux en français : rien à traduire).</summary>
+        public static bool Connue(string texte) { return phrases != null && texte != null && phrases.ContainsKey(texte); }
+
         /// <summary>Traduction d'une phrase entière seulement (pour les données affichées dans les listes).</summary>
         public static string Exact(string texte)
         {

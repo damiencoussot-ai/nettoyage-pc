@@ -107,6 +107,8 @@ namespace NettoyagePC.Nouveau
             O("moniteur", "Premium", "Moniteur en direct", "Courbes du PC sur 60 secondes.", Outil("moniteur"), true),
             O("widget", "Premium", "Widget de bureau", "L'indice et les mesures toujours visibles.", Outil("widget"), true),
             O("batterie", "Premium", "Santé de la batterie", "Usure, cycles et autonomie réelle.", Outil("batterie"), true),
+
+            O("audiojeu", "Audio", "Audio jeu", "Entendre les pas dans Call of Duty / Warzone.", f => AudioJeu5.Ouvrir(f), true),
         };
 
         /// <summary>Favori qui correspond à une fonction qu'on active (gardien, mode jeu...) → clé de son état.</summary>
@@ -139,6 +141,12 @@ namespace NettoyagePC.Nouveau
                 {
                     if (PageAccelerer.ModeAlimentation() != "Performances élevées") return 0;
                     detail = Langue.T("Performances élevées activées.");
+                    return 1;
+                }
+                if (o.Id == "audiojeu")
+                {
+                    if (!AudioJeu5.Actif) return 0;
+                    detail = Langue.T("L'égaliseur est actif.");
                     return 1;
                 }
                 string cle;

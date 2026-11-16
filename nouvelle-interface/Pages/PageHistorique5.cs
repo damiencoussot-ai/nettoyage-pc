@@ -109,11 +109,17 @@ namespace NettoyagePC.Nouveau
                 var liste = Historique.Lire();
                 if (tout) ids = liste.Where(m => !m.Annule).Select(m => m.Id).ToList();
                 int ok = 0; var echecs = new List<string>();
-                foreach (var m in liste)
+                // de la plus récente à la plus ancienne : quand plusieurs changements se suivent sur le même réglage,
+                // c'est l'état d'avant le plus ancien qui doit rester à la fin
+                for (int i = liste.Count - 1; i >= 0; i--)
                 {
+                    var m = liste[i];
                     if (!ids.Contains(m.Id) || m.Annule) continue;
                     string raison = Historique.Annuler(m);
-                    if (raison != "") echecs.Add(m.Titre + " : " + raison); else { m.Annule = true; ok++; }
+                    if (raison != "") { echecs.Add(Langue.T(m.Titre) + " : " + Langue.T(raison)); continue; }
+                    m.Annule = true; ok++;
+                    // audio jeu : revenir à un état ancien défait aussi les changements faits après lui
+                    if (m.Type == "audiojeu") for (int k = i + 1; k < liste.Count; k++) if (liste[k].Type == "audiojeu") liste[k].Annule = true;
                 }
                 Historique.Ecrire(liste);
                 Charger();

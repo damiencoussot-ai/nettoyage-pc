@@ -16,7 +16,7 @@ function signer(corps, secret, t = Math.floor(Date.now() / 1000)) {
 
 const mf = new Miniflare({
   modules: true, scriptPath: path.join(ici, 'worker.js'), kvNamespaces: ['LICENCES'], compatibilityDate: '2025-06-01',
-  bindings: { STRIPE_WEBHOOK_SECRET: SECRET, STRIPE_WEBHOOK_SECRET_TEST: SECRET_TEST, ADMIN_TOKEN: ADMIN },
+  bindings: { STRIPE_WEBHOOK_SECRET: SECRET, STRIPE_WEBHOOK_SECRET_TEST: SECRET_TEST, ADMIN_TOKEN: ADMIN, LIENS_PAIEMENT: 'plink_1' },
 });
 const B = 'https://licences.exemple';
 const post = (p, corps, entetes = {}) => mf.dispatchFetch(B + p, { method: 'POST', body: corps, headers: entetes });
