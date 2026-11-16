@@ -108,6 +108,7 @@ namespace NettoyagePC
                     if (R.RappelMensuel && n % 120 == 17) VerifierEntretienMensuel();
                     if (R.ModeJeuAuto || ModeJeuAuto.Actif) VerifierModeJeu();
                     VerifierAudioJeu();
+                    MoteurSon.Surveiller();   // « Pas boostés » : moteur relancé s'il s'est arrêté
                     if (R.Bulletin && n % 120 == 47) VerifierBulletin();
                     if (R.NouveauxAppareils && n % 30 == 23) VerifierAppareils();
                     if (R.ResumeSemaine && n % 120 == 77) VerifierResumeSemaine();

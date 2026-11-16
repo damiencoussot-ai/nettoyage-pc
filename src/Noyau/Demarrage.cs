@@ -33,8 +33,11 @@ namespace NettoyagePC
             // (Audio jeu) processus à part : écoute du son et relevés de Voicemeeter, changement de la sortie par défaut
             if (args[0] == "--ecoute-audio") return EcouteDirecte.Executer(args);
             if (args[0] == "--sortie-audio-defaut") return AudioWindows.ChangerEnProcessus(args);
+            // (Audio jeu) moteur « Pas boostés » : processus à part, indépendant de la fenêtre
+            if (args[0] == "--moteur-son") return MoteurSon.Executer();
             if (args[0] == "--retirer-audio-jeu")
             {
+                try { MoteurSon.Retirer(); } catch { }   // moteur « Pas boostés » arrêté, sortie par défaut remise
                 int code = AudioJeu.Retirer();
                 try { var r = AudioJeu.Lire(); if (r.VmEcrit >= 0) Voicemeeter.Couper(r.VmEcrit, false); } catch { }
                 try { Voicemeeter.Etiqueter(-1, -1); } catch { }   // nom « Velox Studio » retiré de Voicemeeter (s'il est lancé)

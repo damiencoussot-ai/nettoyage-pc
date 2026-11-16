@@ -455,6 +455,12 @@ namespace NettoyagePC
         /// son bus A (« nomDefaut » : nom de la sortie par défaut ; « appareilVm » : appareil du bus A de Voicemeeter).</summary>
         public static string Resoudre(string cible, List<SortieAudio> sorties, string defaut, out int etat, string nomDefaut, string appareilVm)
         {
+            // « Pas boostés » allumé : la sortie par défaut est le câble, le son finit sur le casque (c'est lui qu'on vise)
+            if (cible == "auto")
+            {
+                string effectif = MoteurSon.DefautEffectif(NormaliserGuid(defaut));
+                if (effectif != NormaliserGuid(defaut)) return Resoudre(cible, sorties, effectif, out etat);
+            }
             string g = Resoudre(cible, sorties, defaut, out etat);
             if (etat != 1 || cible != "auto" || !EstVoicemeeter(nomDefaut)) return g;
             string vm = SortieVoicemeeter(appareilVm, sorties);

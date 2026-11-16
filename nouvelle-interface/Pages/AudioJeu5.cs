@@ -35,6 +35,10 @@ namespace NettoyagePC.Nouveau
         public string Dossier = "";
         public bool Configurator;
         public EtatHeSuVi HeSuVi = new EtatHeSuVi();
+        /// <summary>« Pas boostés » : câbles virtuels trouvés, réglages, état du moteur.</summary>
+        public List<CableVirtuel> Cables = new List<CableVirtuel>();
+        public ReglagesMoteurSon Moteur = new ReglagesMoteurSon();
+        public MoteurSon.EtatMoteur MoteurEtat = new MoteurSon.EtatMoteur();
 
         public static ReleveAudioJeu Lire()
         {
@@ -46,6 +50,11 @@ namespace NettoyagePC.Nouveau
                 r.Jeu = AudioJeu.JeuDetecte();
                 r.Windows = AudioWindows.Lister();
                 r.Defaut = AudioJeu.SortieParDefaut();
+                r.Cables = MoteurSon.Cables(r.Windows);
+                r.Moteur = MoteurSon.Lire();
+                r.MoteurEtat = MoteurSon.LireEtat();
+                // allumé mais moteur arrêté (PC redémarré sans gardien…) : relancé
+                if (r.Moteur.Actif && r.Cables.Count > 0 && !MoteurSon.EnMarche()) MoteurSon.Demarrer();
                 if (r.Etat.Present)
                 {
                     r.Sorties = AudioJeu.Sorties();
@@ -534,7 +543,10 @@ namespace NettoyagePC.Nouveau
             public bool[] EtatEnvois = new bool[0];
         }
         private StackPanel zoneMix, zoneCasque, zoneSurround;
-        private TextBlock tDansLeJeu;
+        private TextBlock tDansLeJeu, tPasDirect;
+        private StackPanel zonePas;
+        private string signaturePas;
+        private bool pasOccupe;
         private string signatureSurround;
         private bool tousModeles;
         private readonly List<Tuple<JeuAudio, Border>> puceJeux = new List<Tuple<JeuAudio, Border>>();
@@ -748,6 +760,8 @@ namespace NettoyagePC.Nouveau
             tDansLeJeu = Studio.T("", 12, Studio.Faible);
             tDansLeJeu.Margin = new Thickness(0, 6, 0, 0);
             g.Children.Add(Studio.Module("Profils", new StackPanel { Children = { grille, autres, tProfil, tDansLeJeu } }));
+            zonePas = new StackPanel { Spacing = 10 };
+            g.Children.Add(Studio.Module("Pas boostés", zonePas));
             zoneCasque = new StackPanel { Spacing = 10 };
             g.Children.Add(Studio.Module("Calibration du casque", zoneCasque));
             zoneSurround = new StackPanel { Spacing = 10 };
@@ -1096,6 +1110,7 @@ namespace NettoyagePC.Nouveau
             // ---- sorties, Voicemeeter, automatismes, fichier
             if (exemple) vu.Definir(0.42f, 0.36f);
             MajCasque();
+            MajPas(v);
             MajSurround(v);
             MajSorties(v);
             MajVoicemeeter();
@@ -1357,6 +1372,96 @@ namespace NettoyagePC.Nouveau
             if (comparaison) Comparer(F, false);   // l'égaliseur revient toujours
             etapeDemo = 0;
             MarquerDemo(0);
+        }
+
+        // ---------------------------------------------------------------- « Pas boostés » : moteur audio de Velox
+
+        private void MajPas(ReleveAudioJeu v)
+        {
+            if (zonePas == null) return;
+            var m = v.Moteur ?? new ReglagesMoteurSon();
+            var et = v.MoteurEtat ?? new MoteurSon.EtatMoteur();
+            bool cable = v.Cables.Count > 0;
+            string sig = cable + "|" + m.Actif + "|" + m.Force + "|" + m.JeuxSeulement + "|" + pasOccupe + "|" + (et.Erreur != "");
+            if (sig != signaturePas)
+            {
+                signaturePas = sig;
+                zonePas.Children.Clear();
+                zonePas.Children.Add(Studio.T(Langue.T("Le vrai saut pour entendre les pas : Velox traite lui-même le son en direct. Les sons faibles (pas lointains, recharges) remontent, les explosions et les tirs sont tenus, et rien ne sature. L'égaliseur et la calibration de ton casque continuent par-dessus."), 12.5, Studio.Discret));
+                if (!cable)
+                {
+                    zonePas.Children.Add(Studio.T(Langue.T("Il faut un câble audio virtuel : VB-Cable, gratuit. Installe-le, redémarre le PC, puis reviens ici : Velox branche tout lui-même."), 12, Studio.Ambre));
+                    zonePas.Children.Add(new WrapPanel { Children = { Studio.Bouton(Langue.T("Télécharger VB-Cable (gratuit)"), true, () => { if (!exemple) Programmes.Ouvrir(MoteurSon.SiteCable); }) } });
+                }
+                else
+                {
+                    var ligne = new WrapPanel();
+                    var bOn = Puce(Langue.T(m.Actif ? "Pas boostés : actif" : "Pas boostés : coupé"), () => BasculerPas(!m.Actif));
+                    Marquer(bOn, m.Actif, Studio.Vert);
+                    ligne.Children.Add(bOn);
+                    foreach (var n in MoteurSon.Niveaux)
+                    {
+                        var nn = n;
+                        var b = Puce(Langue.T(n.Item1), () => ReglerPas(nn.Item2, null));
+                        Marquer(b, m.Force == n.Item2, Studio.Magenta);
+                        ligne.Children.Add(b);
+                    }
+                    var bJeux = Puce(Langue.T("Seulement en jeu"), () => ReglerPas(null, !m.JeuxSeulement));
+                    ToolTip.SetTip(bJeux, Langue.T("Le son est traité seulement quand un jeu reconnu tourne (Warzone, Valorant, CS2…) : musique et vidéos restent intactes."));
+                    Marquer(bJeux, m.JeuxSeulement, Studio.Cyan);
+                    ligne.Children.Add(bJeux);
+                    zonePas.Children.Add(ligne);
+                    tPasDirect = Studio.T("", 12, Studio.Texte);
+                    zonePas.Children.Add(tPasDirect);
+                    zonePas.Children.Add(Studio.T(Langue.T("Léger : +9 dB sur les pas lointains face aux explosions. Fort : +16 dB. Extrême : +23 dB (mesuré sur une scène de jeu). Le son passe par VB-Cable, puis Velox le joue sur ton casque : environ 25 ms de retard en plus. Dans le jeu, laisse la sortie audio sur « Par défaut »."), 11.5, Studio.Faible));
+                }
+            }
+            if (tPasDirect != null && cable)
+            {
+                if (pasOccupe) tPasDirect.Text = Langue.T("Branchement en cours…");
+                else if (!m.Actif) tPasDirect.Text = Langue.T("Coupé : le son va directement au casque.");
+                else if (et.Erreur != "") tPasDirect.Text = Langue.T(et.Erreur);
+                else if (!et.Marche) tPasDirect.Text = Langue.T("Démarrage du moteur…");
+                else if (!et.Jeu) tPasDirect.Text = Langue.F("En attente d'un jeu (le son passe tel quel) · retard {0} ms", et.LatenceMs);
+                else tPasDirect.Text = Langue.F("En marche · sons forts tenus jusqu'à −{0} dB · retard {1} ms", et.Reduction.ToString("F0", Langue.Culture), et.LatenceMs);
+                tPasDirect.Foreground = Studio.P(m.Actif && et.Erreur != "" ? Studio.Ambre : Studio.Texte);
+            }
+        }
+
+        private void BasculerPas(bool allumer)
+        {
+            if (exemple || pasOccupe) return;
+            if (simulation) { F.Statut(Langue.T(allumer ? "Simulation : « Pas boostés » serait allumé, rien n'est modifié." : "Simulation : « Pas boostés » serait coupé, rien n'est modifié."), true); return; }
+            var m = (Releve ?? new ReleveAudioJeu()).Moteur ?? new ReglagesMoteurSon();
+            int force = m.Force; bool jeux = m.JeuxSeulement;
+            pasOccupe = true; signaturePas = null; MajPas(Releve ?? new ReleveAudioJeu());
+            var f = F;
+            Task.Run(() => allumer ? MoteurSon.Allumer(force, jeux) : MoteurSon.Couper(true)).ContinueWith(t => Dispatcher.UIThread.Post(() =>
+            {
+                pasOccupe = false; signaturePas = null;
+                string err = t.IsFaulted ? (t.Exception.InnerException ?? t.Exception).Message : t.Result;
+                if (err != "") { f.Statut(Langue.T(err), true); Relever(); return; }
+                Confirmer(f, Langue.T(allumer ? "Pas boostés allumé" : "Pas boostés coupé"), allumer ? Langue.T("VB-Cable → Velox → ton casque") : Langue.T("le son va directement au casque"), allumer);
+                f.Statut(Langue.T(allumer ? "« Pas boostés » allumé : le jeu joue dans VB-Cable, Velox traite le son et le joue sur ton casque (changement de sortie annulable dans l'Historique)." : "« Pas boostés » coupé : ton casque est de nouveau la sortie par défaut."));
+                Relever();
+            }));
+        }
+
+        private void ReglerPas(int? force, bool? jeux)
+        {
+            if (exemple) return;
+            if (simulation) { F.Statut(Langue.T("Simulation : rien n'est modifié."), true); return; }
+            try
+            {
+                var m = MoteurSon.Lire();
+                if (force.HasValue) m.Force = force.Value;
+                if (jeux.HasValue) m.JeuxSeulement = jeux.Value;
+                MoteurSon.Ecrire(m);   // le moteur relit ses réglages dans les 300 ms
+                if (Releve != null) Releve.Moteur = m;
+                if (force.HasValue) Confirmer(F, Langue.T("Pas boostés"), Langue.T(MoteurSon.Niveaux.First(x => x.Item2 == force.Value).Item1), true);
+                signaturePas = null; MajPas(Releve ?? new ReleveAudioJeu());
+            }
+            catch (Exception ex) { F.Statut(ex.Message, true); }
         }
 
         // ---------------------------------------------------------------- duel à l'oreille (choix du profil à l'aveugle)

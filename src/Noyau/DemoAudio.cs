@@ -18,7 +18,7 @@ namespace NettoyagePC
         /// <summary>Instants des pas (secondes), de gauche à droite.</summary>
         public static readonly double[] Pas = { 0.45, 0.95, 1.45, 1.95, 2.45, 2.95, 3.45, 3.95 };
 
-        private struct Biquad
+        internal struct Biquad
         {
             private double b0, b1, b2, a1, a2, x1, x2, y1, y2;
             public static Biquad PasseBande(double f, double q)
