@@ -1,4 +1,5 @@
 // Velox - service de licences (Cloudflare Worker, gratuit).
+// Aussi : le bot Discord (abonnement, clés, /telecharger qui donne directement l'installateur, /avis, annonces).
 //
 // Rôle : quand Stripe confirme un paiement de « Velox Premium », créer une clé unique, la montrer
 // au client juste après le paiement, la donner à l'application qui a lancé l'achat, et répondre aux
@@ -520,17 +521,15 @@ async function discord(requete, env, ctx) {
     return reponse({ embeds, components: gestion });
   }
 
-  if (nom === 'telecharger') {
-    return reponse({ content: 'Télécharge **Velox** (gratuit, Windows 10 et 11) :', components: [{ type: 1, components: [{ type: 2, style: 5, label: 'Télécharger Velox', url: SITE }] }] });
-  }
+  if (nom === 'telecharger') return reponse(await carteTelechargement(env));
 
   if (nom === 'essai') {
     return reponse({
       embeds: [{
         title: '🎁 Essai gratuit de Velox Premium · 7 jours', color: OR,
-        description: 'L\'essai est **intégré à Velox**, sans carte bancaire et sans inscription :\n\n1. Télécharge et ouvre **Velox**\n2. Onglet **Premium**\n3. Clique sur **« Essayer gratuitement 7 jours »**\n\nTous les outils Premium sont débloqués tout de suite. Ça te plaît ? Garde-les avec `/premium` (' + PRIX_COURT + ', sans engagement).',
+        description: 'L\'essai est **intégré à Velox**, sans carte bancaire et sans inscription :\n\n1. Télécharge **Velox** ici (bouton ci-dessous) et installe-le\n2. Onglet **Premium**\n3. Clique sur **« Essayer gratuitement 7 jours »**\n\nTous les outils Premium sont débloqués tout de suite. Ça te plaît ? Garde-les avec `/premium` (' + PRIX_COURT + ', sans engagement).',
       }],
-      components: [{ type: 1, components: [{ type: 2, style: 5, label: 'Télécharger Velox', url: SITE }, { type: 2, style: 3, label: 'S\'abonner', custom_id: 'premium' }] }],
+      components: [{ type: 1, components: [{ type: 2, style: 1, label: 'Télécharger Velox', emoji: { name: '⬇️' }, custom_id: 'telecharger' }, { type: 2, style: 3, label: 'S\'abonner', custom_id: 'premium' }] }],
     });
   }
 
@@ -595,6 +594,49 @@ async function discord(requete, env, ctx) {
     return json({ type: 5, data: { flags: EPHEMERE } });
   }
   return reponse('Commande inconnue.');
+}
+
+// ------------------------------------------------------------ /telecharger : l'installateur directement, sans passer par le site
+// Le fichier (plus de 40 Mo) ne peut pas être envoyé dans Discord (limite d'envoi des serveurs) : le bot donne le lien direct
+// vers l'installateur de la dernière version publiée sur GitHub. Un clic lance le téléchargement, sans page web à parcourir.
+// La version est demandée à GitHub au plus toutes les 10 minutes ; si GitHub ne répond pas, la dernière connue est gardée.
+async function derniereVersion(env) {
+  let cache = null;
+  try { cache = JSON.parse(await env.LICENCES.get('telechargement') || 'null'); } catch (e) { cache = null; }
+  if (cache && Date.now() - cache.lu < 10 * 60000) return cache;
+  try {
+    const r = await fetch('https://api.github.com/repos/' + DEPOT + '/releases/latest', { headers: { 'User-Agent': 'velox-licences', Accept: 'application/vnd.github+json' } });
+    if (r.ok) {
+      const rel = await r.json(), version = String(rel.tag_name || '').replace(/^v/i, '');
+      const fichiers = rel.assets || [];
+      const exe = fichiers.find((a) => a.name === 'Velox-Setup-' + version + '.exe') || fichiers.find((a) => a.name === 'NettoyagePC-Setup-' + version + '.exe');
+      const lien = exe ? String(exe.browser_download_url || '') : '';
+      // seulement un fichier de ce dépôt (jamais un lien venu d'ailleurs)
+      if (/^[\d.]+$/.test(version) && lien.startsWith('https://github.com/' + DEPOT + '/releases/download/')) {
+        const sha = /^sha256:([0-9a-f]{64})$/i.exec(String(exe.digest || ''));
+        const info = { version, url: lien, nom: exe.name, taille: Number(exe.size) || 0, sha256: sha ? sha[1].toLowerCase() : '', lu: Date.now() };
+        await env.LICENCES.put('telechargement', JSON.stringify(info));
+        return info;
+      }
+    }
+  } catch (e) { console.log('github', e); }
+  return cache;
+}
+
+async function carteTelechargement(env) {
+  const v = await derniereVersion(env);
+  if (!v) return { content: 'GitHub ne répond pas pour le moment : réessaie dans une minute avec `/telecharger`.' };
+  const mo = v.taille ? ' · ' + (v.taille / 1048576).toFixed(1).replace('.', ',') + ' Mo' : '';
+  return {
+    embeds: [{
+      title: '⬇️ Velox ' + v.version, color: VIOLET,
+      description: 'Gratuit, sans pub · Windows 10 et 11' + mo + '\n\n' +
+        '1. Clique sur **Télécharger** : le fichier `' + v.nom + '` arrive directement, sans passer par le site.\n' +
+        '2. Ouvre-le et suis l\'installation.\n3. Déjà installé ? Velox se met à jour tout seul.' +
+        (v.sha256 ? '\n\nEmpreinte SHA256 :\n`' + v.sha256 + '`' : ''),
+      footer: { text: 'Fichier officiel, publié sur GitHub par l\'éditeur de Velox' } }],
+    components: [{ type: 1, components: [{ type: 2, style: 5, label: 'Télécharger Velox ' + v.version, emoji: { name: '⬇️' }, url: v.url }] }],
+  };
 }
 
 // ------------------------------------------------------------ /avis : avis des membres Premium et des testeurs
@@ -751,7 +793,7 @@ async function installerCommandes(env) {
   const commandes = [
     { name: 'premium', description: 'S\'abonner à Velox Premium (' + PRIX_COURT + ', sans engagement) : clé en message privé', type: 1 },
     { name: 'ma-cle', description: 'Revoir ta clé Velox Premium (visible seulement par toi)', type: 1 },
-    { name: 'telecharger', description: 'Télécharger Velox (gratuit)', type: 1 },
+    { name: 'telecharger', description: 'Télécharger Velox (gratuit) : l\'installateur directement, sans passer par le site', type: 1 },
     { name: 'essai', description: 'Essayer Velox Premium gratuitement pendant 7 jours', type: 1 },
     { name: 'score', description: 'Montrer ton rang de joueur Velox (code copié depuis le QG Gamer)', type: 1, options: [{ type: 3, name: 'code', description: 'Ton code VLX1-… (Velox : QG Gamer → Partager sur Discord)', required: true, max_length: 60 }] },
     { name: 'avis', description: 'Donner ton avis sur Velox Premium (membres Premium et testeurs)', type: 1, dm_permission: false,
@@ -927,7 +969,7 @@ function messagesServeur(env, etat) {
         '**Par où commencer ?**\n📜 Lis les ' + m('regles') + '\n🎭 Choisis tes rôles dans ' + m('roles') + '\n💬 Présente-toi dans ' + m('general') + '\n⭐ Donne ton avis avec `/avis` dans ' + m('avis') + '\n🏆 Montre ton rang de joueur : `/score` dans ' + m('captures') + '\n💎 Débloque tout avec Premium dans ' + m('acheter') + '\n🛟 Une question ? ' + m('support'),
       footer: { text: 'Velox · Windows 10 et 11' } }],
       components: [{ type: 1, components: [
-        { type: 2, style: 5, label: 'Télécharger Velox', emoji: { name: '⬇️' }, url: SITE },
+        { type: 2, style: 1, label: 'Télécharger Velox', emoji: { name: '⬇️' }, custom_id: 'telecharger' },
         { type: 2, style: 1, label: 'Velox Premium', emoji: { name: '💎' }, custom_id: 'premium' },
       ].concat(s.roles ? [{ type: 2, style: 5, label: 'Choisir mes rôles', emoji: { name: '🎭' }, url: lien(s.roles) }] : []) }] }],
     ['roles', 'roles', { allowed_mentions: sansMention, embeds: [{

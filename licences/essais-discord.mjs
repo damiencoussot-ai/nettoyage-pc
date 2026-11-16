@@ -260,12 +260,25 @@ j = await r.json(); ok(!j.data.flags && /Or · niveau 12/.test(j.data.embeds[0].
 r = await interaction({ type: 2, guild_id: GU, member: { user: { id: U }, permissions: '0' }, data: { name: 'score', options: [{ name: 'code', value: 'VLX1-99-3450-9-22-7-15-' + fnv(corpsJ) }] } });
 j = await r.json(); ok(j.data.flags === 64 && /invalide/.test(j.data.content), '/score : code trafiqué refusé');
 r = await interaction({ type: 2, guild_id: GU, member: { user: { id: U }, permissions: '0' }, data: { name: 'essai' } });
-j = await r.json(); ok(j.data.flags === 64 && /7 jours/.test(j.data.embeds[0].title), '/essai : explique l\'essai de 7 jours');
+j = await r.json(); ok(j.data.flags === 64 && /7 jours/.test(j.data.embeds[0].title) && j.data.components[0].components[0].custom_id === 'telecharger', '/essai : explique l\'essai de 7 jours, bouton de téléchargement direct');
 r = await interaction({ type: 3, guild_id: GU, member: { user: { id: U }, roles: [] }, data: { custom_id: 'essai' } });
 j = await r.json(); ok(/7 jours/.test(j.data.embeds[0].title), 'bouton Essai gratuit');
+// /telecharger sans GitHub (réseau coupé) : message clair, pas de lien vers le site
+r = await interaction({ type: 2, guild_id: GU, member: { user: { id: U }, permissions: '0' }, data: { name: 'telecharger' } });
+j = await r.json(); ok(j.data.flags === 64 && /GitHub ne répond pas/.test(j.data.content) && !JSON.stringify(j).includes('github.io'), '/telecharger : GitHub injoignable, message clair');
 // annonce de version (GitHub simulé)
 const gh = fetchMock.get('https://api.github.com');
-gh.intercept({ method: 'GET', path: '/repos/damiencoussot-ai/nettoyage-pc/releases/latest' }).reply(200, { tag_name: 'v5.9.7', html_url: 'https://github.com/damiencoussot-ai/nettoyage-pc/releases/tag/v5.9.7', body: 'Velox 5.9.7\n\n- Nouveau\n\nSHA256 de Velox-Setup-5.9.7.exe : voir', published_at: '2026-11-07T12:00:00Z', assets: [{ name: 'NettoyagePC-Setup-5.9.7.exe', browser_download_url: 'https://x/n.exe' }, { name: 'Velox-Setup-5.9.7.exe', browser_download_url: 'https://x/v.exe' }] }).persist();
+gh.intercept({ method: 'GET', path: '/repos/damiencoussot-ai/nettoyage-pc/releases/latest' }).reply(200, { tag_name: 'v5.9.7', html_url: 'https://github.com/damiencoussot-ai/nettoyage-pc/releases/tag/v5.9.7', body: 'Velox 5.9.7\n\n- Nouveau\n\nSHA256 de Velox-Setup-5.9.7.exe : voir', published_at: '2026-11-07T12:00:00Z', assets: [{ name: 'NettoyagePC-Setup-5.9.7.exe', size: 42813979, browser_download_url: 'https://github.com/damiencoussot-ai/nettoyage-pc/releases/download/v5.9.7/NettoyagePC-Setup-5.9.7.exe' }, { name: 'Velox-Setup-5.9.7.exe', size: 42813979, digest: 'sha256:' + 'ab'.repeat(32), browser_download_url: 'https://github.com/damiencoussot-ai/nettoyage-pc/releases/download/v5.9.7/Velox-Setup-5.9.7.exe' }] }).persist();
+// /telecharger : lien direct vers l'installateur de la dernière version, sans passer par le site
+r = await interaction({ type: 2, guild_id: GU, member: { user: { id: U }, permissions: '0' }, data: { name: 'telecharger' } });
+j = await r.json();
+const btn = j.data.components[0].components[0];
+ok(j.data.flags === 64 && btn.url === 'https://github.com/damiencoussot-ai/nettoyage-pc/releases/download/v5.9.7/Velox-Setup-5.9.7.exe' && /Velox 5\.9\.7/.test(btn.label), '/telecharger : bouton = installateur Velox-Setup-5.9.7.exe en direct');
+ok(/40,8 Mo/.test(j.data.embeds[0].description) && j.data.embeds[0].description.includes('ab'.repeat(32)) && !JSON.stringify(j).includes('github.io'), '/telecharger : taille, empreinte SHA256, aucun lien vers le site');
+r = await interaction({ type: 3, guild_id: GU, member: { user: { id: U }, roles: [] }, data: { custom_id: 'telecharger' } });
+j = await r.json(); ok(j.data.components[0].components[0].url.endsWith('/Velox-Setup-5.9.7.exe'), 'bouton « Télécharger Velox » des messages du bot = même lien direct');
+const KVt = await mf.getKVNamespace('LICENCES');
+ok(JSON.parse(await KVt.get('telechargement')).version === '5.9.7', '/telecharger : version gardée en cache (10 min)');
 enreg('POST', /\/api\/v10\/channels\/\d+\/messages$/, { id: 'annonce1' });
 const annoncer = async () => (await (await mf.dispatchFetch(B + '/admin', { method: 'POST', body: new URLSearchParams({ jeton: ADMIN, action: 'annoncer-version' }).toString(), headers: { 'Content-Type': 'application/x-www-form-urlencoded' } })).text());
 const nAv = appels.length;
