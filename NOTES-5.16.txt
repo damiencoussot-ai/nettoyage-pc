@@ -1,0 +1,18 @@
+Velox 5.16 : Equalizer APO en un clic, et le son ne se perd plus
+
+Nouveau
+- Equalizer APO s'installe d'un clic partout où il apparaît dans le Studio son : le témoin « EQUALIZER APO »
+  en haut de la page, le bouton de chaque sortie qui ne l'a pas (« Installer » ou « Ajouter Equalizer APO »),
+  et le choix « Equalizer APO » dans Voicemeeter. Déjà installé : sa fenêtre s'ouvre, avec ce qu'il faut cocher.
+- Téléchargement d'Equalizer APO plus fiable : deux adresses officielles, plusieurs essais, fichier toujours
+  vérifié. En cas d'échec, Velox le dit clairement et propose le site officiel.
+
+Corrigé
+- Pas boostés (bêta) : si le moteur audio ne peut pas démarrer, ou reste bloqué (casque débranché…), Velox
+  coupe « Pas boostés » et remet ton casque en sortie par défaut. Le son ne part plus dans un câble qui ne
+  mène nulle part.
+
+L'installateur est publié sous les deux noms : Velox-Setup-5.16.exe (winget, site) et
+NettoyagePC-Setup-5.16.exe (mise à jour des anciennes versions).
+
+SHA256 de Velox-Setup-5.16.exe : voir le fichier Velox-Setup-5.16.sha256

@@ -54,7 +54,7 @@ namespace NettoyagePC.Nouveau
                 r.Moteur = MoteurSon.Lire();
                 r.MoteurEtat = MoteurSon.LireEtat();
                 // allumé mais moteur arrêté (PC redémarré sans gardien…) : relancé
-                if (r.Moteur.Actif && r.Cables.Count > 0 && !MoteurSon.EnMarche()) MoteurSon.Demarrer();
+                if (r.Moteur.Actif && r.Cables.Count > 0 && !MoteurSon.EnMarche()) MoteurSon.Surveiller();   // relancé, ou coupé (casque remis) s'il ne démarre pas
                 if (r.Etat.Present)
                 {
                     r.Sorties = AudioJeu.Sorties();
@@ -1039,7 +1039,16 @@ namespace NettoyagePC.Nouveau
             {
                 signatureTemoins = sigTemoins;
                 temoins.Children.Clear();
-                temoins.Children.Add(Studio.Temoin(t1, Studio.Vert, a1));
+                var tApo = Studio.Temoin(t1, Studio.Vert, a1);
+                if (!moteurVm)
+                {
+                    // un clic sur « EQUALIZER APO » : absent, Velox l'installe ; présent, sa fenêtre s'ouvre (choix des sorties)
+                    tApo.Cursor = new Cursor(StandardCursorType.Hand);
+                    ToolTip.SetTip(tApo, Langue.T(a1 ? "Ouvrir la fenêtre d'Equalizer APO (choix des sorties)." : "Installer Equalizer APO : Velox le télécharge et l'installe pour toi."));
+                    AutomationProperties.SetName(tApo, Langue.T(a1 ? "Ouvrir la fenêtre d'Equalizer APO" : "Installer Equalizer APO"));
+                    tApo.PointerPressed += (o, e) => { e.Handled = true; ApoClique(Releve); };
+                }
+                temoins.Children.Add(tApo);
                 temoins.Children.Add(Studio.Temoin(t2, Studio.Ambre, v.Jeu != null));
                 temoins.Children.Add(Studio.Temoin(t3, Studio.Cyan, vm.Lance));
                 if (r.AutoJeu) temoins.Children.Add(Studio.Temoin(Langue.T("AUTO JEUX"), Studio.Magenta, true));
@@ -1162,6 +1171,13 @@ namespace NettoyagePC.Nouveau
                 if (s.ParDefaut) { var badge = Studio.Temoin(Langue.T("PAR DÉFAUT"), Studio.Ambre, true); badge.Margin = new Thickness(8, 0, 0, 0); Grid.SetColumn(badge, 1); haut.Children.Add(badge); }
                 var bas = new WrapPanel { Margin = new Thickness(0, 6, 0, 0) };
                 bas.Children.Add(new TextBlock { Text = aApo ? "● Equalizer APO" : "○ " + Langue.T("sans Equalizer APO"), FontFamily = Studio.Chiffres, FontSize = 11, Foreground = Studio.P(aApo ? Studio.Vert : Studio.Faible), VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 12, 8) });
+                if (!aApo && r.Moteur != "vm" && !AudioJeu.EstVoicemeeter(s.Nom))
+                {
+                    var bAj = Puce(Langue.T(v.Etat.Present ? "Ajouter Equalizer APO" : installationApo ? "Installation en cours…" : "Installer Equalizer APO"), () => ApoClique(v, ss.Nom));
+                    Marquer(bAj, false, Studio.Vert);
+                    ToolTip.SetTip(bAj, Langue.T(v.Etat.Present ? "Ouvre la fenêtre d'Equalizer APO pour l'ajouter à cette sortie." : "Velox télécharge Equalizer APO depuis son site officiel, le vérifie et l'installe."));
+                    bas.Children.Add(bAj);
+                }
                 if (apo && aApo)
                 {
                     var bv = Puce(Langue.T(visee ? "Visée" : "Viser"), () => ViserSortie(ss.Guid)); Marquer(bv, visee);
@@ -2240,6 +2256,7 @@ namespace NettoyagePC.Nouveau
         private void ChoisirMoteur(string moteur, int bus)
         {
             if (exemple || (r.Moteur == moteur && r.BusVm == bus)) return;
+            if (moteur == "apo" && !(Releve?.Etat.Present ?? true)) { InstallerApo(Releve?.NomDefaut); return; }
             r.Moteur = moteur; r.BusVm = bus;
             Changer(Langue.T(moteur == "vm" ? "L'égaliseur passe maintenant par Voicemeeter (celui d'Equalizer APO est coupé)." : "L'égaliseur passe maintenant par Equalizer APO (celui de Voicemeeter est coupé)."), false, true);
         }
@@ -2292,13 +2309,30 @@ namespace NettoyagePC.Nouveau
                     {
                         installationApo = false;
                         string err = t.IsFaulted ? (t.Exception.InnerException ?? t.Exception).Message : t.Result;
-                        if (err != "") f.Statut(Langue.T(err), true);
+                        if (err != "")
+                        {
+                            f.Statut(Langue.T(err), true);
+                            if (!err.StartsWith("Installation annulée"))
+                                f.Demander(Langue.T("Equalizer APO n'a pas pu être installé"), Langue.T(err) + "\n\n" + Langue.T("Réessaie dans un instant (même bouton), ou télécharge-le toi-même depuis son site officiel : une fois installé, Velox le reconnaît tout seul."),
+                                    Langue.T("Ouvrir le site officiel"), Langue.T("Fermer"), oui => { if (oui) Programmes.Ouvrir(AudioJeu.Site); });
+                        }
                         else f.Statut(Langue.T("Equalizer APO est installé. Si tu n'entends aucune différence une fois l'égaliseur allumé, redémarre le PC."));
                         signatureSorties = null;
                         Relever();
                         page?.MettreAJour();
                     }));
                 });
+        }
+
+        /// <summary>Un clic sur « Equalizer APO » (témoin du haut, ligne d'une sortie) : absent, Velox l'installe ; présent, sa
+        /// fenêtre s'ouvre pour cocher la sortie voulue.</summary>
+        private void ApoClique(ReleveAudioJeu v, string sortie = null)
+        {
+            if (exemple || installationApo) return;
+            if (v == null || !v.Etat.Present) { InstallerApo(sortie ?? v?.NomDefaut); return; }
+            F.Demander(Langue.T("Ajouter Equalizer APO à une sortie"),
+                Langue.F("La fenêtre d'Equalizer APO va s'ouvrir. Coche « {0} », clique sur OK, et redémarre le PC si elle te le demande.", !string.IsNullOrEmpty(sortie) ? sortie : !string.IsNullOrEmpty(v.NomDefaut) ? v.NomDefaut : Langue.T("ton casque")),
+                Langue.T("Ouvrir"), Langue.T("Annuler"), oui => { if (oui) OuvrirConfigurator(); });
         }
 
         private void OuvrirConfigurator()

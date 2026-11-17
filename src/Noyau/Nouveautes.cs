@@ -7,6 +7,8 @@ namespace NettoyagePC
     {
         public static readonly List<KeyValuePair<string, string[]>> Liste = new List<KeyValuePair<string, string[]>>
         {
+            N("5.16", "Equalizer APO s'installe d'un clic partout où il apparaît dans le Studio son (témoin du haut, chaque sortie, Voicemeeter), avec un téléchargement plus fiable.",
+                "Pas boostés (bêta) : si le moteur audio ne démarre pas ou se bloque, ton casque est remis en sortie par défaut : le son ne se perd plus."),
             N("5.15", "Nouveau : Démarrage rapide. Un bouton, et Velox fait tout pour ta première utilisation : Equalizer APO installé et branché, casque reconnu et calibré, profil et Auto jeux réglés.",
                 "Duel à l'oreille : choisis ton profil à l'aveugle, au même volume, deux sons à la fois ; Velox garde celui où tu entends le mieux les pas.",
                 "Pas boostés (bêta) : Velox traite le son de ton jeu en direct, les pas lointains remontent face aux explosions (+9 à +23 dB), sans saturer. Il faut VB-Cable (gratuit).",

@@ -12,6 +12,7 @@ using System.IO;
 using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace NettoyagePC
 {
@@ -34,6 +35,13 @@ namespace NettoyagePC
 
         public static string Adresse(string nom) { return "https://downloads.sourceforge.net/project/equalizerapo/" + Version + "/" + nom; }
 
+        /// <summary>Adresses officielles essayées dans l'ordre (SourceForge choisit un miroir proche) : si la première ne
+        /// répond pas, la seconde ; le fichier est de toute façon vérifié par son empreinte.</summary>
+        public static string[] Adresses(string nom)
+        {
+            return new[] { Adresse(nom), "https://sourceforge.net/projects/equalizerapo/files/" + Version + "/" + nom + "/download" };
+        }
+
         /// <summary>
         /// Télécharge l'installateur officiel et vérifie son empreinte. « progres » reçoit le pourcentage. Renvoie le chemin
         /// du fichier (dossier temporaire) ; en cas de problème, une exception avec la raison (rien n'est installé).
@@ -47,29 +55,24 @@ namespace NettoyagePC
             string f = Path.Combine(dossier, nom);
             try
             {
-                using (var client = new HttpClient { Timeout = TimeSpan.FromMinutes(10) })
+                Exception derniere = null;
+                bool fait = false;
+                foreach (string adresse in Adresses(nom))
                 {
-                    client.DefaultRequestHeaders.UserAgent.ParseAdd("NettoyagePC/" + Appli.Version);
-                    using (var rep = client.GetAsync(Adresse(nom), HttpCompletionOption.ResponseHeadersRead, annulation).GetAwaiter().GetResult())
+                    for (int essai = 0; essai < 2 && !fait; essai++)
                     {
-                        if (!rep.IsSuccessStatusCode) throw new InvalidOperationException("Le site d'Equalizer APO ne répond pas (code " + (int)rep.StatusCode + ") : réessaie plus tard.");
-                        long total = rep.Content.Headers.ContentLength ?? 0;
-                        if (total > 100L * 1024 * 1024) throw new InvalidOperationException("Le fichier proposé n'est pas l'installateur attendu : rien n'a été installé.");
-                        using (var lecture = rep.Content.ReadAsStreamAsync().GetAwaiter().GetResult())
-                        using (var ecriture = new FileStream(f, FileMode.Create, FileAccess.Write, FileShare.None))
-                        {
-                            var tampon = new byte[81920];
-                            long lu = 0; int n, dernier = -1;
-                            while ((n = lecture.Read(tampon, 0, tampon.Length)) > 0)
-                            {
-                                annulation.ThrowIfCancellationRequested();
-                                ecriture.Write(tampon, 0, n); lu += n;
-                                if (lu > 100L * 1024 * 1024) throw new InvalidOperationException("Le fichier proposé n'est pas l'installateur attendu : rien n'a été installé.");
-                                int p = total > 0 ? (int)(lu * 100 / total) : -1;
-                                if (p != dernier && progres != null) { dernier = p; progres(p); }
-                            }
-                        }
+                        annulation.ThrowIfCancellationRequested();
+                        try { TelechargerDepuis(adresse, f, progres, annulation); fait = Moteur.Empreinte(f) == empreinte; if (!fait) derniere = new InvalidOperationException("Le fichier téléchargé ne correspond pas à la version officielle d'Equalizer APO (téléchargement corrompu ou modifié) : rien n'a été installé."); }
+                        catch (OperationCanceledException) when (annulation.IsCancellationRequested) { throw; }   // (un délai dépassé, lui, est réessayé)
+                        catch (Exception ex) { derniere = ex; }
+                        if (!fait) { try { File.Delete(f); } catch { } if (essai == 0) Thread.Sleep(1500); }
                     }
+                    if (fait) break;
+                }
+                if (!fait)
+                {
+                    string raison = derniere is HttpRequestException || derniere is TaskCanceledException ? "Pas de connexion au site d'Equalizer APO : vérifie Internet, puis réessaie." : derniere != null ? derniere.Message : "Téléchargement impossible.";
+                    throw new InvalidOperationException(raison);
                 }
                 if (Moteur.Empreinte(f) != empreinte) throw new InvalidOperationException("Le fichier téléchargé ne correspond pas à la version officielle d'Equalizer APO (téléchargement corrompu ou modifié) : rien n'a été installé.");
                 return f;
@@ -78,6 +81,34 @@ namespace NettoyagePC
             {
                 try { File.Delete(f); Directory.Delete(dossier); } catch { }
                 throw;
+            }
+        }
+
+        private static void TelechargerDepuis(string adresse, string f, Action<int> progres, CancellationToken annulation)
+        {
+            using (var client = new HttpClient { Timeout = TimeSpan.FromMinutes(10) })
+            {
+                client.DefaultRequestHeaders.UserAgent.ParseAdd("NettoyagePC/" + Appli.Version);
+                using (var rep = client.GetAsync(adresse, HttpCompletionOption.ResponseHeadersRead, annulation).GetAwaiter().GetResult())
+                {
+                    if (!rep.IsSuccessStatusCode) throw new InvalidOperationException("Le site d'Equalizer APO ne répond pas (code " + (int)rep.StatusCode + ") : réessaie plus tard.");
+                    long total = rep.Content.Headers.ContentLength ?? 0;
+                    if (total > 100L * 1024 * 1024) throw new InvalidOperationException("Le fichier proposé n'est pas l'installateur attendu : rien n'a été installé.");
+                    using (var lecture = rep.Content.ReadAsStreamAsync().GetAwaiter().GetResult())
+                    using (var ecriture = new FileStream(f, FileMode.Create, FileAccess.Write, FileShare.None))
+                    {
+                        var tampon = new byte[81920];
+                        long lu = 0; int n, dernier = -1;
+                        while ((n = lecture.Read(tampon, 0, tampon.Length)) > 0)
+                        {
+                            annulation.ThrowIfCancellationRequested();
+                            ecriture.Write(tampon, 0, n); lu += n;
+                            if (lu > 100L * 1024 * 1024) throw new InvalidOperationException("Le fichier proposé n'est pas l'installateur attendu : rien n'a été installé.");
+                            int p = total > 0 ? (int)(lu * 100 / total) : -1;
+                            if (p != dernier && progres != null) { dernier = p; progres(p); }
+                        }
+                    }
+                }
             }
         }
 
