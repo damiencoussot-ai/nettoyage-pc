@@ -545,6 +545,27 @@ namespace NettoyagePC.Nouveau
         private StackPanel zoneMix, zoneCasque, zoneSurround;
         private TextBlock tDansLeJeu, tPasDirect;
         private StackPanel zoneDemarrage, zoneVerif;
+        private readonly List<Control> modulesExpert = new List<Control>();
+        private Border bSimple, bExpert;
+
+        private Control Expert(Control c) { modulesExpert.Add(c); return c; }
+
+        /// <summary>Mode Simple : seulement l'essentiel (démarrage rapide, vérification, courbe, écoute, profils, Pas boostés,
+        /// calibration, automatismes). Mode Expert : tout. Rien n'est changé dans le son, seulement l'affichage.</summary>
+        private void AppliquerMode()
+        {
+            foreach (var c in modulesExpert) c.IsVisible = r.ModeExpert;
+            if (bSimple != null) { Marquer(bSimple, !r.ModeExpert, Studio.Cyan); Marquer(bExpert, r.ModeExpert, Studio.Magenta); }
+        }
+
+        private void ChoisirMode(bool expert)
+        {
+            if (r.ModeExpert == expert) return;
+            r.ModeExpert = expert;
+            AppliquerMode();
+            if (!exemple && !simulation) { try { AudioJeu.Enregistrer(Reglages); } catch { } }
+            F.Statut(Langue.T(expert ? "Mode Expert : tous les réglages sont affichés." : "Mode Simple : l'essentiel seulement (le son ne change pas)."));
+        }
         private string signatureVerif;
         private int testVolume;   // 0 : rien ; 1 : volume baissé en cours ; 2 : fini, en attente de la réponse
         private Control moduleDemarrage;
@@ -779,7 +800,7 @@ namespace NettoyagePC.Nouveau
             zoneCasque = new StackPanel { Spacing = 10 };
             g.Children.Add(Studio.Module("Calibration du casque", zoneCasque));
             zoneSurround = new StackPanel { Spacing = 10 };
-            g.Children.Add(Studio.Module("Son 7.1 virtuel", zoneSurround));
+            g.Children.Add(Expert(Studio.Module("Son 7.1 virtuel", zoneSurround)));
 
             // console : molettes, coupe-explosions, inversion
             var rang = new WrapPanel();
@@ -803,7 +824,7 @@ namespace NettoyagePC.Nouveau
             options.Children.Add(Studio.T(Langue.T("Le coupe-explosions retire les sons très graves (explosions, grondements) sous la fréquence choisie, pour qu'ils ne couvrent pas les pas. Au-dessus de 0 dB, le niveau peut faire saturer le son."), 12, Studio.Faible));
             tMoteur = Studio.T("", 12, Studio.Ambre);
             options.Children.Add(tMoteur);
-            g.Children.Add(Studio.Module("Console", new StackPanel { Children = { rang, options } }));
+            g.Children.Add(Expert(Studio.Module("Console", new StackPanel { Children = { rang, options } })));
 
             // faders des bandes
             var bandes = new UniformGrid { Columns = AudioJeu.Bandes.Length };
@@ -826,7 +847,7 @@ namespace NettoyagePC.Nouveau
                 });
             }
             tAideBandes = Studio.T("", 12, Studio.Faible);
-            g.Children.Add(Studio.Module("Bandes", new StackPanel { Spacing = 10, Children = { bandes, tAideBandes } }));
+            g.Children.Add(Expert(Studio.Module("Bandes", new StackPanel { Spacing = 10, Children = { bandes, tAideBandes } })));
             gauche = g;
 
             // ---------------- colonne de droite
@@ -839,9 +860,9 @@ namespace NettoyagePC.Nouveau
             tEcoute = Studio.T("", 11.5, Studio.Faible); tEcoute.IsVisible = false;   // (pas d'espace vide sous le VU-mètre)
             sortie.Children.Add(tEcoute);
             sortie.Children.Add(zoneSorties);
-            d.Children.Add(Studio.Module("Sorties", sortie));
+            d.Children.Add(Expert(Studio.Module("Sorties", sortie)));
             zoneVm = new StackPanel { Spacing = 8 };
-            d.Children.Add(Studio.Module("Voicemeeter", zoneVm));
+            d.Children.Add(Expert(Studio.Module("Voicemeeter", zoneVm)));
             zoneAuto = new StackPanel { Spacing = 12 };
             d.Children.Add(Studio.Module("Automatismes", zoneAuto));
             zoneFichier = new StackPanel { Spacing = 8 };
@@ -850,17 +871,27 @@ namespace NettoyagePC.Nouveau
             var defile = new ScrollViewer { Content = tFichier, HorizontalScrollBarVisibility = ScrollBarVisibility.Auto, VerticalScrollBarVisibility = ScrollBarVisibility.Disabled, IsVisible = false };
             var voir = Studio.Bouton(Langue.T("Voir le fichier écrit"), false, () => { defile.IsVisible = !defile.IsVisible; });
             zoneFichier.Children.Add(tChemin); zoneFichier.Children.Add(new WrapPanel { Children = { voir } }); zoneFichier.Children.Add(defile);
-            d.Children.Add(Studio.Module("Fichier d'Equalizer APO", zoneFichier));
+            d.Children.Add(Expert(Studio.Module("Fichier d'Equalizer APO", zoneFichier)));
             droite = d;
 
+            // mode Simple (l'essentiel) ou Expert (tous les réglages)
+            var choixMode = new WrapPanel { Margin = new Thickness(0, 0, 0, 10) };
+            choixMode.Children.Add(new TextBlock { Text = Langue.T("Affichage :"), FontFamily = Studio.Corps, FontSize = 12.5, Foreground = Studio.P(Studio.Discret), VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 10, 8) });
+            bSimple = Puce(Langue.T("Simple"), () => ChoisirMode(false));
+            ToolTip.SetTip(bSimple, Langue.T("L'essentiel : profils, calibration, Pas boostés, vérification et écoute."));
+            bExpert = Puce(Langue.T("Expert"), () => ChoisirMode(true));
+            ToolTip.SetTip(bExpert, Langue.T("Tous les réglages : console, bandes, sorties, Voicemeeter, 7.1 virtuel, table de mixage, fichier."));
+            choixMode.Children.Add(bSimple); choixMode.Children.Add(bExpert);
+            pile.Children.Add(choixMode);
             corps = new Grid();
             corps.Children.Add(gauche); corps.Children.Add(droite);
             Disposer(1000);
             corps.SizeChanged += (o, a) => Disposer(a.NewSize.Width);
             pile.Children.Add(corps);
             zoneMix = new StackPanel { Spacing = 10 };
-            pile.Children.Add(Studio.Module("Table de mixage", zoneMix));
+            pile.Children.Add(Expert(Studio.Module("Table de mixage", zoneMix)));
             Construire(zoneAuto);
+            AppliquerMode();
             return pile;
         }
 
