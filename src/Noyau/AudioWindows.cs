@@ -36,6 +36,10 @@ namespace NettoyagePC
 
         public static bool IdValide(string id) { return id != null && RegexId.IsMatch(id); }
 
+        // identifiant d'une entrée (capture) : {0.0.1.00000000}.{guid}
+        private static readonly Regex RegexIdEntree = new Regex(@"^\{0\.0\.1\.00000000\}\.\{([0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12})\}$", RegexOptions.CultureInvariant);
+        public static bool IdEntreeValide(string id) { return id != null && RegexIdEntree.IsMatch(id); }
+
         /// <summary>Identifiant court (guid en minuscules) d'une sortie, "" si l'identifiant n'en est pas un.</summary>
         public static string GuidDe(string id) { var m = RegexId.Match(id ?? ""); return m.Success ? m.Groups[1].Value.ToLowerInvariant() : ""; }
 

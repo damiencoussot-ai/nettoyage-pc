@@ -64,6 +64,8 @@ namespace NettoyagePC
         public string CibleEcrite = "";
         /// <summary>Raccourcis clavier globaux (Ctrl+Alt+F9 : égaliseur, Ctrl+Alt+F10 : profil suivant). Désactivés par défaut.</summary>
         public bool Raccourcis;
+        /// <summary>Le démarrage rapide (première utilisation) a été fait ou masqué.</summary>
+        public bool AssistantFait;
         /// <summary>Moteur de l'égaliseur : « apo » (Equalizer APO) ou « vm » (égaliseur des bus de Voicemeeter Banana / Potato).</summary>
         public string Moteur = "apo";
         /// <summary>Bus de Voicemeeter égalisé (0 = A1), et bus dont Velox a allumé l'égaliseur (−1 : aucun).</summary>
@@ -113,7 +115,7 @@ namespace NettoyagePC
                 { "Actif", Actif }, { "Gains", Gains.Select(x => (object)x).ToArray() }, { "Intensite", Intensite }, { "Niveau", Niveau }, { "Balance", Balance },
                 { "Largeur", Largeur }, { "CoupeBas", CoupeBas }, { "Inversion", Inversion }, { "AutoJeu", AutoJeu }, { "Cible", Cible }, { "CibleEcrite", CibleEcrite },
                 { "Raccourcis", Raccourcis }, { "Moteur", Moteur }, { "BusVm", BusVm }, { "VmEcrit", VmEcrit }, { "AppareilVm", AppareilVm ?? "" },
-                { "SansEtiquetteVm", SansEtiquetteVm },
+                { "SansEtiquetteVm", SansEtiquetteVm }, { "AssistantFait", AssistantFait },
                 { "ProfilParJeu", ProfilParJeu }, { "JeuEnCours", JeuEnCours ?? "" },
                 { "CalibActive", CalibActive }, { "CalibNom", CalibNom ?? "" }, { "CalibSource", CalibSource ?? "" },
                 { "CalibFiltres", (CalibFiltres ?? new List<FiltreAudio>()).Select(f => (object)new object[] { f.Type, f.Fc, f.Gain, f.Q }).ToArray() },
@@ -139,6 +141,7 @@ namespace NettoyagePC
             r.BusVm = (int)Json.Long(d, "BusVm"); r.VmEcrit = (int)Json.Long(d, "VmEcrit", -1);
             string av = Json.Texte(d, "AppareilVm"); r.AppareilVm = av.Length <= 200 ? av : "";
             r.SansEtiquetteVm = Json.Bool(d, "SansEtiquetteVm");
+            r.AssistantFait = Json.Bool(d, "AssistantFait");
             r.ProfilParJeu = Json.Bool(d, "ProfilParJeu");
             string je = Json.Texte(d, "JeuEnCours"); r.JeuEnCours = AudioJeu.Jeux.Any(j => j.Cle == je) ? je : "";
             r.CalibActive = Json.Bool(d, "CalibActive");
@@ -295,17 +298,31 @@ namespace NettoyagePC
             return l;
         }
 
-        /// <summary>Plus forte amplification de l'ensemble des filtres (jamais négative), relevée sur 71 fréquences de 20 Hz à 20 kHz.</summary>
+        /// <summary>
+        /// Plus forte amplification de l'ensemble des filtres (jamais négative), relevée sur 71 fréquences de 20 Hz à 20 kHz.
+        /// Les filtres étroits (Q &gt; 2, ceux de la calibration du casque) ont un pic plus fin que cette grille : il peut tomber
+        /// entre deux points (jusqu'à 7 dB manqués, et le son sature). Autour de chacun, 41 points de plus sur ±1/(2Q) octave,
+        /// et 0,2 dB de marge (écart restant mesuré : 0,15 dB au pire).
+        /// </summary>
         internal static double Crete(List<FiltreAudio> filtres)
         {
             double max = 0;
-            for (int k = 0; k <= 70; k++)
+            Action<double> point = f =>
             {
-                double f = 20 * Math.Pow(1000, k / 70.0), somme = 0;
+                if (f < 20 || f > 20000) return;
+                double somme = 0;
                 foreach (var x in filtres) somme += Reponse(x.Type, x.Fc, x.Gain, x.Q, f);
                 if (somme > max) max = somme;
+            };
+            for (int k = 0; k <= 70; k++) point(20 * Math.Pow(1000, k / 70.0));
+            bool etroits = false;
+            foreach (var x in filtres)
+            {
+                if (x.Type == "HP" || x.Q <= 2 || x.Gain <= 0) continue;
+                etroits = true;
+                for (int j = -20; j <= 20; j++) point(x.Fc * Math.Pow(2, j / (40.0 * x.Q)));
             }
-            return max;
+            return max > 0 && etroits ? max + 0.2 : max;
         }
 
         /// <summary>Élargissement stéréo (0 à 0,5) : part du canal opposé retranchée à chaque canal.</summary>
@@ -441,6 +458,12 @@ namespace NettoyagePC
         /// son bus A (« nomDefaut » : nom de la sortie par défaut ; « appareilVm » : appareil du bus A de Voicemeeter).</summary>
         public static string Resoudre(string cible, List<SortieAudio> sorties, string defaut, out int etat, string nomDefaut, string appareilVm)
         {
+            // « Pas boostés » allumé : la sortie par défaut est le câble, le son finit sur le casque (c'est lui qu'on vise)
+            if (cible == "auto")
+            {
+                string effectif = MoteurSon.DefautEffectif(NormaliserGuid(defaut));
+                if (effectif != NormaliserGuid(defaut)) return Resoudre(cible, sorties, effectif, out etat);
+            }
             string g = Resoudre(cible, sorties, defaut, out etat);
             if (etat != 1 || cible != "auto" || !EstVoicemeeter(nomDefaut)) return g;
             string vm = SortieVoicemeeter(appareilVm, sorties);

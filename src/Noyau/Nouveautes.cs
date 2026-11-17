@@ -7,6 +7,10 @@ namespace NettoyagePC
     {
         public static readonly List<KeyValuePair<string, string[]>> Liste = new List<KeyValuePair<string, string[]>>
         {
+            N("5.15", "Nouveau : Démarrage rapide. Un bouton, et Velox fait tout pour ta première utilisation : Equalizer APO installé et branché, casque reconnu et calibré, profil et Auto jeux réglés.",
+                "Duel à l'oreille : choisis ton profil à l'aveugle, au même volume, deux sons à la fois ; Velox garde celui où tu entends le mieux les pas.",
+                "Pas boostés (bêta) : Velox traite le son de ton jeu en direct, les pas lointains remontent face aux explosions (+9 à +23 dB), sans saturer. Il faut VB-Cable (gratuit).",
+                "Anti-saturation plus précise avec la calibration du casque."),
             N("5.14", "Nouveau : rubrique Audio (Premium), le « Studio son ». Un égaliseur pour mieux entendre les pas et les recharges dans Call of Duty / Warzone, avec Equalizer APO ou Voicemeeter. Le jeu n'est jamais touché.",
                 "Quatre profils, courbe avec le spectre du son en direct, molettes, faders et bouton « Comparer ». Auto Warzone (avec le gardien, même Velox fermé) et raccourcis Ctrl+Alt+F9 / F10 en plein jeu.",
                 "Sorties audio : VU-mètre, sortie par défaut de Windows en un clic, Voicemeeter reconnu. Raccourcis : Ctrl+7 ouvre Audio, Réglages passe à Ctrl+0.",

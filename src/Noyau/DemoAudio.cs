@@ -2,6 +2,7 @@
 // des pas qui passent de gauche à droite, une explosion qui les couvre, des tirs, une recharge. Jouée une fois sans le
 // Studio son, puis une fois avec, sur la sortie par défaut de Windows : on entend ce que l'égaliseur change.
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -17,7 +18,7 @@ namespace NettoyagePC
         /// <summary>Instants des pas (secondes), de gauche à droite.</summary>
         public static readonly double[] Pas = { 0.45, 0.95, 1.45, 1.95, 2.45, 2.95, 3.45, 3.95 };
 
-        private struct Biquad
+        internal struct Biquad
         {
             private double b0, b1, b2, a1, a2, x1, x2, y1, y2;
             public static Biquad PasseBande(double f, double q)
@@ -194,6 +195,44 @@ namespace NettoyagePC
             if (wav != null) return wav;
             float[] g, d;
             Scene(out g, out d);
+            return wav = WavDe(g, d);
+        }
+
+        /// <summary>
+        /// Duel à l'oreille : la scène passée dans les filtres (calibration comprise) et le préampli de chaque candidat,
+        /// puis tous remis au MÊME volume (niveau moyen de la scène) : le plus fort ne gagne pas parce qu'il est plus fort.
+        /// Ce volume commun est le plus haut possible sans qu'aucun ne sature (crête 0,95). Un WAV par candidat.
+        /// </summary>
+        public static List<byte[]> Duel(IList<ReglagesAudioJeu> candidats)
+        {
+            float[] g, d;
+            Scene(out g, out d);
+            var rendus = new List<Tuple<float[], float[], double, double>>();
+            foreach (var r in candidats)
+            {
+                var f = AudioJeu.Filtres(r);
+                double pre = AudioJeu.Preampli(r);
+                float[] fg = Filtrer(g, f, pre), fd = Filtrer(d, f, pre);
+                double crete = 1e-9;
+                for (int i = 0; i < fg.Length; i++) crete = Math.Max(crete, Math.Max(Math.Abs(fg[i]), Math.Abs(fd[i])));
+                rendus.Add(Tuple.Create(fg, fd, (Niveau(fg) + Niveau(fd)) / 2, crete));
+            }
+            double cible = double.MaxValue;
+            foreach (var x in rendus) cible = Math.Min(cible, x.Item3 + 20 * Math.Log10(0.95 / x.Item4));
+            var l = new List<byte[]>();
+            foreach (var x in rendus)
+            {
+                float k = (float)Math.Pow(10, (cible - x.Item3) / 20);
+                var a = new float[x.Item1.Length]; var b = new float[x.Item2.Length];
+                for (int i = 0; i < a.Length; i++) { a[i] = x.Item1[i] * k; b[i] = x.Item2[i] * k; }
+                l.Add(WavDe(a, b));
+            }
+            return l;
+        }
+
+        /// <summary>WAV PCM 16 bits stéréo 48 kHz de ces échantillons (écrêtés à ±1).</summary>
+        public static byte[] WavDe(float[] g, float[] d)
+        {
             int n = g.Length, octets = n * 4;
             using (var m = new MemoryStream(44 + octets))
             using (var w = new BinaryWriter(m, Encoding.ASCII))
@@ -207,7 +246,7 @@ namespace NettoyagePC
                     w.Write((short)Math.Round(Math.Max(-1, Math.Min(1, d[i])) * 32767));
                 }
                 w.Flush();
-                return wav = m.ToArray();
+                return m.ToArray();
             }
         }
 
@@ -219,10 +258,12 @@ namespace NettoyagePC
         private static readonly object verrou = new object();
 
         /// <summary>Joue la scène sur la sortie par défaut de Windows (sans attendre). Faux si Windows refuse.</summary>
-        public static bool Jouer()
+        public static bool Jouer() { return Jouer(Wav()); }
+
+        /// <summary>Joue ce WAV sur la sortie par défaut de Windows (sans attendre). Faux si Windows refuse.</summary>
+        public static bool Jouer(byte[] o)
         {
-            if (!OperatingSystem.IsWindows()) return false;
-            var o = Wav();
+            if (!OperatingSystem.IsWindows() || o == null) return false;
             lock (verrou)
             {
                 Arreter();

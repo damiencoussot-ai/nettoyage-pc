@@ -225,6 +225,7 @@ namespace NettoyagePC.Nouveau
             // calibration d'exemple (mesure oratory1990 publiée par AutoEq pour ce casque)
             r.CalibActive = true; r.CalibNom = "SteelSeries Arctis Nova Pro Wireless (wired)"; r.CalibSource = "oratory1990";
             r.CalibFiltres = Casques.LireEq(ExempleEqCasque);
+            r.AssistantFait = true;   // (le démarrage rapide a sa propre capture)
             releve = new ReleveAudioJeu { Dossier = @"C:\Program Files\EqualizerAPO\config" };
             if (!present) return r;
             releve.Etat = new EtatAudioJeu { Present = true, Fichier = true, Actif = true, Include = true, Contenu = AudioJeu.Generer(r, casque), Autres = { "YouSound", "HeSuVi" } };
@@ -232,6 +233,9 @@ namespace NettoyagePC.Nouveau
             releve.Sorties.Add(new SortieAudio { Guid = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee", Nom = "Haut-parleurs", Carte = "Realtek(R) Audio" });
             releve.Defaut = casque; releve.NomDefaut = "Casque (Arctis Nova Pro)"; releve.Jeu = "cod.exe"; releve.Configurator = true;
             releve.HeSuVi = new EtatHeSuVi { Present = true, Inclus = true, Actif = true, Modele = "gsx", Appareil = "Casque (Arctis Nova Pro)" };
+            releve.Cables.Add(new CableVirtuel { Nom = "VB-Cable", Sortie = "{0.0.0.00000000}.{abcdef01-2345-6789-abcd-ef0123456789}", Entree = "{0.0.1.00000000}.{abcdef01-2345-6789-abcd-ef0123456780}" });
+            releve.Moteur = new ReglagesMoteurSon { Actif = true, Force = 65, JeuxSeulement = true };
+            releve.MoteurEtat = new MoteurSon.EtatMoteur { Marche = true, Jeu = true, LatenceMs = 24, Reduction = 14 };
             foreach (var m in new[] { "gsx;Sennheiser GSX", "atmos;Dolby Atmos for Headphones", "dtshx;DTS Headphone:X", "razer;Razer Surround", "sbx;Sound Blaster X-Fi MB", "cmss_game;Creative CMSS-3D Game", "dh-;Dolby Headphone", "oal;OpenAL" })
                 releve.HeSuVi.Modeles.Add(new ModeleHeSuVi { Nom = m.Split(';')[0], Description = m.Split(';')[1] });
             releve.Windows.Add(new SortieWindows { Id = "{0.0.0.00000000}.{" + casque + "}", Guid = casque, Nom = "Casque (Arctis Nova Pro)", ParDefaut = true });
@@ -616,12 +620,24 @@ namespace NettoyagePC.Nouveau
                 verifier(liste.Count == 3 && hd != null && hd.Source == "oratory1990" && liste.First(c => c.Nom == "Moondrop Aria").IntraAuriculaire && !liste.Any(c => c.Nom.StartsWith("Piège")), "casques : liste lue, meilleure mesure gardée, chemins douteux écartés");
                 verifier(Casques.AdresseEq(hd) == "https://raw.githubusercontent.com/jaakkopasanen/AutoEq/master/results/oratory1990/over-ear/Sennheiser%20HD%20650/Sennheiser%20HD%20650%20ParametricEQ.txt", "casques : adresse de la correction");
                 verifier(Casques.Chercher(liste, "hd650").Count == 0 && Casques.Chercher(liste, "hd 650").Count == 1 && Casques.Chercher(liste, "arctis nova").Count == 1 && Casques.Chercher(liste, "a").Count == 0, "casques : recherche par mots");
+                // démarrage rapide : le modèle deviné d'après le nom de la sortie de Windows
+                var dev = Casques.Deviner(liste, "Casque (SteelSeries Arctis Nova Pro Wireless)");
+                verifier(Casques.RequeteDepuisSortie("Haut-parleurs (Realtek(R) Audio)") == "" && Casques.RequeteDepuisSortie("Headphones (High Definition Audio Device)") == ""
+                    && Casques.RequeteDepuisSortie("CABLE Input (VB-Audio Virtual Cable)") == "" && Casques.RequeteDepuisSortie("Casque (Arctis Nova Pro Wireless)") == "arctis nova pro wireless"
+                    && dev.Count == 1 && dev[0].Nom == "SteelSeries Arctis Nova Pro" && Casques.Deviner(liste, "Casque (HD 650)").Count == 1 && Casques.Deviner(liste, "Speakers (Realtek(R) Audio)").Count == 0,
+                    "démarrage rapide : modèle du casque deviné d'après le nom de la sortie (noms génériques ignorés)");
                 var eqc = Casques.LireEq(ExempleEqCasque + "Include: piege.txt\nFilter 11: ON PK Fc 100 Hz Gain 3 dB Q 1 ; Include: x\nFilter 12: ON PK Fc 5 Hz Gain 3 dB Q 1\nFilter 13: ON PK Fc 100 Hz Gain 45 dB Q 1\nFilter 14: ON HP Fc 100 Hz\n");
                 verifier(eqc != null && eqc.Count == 10 && eqc[5].Type == "HSC" && eqc[5].Gain == -1.9 && eqc[3].Q == 3.24 && Casques.LireEq("Preamp: -3 dB\n") == null, "casques : seules les lignes de filtre valables sont gardées");
                 var rc = new ReglagesAudioJeu { Actif = true, Gains = (double[])competitif.Clone(), CalibActive = true, CalibNom = "Test", CalibSource = "oratory1990", CalibFiltres = eqc };
                 string gCal = AudioJeu.Generer(rc, "");
                 double creteSans = AudioJeu.Crete(AudioJeu.Filtres(new ReglagesAudioJeu { Actif = true, Gains = (double[])competitif.Clone() }));
                 verifier(gCal.Contains("Filter 1: ON LSC Fc 105 Hz Gain -4.1 dB Q 0.70") && gCal.Contains("Filter 6: ON HSC Fc 10000 Hz Gain -1.9 dB Q 0.70") && gCal.Contains("Filter 11: ON LSC Fc 100 Hz") && AudioJeu.Crete(AudioJeu.Filtres(rc)) > creteSans, "casques : correction écrite avant le profil, préampli recalculé");
+                {
+                    // pic étroit (Q 12 à 3 300 Hz, +10 dB) : il tombe entre deux points de la grille, la crête doit quand même le voir
+                    var etroit = new System.Collections.Generic.List<FiltreAudio> { new FiltreAudio { Type = "PK", Fc = 3300, Gain = 10, Q = 12 } };
+                    double ce = AudioJeu.Crete(etroit);
+                    verifier(ce >= 10 && ce <= 10.3, "crête d'un filtre étroit bien relevée (" + ce.ToString("F2", System.Globalization.CultureInfo.InvariantCulture) + " dB, préampli assez bas pour ne pas saturer)");
+                }
                 verifier(Math.Abs(AudioJeu.Reponse("HSC", 10000, -6, 0.7, 20000) + 6) < 0.8 && Math.Abs(AudioJeu.Reponse("HSC", 10000, -6, 0.7, 50)) < 0.05 && Math.Abs(AudioJeu.Reponse("HSC", 10000, -6, 0.7, 10000) + 3) < 0.3, "casques : plateau aigu (HSC) calculé");
                 var rcj = ReglagesAudioJeu.DepuisJson(Json.Lire(Json.Ecrire(rc.VersJson())) as System.Collections.Generic.Dictionary<string, object>);
                 verifier(rcj.CalibActive && rcj.CalibNom == "Test" && rcj.CalibFiltres.Count == 10 && rcj.CalibFiltres[5].Type == "HSC" && AudioJeu.Generer(rcj, "") == gCal, "casques : calibration enregistrée et relue à l'identique");
@@ -668,6 +684,59 @@ namespace NettoyagePC.Nouveau
                 string vs = AudioJeu.VolumeSeul(rcomp, "11111111-2222-3333-4444-555555555555", ecartV);
                 verifier(ecartV < -3 && ecartV >= -12 && ecartN == 0 && vs.Contains("Preamp: " + ecartV.ToString("F1", System.Globalization.CultureInfo.InvariantCulture) + " dB") && !vs.Contains("Filter") && vs.Contains("11111111-2222-3333-4444-555555555555")
                     && !AudioJeu.ContenuActif(vs), "comparaison au même volume : « sans » baissé de " + ecartV + " dB, sans filtre, compté comme égaliseur coupé");
+                // moteur « Pas boostés » : sur la scène de jeu, le pas isolé se rapproche de l'explosion, sans jamais saturer
+                {
+                    var ci = System.Globalization.CultureInfo.InvariantCulture;
+                    double e0 = 0, prec = double.MaxValue, gain65 = 0, retour65 = 0; bool ok = true; var txt = new System.Text.StringBuilder();
+                    foreach (int force in new[] { 0, 35, 65, 100 })
+                    {
+                        double sans, avec, retour; float cr;
+                        MoteurSon.Mesurer(force, out sans, out avec, out retour, out cr);
+                        e0 = sans;
+                        if (force == 65) { gain65 = sans - avec; retour65 = retour; }
+                        txt.Append(" force " + force + " : " + avec.ToString("F1", ci) + " dB (pas d'après " + retour.ToString("+0.0;-0.0;0.0", ci) + ", crête " + cr.ToString("F3", ci) + ")");
+                        ok &= cr <= 0.9501f && !double.IsNaN(avec) && avec <= prec + 0.01;
+                        prec = avec;
+                    }
+                    rapport.AppendLine("Pas boostés : explosion / pas lointain sans compresseur " + e0.ToString("F1", ci) + " dB ;" + txt);
+                    // silence : rien n'est fabriqué ; souffle très faible : pas remonté
+                    var cs = new CompresseurPas(100, 48000); var sil = new float[9600]; cs.Traiter(sil, 4800, 2);
+                    var souffle = new float[96000]; var al = new Random(3); for (int i = 0; i < souffle.Length; i++) souffle[i] = (float)((al.NextDouble() * 2 - 1) * 0.0001);
+                    double ns = 0; foreach (var v in souffle) ns += v * (double)v; cs = new CompresseurPas(100, 48000); cs.Traiter(souffle, 48000, 2);
+                    double ns2 = 0; foreach (var v in souffle) ns2 += v * (double)v;
+                    verifier(ok && gain65 >= 8 && Math.Abs(retour65) <= 3 && sil.All(v => v == 0) && 10 * Math.Log10(ns2 / ns) < 3, "pas boostés : le pas lointain gagne " + gain65.ToString("F1", ci) + " dB sur l'explosion (force 65), et celui d'après aussi, aucune saturation, silence et souffle pas remontés");
+                    var rm = new ReglagesMoteurSon { Actif = true, Force = 140, Source = "{0.0.1.00000000}.{11111111-2222-3333-4444-555555555555}", Destination = "pas un id", DefautAvant = "{0.0.0.00000000}.{11111111-2222-3333-4444-555555555555}" }.Borner();
+                    var rr = ReglagesMoteurSon.Lire(rm.Json());
+                    // sans câble virtuel (machine d'essai) : rien n'est branché ni lancé, et c'est dit
+                    if (OperatingSystem.IsWindows() && MoteurSon.Cables().Count == 0)
+                    {
+                        string defAvant = AudioWindows.ParDefaut();
+                        string err = MoteurSon.Allumer(65, true);
+                        verifier(err.StartsWith("VB-Cable n'est pas installé") && !MoteurSon.EnMarche() && AudioWindows.ParDefaut() == defAvant && !MoteurSon.Lire().Actif, "pas boostés sans VB-Cable : refusé proprement (" + err + ")");
+                    }
+                    else if (!OperatingSystem.IsWindows()) verifier(MoteurSon.Allumer(65, true) == "Windows uniquement." && MoteurSon.Executer() == 2, "pas boostés hors Windows : refusé");
+                    var ra = new ReglagesAudioJeu { AssistantFait = true };
+                    verifier(ReglagesAudioJeu.DepuisJson(NettoyagePC.Json.Lire(NettoyagePC.Json.Ecrire(ra.VersJson())) as System.Collections.Generic.Dictionary<string, object>).AssistantFait && !new ReglagesAudioJeu().AssistantFait, "démarrage rapide : « fait » gardé dans les réglages");
+                    verifier(rr.Actif && rr.Force == 100 && rr.Source == rm.Source && rr.Destination == "" && rr.DefautAvant == rm.DefautAvant && rr.JeuxSeulement && ReglagesMoteurSon.Lire("{\"Source\":\"C:\\\\x\"}").Source == "", "pas boostés : réglages bornés et relus, identifiants invalides refusés");
+                }
+                // duel à l'oreille : candidats différents, tous au même volume, aucun ne sature
+                {
+                    var cands = AudioJeu5.CandidatsDuel(rcomp, "cod.exe");
+                    var sons = DemoAudio.Duel(cands.Select(x => x.Item2).ToList());
+                    Func<byte[], Tuple<double, int>> mesure = w =>
+                    {
+                        double e = 0; int crete = 0, n = (w.Length - 44) / 2;
+                        for (int i = 44; i + 1 < w.Length; i += 2) { int v = BitConverter.ToInt16(w, i); e += (double)v * v; crete = Math.Max(crete, Math.Abs(v)); }
+                        return Tuple.Create(10 * Math.Log10(e / n + 1e-9), crete);
+                    };
+                    var m = sons.Select(mesure).ToList();
+                    bool memeVolume = m.Max(x => x.Item1) - m.Min(x => x.Item1) < 0.3;
+                    bool sansSaturer = m.All(x => x.Item2 <= 31200) && m.Max(x => x.Item2) >= 30500;
+                    bool differents = cands.Select(x => string.Join(",", x.Item2.Gains)).Distinct().Count() == cands.Count && sons.Select(x => Convert.ToBase64String(System.Security.Cryptography.SHA256.HashData(x))).Distinct().Count() == sons.Count;
+                    bool calibres = cands.All(x => x.Item2.CalibActive && x.Item2.Actif);
+                    verifier(cands.Count >= 3 && cands.Count <= 4 && memeVolume && sansSaturer && differents && calibres,
+                        "duel à l'oreille : " + cands.Count + " profils différents (calibration comprise), même volume (écart " + (m.Max(x => x.Item1) - m.Min(x => x.Item1)).ToString("F2", System.Globalization.CultureInfo.InvariantCulture) + " dB), sans saturer");
+                }
                 // installation d'Equalizer APO par Velox : fichiers officiels figés, demande invalide refusée sans rien lancer
                 string nApo, eApo, nApoArm, eApoArm, nAutre, eAutre;
                 verifier(InstallationApo.Fichier("X64", out nApo, out eApo) && nApo == "EqualizerAPO-x64-1.4.2.exe" && eApo.Length == 64 && eApo == eApo.ToUpperInvariant()
@@ -1489,8 +1558,27 @@ namespace NettoyagePC.Nouveau
                     if (pos.HasValue) foreach (var defil in f.GetVisualDescendants().OfType<ScrollViewer>().Where(x => x.Content is AudioJeu5).Take(1)) defil.Offset = new Vector(0, Math.Max(0, pos.Value.Y - 90));
                     Capturer(f, dossier, "sombre-audio-surround.png", rapport, ref erreurs);
                 }
+                {
+                    var page = f.GetVisualDescendants().OfType<AudioJeu5>().FirstOrDefault();
+                    var titre = f.GetVisualDescendants().OfType<TextBlock>().FirstOrDefault(t => (t.Text ?? "").StartsWith("Le vrai saut pour entendre les pas"));
+                    var pos = page != null && titre != null ? titre.TranslatePoint(new Point(0, 0), page) : null;
+                    bool pasVu = pos.HasValue && f.GetVisualDescendants().OfType<TextBlock>().Any(t => t.Text == "Pas boostés : actif") && f.GetVisualDescendants().OfType<TextBlock>().Any(t => (t.Text ?? "").StartsWith("En marche · sons forts tenus jusqu'à −14 dB"));
+                    if (!pasVu) { erreurs++; rapport.AppendLine("ERREUR : audio : module « Pas boostés » absent ou incomplet"); }
+                    if (pos.HasValue) foreach (var defil in f.GetVisualDescendants().OfType<ScrollViewer>().Where(x => x.Content is AudioJeu5).Take(1)) defil.Offset = new Vector(0, Math.Max(0, pos.Value.Y - 90));
+                    Capturer(f, dossier, "sombre-audio-pas-boostes.png", rapport, ref erreurs);
+                }
                 foreach (var defil in f.GetVisualDescendants().OfType<ScrollViewer>().Where(x => x.Content is AudioJeu5).Take(1)) defil.Offset = new Vector(0, 100000);
                 Capturer(f, dossier, "sombre-audio-mixage.png", rapport, ref erreurs);
+                {
+                    // démarrage rapide (première utilisation) : en haut de la page, étapes cochées d'après le PC
+                    AudioJeu5.ExempleReglages.AssistantFait = false; AudioJeu5.ExempleReglages.AutoJeu = false;
+                    f.Afficher("Accueil", false); f.Afficher("Audio", false);
+                    for (int k = 0; k < 4; k++) { Dispatcher.UIThread.RunJobs(); AvaloniaHeadlessPlatform.ForceRenderTimerTick(); }
+                    bool demVu = f.GetVisualDescendants().OfType<TextBlock>().Any(t => t.Text == "Terminer la configuration") && f.GetVisualDescendants().OfType<TextBlock>().Any(t => t.Text == "Equalizer APO installé");
+                    if (!demVu) { erreurs++; rapport.AppendLine("ERREUR : audio : démarrage rapide absent"); }
+                    Capturer(f, dossier, "sombre-audio-demarrage.png", rapport, ref erreurs);
+                    AudioJeu5.ExempleReglages.AssistantFait = true;
+                }
                 try { File.WriteAllBytes(Path.Combine(dossier, "scene-avant-apres.wav"), DemoAudio.Wav()); } catch { }   // (pour écouter la scène du test avant / après)
                 f.Width = 1600; f.Height = 1000; f.Afficher("Audio", false);
                 Capturer(f, dossier, "grand-audio.png", rapport, ref erreurs);

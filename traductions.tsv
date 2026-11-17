@@ -3731,3 +3731,108 @@ Dolby Atmos pour casque	Dolby Atmos for Headphones	Dolby Atmos para auriculares
 Dans {0}, coupe l'option « {1} » tant que le 7.1 virtuel est allumé : deux spatialisations l'une sur l'autre brouillent la direction des pas. Ou fais l'inverse : garde l'option du jeu et coupe le 7.1 virtuel. Essaie les deux, garde celle où tu situes le mieux les pas.	In {0}, turn off the “{1}” option while virtual 7.1 is on: two spatializations stacked blur the direction of footsteps. Or the other way round: keep the game's option and turn virtual 7.1 off. Try both, keep the one where you locate footsteps best.	En {0}, desactiva la opción «{1}» mientras el 7.1 virtual esté activado: dos espacializaciones a la vez difuminan la dirección de los pasos. O al revés: deja la opción del juego y desactiva el 7.1 virtual. Prueba las dos y quédate con la que mejor sitúe los pasos.
 Counter-Strike 2 spatialise déjà le son au casque : coupe le 7.1 virtuel pendant tes parties de CS2.	Counter-Strike 2 already spatializes sound on headphones: turn virtual 7.1 off while playing CS2.	Counter-Strike 2 ya espacializa el sonido en auriculares: desactiva el 7.1 virtual mientras juegas a CS2.
 Une seule spatialisation à la fois : laisse aussi coupés le son spatial de Windows (Windows Sonic, Dolby Atmos, DTS) sur cette sortie et le surround virtuel du logiciel de ton casque.	One spatialization at a time: also keep Windows spatial sound (Windows Sonic, Dolby Atmos, DTS) off on this output, and your headset software's virtual surround.	Una sola espacialización a la vez: deja también desactivados el sonido espacial de Windows (Windows Sonic, Dolby Atmos, DTS) en esta salida y el surround virtual del software de tus auriculares.
+Duel à l'oreille	Ear duel	Duelo de oído
+Choisis ton profil à l'aveugle : la même scène passée par plusieurs profils, au même volume, deux par deux. Tu gardes celui où tu entends le mieux les pas.	Pick your profile blind: the same scene through several profiles, at the same volume, two at a time. You keep the one where you hear footsteps best.	Elige tu perfil a ciegas: la misma escena con varios perfiles, al mismo volumen, de dos en dos. Te quedas con el que mejor te deja oír los pasos.
+Tes réglages ({0})	Your settings ({0})	Tus ajustes ({0})
+Duel arrêté : tes réglages n'ont pas changé.	Duel stopped: your settings did not change.	Duelo detenido: tus ajustes no han cambiado.
+Simulation : le duel a besoin de couper l'égaliseur un instant, rien n'est modifié ici.	Simulation: the duel needs to turn the equalizer off for a moment, nothing is changed here.	Simulación: el duelo necesita apagar el ecualizador un momento, aquí no se modifica nada.
+Préparation des sons…	Preparing the sounds…	Preparando los sonidos…
+Le duel n'a pas pu préparer les sons.	The duel could not prepare the sounds.	El duelo no ha podido preparar los sonidos.
+Duel {0} sur {1} : écoute le son 1…	Duel {0} of {1}: listen to sound 1…	Duelo {0} de {1}: escucha el sonido 1…
+Duel {0} sur {1} : écoute le son 2…	Duel {0} of {1}: listen to sound 2…	Duelo {0} de {1}: escucha el sonido 2…
+Dans lequel entends-tu le mieux les pas (et d'où ils viennent) ?	In which one do you hear footsteps best (and where they come from)?	¿En cuál oyes mejor los pasos (y de dónde vienen)?
+Ton oreille a choisi : {0}	Your ears chose: {0}	Tu oído ha elegido: {0}
+C'est déjà ton réglage : il est fait pour toi.	That's already your setting: it suits you.	Ya es tu ajuste: está hecho para ti.
+Choisi à l'aveugle, au même volume que les autres : c'est vraiment le profil qui te fait le mieux entendre les pas avec ton casque.	Chosen blind, at the same volume as the others: it really is the profile that lets you hear footsteps best with your headset.	Elegido a ciegas, al mismo volumen que los demás: es de verdad el perfil con el que mejor oyes los pasos con tus auriculares.
+Appliquer ce profil	Apply this profile	Aplicar este perfil
+Garder mes réglages	Keep my settings	Mantener mis ajustes
+Profil « {0} » appliqué (choisi au duel à l'oreille).	Profile “{0}” applied (chosen in the ear duel).	Perfil «{0}» aplicado (elegido en el duelo de oído).
+Le son 1	Sound 1	El sonido 1
+Le son 2	Sound 2	El sonido 2
+Réécouter	Listen again	Volver a escuchar
+À l'aveugle : les noms des profils sont cachés, et tous les sons ont le même volume.	Blind: profile names are hidden, and all sounds have the same volume.	A ciegas: los nombres de los perfiles están ocultos y todos los sonidos tienen el mismo volumen.
+■  Arrêter le duel	■  Stop the duel	■  Detener el duelo
+SON 1	SOUND 1	SONIDO 1
+SON 2	SOUND 2	SONIDO 2
+profil caché	hidden profile	perfil oculto
+Duel à l'oreille : choisis ton profil à l'aveugle, au même volume, deux sons à la fois ; Velox garde celui où tu entends le mieux les pas.	Ear duel: pick your profile blind, at the same volume, two sounds at a time; Velox keeps the one where you hear footsteps best.	Duelo de oído: elige tu perfil a ciegas, al mismo volumen, dos sonidos a la vez; Velox se queda con el que mejor te deja oír los pasos.
+Pas boostés	Boosted footsteps	Pasos potenciados
+Le vrai saut pour entendre les pas : Velox traite lui-même le son en direct. Les sons faibles (pas lointains, recharges) remontent, les explosions et les tirs sont tenus, et rien ne sature. L'égaliseur et la calibration de ton casque continuent par-dessus.	The real leap for hearing footsteps: Velox processes the sound live itself. Quiet sounds (distant footsteps, reloads) come up, explosions and gunfire are held back, and nothing clips. The equalizer and your headset calibration keep working on top.	El verdadero salto para oír los pasos: Velox procesa el sonido en directo. Los sonidos débiles (pasos lejanos, recargas) suben, las explosiones y los disparos se contienen, y nada satura. El ecualizador y la calibración de tus auriculares siguen actuando encima.
+Il faut un câble audio virtuel : VB-Cable, gratuit. Installe-le, redémarre le PC, puis reviens ici : Velox branche tout lui-même.	You need a virtual audio cable: VB-Cable, free. Install it, restart the PC, then come back here: Velox wires everything itself.	Hace falta un cable de audio virtual: VB-Cable, gratuito. Instálalo, reinicia el PC y vuelve aquí: Velox lo conecta todo solo.
+Télécharger VB-Cable (gratuit)	Download VB-Cable (free)	Descargar VB-Cable (gratis)
+Pas boostés : actif	Boosted footsteps: on	Pasos potenciados: activado
+Pas boostés : coupé	Boosted footsteps: off	Pasos potenciados: desactivado
+Léger	Light	Ligero
+Fort	Strong	Fuerte
+Extrême	Extreme	Extremo
+Seulement en jeu	Only in game	Solo en juego
+Le son est traité seulement quand un jeu reconnu tourne (Warzone, Valorant, CS2…) : musique et vidéos restent intactes.	Sound is processed only while a recognized game is running (Warzone, Valorant, CS2…): music and videos stay untouched.	El sonido solo se procesa cuando hay un juego reconocido en marcha (Warzone, Valorant, CS2…): la música y los vídeos quedan intactos.
+Léger : +9 dB sur les pas lointains face aux explosions. Fort : +16 dB. Extrême : +23 dB (mesuré sur une scène de jeu). Le son passe par VB-Cable, puis Velox le joue sur ton casque : environ 25 ms de retard en plus. Dans le jeu, laisse la sortie audio sur « Par défaut ».	Light: +9 dB on distant footsteps against explosions. Strong: +16 dB. Extreme: +23 dB (measured on a game scene). Sound goes through VB-Cable, then Velox plays it on your headset: about 25 ms of extra delay. In the game, leave the audio output on “Default”.	Ligero: +9 dB en los pasos lejanos frente a las explosiones. Fuerte: +16 dB. Extremo: +23 dB (medido en una escena de juego). El sonido pasa por VB-Cable y Velox lo reproduce en tus auriculares: unos 25 ms de retraso extra. En el juego, deja la salida de audio en «Predeterminado».
+Branchement en cours…	Wiring up…	Conectando…
+Coupé : le son va directement au casque.	Off: sound goes straight to the headset.	Desactivado: el sonido va directo a los auriculares.
+Démarrage du moteur…	Starting the engine…	Arrancando el motor…
+En attente d'un jeu (le son passe tel quel) · retard {0} ms	Waiting for a game (sound passes through untouched) · delay {0} ms	Esperando un juego (el sonido pasa tal cual) · retraso {0} ms
+En marche · sons forts tenus jusqu'à −{0} dB · retard {1} ms	Running · loud sounds held back up to −{0} dB · delay {1} ms	En marcha · sonidos fuertes contenidos hasta −{0} dB · retraso {1} ms
+Simulation : « Pas boostés » serait allumé, rien n'est modifié.	Simulation: “Boosted footsteps” would be turned on, nothing is changed.	Simulación: «Pasos potenciados» se activaría, no se modifica nada.
+Simulation : « Pas boostés » serait coupé, rien n'est modifié.	Simulation: “Boosted footsteps” would be turned off, nothing is changed.	Simulación: «Pasos potenciados» se desactivaría, no se modifica nada.
+Pas boostés allumé	Boosted footsteps on	Pasos potenciados activados
+Pas boostés coupé	Boosted footsteps off	Pasos potenciados desactivados
+VB-Cable → Velox → ton casque	VB-Cable → Velox → your headset	VB-Cable → Velox → tus auriculares
+le son va directement au casque	sound goes straight to the headset	el sonido va directo a los auriculares
+« Pas boostés » allumé : le jeu joue dans VB-Cable, Velox traite le son et le joue sur ton casque (changement de sortie annulable dans l'Historique).	“Boosted footsteps” on: the game plays into VB-Cable, Velox processes the sound and plays it on your headset (output change can be undone in History).	«Pasos potenciados» activado: el juego suena en VB-Cable, Velox procesa el sonido y lo reproduce en tus auriculares (el cambio de salida se puede deshacer en el Historial).
+« Pas boostés » coupé : ton casque est de nouveau la sortie par défaut.	“Boosted footsteps” off: your headset is the default output again.	«Pasos potenciados» desactivado: tus auriculares vuelven a ser la salida predeterminada.
+Simulation : rien n'est modifié.	Simulation: nothing is changed.	Simulación: no se modifica nada.
+VB-Cable n'est pas installé : installe-le (gratuit), redémarre, puis réessaie.	VB-Cable is not installed: install it (free), restart, then try again.	VB-Cable no está instalado: instálalo (gratis), reinicia y vuelve a intentarlo.
+Mets d'abord ton casque comme sortie par défaut de Windows, puis allume « Pas boostés ».	First set your headset as the Windows default output, then turn on “Boosted footsteps”.	Primero pon tus auriculares como salida predeterminada de Windows y luego activa «Pasos potenciados».
+Ta sortie par défaut est Voicemeeter : « Pas boostés » doit jouer directement sur ton casque. Mets ton casque par défaut, ou garde Voicemeeter sans « Pas boostés ».	Your default output is Voicemeeter: “Boosted footsteps” must play directly on your headset. Set your headset as default, or keep Voicemeeter without “Boosted footsteps”.	Tu salida predeterminada es Voicemeeter: «Pasos potenciados» debe sonar directamente en tus auriculares. Pon tus auriculares como predeterminados o mantén Voicemeeter sin «Pasos potenciados».
+Choisis ton casque comme sortie par défaut de Windows : le câble ne mène plus nulle part.	Choose your headset as the Windows default output: the cable no longer leads anywhere.	Elige tus auriculares como salida predeterminada de Windows: el cable ya no lleva a ninguna parte.
+Le moteur audio n'a pas démarré.	The audio engine did not start.	El motor de audio no ha arrancado.
+Câble ou casque non choisi.	Cable or headset not chosen.	Cable o auriculares sin elegir.
+Le câble virtuel n'est plus là.	The virtual cable is gone.	El cable virtual ya no está.
+Le casque n'est plus branché.	The headset is no longer plugged in.	Los auriculares ya no están conectados.
+Capture du câble impossible.	Cannot capture the cable.	No se puede capturar el cable.
+Lecture sur le casque impossible.	Cannot play on the headset.	No se puede reproducir en los auriculares.
+Format du câble illisible.	Cable format unreadable.	Formato del cable ilegible.
+Format du câble non pris en charge (règle-le en 16 bits ou plus, 48 kHz).	Cable format not supported (set it to 16-bit or more, 48 kHz).	Formato del cable no compatible (ponlo en 16 bits o más, 48 kHz).
+Windows refuse la capture du câble.	Windows refuses to capture the cable.	Windows rechaza la captura del cable.
+Le son n'a pas pu démarrer.	Sound could not start.	El sonido no ha podido arrancar.
+Démarrage rapide	Quick start	Inicio rápido
+C'est prêt. Écoute la différence, puis lance ton jeu : Velox s'occupe du reste.	All set. Hear the difference, then launch your game: Velox handles the rest.	Listo. Escucha la diferencia y lanza tu juego: Velox se encarga del resto.
+Un clic, et Velox fait tout ce qu'il faut pour que tu entendes mieux les pas. Tu n'as qu'à suivre ce qui s'affiche.	One click, and Velox does everything needed so you hear footsteps better. Just follow what appears.	Un clic y Velox hace todo lo necesario para que oigas mejor los pasos. Solo sigue lo que aparece.
+Equalizer APO installé	Equalizer APO installed	Equalizer APO instalado
+Velox le télécharge depuis son site officiel et l'installe (Windows demandera l'autorisation).	Velox downloads it from its official site and installs it (Windows will ask for permission).	Velox lo descarga de su sitio oficial y lo instala (Windows pedirá permiso).
+Branché sur ton casque	Hooked to your headset	Conectado a tus auriculares
+Une fenêtre d'Equalizer APO s'ouvre : coche ton casque, clique sur OK, puis redémarre le PC si elle le demande.	An Equalizer APO window opens: tick your headset, click OK, then restart the PC if it asks.	Se abre una ventana de Equalizer APO: marca tus auriculares, pulsa Aceptar y reinicia el PC si lo pide.
+Facultatif : tape ton modèle dans « Calibration du casque », plus bas.	Optional: type your model in “Headphone calibration” below.	Opcional: escribe tu modelo en «Calibración de auriculares», más abajo.
+Recherche de ton modèle…	Looking up your model…	Buscando tu modelo…
+Modèle pas reconnu d'après Windows : tape-le dans « Calibration du casque », plus bas (facultatif).	Model not recognized from Windows: type it in “Headphone calibration” below (optional).	Modelo no reconocido por Windows: escríbelo en «Calibración de auriculares», más abajo (opcional).
+Casque reconnu et calibré	Headset recognized and calibrated	Auriculares reconocidos y calibrados
+C'est ton casque ?	Is this your headset?	¿Son tus auriculares?
+Aucun de ceux-là	None of these	Ninguno de estos
+Profil pour les pas, Auto jeux et profil adapté à chaque jeu	Footstep profile, Auto games and per-game profile	Perfil de pasos, Auto juegos y perfil por juego
+L'égaliseur s'allume tout seul au lancement de tes jeux, avec le bon profil.	The equalizer turns on by itself when your games launch, with the right profile.	El ecualizador se enciende solo al lanzar tus juegos, con el perfil adecuado.
+Configuration en cours…	Setting up…	Configurando…
+Tout configurer pour moi	Set everything up for me	Configurarlo todo por mí
+Brancher Equalizer APO sur mon casque	Hook Equalizer APO to my headset	Conectar Equalizer APO a mis auriculares
+Terminer la configuration	Finish setup	Terminar la configuración
+La même scène de jeu sans puis avec le Studio son, au même volume.	The same game scene without then with Sound Studio, at the same volume.	La misma escena de juego sin y luego con el Estudio de sonido, al mismo volumen.
+Trouver mon profil à l'oreille	Find my profile by ear	Encontrar mi perfil de oído
+Duel à l'aveugle entre plusieurs profils, au même volume.	Blind duel between several profiles, at the same volume.	Duelo a ciegas entre varios perfiles, al mismo volumen.
+C'est bon, masquer	All good, hide	Listo, ocultar
+Démarrage rapide masqué : le bouton « Démarrage rapide » (Profils) le rouvre.	Quick start hidden: the “Quick start” button (Profiles) reopens it.	Inicio rápido oculto: el botón «Inicio rápido» (Perfiles) lo vuelve a abrir.
+Pour aller plus loin, plus bas : « Pas boostés » (les pas lointains remontent face aux explosions) et le son 7.1 virtuel.	To go further, below: “Boosted footsteps” (distant footsteps rise against explosions) and virtual 7.1 sound.	Para ir más allá, más abajo: «Pasos potenciados» (los pasos lejanos suben frente a las explosiones) y el sonido 7.1 virtual.
+Fait	Done	Hecho
+Simulation : Velox configurerait tout, rien n'est modifié.	Simulation: Velox would set everything up, nothing is changed.	Simulación: Velox lo configuraría todo, no se modifica nada.
+Brancher Equalizer APO sur ton casque	Hook Equalizer APO to your headset	Conectar Equalizer APO a tus auriculares
+Une fenêtre d'Equalizer APO va s'ouvrir. Coche « {0} » (ta sortie actuelle), clique sur OK, et redémarre le PC si elle te le demande. Puis reviens ici : la suite se fait toute seule.	An Equalizer APO window will open. Tick “{0}” (your current output), click OK, and restart the PC if it asks. Then come back here: the rest happens by itself.	Se abrirá una ventana de Equalizer APO. Marca «{0}» (tu salida actual), pulsa Aceptar y reinicia el PC si lo pide. Luego vuelve aquí: el resto se hace solo.
+ton casque	your headset	tus auriculares
+Studio son configuré	Sound Studio set up	Estudio de sonido configurado
+Auto jeux actif	Auto games on	Auto juegos activado
+Configuré : ton jeu tourne, l'égaliseur est actif avec son profil.	Set up: your game is running, the equalizer is on with its profile.	Configurado: tu juego está en marcha, el ecualizador está activo con su perfil.
+Configuré : l'égaliseur s'allumera tout seul au lancement de tes jeux, avec le bon profil.	Set up: the equalizer will turn on by itself when your games launch, with the right profile.	Configurado: el ecualizador se encenderá solo al lanzar tus juegos, con el perfil adecuado.
+Rouvre le démarrage rapide : Velox vérifie et règle tout pour toi.	Reopens quick start: Velox checks and sets everything for you.	Vuelve a abrir el inicio rápido: Velox lo comprueba y ajusta todo por ti.
+Préparation de la scène…	Preparing the scene…	Preparando la escena…
+Nouveau : Démarrage rapide. Un bouton, et Velox fait tout pour ta première utilisation : Equalizer APO installé et branché, casque reconnu et calibré, profil et Auto jeux réglés.	New: Quick start. One button, and Velox does everything for your first use: Equalizer APO installed and hooked up, headset recognized and calibrated, profile and Auto games set.	Nuevo: Inicio rápido. Un botón y Velox lo hace todo en tu primer uso: Equalizer APO instalado y conectado, auriculares reconocidos y calibrados, perfil y Auto juegos ajustados.
+Pas boostés (bêta) : Velox traite le son de ton jeu en direct, les pas lointains remontent face aux explosions (+9 à +23 dB), sans saturer. Il faut VB-Cable (gratuit).	Boosted footsteps (beta): Velox processes your game's sound live, distant footsteps rise against explosions (+9 to +23 dB), without clipping. Requires VB-Cable (free).	Pasos potenciados (beta): Velox procesa el sonido de tu juego en directo, los pasos lejanos suben frente a las explosiones (+9 a +23 dB), sin saturar. Requiere VB-Cable (gratis).
+Anti-saturation plus précise avec la calibration du casque.	More precise anti-clipping with headphone calibration.	Antisaturación más precisa con la calibración de auriculares.
+Pas boostés (bêta)	Boosted footsteps (beta)	Pasos potenciados (beta)

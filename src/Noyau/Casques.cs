@@ -92,6 +92,43 @@ namespace NettoyagePC
             return l.Count > 0 ? l : null;
         }
 
+        // mots qui ne disent rien du modèle (noms génériques de Windows, de pilotes, de puces audio)
+        private static readonly string[] Generiques = { "casque", "headphones", "headphone", "headset", "ecouteurs", "speakers", "speaker", "haut", "parleurs",
+            "haut-parleurs", "audio", "usb", "device", "peripherique", "high", "definition", "realtek", "r", "nvidia", "amd", "intel", "smart", "sound", "technology",
+            "digital", "output", "sortie", "hands", "free", "hands-free", "stereo", "game", "chat", "for", "pour", "de", "the", "le", "la", "with", "microphone", "mic",
+            "2nd", "gen", "virtual", "display", "hdmi", "displayport", "default", "par", "defaut", "voicemeeter", "cable", "vb", "input" };
+
+        /// <summary>
+        /// Démarrage rapide : ce que le nom de la sortie de Windows dit du modèle du casque (« Casque (Arctis Nova Pro
+        /// Wireless) » → « arctis nova pro wireless »), ou "" s'il ne dit rien (« Haut-parleurs (Realtek(R) Audio) »).
+        /// </summary>
+        public static string RequeteDepuisSortie(string libelle)
+        {
+            var mots = Simple(libelle).Split(' ').Where(m => m.Length > 0 && !Generiques.Contains(m)).ToList();
+            // il faut des lettres, et un mot d'au moins 3 lettres ou un numéro de modèle (« HD 650 ») : sinon ce n'est rien
+            if (!mots.Any(m => m.Any(char.IsLetter)) || !mots.Any(m => (m.Length >= 3 && m.Any(char.IsLetter)) || m.Any(char.IsDigit))) return "";
+            return string.Join(" ", mots.Take(6));
+        }
+
+        /// <summary>Modèles proposés pour cette sortie de Windows (au plus « max »), en retirant des mots de la fin si rien
+        /// ne correspond (« Arctis Nova Pro Wireless Base » → « Arctis Nova Pro Wireless »).</summary>
+        public static List<CasqueAutoEq> Deviner(List<CasqueAutoEq> liste, string libelle, int max = 3)
+        {
+            var mots = RequeteDepuisSortie(libelle).Split(' ').Where(m => m != "").ToList();
+            while (mots.Count > 0)
+            {
+                string q = string.Join(" ", mots);
+                if (q.Length >= 3)
+                {
+                    var l = Chercher(liste, q, max);
+                    if (l.Count > 0) return l;
+                }
+                mots.RemoveAt(mots.Count - 1);
+                if (mots.Count == 1 && mots[0].Length < 4) break;   // un seul mot court : trop vague
+            }
+            return new List<CasqueAutoEq>();
+        }
+
         public static string AdresseEq(CasqueAutoEq c)
         {
             if (c == null || !CheminValide(c.Chemin)) return null;

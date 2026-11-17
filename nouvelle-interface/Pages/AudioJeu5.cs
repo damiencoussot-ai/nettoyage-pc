@@ -35,6 +35,10 @@ namespace NettoyagePC.Nouveau
         public string Dossier = "";
         public bool Configurator;
         public EtatHeSuVi HeSuVi = new EtatHeSuVi();
+        /// <summary>« Pas boostés » : câbles virtuels trouvés, réglages, état du moteur.</summary>
+        public List<CableVirtuel> Cables = new List<CableVirtuel>();
+        public ReglagesMoteurSon Moteur = new ReglagesMoteurSon();
+        public MoteurSon.EtatMoteur MoteurEtat = new MoteurSon.EtatMoteur();
 
         public static ReleveAudioJeu Lire()
         {
@@ -46,6 +50,11 @@ namespace NettoyagePC.Nouveau
                 r.Jeu = AudioJeu.JeuDetecte();
                 r.Windows = AudioWindows.Lister();
                 r.Defaut = AudioJeu.SortieParDefaut();
+                r.Cables = MoteurSon.Cables(r.Windows);
+                r.Moteur = MoteurSon.Lire();
+                r.MoteurEtat = MoteurSon.LireEtat();
+                // allumé mais moteur arrêté (PC redémarré sans gardien…) : relancé
+                if (r.Moteur.Actif && r.Cables.Count > 0 && !MoteurSon.EnMarche()) MoteurSon.Demarrer();
                 if (r.Etat.Present)
                 {
                     r.Sorties = AudioJeu.Sorties();
@@ -383,6 +392,30 @@ namespace NettoyagePC.Nouveau
             }));
         }
 
+        private static bool contourne;
+
+        /// <summary>
+        /// Duel à l'oreille : l'égaliseur en place est entièrement coupé pendant l'écoute (les candidats sont déjà passés
+        /// dans leurs filtres, calibration comprise), puis remis. Même file d'attente que « Comparer ».
+        /// </summary>
+        internal static void Contourner(FenetrePrincipale f, bool couper)
+        {
+            if (Exemple != null || f == null || couper == contourne) return;
+            var copie = Reglages.Copie();
+            if (couper && !copie.Actif) return;
+            contourne = couper;
+            Task<string> etape = fileComparaison.ContinueWith(_ =>
+            {
+                if (copie.Moteur == "vm") return couper ? Voicemeeter.Couper(copie.BusVm, false) : Voicemeeter.Appliquer(copie, copie.BusVm, false);
+                return AudioJeu.Comparer(couper, AudioJeu.Generer(copie, copie.CibleEcrite));
+            });
+            fileComparaison = etape.ContinueWith(t => Dispatcher.UIThread.Post(() =>
+            {
+                string err = t.IsFaulted ? (t.Exception.InnerException ?? t.Exception).Message : t.Result;
+                if (err != "") f.Statut(Langue.T(err), true);
+            }));
+        }
+
         // ---- confirmation visible d'un changement de profil
 
         /// <summary>Confirmation à afficher dès que le prochain changement est écrit : titre, détail, actif ou non.</summary>
@@ -510,7 +543,16 @@ namespace NettoyagePC.Nouveau
             public bool[] EtatEnvois = new bool[0];
         }
         private StackPanel zoneMix, zoneCasque, zoneSurround;
-        private TextBlock tDansLeJeu;
+        private TextBlock tDansLeJeu, tPasDirect;
+        private StackPanel zoneDemarrage;
+        private Control moduleDemarrage;
+        private string signatureDemarrage;
+        private List<CasqueAutoEq> casquesDevines;
+        private string sortieDevinee;
+        private bool devinette, casqueRefuse, configEnCours;
+        private StackPanel zonePas;
+        private string signaturePas;
+        private bool pasOccupe;
         private string signatureSurround;
         private bool tousModeles;
         private readonly List<Tuple<JeuAudio, Border>> puceJeux = new List<Tuple<JeuAudio, Border>>();
@@ -557,6 +599,7 @@ namespace NettoyagePC.Nouveau
             DetachedFromVisualTree += (s, e) =>
             {
                 ArreterDemo();
+                ArreterDuel(false);
                 if (comparaison) Comparer(F, false);   // bouton « Comparer » encore maintenu : l'égaliseur revient
                 Appliquer();   // un réglage encore en attente n'est pas perdu
                 Direct(false);
@@ -683,6 +726,9 @@ namespace NettoyagePC.Nouveau
 
             // ---------------- colonne principale
             var g = new StackPanel();
+            zoneDemarrage = new StackPanel { Spacing = 10 };
+            moduleDemarrage = Studio.Module("Démarrage rapide", zoneDemarrage);
+            g.Children.Add(moduleDemarrage);
             courbe = new CourbeEq5 { Reglages = r, Allume = r.Actif };
             AutomationProperties.SetName(courbe, Langue.T("Courbe de l'égaliseur"));
             courbe.GainChange += (k, db) =>
@@ -706,6 +752,7 @@ namespace NettoyagePC.Nouveau
             var autres = new WrapPanel { Margin = new Thickness(0, 6, 0, 0) };
             foreach (var p in AudioJeu.Profils.Skip(4)) { var pp = p; autres.Children.Add(Studio.Bouton(Langue.T(p.Nom), false, () => ChoisirProfil(pp), Langue.T(p.Texte))); }
             autres.Children.Add(Studio.Bouton(Langue.T("Réglage automatique"), false, ReglageAutomatique, Langue.T("Profil compétitif, force 100 %, sortie Auto, tout le reste remis à zéro.")));
+            autres.Children.Add(Studio.Bouton(Langue.T("Démarrage rapide"), false, () => { if (exemple) return; r.AssistantFait = false; casqueRefuse = false; signatureDemarrage = null; MajDemarrage(Releve ?? new ReleveAudioJeu()); Changer(null, false, false); }, Langue.T("Rouvre le démarrage rapide : Velox vérifie et règle tout pour toi.")));
             // profils par jeu (les mêmes que charge Auto jeux)
             var parJeu = new WrapPanel { Margin = new Thickness(0, 4, 0, 0) };
             parJeu.Children.Add(new TextBlock { Text = Langue.T("Par jeu :"), FontFamily = Studio.Corps, FontSize = 12.5, Foreground = Studio.P(Studio.Discret), VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 10, 8) });
@@ -723,6 +770,8 @@ namespace NettoyagePC.Nouveau
             tDansLeJeu = Studio.T("", 12, Studio.Faible);
             tDansLeJeu.Margin = new Thickness(0, 6, 0, 0);
             g.Children.Add(Studio.Module("Profils", new StackPanel { Children = { grille, autres, tProfil, tDansLeJeu } }));
+            zonePas = new StackPanel { Spacing = 10 };
+            g.Children.Add(Studio.Module("Pas boostés (bêta)", zonePas));
             zoneCasque = new StackPanel { Spacing = 10 };
             g.Children.Add(Studio.Module("Calibration du casque", zoneCasque));
             zoneSurround = new StackPanel { Spacing = 10 };
@@ -1071,6 +1120,8 @@ namespace NettoyagePC.Nouveau
             // ---- sorties, Voicemeeter, automatismes, fichier
             if (exemple) vu.Definir(0.42f, 0.36f);
             MajCasque();
+            MajDemarrage(v);
+            MajPas(v);
             MajSurround(v);
             MajSorties(v);
             MajVoicemeeter();
@@ -1231,7 +1282,15 @@ namespace NettoyagePC.Nouveau
         // ---------------------------------------------------------------- test avant / après à l'oreille
 
         private TextBlock tDemo, tDemoDetail;
-        private Border bDemo, carteSans, carteAvec;
+        private Border bDemo, carteSans, carteAvec, bDuel;
+        private StackPanel zoneDuel;
+        // duel à l'oreille : candidats (nom, réglages), sons rendus, champion, challenger, ordre d'écoute, étape
+        private List<Tuple<string, ReglagesAudioJeu>> duelCandidats;
+        private List<byte[]> duelSons;
+        private int duelChampion, duelChallenger, duelEtape, duelNumero;
+        private bool duelInverse;
+        private DispatcherTimer minuterieDuel;
+        private static readonly Random hasardDuel = new Random();
         private DispatcherTimer minuterieDemo;
         private int etapeDemo;
 
@@ -1246,7 +1305,10 @@ namespace NettoyagePC.Nouveau
             g.Children.Add(carteSans); g.Children.Add(carteAvec);
             pile.Children.Add(g);
             bDemo = Studio.Bouton(Langue.T("▶  Écouter la différence"), true, LancerDemo, Langue.T("Joue la scène deux fois : sans, puis avec le Studio son (calibration du casque comprise)."));
-            pile.Children.Add(new WrapPanel { Children = { bDemo } });
+            bDuel = Studio.Bouton(Langue.T("Duel à l'oreille"), false, LancerDuel, Langue.T("Choisis ton profil à l'aveugle : la même scène passée par plusieurs profils, au même volume, deux par deux. Tu gardes celui où tu entends le mieux les pas."));
+            pile.Children.Add(new WrapPanel { Children = { bDemo, bDuel } });
+            zoneDuel = new StackPanel { Spacing = 10, IsVisible = false };
+            pile.Children.Add(zoneDuel);
             tDemoDetail = Studio.T(Langue.T("Monte un peu le volume. La scène passe par ta sortie par défaut de Windows."), 11.5, Studio.Faible);
             pile.Children.Add(tDemoDetail);
             MarquerDemo(0);
@@ -1281,9 +1343,10 @@ namespace NettoyagePC.Nouveau
         {
             if (exemple) return;
             if (etapeDemo != 0) { ArreterDemo(); F.Statut(Langue.T("Écoute arrêtée.")); return; }
+            ArreterDuel(false);
             if (!OperatingSystem.IsWindows()) return;
             if (simulation) { F.Statut(Langue.T("Simulation : l'écoute avant / après a besoin de couper l'égaliseur un instant, rien n'est modifié ici."), true); return; }
-            if (!r.Actif) { F.Statut(Langue.T("Allume d'abord l'égaliseur (gros bouton en haut), puis écoute la différence."), true); return; }
+            if (!r.Actif) { LancerDemoPreparee(); return; }
             var v = Releve;
             if (v != null && r.Moteur != "vm")
             {
@@ -1299,8 +1362,37 @@ namespace NettoyagePC.Nouveau
             minuterieDemo.Start();
         }
 
+        private List<byte[]> demoPreparee;
+
+        /// <summary>
+        /// Égaliseur pas actif en ce moment (Auto jeux attend un jeu, ou coupé) : Velox prépare lui-même les deux sons, sans
+        /// puis avec tes réglages (calibration comprise), au même volume, et les joue. Equalizer APO n'est pas touché.
+        /// </summary>
+        private void LancerDemoPreparee()
+        {
+            var sans = r.Copie(); sans.Gains = new double[AudioJeu.Bandes.Length]; sans.CalibActive = false; sans.CoupeBas = 0; sans.Actif = true;
+            var avec = r.Copie(); avec.Actif = true;
+            etapeDemo = 10; MarquerDemo(1);
+            F.Statut(Langue.T("Préparation de la scène…"));
+            Task.Run(() => DemoAudio.Duel(new List<ReglagesAudioJeu> { sans, avec })).ContinueWith(t => Dispatcher.UIThread.Post(() =>
+            {
+                if (etapeDemo != 10) return;
+                if (t.IsFaulted) { ArreterDemo(); return; }
+                demoPreparee = t.Result;
+                if (minuterieDemo == null) { minuterieDemo = new DispatcherTimer(); minuterieDemo.Tick += (o, a) => EtapeDemo(); }
+                DemoAudio.Jouer(demoPreparee[0]); etapeDemo = 11;
+                minuterieDemo.Interval = TimeSpan.FromSeconds(DemoAudio.Duree + 0.3); minuterieDemo.Start();
+            }));
+        }
+
         private void EtapeDemo()
         {
+            if (etapeDemo >= 10)
+            {
+                minuterieDemo.Stop();
+                if (etapeDemo == 11 && demoPreparee != null) { MarquerDemo(2); DemoAudio.Jouer(demoPreparee[1]); etapeDemo = 12; minuterieDemo.Interval = TimeSpan.FromSeconds(DemoAudio.Duree + 0.3); minuterieDemo.Start(); return; }
+                ArreterDemo(); demoPreparee = null; F.Statut(Langue.T("Écoute terminée. Rejoue-la après chaque réglage pour comparer.")); return;
+            }
             minuterieDemo.Stop();
             switch (etapeDemo)
             {
@@ -1320,6 +1412,356 @@ namespace NettoyagePC.Nouveau
             if (comparaison) Comparer(F, false);   // l'égaliseur revient toujours
             etapeDemo = 0;
             MarquerDemo(0);
+        }
+
+        // ---------------------------------------------------------------- démarrage rapide (première utilisation)
+
+        /// <summary>
+        /// Démarrage rapide : un bouton, et Velox fait tout ce qu'il faut, dans l'ordre. Chaque étape se coche toute seule
+        /// d'après ce que Velox voit sur le PC (rien n'est supposé) :
+        /// 1. Equalizer APO installé (Velox le télécharge et l'installe) ;
+        /// 2. branché sur ta sortie (sa fenêtre s'ouvre, tu coches ton casque) ;
+        /// 3. casque reconnu et calibré (Velox devine le modèle d'après le nom de la sortie, tu confirmes) ;
+        /// 4. profil pour les pas, Auto jeux et profil adapté à chaque jeu ;
+        /// 5. écoute : avant / après, et duel à l'oreille.
+        /// </summary>
+        private void MajDemarrage(ReleveAudioJeu v)
+        {
+            if (zoneDemarrage == null) return;
+            moduleDemarrage.IsVisible = !r.AssistantFait;
+            if (r.AssistantFait) return;
+            bool vm = r.Moteur == "vm";
+            int etat; Cible(v, out etat);
+            bool apo = vm || v.Etat.Present;
+            bool branche = vm || (v.Etat.Present && (etat == 0 || etat == 4));
+            bool calibre = r.CalibFiltres != null && r.CalibFiltres.Count > 0 && r.CalibActive;
+            bool regle = r.AutoJeu && r.ProfilParJeu && (vm || v.Etat.Include);
+            // le casque d'après le nom de la sortie (une fois par sortie), dès qu'Equalizer APO est là
+            string sortie = v.NomDefaut ?? "";
+            if (!calibre && !casqueRefuse && !exemple && sortie != "" && sortie != sortieDevinee && !devinette)
+            {
+                sortieDevinee = sortie; devinette = true;
+                Task.Run(() => Casques.RequeteDepuisSortie(sortie) == "" ? new List<CasqueAutoEq>() : Casques.Deviner(Casques.Index(), sortie, 3))
+                    .ContinueWith(t => Dispatcher.UIThread.Post(() => { devinette = false; casquesDevines = t.IsFaulted ? new List<CasqueAutoEq>() : t.Result; signatureDemarrage = null; MajDemarrage(Releve ?? new ReleveAudioJeu()); }));
+            }
+            string sig = apo + "|" + branche + "|" + calibre + "|" + regle + "|" + configEnCours + "|" + installationApo + "|" + casqueRefuse + "|" + (casquesDevines == null ? "-" : string.Join(",", casquesDevines.Select(c => c.Nom))) + "|" + sortie;
+            if (sig == signatureDemarrage) return;
+            signatureDemarrage = sig;
+            zoneDemarrage.Children.Clear();
+            bool fini = apo && branche && regle;
+            zoneDemarrage.Children.Add(Studio.T(Langue.T(fini ? "C'est prêt. Écoute la différence, puis lance ton jeu : Velox s'occupe du reste." : "Un clic, et Velox fait tout ce qu'il faut pour que tu entendes mieux les pas. Tu n'as qu'à suivre ce qui s'affiche."), 13, Studio.Texte));
+            var liste = new StackPanel { Spacing = 6 };
+            liste.Children.Add(Etape(apo, Langue.T("Equalizer APO installé"), apo ? "" : Langue.T("Velox le télécharge depuis son site officiel et l'installe (Windows demandera l'autorisation).")));
+            liste.Children.Add(Etape(branche, Langue.T("Branché sur ton casque") + (sortie != "" ? " · " + sortie : ""), branche || !apo ? "" : Langue.T("Une fenêtre d'Equalizer APO s'ouvre : coche ton casque, clique sur OK, puis redémarre le PC si elle le demande.")));
+            string detailCasque = calibre ? r.CalibNom : casqueRefuse ? Langue.T("Facultatif : tape ton modèle dans « Calibration du casque », plus bas.") : casquesDevines == null ? Langue.T("Recherche de ton modèle…") : casquesDevines.Count == 0 ? Langue.T("Modèle pas reconnu d'après Windows : tape-le dans « Calibration du casque », plus bas (facultatif).") : "";
+            liste.Children.Add(Etape(calibre, Langue.T("Casque reconnu et calibré"), detailCasque, !calibre && (casqueRefuse || (casquesDevines != null && casquesDevines.Count == 0))));
+            if (!calibre && !casqueRefuse && casquesDevines != null && casquesDevines.Count > 0)
+            {
+                var choix = new WrapPanel { Margin = new Thickness(28, 0, 0, 0) };
+                choix.Children.Add(new TextBlock { Text = Langue.T("C'est ton casque ?"), FontFamily = Studio.Corps, FontSize = 12.5, Foreground = Studio.P(Studio.Discret), VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 10, 8) });
+                foreach (var c in casquesDevines) { var cc = c; var b = Puce(c.Nom, () => ChoisirCasque(cc)); Marquer(b, false, Studio.Ambre); choix.Children.Add(b); }
+                var bNon = Puce(Langue.T("Aucun de ceux-là"), () => { casqueRefuse = true; signatureDemarrage = null; MajDemarrage(Releve ?? new ReleveAudioJeu()); });
+                Marquer(bNon, false); choix.Children.Add(bNon);
+                liste.Children.Add(choix);
+            }
+            liste.Children.Add(Etape(regle, Langue.T("Profil pour les pas, Auto jeux et profil adapté à chaque jeu"), regle ? Langue.T("L'égaliseur s'allume tout seul au lancement de tes jeux, avec le bon profil.") : ""));
+            zoneDemarrage.Children.Add(liste);
+            var boutons = new WrapPanel();
+            if (!fini)
+            {
+                string libelle = configEnCours || installationApo ? Langue.T("Configuration en cours…") : !apo ? Langue.T("Tout configurer pour moi") : !branche ? Langue.T("Brancher Equalizer APO sur mon casque") : Langue.T("Terminer la configuration");
+                boutons.Children.Add(Studio.Bouton(libelle, true, () => ConfigurerTout(Releve ?? new ReleveAudioJeu())));
+            }
+            else
+            {
+                boutons.Children.Add(Studio.Bouton(Langue.T("▶  Écouter la différence"), true, LancerDemo, Langue.T("La même scène de jeu sans puis avec le Studio son, au même volume.")));
+                boutons.Children.Add(Studio.Bouton(Langue.T("Trouver mon profil à l'oreille"), false, LancerDuel, Langue.T("Duel à l'aveugle entre plusieurs profils, au même volume.")));
+                boutons.Children.Add(Studio.Bouton(Langue.T("C'est bon, masquer"), false, () => { if (exemple) return; r.AssistantFait = true; Changer(Langue.T("Démarrage rapide masqué : le bouton « Démarrage rapide » (Profils) le rouvre."), false, true); }));
+            }
+            zoneDemarrage.Children.Add(boutons);
+            if (fini) zoneDemarrage.Children.Add(Studio.T(Langue.T("Pour aller plus loin, plus bas : « Pas boostés » (les pas lointains remontent face aux explosions) et le son 7.1 virtuel."), 11.5, Studio.Faible));
+        }
+
+        private Control Etape(bool fait, string titre, string detail, bool facultatif = false)
+        {
+            var coche = new Border
+            {
+                Width = 20, Height = 20, CornerRadius = new CornerRadius(10), VerticalAlignment = VerticalAlignment.Top, Margin = new Thickness(0, 1, 8, 0),
+                Background = fait ? Studio.P(Studio.Vert, 220) : Studio.P(Studio.Fond1, 200), BorderBrush = Studio.P(fait ? Studio.Vert : facultatif ? Studio.Bord : Studio.Ambre, 200), BorderThickness = new Thickness(1.5),
+                Child = new TextBlock { Text = fait ? "✔" : "", FontSize = 11, FontWeight = FontWeight.Bold, Foreground = Studio.P(Studio.Fond1), HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center },
+            };
+            var textes = new StackPanel { Spacing = 1 };
+            textes.Children.Add(new TextBlock { Text = titre, FontFamily = Studio.Corps, FontSize = 13, FontWeight = FontWeight.SemiBold, Foreground = Studio.P(fait ? Studio.Texte : Studio.Discret), TextWrapping = TextWrapping.Wrap });
+            if (!string.IsNullOrEmpty(detail)) textes.Children.Add(Studio.T(detail, 11.5, Studio.Faible));
+            var l = new DockPanel();
+            DockPanel.SetDock(coche, Dock.Left);
+            l.Children.Add(coche); l.Children.Add(textes);
+            AutomationProperties.SetName(l, (fait ? Langue.T("Fait") : Langue.T("À faire")) + " : " + titre);
+            return l;
+        }
+
+        /// <summary>Le gros bouton : fait l'étape suivante (et toutes celles qui peuvent se faire d'un coup).</summary>
+        private void ConfigurerTout(ReleveAudioJeu v)
+        {
+            if (exemple || configEnCours || installationApo) return;
+            if (simulation) { F.Statut(Langue.T("Simulation : Velox configurerait tout, rien n'est modifié."), true); return; }
+            bool vm = r.Moteur == "vm";
+            int etat; Cible(v, out etat);
+            if (!vm && !v.Etat.Present) { InstallerApo(v.NomDefaut); return; }
+            if (!vm && etat != 0 && etat != 4)
+            {
+                F.Demander(Langue.T("Brancher Equalizer APO sur ton casque"),
+                    Langue.F("Une fenêtre d'Equalizer APO va s'ouvrir. Coche « {0} » (ta sortie actuelle), clique sur OK, et redémarre le PC si elle te le demande. Puis reviens ici : la suite se fait toute seule.", v.NomDefaut != "" ? v.NomDefaut : Langue.T("ton casque")),
+                    Langue.T("Ouvrir"), Langue.T("Annuler"), oui => { if (oui) OuvrirConfigurator(); });
+                return;
+            }
+            AvecAccord(() =>
+            {
+                configEnCours = true;
+                // profil pour les pas (celui du jeu s'il tourne), force normale, sortie suivie automatiquement
+                var jeu = AudioJeu.JeuDe(v.Jeu);
+                r.Cible = "auto"; r.Intensite = 100;
+                r.Gains = (double[])(jeu != null ? jeu.Gains : AudioJeu.Profils[0].Gains).Clone();
+                if (jeu != null) r.CoupeBas = jeu.CoupeBas;
+                r.AutoJeu = true; r.ProfilParJeu = true; r.JeuEnCours = "";
+                AudioJeu.SuivreJeu(r, v.Jeu, r.Actif);
+                AnnoncerApres(Langue.T("Studio son configuré"), jeu != null ? jeu.Nom : Langue.T("Auto jeux actif"));
+                Changer(Langue.T(jeu != null ? "Configuré : ton jeu tourne, l'égaliseur est actif avec son profil." : "Configuré : l'égaliseur s'allumera tout seul au lancement de tes jeux, avec le bon profil."), true, true);
+                configEnCours = false; signatureDemarrage = null;
+                MettreAJourBientot();
+            });
+        }
+
+        // ---------------------------------------------------------------- « Pas boostés » : moteur audio de Velox
+
+        private void MajPas(ReleveAudioJeu v)
+        {
+            if (zonePas == null) return;
+            var m = v.Moteur ?? new ReglagesMoteurSon();
+            var et = v.MoteurEtat ?? new MoteurSon.EtatMoteur();
+            bool cable = v.Cables.Count > 0;
+            string sig = cable + "|" + m.Actif + "|" + m.Force + "|" + m.JeuxSeulement + "|" + pasOccupe + "|" + (et.Erreur != "");
+            if (sig != signaturePas)
+            {
+                signaturePas = sig;
+                zonePas.Children.Clear();
+                zonePas.Children.Add(Studio.T(Langue.T("Le vrai saut pour entendre les pas : Velox traite lui-même le son en direct. Les sons faibles (pas lointains, recharges) remontent, les explosions et les tirs sont tenus, et rien ne sature. L'égaliseur et la calibration de ton casque continuent par-dessus."), 12.5, Studio.Discret));
+                if (!cable)
+                {
+                    zonePas.Children.Add(Studio.T(Langue.T("Il faut un câble audio virtuel : VB-Cable, gratuit. Installe-le, redémarre le PC, puis reviens ici : Velox branche tout lui-même."), 12, Studio.Ambre));
+                    zonePas.Children.Add(new WrapPanel { Children = { Studio.Bouton(Langue.T("Télécharger VB-Cable (gratuit)"), true, () => { if (!exemple) Programmes.Ouvrir(MoteurSon.SiteCable); }) } });
+                }
+                else
+                {
+                    var ligne = new WrapPanel();
+                    var bOn = Puce(Langue.T(m.Actif ? "Pas boostés : actif" : "Pas boostés : coupé"), () => BasculerPas(!m.Actif));
+                    Marquer(bOn, m.Actif, Studio.Vert);
+                    ligne.Children.Add(bOn);
+                    foreach (var n in MoteurSon.Niveaux)
+                    {
+                        var nn = n;
+                        var b = Puce(Langue.T(n.Item1), () => ReglerPas(nn.Item2, null));
+                        Marquer(b, m.Force == n.Item2, Studio.Magenta);
+                        ligne.Children.Add(b);
+                    }
+                    var bJeux = Puce(Langue.T("Seulement en jeu"), () => ReglerPas(null, !m.JeuxSeulement));
+                    ToolTip.SetTip(bJeux, Langue.T("Le son est traité seulement quand un jeu reconnu tourne (Warzone, Valorant, CS2…) : musique et vidéos restent intactes."));
+                    Marquer(bJeux, m.JeuxSeulement, Studio.Cyan);
+                    ligne.Children.Add(bJeux);
+                    zonePas.Children.Add(ligne);
+                    tPasDirect = Studio.T("", 12, Studio.Texte);
+                    zonePas.Children.Add(tPasDirect);
+                    zonePas.Children.Add(Studio.T(Langue.T("Léger : +9 dB sur les pas lointains face aux explosions. Fort : +16 dB. Extrême : +23 dB (mesuré sur une scène de jeu). Le son passe par VB-Cable, puis Velox le joue sur ton casque : environ 25 ms de retard en plus. Dans le jeu, laisse la sortie audio sur « Par défaut »."), 11.5, Studio.Faible));
+                }
+            }
+            if (tPasDirect != null && cable)
+            {
+                if (pasOccupe) tPasDirect.Text = Langue.T("Branchement en cours…");
+                else if (!m.Actif) tPasDirect.Text = Langue.T("Coupé : le son va directement au casque.");
+                else if (et.Erreur != "") tPasDirect.Text = Langue.T(et.Erreur);
+                else if (!et.Marche) tPasDirect.Text = Langue.T("Démarrage du moteur…");
+                else if (!et.Jeu) tPasDirect.Text = Langue.F("En attente d'un jeu (le son passe tel quel) · retard {0} ms", et.LatenceMs);
+                else tPasDirect.Text = Langue.F("En marche · sons forts tenus jusqu'à −{0} dB · retard {1} ms", et.Reduction.ToString("F0", Langue.Culture), et.LatenceMs);
+                tPasDirect.Foreground = Studio.P(m.Actif && et.Erreur != "" ? Studio.Ambre : Studio.Texte);
+            }
+        }
+
+        private void BasculerPas(bool allumer)
+        {
+            if (exemple || pasOccupe) return;
+            if (simulation) { F.Statut(Langue.T(allumer ? "Simulation : « Pas boostés » serait allumé, rien n'est modifié." : "Simulation : « Pas boostés » serait coupé, rien n'est modifié."), true); return; }
+            var m = (Releve ?? new ReleveAudioJeu()).Moteur ?? new ReglagesMoteurSon();
+            int force = m.Force; bool jeux = m.JeuxSeulement;
+            pasOccupe = true; signaturePas = null; MajPas(Releve ?? new ReleveAudioJeu());
+            var f = F;
+            Task.Run(() => allumer ? MoteurSon.Allumer(force, jeux) : MoteurSon.Couper(true)).ContinueWith(t => Dispatcher.UIThread.Post(() =>
+            {
+                pasOccupe = false; signaturePas = null;
+                string err = t.IsFaulted ? (t.Exception.InnerException ?? t.Exception).Message : t.Result;
+                if (err != "") { f.Statut(Langue.T(err), true); Relever(); return; }
+                Confirmer(f, Langue.T(allumer ? "Pas boostés allumé" : "Pas boostés coupé"), allumer ? Langue.T("VB-Cable → Velox → ton casque") : Langue.T("le son va directement au casque"), allumer);
+                f.Statut(Langue.T(allumer ? "« Pas boostés » allumé : le jeu joue dans VB-Cable, Velox traite le son et le joue sur ton casque (changement de sortie annulable dans l'Historique)." : "« Pas boostés » coupé : ton casque est de nouveau la sortie par défaut."));
+                Relever();
+            }));
+        }
+
+        private void ReglerPas(int? force, bool? jeux)
+        {
+            if (exemple) return;
+            if (simulation) { F.Statut(Langue.T("Simulation : rien n'est modifié."), true); return; }
+            try
+            {
+                var m = MoteurSon.Lire();
+                if (force.HasValue) m.Force = force.Value;
+                if (jeux.HasValue) m.JeuxSeulement = jeux.Value;
+                MoteurSon.Ecrire(m);   // le moteur relit ses réglages dans les 300 ms
+                if (Releve != null) Releve.Moteur = m;
+                if (force.HasValue) Confirmer(F, Langue.T("Pas boostés"), Langue.T(MoteurSon.Niveaux.First(x => x.Item2 == force.Value).Item1), true);
+                signaturePas = null; MajPas(Releve ?? new ReleveAudioJeu());
+            }
+            catch (Exception ex) { F.Statut(ex.Message, true); }
+        }
+
+        // ---------------------------------------------------------------- duel à l'oreille (choix du profil à l'aveugle)
+
+        /// <summary>Candidats du duel : les trois profils pour les pas, celui du jeu visé, et tes réglages s'ils sont
+        /// différents ; chacun avec ta calibration, ta force et ton coupe-explosions. Au plus quatre, dans le désordre.</summary>
+        internal static List<Tuple<string, ReglagesAudioJeu>> CandidatsDuel(ReglagesAudioJeu r, string exeJeu)
+        {
+            var l = new List<Tuple<string, ReglagesAudioJeu>>();
+            Action<string, double[]> ajouter = (nom, gains) =>
+            {
+                if (l.Count >= 4 || l.Any(x => x.Item2.Gains.SequenceEqual(gains))) return;
+                var c = r.Copie(); c.Actif = true; c.Gains = (double[])gains.Clone();
+                l.Add(Tuple.Create(nom, c));
+            };
+            var jeu = AudioJeu.JeuVise(exeJeu, r);
+            ajouter(Langue.F("Tes réglages ({0})", Langue.T(AudioJeu.NomProfil(r))), r.Gains);
+            foreach (var cle in new[] { "competitif", "extreme", "equilibre" }) { var p = AudioJeu.Profils.First(x => x.Cle == cle); ajouter(Langue.T(p.Nom), p.Gains); }
+            ajouter(jeu.Nom, jeu.Gains);
+            return l.OrderBy(x => hasardDuel.Next()).ToList();
+        }
+
+        private void LancerDuel()
+        {
+            if (exemple) return;
+            if (duelEtape != 0) { ArreterDuel(true); F.Statut(Langue.T("Duel arrêté : tes réglages n'ont pas changé.")); return; }
+            if (!OperatingSystem.IsWindows()) return;
+            if (simulation) { F.Statut(Langue.T("Simulation : le duel a besoin de couper l'égaliseur un instant, rien n'est modifié ici."), true); return; }
+            ArreterDemo();
+            duelCandidats = CandidatsDuel(r, Releve?.Jeu);
+            duelEtape = 1; duelChampion = 0; duelChallenger = 1; duelNumero = 1;
+            AfficherDuel(Langue.T("Préparation des sons…"), false);
+            var cands = duelCandidats.Select(x => x.Item2).ToList();
+            Task.Run(() => DemoAudio.Duel(cands)).ContinueWith(t => Dispatcher.UIThread.Post(() =>
+            {
+                if (duelEtape != 1) return;
+                if (t.IsFaulted) { ArreterDuel(true); F.Statut(Langue.T("Le duel n'a pas pu préparer les sons."), true); return; }
+                duelSons = t.Result;
+                Contourner(F, true);   // les sons sont déjà égalisés : rien ne doit s'ajouter par-dessus
+                JouerDuel();
+            }));
+        }
+
+        /// <summary>Joue le duel en cours : son 1 puis son 2 (ordre tiré au hasard), puis attend ton choix.</summary>
+        private void JouerDuel()
+        {
+            if (duelEtape == 0) return;
+            if (minuterieDuel == null) { minuterieDuel = new DispatcherTimer(); minuterieDuel.Tick += (o, a) => EtapeDuel(); }
+            duelInverse = hasardDuel.Next(2) == 1;
+            duelEtape = 2;
+            AfficherDuel(Langue.F("Duel {0} sur {1} : écoute le son 1…", duelNumero, duelCandidats.Count - 1), false);
+            minuterieDuel.Interval = TimeSpan.FromMilliseconds(500);   // (Equalizer APO relit son fichier)
+            minuterieDuel.Start();
+        }
+
+        private void EtapeDuel()
+        {
+            minuterieDuel.Stop();
+            int a = duelInverse ? duelChallenger : duelChampion, b = duelInverse ? duelChampion : duelChallenger;
+            switch (duelEtape)
+            {
+                case 2: DemoAudio.Jouer(duelSons[a]); duelEtape = 3; MarquerDuel(1); minuterieDuel.Interval = TimeSpan.FromSeconds(DemoAudio.Duree + 0.4); break;
+                case 3: DemoAudio.Jouer(duelSons[b]); duelEtape = 4; MarquerDuel(2); AfficherDuel(Langue.F("Duel {0} sur {1} : écoute le son 2…", duelNumero, duelCandidats.Count - 1), false); minuterieDuel.Interval = TimeSpan.FromSeconds(DemoAudio.Duree + 0.4); break;
+                default: duelEtape = 5; MarquerDuel(0); AfficherDuel(Langue.T("Dans lequel entends-tu le mieux les pas (et d'où ils viennent) ?"), true); return;
+            }
+            minuterieDuel.Start();
+        }
+
+        /// <summary>Ton choix : 1 ou 2. Le gagnant affronte le suivant ; à la fin, le profil gagnant est proposé.</summary>
+        private void ChoisirDuel(int son)
+        {
+            if (duelEtape != 5) return;
+            int a = duelInverse ? duelChallenger : duelChampion, b = duelInverse ? duelChampion : duelChallenger;
+            duelChampion = son == 1 ? a : b;
+            duelChallenger++; duelNumero++;
+            if (duelChallenger < duelCandidats.Count) { JouerDuel(); return; }
+            // fin : l'égaliseur revient, le gagnant est dévoilé
+            Contourner(F, false);
+            duelEtape = 6;
+            var g = duelCandidats[duelChampion];
+            zoneDuel.Children.Clear();
+            zoneDuel.Children.Add(Studio.T(Langue.F("Ton oreille a choisi : {0}", g.Item1), 15, Studio.Ambre));
+            bool deja = g.Item2.Gains.SequenceEqual(r.Gains);
+            zoneDuel.Children.Add(Studio.T(Langue.T(deja ? "C'est déjà ton réglage : il est fait pour toi." : "Choisi à l'aveugle, au même volume que les autres : c'est vraiment le profil qui te fait le mieux entendre les pas avec ton casque."), 12, Studio.Discret));
+            var ligne = new WrapPanel();
+            if (!deja) ligne.Children.Add(Studio.Bouton(Langue.T("Appliquer ce profil"), true, () =>
+            {
+                r.Gains = (double[])g.Item2.Gains.Clone();
+                AnnoncerApres(Langue.T(r.Actif ? "Profil appliqué" : "Profil choisi"), g.Item1);
+                ArreterDuel(false);
+                Changer(Langue.F("Profil « {0} » appliqué (choisi au duel à l'oreille).", g.Item1), false, true);
+            }));
+            ligne.Children.Add(Studio.Bouton(Langue.T(deja ? "Fermer" : "Garder mes réglages"), false, () => ArreterDuel(false)));
+            zoneDuel.Children.Add(ligne);
+            if (bDuel != null && bDuel.Child is TextBlock tb) tb.Text = Langue.T("Duel à l'oreille");
+        }
+
+        private void AfficherDuel(string texte, bool choix)
+        {
+            zoneDuel.IsVisible = true;
+            zoneDuel.Children.Clear();
+            zoneDuel.Children.Add(Studio.T(texte, 13.5, Studio.Texte));
+            if (choix)
+            {
+                var l = new WrapPanel();
+                l.Children.Add(Studio.Bouton(Langue.T("Le son 1"), true, () => ChoisirDuel(1)));
+                l.Children.Add(Studio.Bouton(Langue.T("Le son 2"), true, () => ChoisirDuel(2)));
+                l.Children.Add(Studio.Bouton(Langue.T("Réécouter"), false, JouerDuel));
+                zoneDuel.Children.Add(l);
+            }
+            zoneDuel.Children.Add(Studio.T(Langue.T("À l'aveugle : les noms des profils sont cachés, et tous les sons ont le même volume."), 11.5, Studio.Faible));
+            if (bDuel != null && bDuel.Child is TextBlock tb) tb.Text = Langue.T("■  Arrêter le duel");
+        }
+
+        /// <summary>Allume la carte du son en cours (1 ou 2, 0 : aucune), avec les cartes SANS / AVEC de la démo.</summary>
+        private void MarquerDuel(int son)
+        {
+            if (carteSans == null) return;
+            foreach (var c in new[] { carteSans, carteAvec })
+            {
+                bool on = (c == carteSans && son == 1) || (c == carteAvec && son == 2);
+                c.Background = on ? Studio.Degrade(1, Habillage.Alpha(Studio.Cyan, 50), Habillage.Alpha(Studio.Violet, 30)) : Studio.P(Studio.Fond1, 150);
+                c.BorderBrush = on ? Studio.P(Studio.Cyan, 220) : Studio.P(Studio.Bord);
+                if (c.Child is StackPanel sp && sp.Children.Count == 2 && sp.Children[0] is TextBlock t0 && sp.Children[1] is TextBlock t1)
+                {
+                    t0.Text = duelEtape == 0 ? Langue.T(c == carteSans ? "SANS" : "AVEC") : Langue.T(c == carteSans ? "SON 1" : "SON 2");
+                    t1.Text = duelEtape == 0 ? Langue.T(c == carteSans ? "le son d'origine" : "le Studio son") : Langue.T("profil caché");
+                }
+            }
+        }
+
+        private void ArreterDuel(bool remettre)
+        {
+            if (duelEtape == 0) return;
+            if (minuterieDuel != null) minuterieDuel.Stop();
+            DemoAudio.Arreter();
+            Contourner(F, false);   // l'égaliseur revient toujours
+            duelEtape = 0; duelSons = null;
+            if (zoneDuel != null) { zoneDuel.Children.Clear(); zoneDuel.IsVisible = false; }
+            MarquerDuel(0);
+            MarquerDemo(0);
+            if (bDuel != null && bDuel.Child is TextBlock tb) tb.Text = Langue.T("Duel à l'oreille");
         }
 
         // ---------------------------------------------------------------- son 7.1 virtuel (pilotage de HeSuVi)
