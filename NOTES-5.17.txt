@@ -1,0 +1,19 @@
+Velox 5.17 : le Studio son, plus simple et qui se vérifie tout seul
+
+Nouveau
+- Mode Simple (par défaut) : le Studio son n'affiche que l'essentiel (démarrage rapide, vérification, courbe,
+  écoute avant / après, profils, Pas boostés, calibration du casque, Auto jeux). Un clic sur « Expert » affiche
+  tous les réglages (console, bandes, sorties, Voicemeeter, 7.1 virtuel, table de mixage, fichier).
+- Vérification du son : Velox contrôle chaque maillon entre ton jeu et ton casque (égaliseur allumé ou en
+  attente d'un jeu, Equalizer APO sur la bonne sortie, Voicemeeter lancé, Equalizer APO contourné par
+  Voicemeeter…) et te dit quoi corriger. « Tester à l'oreille » : le volume baisse 3 secondes par l'égaliseur ;
+  si tu l'entends, il agit sur ton son.
+
+Corrigé
+- La fenêtre d'Equalizer APO (choix des sorties) s'ouvre aussi sur les PC où elle affichait « no Qt platform
+  plugin could be initialized » : Velox lui donne le chemin exact de ses modules.
+
+L'installateur est publié sous les deux noms : Velox-Setup-5.17.exe (winget, site) et
+NettoyagePC-Setup-5.17.exe (mise à jour des anciennes versions).
+
+SHA256 de Velox-Setup-5.17.exe : voir le fichier Velox-Setup-5.17.sha256

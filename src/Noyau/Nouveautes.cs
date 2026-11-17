@@ -7,6 +7,9 @@ namespace NettoyagePC
     {
         public static readonly List<KeyValuePair<string, string[]>> Liste = new List<KeyValuePair<string, string[]>>
         {
+            N("5.17", "Studio son : mode Simple par défaut (l'essentiel seulement), « Expert » pour tous les réglages.",
+                "Vérification du son : Velox contrôle tout le chemin du son et te dit quoi corriger ; « Tester à l'oreille » montre si l'égaliseur agit vraiment.",
+                "La fenêtre d'Equalizer APO s'ouvre aussi sur les PC où elle refusait (« no Qt platform plugin »)."),
             N("5.16", "Equalizer APO s'installe d'un clic partout où il apparaît dans le Studio son (témoin du haut, chaque sortie, Voicemeeter), avec un téléchargement plus fiable.",
                 "Pas boostés (bêta) : si le moteur audio ne démarre pas ou se bloque, ton casque est remis en sortie par défaut : le son ne se perd plus."),
             N("5.15", "Nouveau : Démarrage rapide. Un bouton, et Velox fait tout pour ta première utilisation : Equalizer APO installé et branché, casque reconnu et calibré, profil et Auto jeux réglés.",

@@ -226,6 +226,7 @@ namespace NettoyagePC.Nouveau
             r.CalibActive = true; r.CalibNom = "SteelSeries Arctis Nova Pro Wireless (wired)"; r.CalibSource = "oratory1990";
             r.CalibFiltres = Casques.LireEq(ExempleEqCasque);
             r.AssistantFait = true;   // (le démarrage rapide a sa propre capture)
+            r.ModeExpert = true;      // (captures de tous les modules ; le mode Simple a sa propre capture)
             releve = new ReleveAudioJeu { Dossier = @"C:\Program Files\EqualizerAPO\config" };
             if (!present) return r;
             releve.Etat = new EtatAudioJeu { Present = true, Fichier = true, Actif = true, Include = true, Contenu = AudioJeu.Generer(r, casque), Autres = { "YouSound", "HeSuVi" } };
@@ -1599,6 +1600,17 @@ namespace NettoyagePC.Nouveau
                     if (!demVu) { erreurs++; rapport.AppendLine("ERREUR : audio : démarrage rapide absent"); }
                     Capturer(f, dossier, "sombre-audio-demarrage.png", rapport, ref erreurs);
                     AudioJeu5.ExempleReglages.AssistantFait = true;
+                }
+                {
+                    // mode Simple : l'essentiel seulement (console, bandes, sorties, Voicemeeter, 7.1, fichier et table cachés)
+                    AudioJeu5.ExempleReglages.ModeExpert = false;
+                    f.Afficher("Accueil", false); f.Afficher("Audio", false);
+                    for (int k = 0; k < 4; k++) { Dispatcher.UIThread.RunJobs(); AvaloniaHeadlessPlatform.ForceRenderTimerTick(); }
+                    var visibles = f.GetVisualDescendants().OfType<TextBlock>().Where(t => t.IsEffectivelyVisible).Select(t => t.Text ?? "").ToList();
+                    bool simpleOk = visibles.Contains("Pas boostés : actif") && !visibles.Contains("Inversion gauche / droite") && !visibles.Contains("Voir le fichier écrit") && visibles.Contains("Simple") && visibles.Contains("Expert");
+                    if (!simpleOk) { erreurs++; rapport.AppendLine("ERREUR : audio : mode Simple (modules experts encore visibles, ou essentiels cachés)"); }
+                    Capturer(f, dossier, "sombre-audio-simple.png", rapport, ref erreurs);
+                    AudioJeu5.ExempleReglages.ModeExpert = true;
                 }
                 try { File.WriteAllBytes(Path.Combine(dossier, "scene-avant-apres.wav"), DemoAudio.Wav()); } catch { }   // (pour écouter la scène du test avant / après)
                 f.Width = 1600; f.Height = 1000; f.Afficher("Audio", false);

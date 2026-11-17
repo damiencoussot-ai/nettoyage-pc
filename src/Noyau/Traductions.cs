@@ -3748,6 +3748,15 @@ namespace NettoyagePC
             "Lance un son (vidéo, jeu), puis clique : Velox baisse fortement le volume par l'égaliseur pendant 3 secondes. Si tu l'entends, l'égaliseur agit.", "Play a sound (video, game), then click: Velox sharply lowers the volume through the equalizer for 3 seconds. If you hear it, the equalizer works.", "Reproduce un sonido (vídeo, juego) y pulsa: Velox baja mucho el volumen con el ecualizador durante 3 segundos. Si lo oyes, el ecualizador funciona.",
             "Simulation : le test écrirait dans le fichier d'Equalizer APO, rien n'est modifié.", "Simulation: the test would write to the Equalizer APO file, nothing is changed.", "Simulación: la prueba escribiría en el archivo de Equalizer APO, no se modifica nada.",
             "Test : le volume baisse 3 secondes…", "Test: the volume drops for 3 seconds…", "Prueba: el volumen baja 3 segundos…",
+            "Affichage :", "Display:", "Vista:",
+            "Expert", "Expert", "Experto",
+            "L'essentiel : profils, calibration, Pas boostés, vérification et écoute.", "The essentials: profiles, calibration, Boosted footsteps, check and listening.", "Lo esencial: perfiles, calibración, Pasos potenciados, comprobación y escucha.",
+            "Tous les réglages : console, bandes, sorties, Voicemeeter, 7.1 virtuel, table de mixage, fichier.", "All settings: console, bands, outputs, Voicemeeter, virtual 7.1, mixing desk, file.", "Todos los ajustes: consola, bandas, salidas, Voicemeeter, 7.1 virtual, mesa de mezclas, archivo.",
+            "Mode Expert : tous les réglages sont affichés.", "Expert mode: all settings are shown.", "Modo experto: se muestran todos los ajustes.",
+            "Mode Simple : l'essentiel seulement (le son ne change pas).", "Simple mode: essentials only (the sound doesn't change).", "Modo simple: solo lo esencial (el sonido no cambia).",
+            "Studio son : mode Simple par défaut (l'essentiel seulement), « Expert » pour tous les réglages.", "Sound Studio: Simple mode by default (essentials only), “Expert” for all settings.", "Estudio de sonido: modo simple por defecto (solo lo esencial), «Experto» para todos los ajustes.",
+            "Vérification du son : Velox contrôle tout le chemin du son et te dit quoi corriger ; « Tester à l'oreille » montre si l'égaliseur agit vraiment.", "Sound check: Velox checks the whole sound path and tells you what to fix; “Test by ear” shows whether the equalizer really works.", "Comprobación del sonido: Velox revisa todo el recorrido del sonido y te dice qué corregir; «Probar de oído» muestra si el ecualizador actúa de verdad.",
+            "La fenêtre d'Equalizer APO s'ouvre aussi sur les PC où elle refusait (« no Qt platform plugin »).", "The Equalizer APO window now also opens on PCs where it refused (“no Qt platform plugin”).", "La ventana de Equalizer APO ahora también se abre en los PC donde se negaba («no Qt platform plugin»).",
         };
         private static readonly string[] Prefixes =
         {
