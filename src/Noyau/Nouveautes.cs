@@ -7,6 +7,7 @@ namespace NettoyagePC
     {
         public static readonly List<KeyValuePair<string, string[]>> Liste = new List<KeyValuePair<string, string[]>>
         {
+            N("5.19", "« Velox Studio » ne mène plus nulle part : quand Pas boostés est coupé, le câble reprend son nom d'origine, et Velox prévient s'il le porte encore."),
             N("5.18", "« Velox Studio » dans Windows, Discord et tes jeux : un bouton du Studio son donne ce nom à la sortie par laquelle Velox traite ton son.",
                 "VB-Cable et Voicemeeter reconnus par leur pilote : tout marche même quand la sortie est renommée."),
             N("5.17", "Studio son : mode Simple par défaut (l'essentiel seulement), « Expert » pour tous les réglages.",

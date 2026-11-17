@@ -1,0 +1,14 @@
+Velox 5.19 : « Velox Studio » sans piège
+
+Corrigé
+- « Velox Studio » ne mène plus jamais nulle part : quand Pas boostés est coupé, le câble VB-Cable reprend son
+  nom d'origine (avant, il gardait le nom « Velox Studio » ; choisi dans un jeu, le son n'arrivait pas au casque).
+- Si un câble porte encore le nom « Velox Studio » alors que Pas boostés est coupé, le Studio son le signale et
+  propose « Remettre le nom du câble ».
+- Quand c'est le câble qui s'appelle « Velox Studio », Velox rappelle que le son n'arrive au casque que tant
+  que Pas boostés est allumé.
+
+L'installateur est publié sous les deux noms : Velox-Setup-5.19.exe (winget, site) et
+NettoyagePC-Setup-5.19.exe (mise à jour des anciennes versions).
+
+SHA256 de Velox-Setup-5.19.exe : voir le fichier Velox-Setup-5.19.sha256

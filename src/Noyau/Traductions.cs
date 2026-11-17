@@ -3776,6 +3776,7 @@ namespace NettoyagePC
             "Remettre le nom du câble", "Restore the cable's name", "Restaurar el nombre del cable",
             "Le câble a repris son nom d'origine.", "The cable got its original name back.", "El cable ha recuperado su nombre original.",
             "C'est le câble de Pas boostés : le son n'arrive au casque que tant que Pas boostés est allumé. En le coupant, Velox remet son nom d'origine.", "It's the Boosted footsteps cable: sound only reaches the headset while Boosted footsteps is on. When you turn it off, Velox restores its original name.", "Es el cable de Pasos potenciados: el sonido solo llega a los auriculares mientras Pasos potenciados esté activado. Al desactivarlo, Velox restaura su nombre original.",
+            "« Velox Studio » ne mène plus nulle part : quand Pas boostés est coupé, le câble reprend son nom d'origine, et Velox prévient s'il le porte encore.", "“Velox Studio” no longer leads nowhere: when Boosted footsteps is off, the cable gets its original name back, and Velox warns if it still has it.", "«Velox Studio» ya no lleva a ninguna parte: cuando Pasos potenciados está desactivado, el cable recupera su nombre original y Velox avisa si aún lo tiene.",
         };
         private static readonly string[] Prefixes =
         {
