@@ -544,7 +544,9 @@ namespace NettoyagePC.Nouveau
         }
         private StackPanel zoneMix, zoneCasque, zoneSurround;
         private TextBlock tDansLeJeu, tPasDirect;
-        private StackPanel zoneDemarrage, zoneVerif;
+        private StackPanel zoneDemarrage, zoneVerif, zoneNom;
+        private string signatureNom;
+        private bool nomOccupe;
         private readonly List<Control> modulesExpert = new List<Control>();
         private Border bSimple, bExpert;
 
@@ -795,6 +797,8 @@ namespace NettoyagePC.Nouveau
             tDansLeJeu = Studio.T("", 12, Studio.Faible);
             tDansLeJeu.Margin = new Thickness(0, 6, 0, 0);
             g.Children.Add(Studio.Module("Profils", new StackPanel { Children = { grille, autres, tProfil, tDansLeJeu } }));
+            zoneNom = new StackPanel { Spacing = 8 };
+            g.Children.Add(Studio.Module("Velox Studio dans tes jeux", zoneNom));
             zonePas = new StackPanel { Spacing = 10 };
             g.Children.Add(Studio.Module("Pas boostés (bêta)", zonePas));
             zoneCasque = new StackPanel { Spacing = 10 };
@@ -1165,6 +1169,7 @@ namespace NettoyagePC.Nouveau
             if (exemple) vu.Definir(0.42f, 0.36f);
             MajCasque();
             MajDemarrage(v);
+            MajNom(v);
             MajVerif(v);
             MajPas(v);
             MajSurround(v);
@@ -1466,6 +1471,60 @@ namespace NettoyagePC.Nouveau
             MarquerDemo(0);
         }
 
+        // ---------------------------------------------------------------- « Velox Studio » dans Windows et les jeux
+
+        /// <summary>La sortie par laquelle Velox traite le son : le câble de « Pas boostés » s'il est allumé, sinon celle où
+        /// agit l'égaliseur (la sortie visée, ou la sortie par défaut). Null si aucune.</summary>
+        private SortieWindows SortieStudio(ReleveAudioJeu v)
+        {
+            if (v.Moteur != null && v.Moteur.Actif && v.Cables.Count > 0) return v.Windows.FirstOrDefault(w => w.Id == v.Cables[0].Sortie);
+            int etat; string g = Cible(v, out etat);
+            if (string.IsNullOrEmpty(g)) g = v.Defaut;
+            return v.Windows.FirstOrDefault(w => w.Guid == g);
+        }
+
+        internal static bool PorteNomStudio(string libelle) { return libelle != null && (libelle == NomStudio.Nom || libelle.StartsWith(NomStudio.Nom + " (", StringComparison.Ordinal)); }
+
+        private void MajNom(ReleveAudioJeu v)
+        {
+            if (zoneNom == null) return;
+            var s = SortieStudio(v);
+            bool nomme = s != null && PorteNomStudio(s.Nom);
+            string sig = (s?.Id ?? "-") + "|" + (s?.Nom ?? "") + "|" + nomme + "|" + nomOccupe;
+            if (sig == signatureNom) return;
+            signatureNom = sig;
+            zoneNom.Children.Clear();
+            if (s == null) { zoneNom.Children.Add(Studio.T(Langue.T("Aucune sortie audio active trouvée."), 12, Studio.Discret)); return; }
+            if (nomme)
+            {
+                zoneNom.Children.Add(Studio.T(Langue.F("✔  Ta sortie s'appelle « {0} » dans Windows, Discord et tes jeux. Dans le jeu, choisis-la comme sortie audio (ou laisse « Par défaut »).", s.Nom), 12.5, Studio.Vert));
+                zoneNom.Children.Add(new WrapPanel { Children = { Studio.Bouton(Langue.T(nomOccupe ? "Un instant…" : "Remettre le nom d'origine"), false, () => NommerStudio(null)) } });
+            }
+            else
+            {
+                zoneNom.Children.Add(Studio.T(Langue.F("La sortie par laquelle Velox traite ton son (« {0} ») peut s'afficher « Velox Studio » dans Windows, Discord et tes jeux, comme un vrai appareil audio. Seul son nom change (annulable dans l'Historique).", s.Nom), 12.5, Studio.Discret));
+                zoneNom.Children.Add(new WrapPanel { Children = { Studio.Bouton(Langue.T(nomOccupe ? "Un instant…" : "Afficher « Velox Studio » dans mes jeux"), true, () => NommerStudio(s)) } });
+            }
+        }
+
+        /// <summary>Nomme la sortie « Velox Studio » (s) ou remet les noms d'origine (null). Autorisation administrateur.</summary>
+        private void NommerStudio(SortieWindows s)
+        {
+            if (exemple || nomOccupe) return;
+            if (simulation) { F.Statut(Langue.T("Simulation : le nom de la sortie changerait, rien n'est modifié."), true); return; }
+            nomOccupe = true; signatureNom = null; MajNom(Releve ?? new ReleveAudioJeu());
+            var f = F; string id = s?.Id;
+            Task.Run(() => id != null ? NomStudio.Appliquer(id) : NomStudio.Retablir()).ContinueWith(t => Dispatcher.UIThread.Post(() =>
+            {
+                nomOccupe = false; signatureNom = null;
+                string err = t.IsFaulted ? (t.Exception.InnerException ?? t.Exception).Message : t.Result;
+                if (err != "") f.Statut(Langue.T(err), true);
+                else if (id != null) { Confirmer(f, Langue.T("Velox Studio"), Langue.T("visible dans Windows et tes jeux"), true); f.Statut(Langue.T("Ta sortie s'appelle maintenant « Velox Studio » (annulable dans l'Historique). Si un jeu était ouvert, relance-le pour voir le nouveau nom.")); }
+                else f.Statut(Langue.T("Nom d'origine remis."));
+                Relever();
+            }));
+        }
+
         // ---------------------------------------------------------------- vérification : l'égaliseur agit-il vraiment ?
 
         /// <summary>
@@ -1478,7 +1537,7 @@ namespace NettoyagePC.Nouveau
         {
             var l = new List<Tuple<bool, string>>();
             bool moteurVm = r.Moteur == "vm";
-            bool defautVm = AudioJeu.EstVoicemeeter(v.NomDefaut) && !(v.NomDefaut ?? "").StartsWith("CABLE", StringComparison.OrdinalIgnoreCase);
+            bool defautVm = AudioJeu.EstVoicemeeter(v.NomDefaut) && !MoteurSon.EstCable(v.NomDefaut);
             var jeu = AudioJeu.JeuDe(v.Jeu);
             if (r.Actif) l.Add(Tuple.Create(true, Langue.T("Égaliseur allumé.")));
             else if (r.AutoJeu) l.Add(Tuple.Create(false, Langue.T("Égaliseur en attente : Auto jeux ne l'allume que pendant un jeu reconnu. Lance ton jeu (ou fais le test ci-dessous).")));
@@ -1496,7 +1555,7 @@ namespace NettoyagePC.Nouveau
             else
             {
                 // Voicemeeter par défaut, Equalizer APO sur le casque seulement : Voicemeeter (pilote WDM) le contourne
-                bool surCasqueDerriereVm = defautVm && v.Sorties.Count > 0 && !v.Sorties.Any(x => AudioJeu.EstVoicemeeter(x.Libelle));
+                bool surCasqueDerriereVm = defautVm && v.Sorties.Count > 0 && !v.Sorties.Any(x => AudioJeu.EstVoicemeeter(x.Libelle) && !MoteurSon.EstCable(x.Libelle));
                 l.Add(Tuple.Create(false, surCasqueDerriereVm
                     ? Langue.T("Equalizer APO est sur ton casque, mais le son passe par Voicemeeter, qui le contourne : ajoute Equalizer APO à « Voicemeeter Input » (bouton dans Sorties), puis redémarre.")
                     : Langue.F("Equalizer APO n'est pas sur la sortie qu'utilise Windows ({0}) : ajoute-le à cette sortie (bouton dans Sorties), puis redémarre.", v.NomDefaut)));

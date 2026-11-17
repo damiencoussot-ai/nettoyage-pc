@@ -7,6 +7,8 @@ namespace NettoyagePC
     {
         public static readonly List<KeyValuePair<string, string[]>> Liste = new List<KeyValuePair<string, string[]>>
         {
+            N("5.18", "« Velox Studio » dans Windows, Discord et tes jeux : un bouton du Studio son donne ce nom à la sortie par laquelle Velox traite ton son.",
+                "VB-Cable et Voicemeeter reconnus par leur pilote : tout marche même quand la sortie est renommée."),
             N("5.17", "Studio son : mode Simple par défaut (l'essentiel seulement), « Expert » pour tous les réglages.",
                 "Vérification du son : Velox contrôle tout le chemin du son et te dit quoi corriger ; « Tester à l'oreille » montre si l'égaliseur agit vraiment.",
                 "La fenêtre d'Equalizer APO s'ouvre aussi sur les PC où elle refusait (« no Qt platform plugin »)."),
