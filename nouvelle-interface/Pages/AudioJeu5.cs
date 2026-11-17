@@ -2341,9 +2341,17 @@ namespace NettoyagePC.Nouveau
             string c = null;
             try { c = AudioJeu.Configurator; } catch { }
             if (c == null) { F.Statut(Langue.T("Le Configurator d'Equalizer APO est introuvable sur ce PC."), true); return; }
-            // (c'est le Configurator lui-même qui demande l'autorisation de Windows)
-            Programmes.Ouvrir(c);
-            F.Statut(Langue.T("Configurator ouvert : coche ta sortie, valide, puis redémarre le PC."));
+            // ouverte par Velox avec l'autorisation administrateur, et le chemin exact de ses modules Qt (sinon, sur certains
+            // PC, elle refuse de s'ouvrir : « no Qt platform plugin could be initialized »)
+            var f = F;
+            f.Statut(Langue.T("Ouverture de la fenêtre d'Equalizer APO : accepte l'autorisation de Windows."));
+            Task.Run(() => Elevation.CommandeAttendre(60, "selecteur-apo")).ContinueWith(t => Dispatcher.UIThread.Post(() =>
+            {
+                int code = t.IsFaulted ? 5 : t.Result;
+                if (code == 0) f.Statut(Langue.T("Fenêtre d'Equalizer APO ouverte : coche ta sortie, valide, puis redémarre le PC si elle le demande."));
+                else if (code == -1) f.Statut(Langue.T("Fenêtre d'Equalizer APO pas ouverte : Windows n'a pas eu l'autorisation administrateur."), true);
+                else f.Statut(Langue.T("La fenêtre d'Equalizer APO n'a pas pu s'ouvrir : réinstalle Equalizer APO (témoin « EQUALIZER APO » en haut)."), true);
+            }));
         }
     }
 

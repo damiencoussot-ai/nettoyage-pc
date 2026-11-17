@@ -9,6 +9,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -133,6 +134,38 @@ namespace NettoyagePC
         /// son empreinte avec celle figée dans Velox (jamais une empreinte reçue), puis lance l'installateur officiel en
         /// silencieux et attend sa fin. 0 : fait ; 3 : demande invalide ; 4 : fichier non officiel ; 5 : échec.
         /// </summary>
+        /// <summary>
+        /// La fenêtre d'Equalizer APO 1.4 (« Device Selector ») est faite avec Qt. Sur certains PC, Qt ne retrouve pas tout
+        /// seul son module d'affichage et elle refuse de s'ouvrir (« no Qt platform plugin could be initialized »), alors
+        /// que tous ses fichiers sont là. On lui donne le chemin exact de ses modules (dossier « qt » d'Equalizer APO), et on
+        /// retire toute variable Qt laissée par un autre programme.
+        /// </summary>
+        public static void PreparerQt(ProcessStartInfo psi, string dossierApo)
+        {
+            foreach (var cle in psi.Environment.Keys.Where(k => k.StartsWith("QT_", StringComparison.OrdinalIgnoreCase)).ToList()) psi.Environment.Remove(cle);
+            psi.Environment["QT_PLUGIN_PATH"] = Path.Combine(dossierApo, "qt");
+            psi.Environment["QT_QPA_PLATFORM_PLUGIN_PATH"] = Path.Combine(dossierApo, "qt", "platforms");
+        }
+
+        /// <summary>(administrateur) « selecteur-apo » : ouvre la fenêtre d'Equalizer APO (choix des sorties) depuis son
+        /// dossier d'installation, avec le chemin de ses modules Qt. 0 si elle est lancée.</summary>
+        public static int SelecteurEnAdmin()
+        {
+            try
+            {
+                string exe = AudioJeu.Configurator;
+                if (exe == null) return 3;
+                string nomExe = Path.GetFileName(exe);
+                if (!string.Equals(nomExe, "DeviceSelector.exe", StringComparison.OrdinalIgnoreCase) && !string.Equals(nomExe, "Configurator.exe", StringComparison.OrdinalIgnoreCase)) return 3;
+                string dossier = Path.GetDirectoryName(exe);
+                var psi = new ProcessStartInfo(exe) { UseShellExecute = false, WorkingDirectory = dossier };
+                PreparerQt(psi, dossier);
+                using (Process.Start(psi)) { }
+                return 0;
+            }
+            catch (Exception ex) { JournalDemarrage.Erreur("fenêtre d'Equalizer APO", ex); return 5; }
+        }
+
         public static int InstallerEnAdmin(string[] args)
         {
             string nom, empreinte;
@@ -146,7 +179,10 @@ namespace NettoyagePC
                 if (File.Exists(copie)) File.Delete(copie);
                 File.Copy(source, copie);
                 if (Moteur.Empreinte(copie) != empreinte) return 4;
-                using (var p = Process.Start(new ProcessStartInfo(copie, "/S") { UseShellExecute = false, WorkingDirectory = Fps.DossierOutils }))
+                var psi = new ProcessStartInfo(copie, "/S") { UseShellExecute = false, WorkingDirectory = Fps.DossierOutils };
+                // la fenêtre « Device Selector » que l'installateur ouvre à la fin hérite de ces réglages (voir PreparerQt)
+                PreparerQt(psi, Path.Combine(Chemins.ProgramFiles, "EqualizerAPO"));
+                using (var p = Process.Start(psi))
                 {
                     if (!p.WaitForExit(1800 * 1000)) return 5;
                 }

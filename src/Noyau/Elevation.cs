@@ -315,6 +315,8 @@ namespace NettoyagePC
                         return Fps.MesurerEnAdmin(args);
                     case "installer-apo":   // fichier : installateur officiel d'Equalizer APO (empreinte figée revérifiée, voir InstallationApo)
                         return InstallationApo.InstallerEnAdmin(args);
+                    case "selecteur-apo":   // fenêtre d'Equalizer APO (choix des sorties), avec le chemin de ses modules Qt
+                        return InstallationApo.SelecteurEnAdmin();
                     case "fps-direct":   // source|- empreinte : images par seconde en direct pour l'overlay (PresentMon, voir Fps)
                         return Fps.DirectEnAdmin(args);
                     case "redemarrer-bios":   // redémarrage vers les réglages du BIOS / UEFI (dans 15 s, annulable avec shutdown /a)
