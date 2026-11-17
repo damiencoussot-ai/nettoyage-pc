@@ -1,0 +1,17 @@
+Velox 5.18 : « Velox Studio » dans tes jeux
+
+Nouveau
+- Velox Studio dans Windows, Discord et tes jeux : un bouton du Studio son donne le nom « Velox Studio » à la
+  sortie par laquelle Velox traite ton son (le câble de Pas boostés, sinon Voicemeeter Input ou ton casque).
+  Dans Warzone, Discord et les paramètres de Windows, elle apparaît « Velox Studio (…) » : choisis-la comme
+  sortie audio. Seul le nom change, avec l'autorisation de Windows ; « Remettre le nom d'origine »,
+  l'Historique ou la désinstallation le remettent.
+
+Amélioré
+- VB-Cable et Voicemeeter sont reconnus par leur pilote, plus seulement par leur nom : Pas boostés,
+  l'égaliseur avant le mixage et la vérification du son marchent même quand la sortie est renommée.
+
+L'installateur est publié sous les deux noms : Velox-Setup-5.18.exe (winget, site) et
+NettoyagePC-Setup-5.18.exe (mise à jour des anciennes versions).
+
+SHA256 de Velox-Setup-5.18.exe : voir le fichier Velox-Setup-5.18.sha256
