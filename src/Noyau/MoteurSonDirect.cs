@@ -215,10 +215,22 @@ namespace NettoyagePC
                 var r = Lire();
                 if (!r.Actif) return;
                 if (Cables().Count == 0) { Couper(true); return; }
-                if (!EnMarche()) Demarrer();
+                if (!EnMarche() && Demarrer() != "")
+                {
+                    // le moteur ne démarre pas : le son partirait dans le câble sans arriver nulle part. Le casque est remis.
+                    JournalDemarrage.Erreur("moteur audio", new InvalidOperationException("le moteur ne démarre pas : « Pas boostés » coupé, casque remis par défaut"));
+                    Couper(true);
+                    return;
+                }
+                // moteur en marche mais bloqué sur une erreur (casque débranché…) depuis plus de 20 s : même sécurité
+                var et = LireEtat();
+                if (et.Erreur != "" && !et.Marche) { if (erreurDepuis == DateTime.MinValue) erreurDepuis = DateTime.UtcNow; else if ((DateTime.UtcNow - erreurDepuis).TotalSeconds > 20) { erreurDepuis = DateTime.MinValue; Couper(true); } }
+                else erreurDepuis = DateTime.MinValue;
             }
             catch (Exception ex) { JournalDemarrage.Erreur("moteur audio (surveillance)", ex); }
         }
+
+        private static DateTime erreurDepuis = DateTime.MinValue;
 
         /// <summary>(désinstallation) moteur arrêté, sortie par défaut remise.</summary>
         public static void Retirer()

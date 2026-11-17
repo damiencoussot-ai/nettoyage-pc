@@ -54,7 +54,7 @@ namespace NettoyagePC.Nouveau
                 r.Moteur = MoteurSon.Lire();
                 r.MoteurEtat = MoteurSon.LireEtat();
                 // allumé mais moteur arrêté (PC redémarré sans gardien…) : relancé
-                if (r.Moteur.Actif && r.Cables.Count > 0 && !MoteurSon.EnMarche()) MoteurSon.Demarrer();
+                if (r.Moteur.Actif && r.Cables.Count > 0 && !MoteurSon.EnMarche()) MoteurSon.Surveiller();   // relancé, ou coupé (casque remis) s'il ne démarre pas
                 if (r.Etat.Present)
                 {
                     r.Sorties = AudioJeu.Sorties();
