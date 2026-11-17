@@ -620,6 +620,19 @@ namespace NettoyagePC.Nouveau
                 verifier(liste.Count == 3 && hd != null && hd.Source == "oratory1990" && liste.First(c => c.Nom == "Moondrop Aria").IntraAuriculaire && !liste.Any(c => c.Nom.StartsWith("Piège")), "casques : liste lue, meilleure mesure gardée, chemins douteux écartés");
                 verifier(Casques.AdresseEq(hd) == "https://raw.githubusercontent.com/jaakkopasanen/AutoEq/master/results/oratory1990/over-ear/Sennheiser%20HD%20650/Sennheiser%20HD%20650%20ParametricEQ.txt", "casques : adresse de la correction");
                 verifier(Casques.Chercher(liste, "hd650").Count == 0 && Casques.Chercher(liste, "hd 650").Count == 1 && Casques.Chercher(liste, "arctis nova").Count == 1 && Casques.Chercher(liste, "a").Count == 0, "casques : recherche par mots");
+                // vérification du son : les maillons cassés sont trouvés
+                {
+                    var rVerif = new ReglagesAudioJeu { Actif = true };
+                    var vOk = new ReleveAudioJeu { NomDefaut = "Casque (Arctis)", Etat = new EtatAudioJeu { Present = true, Include = true } };
+                    bool tousOk = AudioJeu5.Diagnostic(rVerif, vOk, new EtatVoicemeeter(), 0).All(x => x.Item1);
+                    var vVm = new ReleveAudioJeu { NomDefaut = "Voicemeeter Input (VB-Audio Voicemeeter VAIO)", Etat = new EtatAudioJeu { Present = true, Include = true } };
+                    vVm.Sorties.Add(new SortieAudio { Guid = "11111111-2222-3333-4444-555555555555", Nom = "Casque", Carte = "Arctis" });
+                    var dVm = AudioJeu5.Diagnostic(rVerif, vVm, new EtatVoicemeeter { Installe = true, Lance = false }, 1);
+                    bool vmFerme = dVm.Any(x => !x.Item1 && x.Item2.Contains("Voicemeeter n'est pas lancé"));
+                    bool contourne = dVm.Any(x => !x.Item1 && x.Item2.Contains("le contourne"));
+                    bool attente = AudioJeu5.Diagnostic(new ReglagesAudioJeu { AutoJeu = true }, vOk, new EtatVoicemeeter(), 0).Any(x => !x.Item1 && x.Item2.StartsWith("Égaliseur en attente"));
+                    verifier(tousOk && vmFerme && contourne && attente, "vérification du son : chaîne complète reconnue ; Voicemeeter fermé, Equalizer APO contourné par Voicemeeter et Auto jeux en attente signalés");
+                }
                 // démarrage rapide : le modèle deviné d'après le nom de la sortie de Windows
                 var dev = Casques.Deviner(liste, "Casque (SteelSeries Arctis Nova Pro Wireless)");
                 verifier(Casques.RequeteDepuisSortie("Haut-parleurs (Realtek(R) Audio)") == "" && Casques.RequeteDepuisSortie("Headphones (High Definition Audio Device)") == ""
@@ -744,6 +757,14 @@ namespace NettoyagePC.Nouveau
                     && InstallationApo.Adresse(nApo) == "https://downloads.sourceforge.net/project/equalizerapo/1.4.2/EqualizerAPO-x64-1.4.2.exe", "Equalizer APO : installateur officiel figé (nom, adresse, empreinte)");
                 string fauxApo = Path.Combine(Path.GetTempPath(), "velox-essai-autre-nom.exe");
                 File.WriteAllText(fauxApo, "x");
+                {
+                    // fenêtre d'Equalizer APO : chemin exact des modules Qt, variables Qt d'autres programmes retirées
+                    var psiQt = new System.Diagnostics.ProcessStartInfo("x.exe") { UseShellExecute = false };
+                    psiQt.Environment["QT_PLUGIN_PATH"] = @"C:\autre\plugins"; psiQt.Environment["QT_SCALE_FACTOR"] = "3";
+                    InstallationApo.PreparerQt(psiQt, @"C:\Program Files\EqualizerAPO");
+                    verifier(psiQt.Environment["QT_PLUGIN_PATH"] == Path.Combine(@"C:\Program Files\EqualizerAPO", "qt") && psiQt.Environment["QT_QPA_PLATFORM_PLUGIN_PATH"] == Path.Combine(@"C:\Program Files\EqualizerAPO", "qt", "platforms")
+                        && !psiQt.Environment.ContainsKey("QT_SCALE_FACTOR"), "fenêtre d'Equalizer APO : chemin des modules Qt donné, autres variables Qt retirées");
+                }
                 try { verifier(InstallationApo.InstallerEnAdmin(new[] { "installer-apo" }) == 3 && InstallationApo.InstallerEnAdmin(new[] { "installer-apo", fauxApo }) == 3 && InstallationApo.InstallerEnAdmin(new[] { "installer-apo", Path.Combine(Path.GetTempPath(), "absent", nApo) }) == 3, "Equalizer APO : demande invalide refusée (rien n'est lancé)"); }
                 finally { File.Delete(fauxApo); }
                 verifier(AudioWindows.ChangerEnProcessus(new[] { "--sortie-audio-defaut", "C:\\Windows\\x.dll", "0" }) == 3 && AudioWindows.ChangerEnProcessus(new[] { "--sortie-audio-defaut", "{0.0.0.00000000}.{0a1b2c3d-4e5f-6789-abcd-ef0123456789}", "0,7" }) == 3, "changement de sortie (processus à part) : arguments vérifiés");

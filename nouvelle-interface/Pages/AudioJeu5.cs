@@ -544,7 +544,9 @@ namespace NettoyagePC.Nouveau
         }
         private StackPanel zoneMix, zoneCasque, zoneSurround;
         private TextBlock tDansLeJeu, tPasDirect;
-        private StackPanel zoneDemarrage;
+        private StackPanel zoneDemarrage, zoneVerif;
+        private string signatureVerif;
+        private int testVolume;   // 0 : rien ; 1 : volume baissé en cours ; 2 : fini, en attente de la réponse
         private Control moduleDemarrage;
         private string signatureDemarrage;
         private List<CasqueAutoEq> casquesDevines;
@@ -743,6 +745,8 @@ namespace NettoyagePC.Nouveau
             legende.Children.Add(Legende(Studio.Magenta, "Égaliseur"));
             var bloc = new StackPanel { Spacing = 8, Children = { courbe, Studio.T(Langue.T("Glisse un point pour régler sa bande (ou flèches du clavier). En fond, ce que joue ta sortie en ce moment."), 12, Studio.Faible) } };
             g.Children.Add(Studio.Module("Réponse en fréquence", bloc, legende));
+            zoneVerif = new StackPanel { Spacing = 8 };
+            g.Children.Add(Studio.Module("Vérification du son", zoneVerif));
             g.Children.Add(Studio.Module("Avant / après", ConstruireDemo()));
 
             // profils
@@ -1130,6 +1134,7 @@ namespace NettoyagePC.Nouveau
             if (exemple) vu.Definir(0.42f, 0.36f);
             MajCasque();
             MajDemarrage(v);
+            MajVerif(v);
             MajPas(v);
             MajSurround(v);
             MajSorties(v);
@@ -1428,6 +1433,98 @@ namespace NettoyagePC.Nouveau
             if (comparaison) Comparer(F, false);   // l'égaliseur revient toujours
             etapeDemo = 0;
             MarquerDemo(0);
+        }
+
+        // ---------------------------------------------------------------- vérification : l'égaliseur agit-il vraiment ?
+
+        /// <summary>
+        /// Chaque maillon entre le jeu et le casque, d'après ce que Velox voit (rien n'est supposé) : égaliseur allumé,
+        /// Equalizer APO installé et branché sur la sortie qu'utilise Windows, ligne Include en place, Voicemeeter lancé
+        /// s'il est la sortie par défaut, Equalizer APO pas mis sur le casque derrière Voicemeeter (Voicemeeter le contourne).
+        /// Puis un test d'oreille : le volume baisse fortement 3 secondes par l'égaliseur ; pas entendu = il n'agit pas.
+        /// </summary>
+        internal static List<Tuple<bool, string>> Diagnostic(ReglagesAudioJeu r, ReleveAudioJeu v, EtatVoicemeeter vm, int etatCible)
+        {
+            var l = new List<Tuple<bool, string>>();
+            bool moteurVm = r.Moteur == "vm";
+            bool defautVm = AudioJeu.EstVoicemeeter(v.NomDefaut) && !(v.NomDefaut ?? "").StartsWith("CABLE", StringComparison.OrdinalIgnoreCase);
+            var jeu = AudioJeu.JeuDe(v.Jeu);
+            if (r.Actif) l.Add(Tuple.Create(true, Langue.T("Égaliseur allumé.")));
+            else if (r.AutoJeu) l.Add(Tuple.Create(false, Langue.T("Égaliseur en attente : Auto jeux ne l'allume que pendant un jeu reconnu. Lance ton jeu (ou fais le test ci-dessous).")));
+            else l.Add(Tuple.Create(false, Langue.T("Égaliseur coupé : allume-le (gros bouton rond en haut).")));
+            if (defautVm && !vm.Lance) l.Add(Tuple.Create(false, Langue.T("Ta sortie par défaut est Voicemeeter, mais Voicemeeter n'est pas lancé : aucun son ne sort. Lance Voicemeeter.")));
+            if (moteurVm)
+            {
+                l.Add(Tuple.Create(vm.EgaliseurNatif, Langue.T(vm.EgaliseurNatif ? "Égaliseur de Voicemeeter disponible (bus du casque)." : "L'égaliseur de Voicemeeter n'existe que dans Banana et Potato, lancés : choisis Equalizer APO dans le module Voicemeeter.")));
+                return l;
+            }
+            if (!v.Etat.Present) { l.Add(Tuple.Create(false, Langue.T("Equalizer APO n'est pas installé : clique sur le témoin « EQUALIZER APO » en haut."))); return l; }
+            l.Add(Tuple.Create(true, Langue.T("Equalizer APO installé.")));
+            bool branche = etatCible == 0 || etatCible == 4;
+            if (branche) l.Add(Tuple.Create(true, Langue.F("Equalizer APO est sur la sortie qu'utilise Windows ({0}).", v.NomDefaut)));
+            else
+            {
+                // Voicemeeter par défaut, Equalizer APO sur le casque seulement : Voicemeeter (pilote WDM) le contourne
+                bool surCasqueDerriereVm = defautVm && v.Sorties.Count > 0 && !v.Sorties.Any(x => AudioJeu.EstVoicemeeter(x.Libelle));
+                l.Add(Tuple.Create(false, surCasqueDerriereVm
+                    ? Langue.T("Equalizer APO est sur ton casque, mais le son passe par Voicemeeter, qui le contourne : ajoute Equalizer APO à « Voicemeeter Input » (bouton dans Sorties), puis redémarre.")
+                    : Langue.F("Equalizer APO n'est pas sur la sortie qu'utilise Windows ({0}) : ajoute-le à cette sortie (bouton dans Sorties), puis redémarre.", v.NomDefaut)));
+            }
+            if (!v.Etat.Include) l.Add(Tuple.Create(false, Langue.T("L'égaliseur n'a encore jamais été écrit dans Equalizer APO : allume-le une première fois.")));
+            if (jeu != null) l.Add(Tuple.Create(true, Langue.F("{0} tourne : vérifie que sa sortie audio est sur « Par défaut » dans ses réglages.", jeu.Nom)));
+            return l;
+        }
+
+        private void MajVerif(ReleveAudioJeu v)
+        {
+            if (zoneVerif == null) return;
+            int etat; Cible(v, out etat);
+            var d = Diagnostic(r, v, Vm, etat);
+            string sig = string.Join("|", d.Select(x => x.Item1 + x.Item2)) + "|" + testVolume;
+            if (sig == signatureVerif) return;
+            signatureVerif = sig;
+            zoneVerif.Children.Clear();
+            bool ok = d.All(x => x.Item1);
+            zoneVerif.Children.Add(Studio.T(Langue.T(ok ? "Tout est branché : l'égaliseur agit sur ton son." : "Quelque chose empêche l'égaliseur d'agir sur ton son :"), 13, ok ? Studio.Vert : Studio.Ambre));
+            foreach (var x in d.Where(x => !ok || !x.Item1))
+                zoneVerif.Children.Add(Studio.T((x.Item1 ? "✔  " : "✖  ") + x.Item2, 12, x.Item1 ? Studio.Discret : Studio.Texte));
+            var ligne = new WrapPanel();
+            if (testVolume == 2)
+            {
+                zoneVerif.Children.Add(Studio.T(Langue.T("As-tu entendu le volume baisser fortement pendant 3 secondes ?"), 12.5, Studio.Texte));
+                ligne.Children.Add(Studio.Bouton(Langue.T("Oui"), true, () => { testVolume = 0; signatureVerif = null; F.Statut(Langue.T("Parfait : l'égaliseur agit bien. Pour entendre son effet, maintiens « COMPARER » pendant une partie.")); MajVerif(Releve ?? new ReleveAudioJeu()); }));
+                ligne.Children.Add(Studio.Bouton(Langue.T("Non"), false, () => { testVolume = 0; signatureVerif = null; F.Demander(Langue.T("L'égaliseur n'agit pas sur ce que tu écoutes"),
+                    Langue.T("Le son que tu écoutes ne passe pas par la sortie où Equalizer APO est installé. Vérifie : 1) dans le jeu, sortie audio sur « Par défaut » ; 2) dans Sorties, la sortie par défaut affiche « ● Equalizer APO » (sinon « Ajouter Equalizer APO », puis redémarre) ; 3) avec Voicemeeter, Equalizer APO doit être sur « Voicemeeter Input », pas sur le casque."), Langue.T("Compris"), "", _ => { }); MajVerif(Releve ?? new ReleveAudioJeu()); }));
+            }
+            else if (r.Moteur != "vm" && (Releve?.Etat.Present ?? false) && (Releve?.Etat.Include ?? false))
+                ligne.Children.Add(Studio.Bouton(Langue.T(testVolume == 1 ? "Test en cours…" : "Tester à l'oreille (3 s)"), false, TesterVolume, Langue.T("Lance un son (vidéo, jeu), puis clique : Velox baisse fortement le volume par l'égaliseur pendant 3 secondes. Si tu l'entends, l'égaliseur agit.")));
+            if (ligne.Children.Count > 0) zoneVerif.Children.Add(ligne);
+        }
+
+        /// <summary>Test d'oreille : 3 s de volume à −12 dB écrit par Velox dans le fichier de l'égaliseur (sur la sortie
+        /// visée), puis l'égaliseur revient tel qu'il était. Rien n'est noté dans l'Historique.</summary>
+        private void TesterVolume()
+        {
+            if (exemple || testVolume != 0) return;
+            if (simulation) { F.Statut(Langue.T("Simulation : le test écrirait dans le fichier d'Equalizer APO, rien n'est modifié."), true); return; }
+            var copie = Reglages.Copie();
+            string attendu = AudioJeu.Generer(copie, copie.CibleEcrite), baisse = AudioJeu.VolumeSeul(copie, copie.CibleEcrite, -12);
+            testVolume = 1; signatureVerif = null; MajVerif(Releve ?? new ReleveAudioJeu());
+            F.Statut(Langue.T("Test : le volume baisse 3 secondes…"));
+            var f = F;
+            fileComparaison = fileComparaison.ContinueWith(_ =>
+            {
+                string e1 = AudioJeu.Comparer(true, attendu, baisse);
+                if (e1 == "") System.Threading.Thread.Sleep(3000);
+                string e2 = AudioJeu.Comparer(false, attendu);
+                return e1 != "" ? e1 : e2;
+            }).ContinueWith(t => Dispatcher.UIThread.Post(() =>
+            {
+                string err = t.IsFaulted ? (t.Exception.InnerException ?? t.Exception).Message : t.Result;
+                testVolume = err == "" ? 2 : 0; signatureVerif = null;
+                if (err != "") f.Statut(Langue.T(err), true);
+                MajVerif(Releve ?? new ReleveAudioJeu());
+            }));
         }
 
         // ---------------------------------------------------------------- démarrage rapide (première utilisation)
@@ -2341,9 +2438,17 @@ namespace NettoyagePC.Nouveau
             string c = null;
             try { c = AudioJeu.Configurator; } catch { }
             if (c == null) { F.Statut(Langue.T("Le Configurator d'Equalizer APO est introuvable sur ce PC."), true); return; }
-            // (c'est le Configurator lui-même qui demande l'autorisation de Windows)
-            Programmes.Ouvrir(c);
-            F.Statut(Langue.T("Configurator ouvert : coche ta sortie, valide, puis redémarre le PC."));
+            // ouverte par Velox avec l'autorisation administrateur, et le chemin exact de ses modules Qt (sinon, sur certains
+            // PC, elle refuse de s'ouvrir : « no Qt platform plugin could be initialized »)
+            var f = F;
+            f.Statut(Langue.T("Ouverture de la fenêtre d'Equalizer APO : accepte l'autorisation de Windows."));
+            Task.Run(() => Elevation.CommandeAttendre(60, "selecteur-apo")).ContinueWith(t => Dispatcher.UIThread.Post(() =>
+            {
+                int code = t.IsFaulted ? 5 : t.Result;
+                if (code == 0) f.Statut(Langue.T("Fenêtre d'Equalizer APO ouverte : coche ta sortie, valide, puis redémarre le PC si elle le demande."));
+                else if (code == -1) f.Statut(Langue.T("Fenêtre d'Equalizer APO pas ouverte : Windows n'a pas eu l'autorisation administrateur."), true);
+                else f.Statut(Langue.T("La fenêtre d'Equalizer APO n'a pas pu s'ouvrir : réinstalle Equalizer APO (témoin « EQUALIZER APO » en haut)."), true);
+            }));
         }
     }
 
