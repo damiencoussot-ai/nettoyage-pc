@@ -3836,3 +3836,16 @@ Nouveau : Démarrage rapide. Un bouton, et Velox fait tout pour ta première uti
 Pas boostés (bêta) : Velox traite le son de ton jeu en direct, les pas lointains remontent face aux explosions (+9 à +23 dB), sans saturer. Il faut VB-Cable (gratuit).	Boosted footsteps (beta): Velox processes your game's sound live, distant footsteps rise against explosions (+9 to +23 dB), without clipping. Requires VB-Cable (free).	Pasos potenciados (beta): Velox procesa el sonido de tu juego en directo, los pasos lejanos suben frente a las explosiones (+9 a +23 dB), sin saturar. Requiere VB-Cable (gratis).
 Anti-saturation plus précise avec la calibration du casque.	More precise anti-clipping with headphone calibration.	Antisaturación más precisa con la calibración de auriculares.
 Pas boostés (bêta)	Boosted footsteps (beta)	Pasos potenciados (beta)
+Ouvrir la fenêtre d'Equalizer APO (choix des sorties).	Open the Equalizer APO window (output selection).	Abrir la ventana de Equalizer APO (elección de salidas).
+Installer Equalizer APO : Velox le télécharge et l'installe pour toi.	Install Equalizer APO: Velox downloads and installs it for you.	Instalar Equalizer APO: Velox lo descarga y lo instala por ti.
+Ouvrir la fenêtre d'Equalizer APO	Open the Equalizer APO window	Abrir la ventana de Equalizer APO
+Ajouter Equalizer APO	Add Equalizer APO	Añadir Equalizer APO
+Ouvre la fenêtre d'Equalizer APO pour l'ajouter à cette sortie.	Opens the Equalizer APO window to add it to this output.	Abre la ventana de Equalizer APO para añadirlo a esta salida.
+Velox télécharge Equalizer APO depuis son site officiel, le vérifie et l'installe.	Velox downloads Equalizer APO from its official site, verifies it and installs it.	Velox descarga Equalizer APO de su sitio oficial, lo verifica y lo instala.
+Ajouter Equalizer APO à une sortie	Add Equalizer APO to an output	Añadir Equalizer APO a una salida
+La fenêtre d'Equalizer APO va s'ouvrir. Coche « {0} », clique sur OK, et redémarre le PC si elle te le demande.	The Equalizer APO window will open. Tick “{0}”, click OK, and restart the PC if it asks.	Se abrirá la ventana de Equalizer APO. Marca «{0}», pulsa Aceptar y reinicia el PC si lo pide.
+Equalizer APO n'a pas pu être installé	Equalizer APO could not be installed	No se ha podido instalar Equalizer APO
+Réessaie dans un instant (même bouton), ou télécharge-le toi-même depuis son site officiel : une fois installé, Velox le reconnaît tout seul.	Try again in a moment (same button), or download it yourself from its official site: once installed, Velox recognizes it on its own.	Vuelve a intentarlo en un momento (mismo botón) o descárgalo tú desde su sitio oficial: una vez instalado, Velox lo reconoce solo.
+Ouvrir le site officiel	Open the official site	Abrir el sitio oficial
+Pas de connexion au site d'Equalizer APO : vérifie Internet, puis réessaie.	No connection to the Equalizer APO site: check the Internet, then try again.	Sin conexión con el sitio de Equalizer APO: comprueba Internet y vuelve a intentarlo.
+Téléchargement impossible.	Download impossible.	Descarga imposible.
