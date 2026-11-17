@@ -7,12 +7,15 @@ namespace NettoyagePC
     {
         public static readonly List<KeyValuePair<string, string[]>> Liste = new List<KeyValuePair<string, string[]>>
         {
+            N("5.15", "Nouveau : Démarrage rapide. Un bouton, et Velox fait tout pour ta première utilisation : Equalizer APO installé et branché, casque reconnu et calibré, profil et Auto jeux réglés.",
+                "Duel à l'oreille : choisis ton profil à l'aveugle, au même volume, deux sons à la fois ; Velox garde celui où tu entends le mieux les pas.",
+                "Pas boostés (bêta) : Velox traite le son de ton jeu en direct, les pas lointains remontent face aux explosions (+9 à +23 dB), sans saturer. Il faut VB-Cable (gratuit).",
+                "Anti-saturation plus précise avec la calibration du casque."),
             N("5.14", "Nouveau : rubrique Audio (Premium), le « Studio son ». Un égaliseur pour mieux entendre les pas et les recharges dans Call of Duty / Warzone, avec Equalizer APO ou Voicemeeter. Le jeu n'est jamais touché.",
                 "Quatre profils, courbe avec le spectre du son en direct, molettes, faders et bouton « Comparer ». Auto Warzone (avec le gardien, même Velox fermé) et raccourcis Ctrl+Alt+F9 / F10 en plein jeu.",
                 "Sorties audio : VU-mètre, sortie par défaut de Windows en un clic, Voicemeeter reconnu. Raccourcis : Ctrl+7 ouvre Audio, Réglages passe à Ctrl+0.",
                 "Calibration de ton casque (plus de 6 000 modèles mesurés, base libre AutoEq), profils par jeu avec Auto jeux (Warzone, Valorant, CS2, Fortnite, Apex…), et test « Avant / après » à l'oreille, au même volume.",
                 "Son 7.1 virtuel au casque : Velox pilote HeSuVi (gratuit, à installer à part) : allumé, coupé et modèle (GSX, Dolby Atmos, DTS…) en un clic.",
-                "Duel à l'oreille : choisis ton profil à l'aveugle, au même volume, deux sons à la fois ; Velox garde celui où tu entends le mieux les pas.",
                 "Voicemeeter piloté depuis le Studio son : table de mixage (volume, mute et envois de chaque entrée et de chaque bus, annulables), égaliseur possible avant le mixage (Voicemeeter Input), et « Velox Studio » affiché dans Voicemeeter sur ce que Velox traite.",
                 "Premium passe à 9,99 € par mois pour les nouveaux abonnements. Si tu es déjà abonné, ton prix ne change pas. Les clés offertes sur Discord peuvent maintenant avoir une date de fin, affichée dans l'onglet Premium."),
             N("5.13", "Nouveau : Autopilote du mode jeu (Premium). Velox essaie chaque réglage sur tes vraies parties, avec et sans, et garde seulement ce qui marche sur ton PC, preuve à l'appui.",

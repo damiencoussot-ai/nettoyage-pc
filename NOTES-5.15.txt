@@ -1,0 +1,24 @@
+Velox 5.15 : le Studio son, encore plus simple et plus fort
+
+Nouveau
+- Démarrage rapide : un bouton, et Velox fait tout pour ta première utilisation. Il installe Equalizer APO,
+  le branche sur ton casque (il te dit exactement quoi cocher), devine ton modèle de casque d'après Windows et
+  le calibre, règle le profil pour les pas, Auto jeux et le profil adapté à chaque jeu, puis te fait écouter
+  la différence. Chaque étape se coche toute seule.
+- Duel à l'oreille : choisis ton profil à l'aveugle. La même scène de jeu passe par 3 ou 4 profils, tous au
+  même volume, écoutés deux par deux sans leur nom ; Velox applique celui où tu entends le mieux les pas.
+- Pas boostés (bêta) : Velox traite lui-même le son de ton jeu en direct. Les sons faibles (pas lointains,
+  recharges) remontent face aux explosions et aux tirs, sans jamais saturer : +9 dB (Léger), +16 dB (Fort),
+  +23 dB (Extrême), mesurés sur une scène de jeu. Il faut VB-Cable (gratuit, à installer à part) ; Velox
+  branche le reste lui-même. Environ 25 ms de retard du son en plus. Option « Seulement en jeu ».
+  Couper « Pas boostés » remet ton casque en sortie par défaut.
+
+Corrigé
+- Anti-saturation plus précise avec la calibration du casque : les pics étroits de la correction sont mesurés
+  exactement (avant, jusqu'à 7 dB pouvaient échapper au préampli et faire saturer les explosions).
+- « Écouter la différence » marche aussi quand l'égaliseur attend le lancement d'un jeu (Auto jeux).
+
+L'installateur est publié sous les deux noms : Velox-Setup-5.15.exe (winget, site) et
+NettoyagePC-Setup-5.15.exe (mise à jour des anciennes versions).
+
+SHA256 de Velox-Setup-5.15.exe : voir le fichier Velox-Setup-5.15.sha256

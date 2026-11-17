@@ -771,7 +771,7 @@ namespace NettoyagePC.Nouveau
             tDansLeJeu.Margin = new Thickness(0, 6, 0, 0);
             g.Children.Add(Studio.Module("Profils", new StackPanel { Children = { grille, autres, tProfil, tDansLeJeu } }));
             zonePas = new StackPanel { Spacing = 10 };
-            g.Children.Add(Studio.Module("Pas boostés", zonePas));
+            g.Children.Add(Studio.Module("Pas boostés (bêta)", zonePas));
             zoneCasque = new StackPanel { Spacing = 10 };
             g.Children.Add(Studio.Module("Calibration du casque", zoneCasque));
             zoneSurround = new StackPanel { Spacing = 10 };
