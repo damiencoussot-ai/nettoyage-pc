@@ -96,7 +96,7 @@ namespace NettoyagePC
         private static readonly string[] Generiques = { "casque", "headphones", "headphone", "headset", "ecouteurs", "speakers", "speaker", "haut", "parleurs",
             "haut-parleurs", "audio", "usb", "device", "peripherique", "high", "definition", "realtek", "r", "nvidia", "amd", "intel", "smart", "sound", "technology",
             "digital", "output", "sortie", "hands", "free", "hands-free", "stereo", "game", "chat", "for", "pour", "de", "the", "le", "la", "with", "microphone", "mic",
-            "2nd", "gen", "virtual", "display", "hdmi", "displayport", "default", "par", "defaut", "voicemeeter", "cable", "vb", "input" };
+            "2nd", "gen", "virtual", "display", "hdmi", "displayport", "default", "par", "defaut", "voicemeeter", "cable", "vb", "input", "velox", "studio" };
 
         /// <summary>
         /// Démarrage rapide : ce que le nom de la sortie de Windows dit du modèle du casque (« Casque (Arctis Nova Pro

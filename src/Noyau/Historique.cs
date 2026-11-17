@@ -190,6 +190,8 @@ namespace NettoyagePC
                         return AudioJeu.Annuler(e);
                     case "hesuvi":
                         return HeSuVi.Annuler(e);
+                    case "nomsortie":
+                        return NomStudio.Annuler(e);
                     case "sortieaudio":
                         return AudioWindows.Annuler(e);
                     case "voicemeeter":

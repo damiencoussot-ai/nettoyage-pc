@@ -718,7 +718,8 @@ namespace NettoyagePC
             int phys = type == 3 ? 5 : type == 2 ? 3 : 2;
             if (n.Contains("vaio3")) return type == 3 ? phys + 2 : -1;
             if (n.Contains("aux")) return type >= 2 ? phys + 1 : -1;
-            return n.Contains("input") ? phys : -1;
+            // (« Voicemeeter Input (VB-Audio Voicemeeter VAIO) », ou renommée « Velox Studio (VB-Audio Voicemeeter VAIO) »)
+            return n.Contains("input") || n.Contains("vaio") ? phys : -1;
         }
 
         public static float BornerGain(double v) { return double.IsNaN(v) || double.IsInfinity(v) ? 0 : (float)Math.Max(-60, Math.Min(12, v)); }

@@ -621,6 +621,22 @@ namespace NettoyagePC.Nouveau
                 verifier(liste.Count == 3 && hd != null && hd.Source == "oratory1990" && liste.First(c => c.Nom == "Moondrop Aria").IntraAuriculaire && !liste.Any(c => c.Nom.StartsWith("Piège")), "casques : liste lue, meilleure mesure gardée, chemins douteux écartés");
                 verifier(Casques.AdresseEq(hd) == "https://raw.githubusercontent.com/jaakkopasanen/AutoEq/master/results/oratory1990/over-ear/Sennheiser%20HD%20650/Sennheiser%20HD%20650%20ParametricEQ.txt", "casques : adresse de la correction");
                 verifier(Casques.Chercher(liste, "hd650").Count == 0 && Casques.Chercher(liste, "hd 650").Count == 1 && Casques.Chercher(liste, "arctis nova").Count == 1 && Casques.Chercher(liste, "a").Count == 0, "casques : recherche par mots");
+                // « Velox Studio » : les appareils renommés restent reconnus (d'après leur pilote), noms et demandes vérifiés
+                {
+                    string sx;
+                    bool cables = MoteurSon.EstCable("CABLE Input (VB-Audio Virtual Cable)") && MoteurSon.EstCable("Velox Studio (VB-Audio Virtual Cable)")
+                        && MoteurSon.EstCable("Velox Studio (VB-Audio Cable B)", out sx) && sx == "-B" && MoteurSon.EstCable("CABLE-A Input (VB-Audio Cable A)", out sx) && sx == "-A"
+                        && !MoteurSon.EstCable("Voicemeeter Input (VB-Audio Voicemeeter VAIO)") && !MoteurSon.EstCable("Velox Studio (Arctis Nova Pro)");
+                    bool vmRenomme = Voicemeeter.EntreeVirtuelle("Velox Studio (VB-Audio Voicemeeter VAIO)", 2) == 3 && Voicemeeter.EntreeVirtuelle("Velox Studio (VB-Audio Voicemeeter AUX VAIO)", 2) == 4
+                        && Voicemeeter.EntreeVirtuelle("Voicemeeter Input (VB-Audio Voicemeeter VAIO)", 2) == 3;
+                    bool noms = NomStudio.NomValide("Casque (Arctis)") && NomStudio.NomValide("CABLE-A Input") && !NomStudio.NomValide("") && !NomStudio.NomValide("a\nb") && !NomStudio.NomValide(new string('x', 121)) && !NomStudio.NomValide(" x");
+                    bool demandes = NomStudio.RenommerEnAdmin(new[] { "renommer-sortie" }) == 3 && NomStudio.RenommerEnAdmin(new[] { "renommer-sortie", "pas un id", "eA==" }) == 3
+                        && NomStudio.RenommerEnAdmin(new[] { "renommer-sortie", "{0.0.0.00000000}.{11111111-2222-3333-4444-555555555555}", Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes("x\u0001")) }) == 3;
+                    var piegeNom = new Modif { Type = "nomsortie", Donnees = new System.Collections.Generic.Dictionary<string, object> { { "Id", "C:\\x" }, { "Avant", "Casque" } } };
+                    bool annul = NomStudio.Annuler(piegeNom).Contains("refusée par sécurité");
+                    bool studio = AudioJeu5.PorteNomStudio("Velox Studio (Arctis Nova Pro)") && AudioJeu5.PorteNomStudio("Velox Studio") && !AudioJeu5.PorteNomStudio("Velox Studios (x)") && Casques.RequeteDepuisSortie("Velox Studio (VB-Audio Virtual Cable)") == "";
+                    verifier(cables && vmRenomme && noms && demandes && annul && studio, "« Velox Studio » : câble et Voicemeeter reconnus même renommés, noms et demandes invalides refusés, Historique piégé refusé");
+                }
                 // vérification du son : les maillons cassés sont trouvés
                 {
                     var rVerif = new ReglagesAudioJeu { Actif = true };

@@ -65,10 +65,8 @@ namespace NettoyagePC
             var entrees = Entrees().Select(id => Tuple.Create(id, NomEntree(id))).ToList();
             foreach (var s in sorties)
             {
-                string nom = NomSeul(s.Nom);
-                var m = NomSortieCable.Match(nom);
-                if (!m.Success) continue;
-                string suffixe = m.Groups[1].Value;
+                string suffixe;
+                if (!EstCable(s.Nom, out suffixe)) continue;
                 var en = entrees.FirstOrDefault(x => NomEntreeCable.Match(x.Item2) is Match me && me.Success && string.Equals(me.Groups[1].Value, suffixe, StringComparison.OrdinalIgnoreCase));
                 if (en != null) l.Add(new CableVirtuel { Nom = "VB-Cable" + suffixe.ToUpperInvariant(), Sortie = s.Id, Entree = en.Item1 });
             }
@@ -87,10 +85,34 @@ namespace NettoyagePC
                 var r = Lire();
                 if (!r.Actif || r.Destination == "") return guidDefaut;
                 string nom = NomSeul(AudioJeu.NomSortie(guidDefaut));
-                return NomSortieCable.IsMatch(nom) ? AudioWindows.GuidDe(r.Destination) : guidDefaut;
+                string suffixe;
+                return EstCable(AudioJeu.NomSortie(guidDefaut), out suffixe) ? AudioWindows.GuidDe(r.Destination) : guidDefaut;
             }
             catch { return guidDefaut; }
         }
+
+        private static readonly Regex PiloteCable = new Regex(@"^VB-Audio (Virtual Cable|Cable ([A-D]))$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+
+        /// <summary>
+        /// Vrai si cette sortie (« Nom (pilote) ») est un câble VB-Cable : d'après son nom (« CABLE Input », « CABLE-A
+        /// Input »), ou d'après son pilote si elle a été renommée (« Velox Studio (VB-Audio Virtual Cable) »). « suffixe » :
+        /// "" ou « -A » à « -D », pour l'apparier à son entrée « CABLE… Output ».
+        /// </summary>
+        public static bool EstCable(string libelle, out string suffixe)
+        {
+            suffixe = "";
+            var m = NomSortieCable.Match(NomSeul(libelle));
+            if (m.Success) { suffixe = m.Groups[1].Value; return true; }
+            string l = (libelle ?? "").Trim();
+            int i = l.LastIndexOf(" (", StringComparison.Ordinal);
+            if (i < 0 || !l.EndsWith(")")) return false;
+            var p = PiloteCable.Match(l.Substring(i + 2, l.Length - i - 3));
+            if (!p.Success) return false;
+            if (p.Groups[2].Success) suffixe = "-" + p.Groups[2].Value.ToUpperInvariant();
+            return true;
+        }
+
+        public static bool EstCable(string libelle) { string s; return EstCable(libelle, out s); }
 
         /// <summary>« CABLE Input (VB-Audio Virtual Cable) » → « CABLE Input ».</summary>
         private static string NomSeul(string libelle)

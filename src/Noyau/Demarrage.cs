@@ -37,7 +37,8 @@ namespace NettoyagePC
             if (args[0] == "--moteur-son") return MoteurSon.Executer();
             if (args[0] == "--retirer-audio-jeu")
             {
-                try { MoteurSon.Retirer(); } catch { }   // moteur « Pas boostés » arrêté, sortie par défaut remise
+                try { MoteurSon.Retirer(); } catch { }
+                try { NomStudio.Retablir(); } catch { }   // « Velox Studio » : les sorties reprennent leur nom d'origine   // moteur « Pas boostés » arrêté, sortie par défaut remise
                 int code = AudioJeu.Retirer();
                 try { var r = AudioJeu.Lire(); if (r.VmEcrit >= 0) Voicemeeter.Couper(r.VmEcrit, false); } catch { }
                 try { Voicemeeter.Etiqueter(-1, -1); } catch { }   // nom « Velox Studio » retiré de Voicemeeter (s'il est lancé)
