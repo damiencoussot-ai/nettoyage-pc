@@ -1490,14 +1490,28 @@ namespace NettoyagePC.Nouveau
             if (zoneNom == null) return;
             var s = SortieStudio(v);
             bool nomme = s != null && PorteNomStudio(s.Nom);
-            string sig = (s?.Id ?? "-") + "|" + (s?.Nom ?? "") + "|" + nomme + "|" + nomOccupe;
+            string sig = (s?.Id ?? "-") + "|" + (s?.Nom ?? "") + "|" + nomme + "|" + nomOccupe + "|" + string.Join(",", v.Windows.Where(w => PorteNomStudio(w.Nom)).Select(w => w.Id)) + "|" + (v.Moteur?.Actif ?? false);
             if (sig == signatureNom) return;
             signatureNom = sig;
             zoneNom.Children.Clear();
+            var piege = (v.Moteur == null || !v.Moteur.Actif) ? v.Windows.FirstOrDefault(w => PorteNomStudio(w.Nom) && MoteurSon.EstCable(w.Nom)) : null;
+            if (piege != null)
+            {
+                zoneNom.Children.Add(Studio.T(Langue.F("⚠  « {0} » est le câble de Pas boostés : sans Pas boostés allumé, le son qui y entre n'arrive nulle part. Ne le choisis pas dans tes jeux, ou allume Pas boostés.", piege.Nom), 12.5, Studio.Ambre));
+                var pp = piege;
+                zoneNom.Children.Add(new WrapPanel { Children = { Studio.Bouton(Langue.T(nomOccupe ? "Un instant…" : "Remettre le nom du câble"), true, () =>
+                {
+                    if (exemple || nomOccupe) return;
+                    nomOccupe = true; signatureNom = null; MajNom(Releve ?? new ReleveAudioJeu());
+                    var f = F; string id = pp.Id;
+                    Task.Run(() => NomStudio.RetablirUn(id)).ContinueWith(t => Dispatcher.UIThread.Post(() => { nomOccupe = false; signatureNom = null; string err = t.IsFaulted ? t.Exception.InnerException?.Message ?? "" : t.Result; f.Statut(err != "" ? Langue.T(err) : Langue.T("Le câble a repris son nom d'origine.")); Relever(); }));
+                }) } });
+            }
             if (s == null) { zoneNom.Children.Add(Studio.T(Langue.T("Aucune sortie audio active trouvée."), 12, Studio.Discret)); return; }
             if (nomme)
             {
                 zoneNom.Children.Add(Studio.T(Langue.F("✔  Ta sortie s'appelle « {0} » dans Windows, Discord et tes jeux. Dans le jeu, choisis-la comme sortie audio (ou laisse « Par défaut »).", s.Nom), 12.5, Studio.Vert));
+                if (MoteurSon.EstCable(s.Nom)) zoneNom.Children.Add(Studio.T(Langue.T("C'est le câble de Pas boostés : le son n'arrive au casque que tant que Pas boostés est allumé. En le coupant, Velox remet son nom d'origine."), 11.5, Studio.Faible));
                 zoneNom.Children.Add(new WrapPanel { Children = { Studio.Bouton(Langue.T(nomOccupe ? "Un instant…" : "Remettre le nom d'origine"), false, () => NommerStudio(null)) } });
             }
             else
@@ -1797,7 +1811,15 @@ namespace NettoyagePC.Nouveau
             int force = m.Force; bool jeux = m.JeuxSeulement;
             pasOccupe = true; signaturePas = null; MajPas(Releve ?? new ReleveAudioJeu());
             var f = F;
-            Task.Run(() => allumer ? MoteurSon.Allumer(force, jeux) : MoteurSon.Couper(true)).ContinueWith(t => Dispatcher.UIThread.Post(() =>
+            var cables = (Releve ?? new ReleveAudioJeu()).Cables.Select(c => c.Sortie).ToList();
+            Task.Run(() =>
+            {
+                if (allumer) return MoteurSon.Allumer(force, jeux);
+                string e = MoteurSon.Couper(true);
+                // le câble ne mène plus au casque : s'il s'appelait « Velox Studio », il reprend son nom (piège sinon)
+                foreach (var c in cables) { try { NomStudio.RetablirUn(c); } catch { } }
+                return e;
+            }).ContinueWith(t => Dispatcher.UIThread.Post(() =>
             {
                 pasOccupe = false; signaturePas = null;
                 string err = t.IsFaulted ? (t.Exception.InnerException ?? t.Exception).Message : t.Result;
