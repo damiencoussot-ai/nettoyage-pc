@@ -104,6 +104,18 @@ namespace NettoyagePC
             return err;
         }
 
+        /// <summary>Remet le nom d'origine de cette sortie seulement (si Velox l'avait nommée). "" si c'est fait ou rien à faire.</summary>
+        public static string RetablirUn(string id)
+        {
+            if (!Natif.EstWindows || !AudioWindows.IdValide(id)) return "";
+            var o = Origines();
+            string avant;
+            if (!o.TryGetValue(id, out avant) || !EstNomme(id)) return "";
+            string err = Renommer(id, avant);
+            if (err == "") { o.Remove(id); try { EcrireOrigines(o); } catch { } }
+            return err;
+        }
+
         /// <summary>Annule depuis l'Historique (identifiant et nom vérifiés avant usage).</summary>
         public static string Annuler(Modif e)
         {
