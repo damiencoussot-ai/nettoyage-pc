@@ -31,7 +31,7 @@ namespace NettoyagePC
 
         public ReglagesMoteurSon Borner()
         {
-            Force = Math.Max(0, Math.Min(100, Force));
+            Force = Math.Max(0, Math.Min(130, Force));
             if (!AudioWindows.IdValide(Destination)) Destination = "";
             if (!AudioWindows.IdEntreeValide(Source)) Source = "";
             if (!AudioWindows.IdValide(DefautAvant)) DefautAvant = "";
@@ -92,7 +92,7 @@ namespace NettoyagePC
         public double ReductionMax;     // (relevé) plus forte réduction depuis la dernière lecture, dB
         public const float Plafond = 0.95f;
 
-        // ---- dompteur de graves : les explosions et grondements (sous ~200 Hz) sont baissés à part, sans toucher aux
+        // ---- dompteur de graves : les explosions et grondements (sous ~200 Hz, 350 Hz en Ultra) sont baissés à part, sans toucher aux
         // médiums et aigus (pas, recharges) qui jouent en même temps : un pas sous une explosion reste audible.
         public readonly double SeuilGraves, RapportGraves;
         private readonly double gb0, gb1, gb2, ga1, ga2;            // passe-bas 200 Hz (Butterworth, 2e ordre)
@@ -103,11 +103,13 @@ namespace NettoyagePC
 
         public CompresseurPas(int force, int frequence)
         {
-            double f = Math.Max(0, Math.Min(100, force)) / 100.0;
-            SeuilGraves = -24 - 8 * f;                 // −24 dB (léger) à −32 dB (extrême)
-            RapportGraves = 3 + 5 * f;                 // 3:1 à 8:1
+            double f = Math.Max(0, Math.Min(130, force)) / 100.0;
+            double ultra = Math.Max(0, f - 1) / 0.3;   // 0 jusqu'à Extrême, 1 en Ultra
+            SeuilGraves = -24 - 8 * f;                 // −24 dB (léger) à −32 dB (extrême), −34 dB (ultra)
+            RapportGraves = 3 + 5 * Math.Min(1, f) + 12 * ultra;   // 3:1 à 8:1, 20:1 en Ultra
+            double coupure = 200 + 150 * ultra;        // Ultra : les bas-médiums des explosions (jusqu'à 350 Hz) sont tenus aussi
             {
-                double feG = Math.Max(8000, frequence), w = 2 * Math.PI * 200 / feG, al = Math.Sin(w) / (2 * 0.7071), c = Math.Cos(w), a0 = 1 + al;
+                double feG = Math.Max(8000, frequence), w = 2 * Math.PI * coupure / feG, al = Math.Sin(w) / (2 * 0.7071), c = Math.Cos(w), a0 = 1 + al;
                 gb0 = (1 - c) / 2 / a0; gb1 = (1 - c) / a0; gb2 = gb0; ga1 = -2 * c / a0; ga2 = (1 - al) / a0;
                 aGraves = Math.Exp(-1 / (0.010 * feG)); attaqueGraves = Math.Exp(-1 / (0.005 * feG)); relacheGraves = Math.Exp(-1 / (0.25 * feG));
             }
@@ -215,7 +217,7 @@ namespace NettoyagePC
         public static string FichierEtat { get { return Path.Combine(Chemins.Local, "moteur-son-etat.txt"); } }
 
         /// <summary>Préréglages proposés dans la page.</summary>
-        public static readonly Tuple<string, int>[] Niveaux = { Tuple.Create("Léger", 35), Tuple.Create("Fort", 65), Tuple.Create("Extrême", 100) };
+        public static readonly Tuple<string, int>[] Niveaux = { Tuple.Create("Léger", 35), Tuple.Create("Fort", 65), Tuple.Create("Extrême", 100), Tuple.Create("Ultra", 130) };
 
         public static ReglagesMoteurSon Lire()
         {

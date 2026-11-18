@@ -718,7 +718,7 @@ namespace NettoyagePC.Nouveau
                 {
                     var ci = System.Globalization.CultureInfo.InvariantCulture;
                     double e0 = 0, prec = double.MaxValue, gain65 = 0, retour65 = 0; bool ok = true; var txt = new System.Text.StringBuilder();
-                    foreach (int force in new[] { 0, 35, 65, 100 })
+                    foreach (int force in new[] { 0, 35, 65, 100, 130 })
                     {
                         double sans, avec, retour; float cr;
                         MoteurSon.Mesurer(force, out sans, out avec, out retour, out cr);
@@ -730,7 +730,7 @@ namespace NettoyagePC.Nouveau
                     }
                     {
                         var sb2 = new System.Text.StringBuilder(); double gainSous = 0;
-                        foreach (int force in new[] { 35, 65, 100 })
+                        foreach (int force in new[] { 35, 65, 100, 130 })
                         {
                             double ps, pa; MoteurSon.MesurerSousExplosion(force, out ps, out pa);
                             sb2.Append(" force " + force + " : " + ps.ToString("F1", ci) + " → " + pa.ToString("F1", ci) + " dB");
@@ -758,7 +758,7 @@ namespace NettoyagePC.Nouveau
                     else if (!OperatingSystem.IsWindows()) verifier(MoteurSon.Allumer(65, true) == "Windows uniquement." && MoteurSon.Executer() == 2, "pas boostés hors Windows : refusé");
                     var ra = new ReglagesAudioJeu { AssistantFait = true };
                     verifier(ReglagesAudioJeu.DepuisJson(NettoyagePC.Json.Lire(NettoyagePC.Json.Ecrire(ra.VersJson())) as System.Collections.Generic.Dictionary<string, object>).AssistantFait && !new ReglagesAudioJeu().AssistantFait, "démarrage rapide : « fait » gardé dans les réglages");
-                    verifier(rr.Actif && rr.Force == 100 && rr.Source == rm.Source && rr.Destination == "" && rr.DefautAvant == rm.DefautAvant && rr.JeuxSeulement && ReglagesMoteurSon.Lire("{\"Source\":\"C:\\\\x\"}").Source == "", "pas boostés : réglages bornés et relus, identifiants invalides refusés");
+                    verifier(rr.Actif && rr.Force == 130 && rr.Source == rm.Source && rr.Destination == "" && rr.DefautAvant == rm.DefautAvant && rr.JeuxSeulement && ReglagesMoteurSon.Lire("{\"Source\":\"C:\\\\x\"}").Source == "", "pas boostés : réglages bornés et relus, identifiants invalides refusés");
                 }
                 // duel à l'oreille : candidats différents, tous au même volume, aucun ne sature
                 {

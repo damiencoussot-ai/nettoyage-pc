@@ -6,6 +6,9 @@ Amélioré
   pendant une explosion ressort de +7 dB (mesuré sur une scène de jeu, force Fort).
 - Pas lointains encore plus présents face aux explosions : +17,7 dB en Fort (au lieu de +16), +24 dB en Extrême
   (au lieu de +22,7), toujours sans saturer.
+- Nouveau niveau « Ultra » : le plus fort. Les bas-médiums des explosions sont tenus aussi : un pas pendant une
+  explosion ressort de +11 dB, un pas lointain de +26 dB. Moins naturel (le volume « pompe » davantage), mais
+  les pas passent devant tout.
 
 L'installateur est publié sous les deux noms : Velox-Setup-5.20.exe (winget, site) et
 NettoyagePC-Setup-5.20.exe (mise à jour des anciennes versions).
