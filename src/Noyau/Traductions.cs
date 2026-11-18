@@ -3784,6 +3784,7 @@ namespace NettoyagePC
             "Les pas devant tout : graves et explosions coupés au maximum", "Footsteps above everything: bass and explosions cut to the max", "Los pasos por delante de todo: graves y explosiones recortados al máximo",
             "Audio jeu : égaliseur actif (Pas ultra)", "Game audio: equalizer on (Ultra footsteps)", "Audio de juego: ecualizador activo (Pasos ultra)",
             "Audio jeu : Auto jeux (Pas ultra)", "Game audio: Auto games (Ultra footsteps)", "Audio de juego: Auto juegos (Pasos ultra)",
+            "Les pas très en avant, son clair et plein", "Footsteps far forward, clear and full sound", "Los pasos muy por delante, sonido claro y lleno",
         };
         private static readonly string[] Prefixes =
         {
