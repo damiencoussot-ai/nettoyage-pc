@@ -728,6 +728,17 @@ namespace NettoyagePC.Nouveau
                         ok &= cr <= 0.9501f && !double.IsNaN(avec) && avec <= prec + 0.01;
                         prec = avec;
                     }
+                    {
+                        var sb2 = new System.Text.StringBuilder(); double gainSous = 0;
+                        foreach (int force in new[] { 35, 65, 100 })
+                        {
+                            double ps, pa; MoteurSon.MesurerSousExplosion(force, out ps, out pa);
+                            sb2.Append(" force " + force + " : " + ps.ToString("F1", ci) + " → " + pa.ToString("F1", ci) + " dB");
+                            if (force == 65) gainSous = pa - ps;
+                        }
+                        rapport.AppendLine("Pas boostés : part du pas sous une explosion" + sb2);
+                        verifier(gainSous >= 6, "pas boostés : un pas sous une explosion ressort de " + gainSous.ToString("F1", ci) + " dB (force 65)");
+                    }
                     rapport.AppendLine("Pas boostés : explosion / pas lointain sans compresseur " + e0.ToString("F1", ci) + " dB ;" + txt);
                     // silence : rien n'est fabriqué ; souffle très faible : pas remonté
                     var cs = new CompresseurPas(100, 48000); var sil = new float[9600]; cs.Traiter(sil, 4800, 2);

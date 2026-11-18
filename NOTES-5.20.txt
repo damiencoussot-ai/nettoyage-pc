@@ -1,0 +1,13 @@
+Velox 5.20 : des pas qui ressortent même sous les explosions
+
+Amélioré
+- Pas boostés : nouveau « dompteur de graves ». Les explosions, grondements et véhicules (sous 200 Hz) sont
+  baissés à part, sans toucher aux médiums et aigus où se trouvent les pas et les recharges. Un pas qui tombe
+  pendant une explosion ressort de +7 dB (mesuré sur une scène de jeu, force Fort).
+- Pas lointains encore plus présents face aux explosions : +17,7 dB en Fort (au lieu de +16), +24 dB en Extrême
+  (au lieu de +22,7), toujours sans saturer.
+
+L'installateur est publié sous les deux noms : Velox-Setup-5.20.exe (winget, site) et
+NettoyagePC-Setup-5.20.exe (mise à jour des anciennes versions).
+
+SHA256 de Velox-Setup-5.20.exe : voir le fichier Velox-Setup-5.20.sha256

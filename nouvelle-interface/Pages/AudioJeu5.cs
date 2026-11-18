@@ -1788,7 +1788,7 @@ namespace NettoyagePC.Nouveau
                     zonePas.Children.Add(ligne);
                     tPasDirect = Studio.T("", 12, Studio.Texte);
                     zonePas.Children.Add(tPasDirect);
-                    zonePas.Children.Add(Studio.T(Langue.T("Léger : +9 dB sur les pas lointains face aux explosions. Fort : +16 dB. Extrême : +23 dB (mesuré sur une scène de jeu). Le son passe par VB-Cable, puis Velox le joue sur ton casque : environ 25 ms de retard en plus. Dans le jeu, laisse la sortie audio sur « Par défaut »."), 11.5, Studio.Faible));
+                    zonePas.Children.Add(Studio.T(Langue.T("Léger : +11 dB sur les pas lointains face aux explosions. Fort : +18 dB. Extrême : +24 dB, et un pas pendant une explosion ressort de +7 dB (mesuré sur une scène de jeu). Le son passe par VB-Cable, puis Velox le joue sur ton casque : environ 25 ms de retard en plus. Dans le jeu, laisse la sortie audio sur « Par défaut »."), 11.5, Studio.Faible));
                 }
             }
             if (tPasDirect != null && cable)

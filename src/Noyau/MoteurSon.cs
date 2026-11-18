@@ -92,9 +92,25 @@ namespace NettoyagePC
         public double ReductionMax;     // (relevé) plus forte réduction depuis la dernière lecture, dB
         public const float Plafond = 0.95f;
 
+        // ---- dompteur de graves : les explosions et grondements (sous ~200 Hz) sont baissés à part, sans toucher aux
+        // médiums et aigus (pas, recharges) qui jouent en même temps : un pas sous une explosion reste audible.
+        public readonly double SeuilGraves, RapportGraves;
+        private readonly double gb0, gb1, gb2, ga1, ga2;            // passe-bas 200 Hz (Butterworth, 2e ordre)
+        private readonly double aGraves, attaqueGraves, relacheGraves;
+        private double puissanceGraves = 1e-12, gainGraves;          // dB (≤ 0)
+        private double[] gx1, gx2, gy1, gy2;
+        public double ReductionGravesMax;                            // (relevé) plus forte baisse des graves, dB
+
         public CompresseurPas(int force, int frequence)
         {
             double f = Math.Max(0, Math.Min(100, force)) / 100.0;
+            SeuilGraves = -24 - 8 * f;                 // −24 dB (léger) à −32 dB (extrême)
+            RapportGraves = 3 + 5 * f;                 // 3:1 à 8:1
+            {
+                double feG = Math.Max(8000, frequence), w = 2 * Math.PI * 200 / feG, al = Math.Sin(w) / (2 * 0.7071), c = Math.Cos(w), a0 = 1 + al;
+                gb0 = (1 - c) / 2 / a0; gb1 = (1 - c) / a0; gb2 = gb0; ga1 = -2 * c / a0; ga2 = (1 - al) / a0;
+                aGraves = Math.Exp(-1 / (0.010 * feG)); attaqueGraves = Math.Exp(-1 / (0.005 * feG)); relacheGraves = Math.Exp(-1 / (0.25 * feG));
+            }
             Seuil = -14 - 26 * f;                  // −14 dB (léger) à −40 dB (extrême)
             Rapport = 1.5 + 4.5 * f;               // 1,5:1 à 6:1
             Remontee = -Seuil * (1 - 1 / Rapport) * 0.7;
@@ -128,12 +144,30 @@ namespace NettoyagePC
             if (retard == null || canauxRetard != canaux)
             {
                 canauxRetard = canaux; retard = new float[(avance + 1) * canaux]; sec = new float[(avance + 1) * canaux]; besoin = new float[avance + 1]; pos = 0;
+                gx1 = new double[canaux]; gx2 = new double[canaux]; gy1 = new double[canaux]; gy2 = new double[canaux];
                 for (int k = 0; k < besoin.Length; k++) besoin[k] = 1;
             }
             int lg = avance + 1;
             for (int i = 0; i < images; i++)
             {
                 int b = i * canaux;
+                // 0. son d'origine gardé (pour « seulement en jeu »), puis dompteur de graves : graves séparés (passe-bas
+                //    200 Hz), baissés selon leur propre niveau, recombinés avec le reste intact (somme exacte si gain 0 dB)
+                float pg = 0;
+                for (int c = 0; c < canaux; c++)
+                {
+                    float v = t[b + c]; sec[pos * canaux + c] = v;
+                    double lo = gb0 * v + gb1 * gx1[c] + gb2 * gx2[c] - ga1 * gy1[c] - ga2 * gy2[c];
+                    gx2[c] = gx1[c]; gx1[c] = v; gy2[c] = gy1[c]; gy1[c] = lo;
+                    if (lo * lo > pg) pg = (float)(lo * lo);
+                }
+                puissanceGraves = aGraves * puissanceGraves + (1 - aGraves) * pg;
+                double nivG = 10 * Math.Log10(puissanceGraves + 1e-18), cibleG = 0;
+                if (nivG > SeuilGraves) cibleG = (SeuilGraves + (nivG - SeuilGraves) / RapportGraves) - nivG;
+                gainGraves = cibleG < gainGraves ? attaqueGraves * gainGraves + (1 - attaqueGraves) * cibleG : relacheGraves * gainGraves + (1 - relacheGraves) * cibleG;
+                if (-gainGraves > ReductionGravesMax) ReductionGravesMax = -gainGraves;
+                double kg = Math.Pow(10, gainGraves / 20) - 1;   // (graves × k) = graves + graves × (k − 1)
+                for (int c = 0; c < canaux; c++) t[b + c] = (float)(t[b + c] + gy1[c] * kg);
                 // 1. niveau (moyenne sur 5 ms) et gain du compresseur
                 float p = 0;
                 for (int c = 0; c < canaux; c++) { float v = t[b + c]; if (v * v > p) p = v * v; }
@@ -148,7 +182,7 @@ namespace NettoyagePC
                 float g = (float)Math.Pow(10, gDb / 20);
                 // 2. échantillons compressés, mis dans la ligne à retard ; gain que demandera le limiteur pour eux
                 float crete = 0;
-                for (int c = 0; c < canaux; c++) { float v = t[b + c] * g; retard[pos * canaux + c] = v; sec[pos * canaux + c] = t[b + c]; if (Math.Abs(v) > crete) crete = Math.Abs(v); }
+                for (int c = 0; c < canaux; c++) { float v = t[b + c] * g; retard[pos * canaux + c] = v; if (Math.Abs(v) > crete) crete = Math.Abs(v); }
                 besoin[pos] = crete > Plafond ? Plafond / crete : 1;
                 // 3. limiteur : le plus petit gain demandé sur les 1,5 ms à venir, relâché en douceur
                 float mini = 1;
@@ -202,6 +236,51 @@ namespace NettoyagePC
         /// vers −1 dB) de 1 à 2 s, puis un pas lointain à 2,4 s. Écarts (dB) entre l'explosion et le premier pas sans puis
         /// avec le compresseur, écart du pas d'après l'explosion (le compresseur doit s'être relâché), et crête finale.
         /// </summary>
+        /// <summary>
+        /// (essais) Un pas (bande 1,5 à 5 kHz, −40 dB) qui tombe pendant une explosion forte : part du pas dans le son, en
+        /// dB, sans puis avec le traitement (mesurée par corrélation avec le pas seul). Plus elle monte, plus le pas ressort.
+        /// </summary>
+        public static void MesurerSousExplosion(int force, out double partSans, out double partAvec)
+        {
+            int fe = DemoAudio.Frequence, n = 2 * fe;
+            var pas = new float[n * 2]; var expl = new float[n * 2];
+            var alea = new Random(11);
+            Func<double> bruit = () => alea.NextDouble() * 2 - 1;
+            var bp = DemoAudio.Biquad.PasseBande(2800, 1.2);
+            int d0 = (int)(0.6 * fe);
+            for (int i = 0; i < (int)(0.08 * fe); i++)
+            {
+                double tt = i / (double)fe, v = 0.03 * Math.Min(1, tt / 0.003) * Math.Exp(-tt / 0.03) * bp.Passer(bruit()) * 3;
+                pas[2 * (d0 + i)] = (float)v; pas[2 * (d0 + i) + 1] = (float)v;
+            }
+            var lp = DemoAudio.Biquad.PasseBas(150, 0.8); double ph = 0;
+            for (int i = 0; i < (int)(1.4 * fe); i++)
+            {
+                double tt = i / (double)fe, env = Math.Min(1, tt / 0.01) * Math.Exp(-tt / 0.6);
+                ph += 2 * Math.PI * 45 / fe;
+                double v = Math.Max(-0.9, Math.Min(0.9, env * (0.45 * Math.Sin(ph) + 0.5 * lp.Passer(bruit()) * 6)));
+                int k = (int)(0.2 * fe) + i; expl[2 * k] = (float)v; expl[2 * k + 1] = (float)v;
+            }
+            var mix = new float[n * 2];
+            for (int i = 0; i < mix.Length; i++) mix[i] = pas[i] + expl[i];
+            Func<float[], double> part = y =>
+            {
+                // énergie de la composante « pas » (projection sur le pas seul) / énergie totale, sur la fenêtre du pas
+                int a = 2 * d0, b = 2 * (d0 + (int)(0.08 * fe));
+                double pr = 0, pp = 0, tot = 0;
+                for (int i = a; i < b; i++) { pr += y[i] * (double)pas[i]; pp += pas[i] * (double)pas[i]; tot += y[i] * (double)y[i]; }
+                double k = pr / Math.Max(1e-20, pp), ep = k * k * pp;
+                return 10 * Math.Log10(ep / Math.Max(1e-20, tot) + 1e-20);
+            };
+            partSans = part(mix);
+            var y2 = (float[])mix.Clone();
+            var comp = new CompresseurPas(force, fe);
+            comp.Traiter(y2, n, 2);
+            int dec = comp.Retard;
+            Array.Copy(y2, 2 * dec, y2, 0, y2.Length - 2 * dec);
+            partAvec = part(y2);
+        }
+
         public static void Mesurer(int force, out double ecartSans, out double ecartAvec, out double retourPas, out float creteAvec)
         {
             int fe = DemoAudio.Frequence, n = 3 * fe;
