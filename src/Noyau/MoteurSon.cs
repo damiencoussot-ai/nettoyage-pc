@@ -28,10 +28,13 @@ namespace NettoyagePC
         public string Source = "", Destination = "";
         /// <summary>Sortie par défaut de Windows avant que Velox la mette sur le câble (remise à l'arrêt).</summary>
         public string DefautAvant = "";
+        /// <summary>« Ton arme » : 0 normale, 1 réduite, 2 très réduite (tes propres tirs baissés, ceux des ennemis gardés).</summary>
+        public int Arme = 1;
 
         public ReglagesMoteurSon Borner()
         {
             Force = Math.Max(0, Math.Min(130, Force));
+            Arme = Math.Max(0, Math.Min(2, Arme));
             if (!AudioWindows.IdValide(Destination)) Destination = "";
             if (!AudioWindows.IdEntreeValide(Source)) Source = "";
             if (!AudioWindows.IdValide(DefautAvant)) DefautAvant = "";
@@ -43,7 +46,7 @@ namespace NettoyagePC
             return NettoyagePC.Json.Ecrire(new Dictionary<string, object>
             {
                 { "Actif", Actif }, { "Force", Force }, { "JeuxSeulement", JeuxSeulement },
-                { "Source", Source }, { "Destination", Destination }, { "DefautAvant", DefautAvant },
+                { "Source", Source }, { "Destination", Destination }, { "DefautAvant", DefautAvant }, { "Arme", Arme },
             });
         }
 
@@ -61,6 +64,7 @@ namespace NettoyagePC
                 if (d.TryGetValue("Source", out o)) r.Source = Convert.ToString(o, CultureInfo.InvariantCulture) ?? "";
                 if (d.TryGetValue("Destination", out o)) r.Destination = Convert.ToString(o, CultureInfo.InvariantCulture) ?? "";
                 if (d.TryGetValue("DefautAvant", out o)) r.DefautAvant = Convert.ToString(o, CultureInfo.InvariantCulture) ?? "";
+                if (d.TryGetValue("Arme", out o)) r.Arme = (int)Math.Round(Convert.ToDouble(o, CultureInfo.InvariantCulture));
             }
             catch { return new ReglagesMoteurSon(); }
             return r.Borner();
@@ -101,7 +105,28 @@ namespace NettoyagePC
         private double[] gx1, gx2, gy1, gy2;
         public double ReductionGravesMax;                            // (relevé) plus forte baisse des graves, dB
 
-        public CompresseurPas(int force, int frequence)
+        // ---- « ton arme » : tes propres tirs (et rechargements, pas, gadgets) sont joués au centre de l'image ; ceux des
+        // ennemis viennent d'une direction. En 5.1/7.1, la voie centrale forte est baissée (un son faible au centre, comme
+        // un pas ennemi devant toi, n'est pas touché) ; en stéréo, seul le « milieu » (ce qui est identique à gauche et à
+        // droite) est baissé, et seulement quand il est fort et nettement centré. Un ennemi sur le côté garde tout son niveau.
+        public readonly int Arme;
+        public readonly double ProfondeurCentre, ProfondeurStereo;  // dB de baisse au maximum
+        private readonly double aArme, attaqueArme, relacheArme;
+        private double pMilieu = 1e-12, pCotes = 1e-12, pCentre = 1e-12, gainArme;   // gainArme en dB (≤ 0)
+        public double ReductionArmeMax;                               // (relevé) plus forte baisse de ton arme, dB
+
+        // ---- présence adaptative : les aigus des pas (vers 2,8 kHz) sont mis en avant seulement quand la scène est calme
+        // (pas de tir, pas d'explosion) ; dès qu'un son fort arrive, la présence s'efface en 2 ms : les tirs ne deviennent
+        // jamais criards (c'est ce qu'un égaliseur fixe ne sait pas faire).
+        public readonly double GainPresence;                         // dB
+        private readonly double pb0, pb1, pb2, pa1, pa2;
+        private double[] px1, px2, py1, py2;
+        private double presence, pScene = 1e-12, pLfe = 1e-12;
+        private readonly double presMonte, presDescend;
+
+        public CompresseurPas(int force, int frequence) : this(force, frequence, 0) { }
+
+        public CompresseurPas(int force, int frequence, int arme)
         {
             double f = Math.Max(0, Math.Min(130, force)) / 100.0;
             double ultra = Math.Max(0, f - 1) / 0.3;   // 0 jusqu'à Extrême, 1 en Ultra
@@ -125,6 +150,26 @@ namespace NettoyagePC
             avance = Math.Max(1, (int)(0.0015 * fe));
             aMelange = Math.Exp(-1 / (0.1 * fe));
             gainLisse = Remontee;
+            // ton arme
+            Arme = Math.Max(0, Math.Min(2, arme));
+            ProfondeurCentre = Arme == 0 ? 0 : Arme == 1 ? 8 : 16;
+            ProfondeurStereo = Arme == 0 ? 0 : Arme == 1 ? 6 : 12;
+            aArme = Math.Exp(-1 / (0.003 * fe)); attaqueArme = Math.Exp(-1 / (0.001 * fe)); relacheArme = Math.Exp(-1 / (0.08 * fe));
+            // présence : cloche (RBJ) à 2,8 kHz, Q 0,9 ; +2,6 dB (léger) à +4,5 dB (extrême et ultra)
+            GainPresence = f <= 0 ? 0 : 1.5 + 3 * Math.Min(1, f);
+            {
+                double A = Math.Pow(10, GainPresence / 40), w = 2 * Math.PI * Math.Min(2800, 0.4 * fe) / fe, al = Math.Sin(w) / (2 * 0.9), c = Math.Cos(w), a0 = 1 + al / A;
+                pb0 = (1 + al * A) / a0; pb1 = -2 * c / a0; pb2 = (1 - al * A) / a0; pa1 = -2 * c / a0; pa2 = (1 - al / A) / a0;
+            }
+            presMonte = Math.Exp(-1 / (0.06 * fe)); presDescend = Math.Exp(-1 / (0.002 * fe));
+        }
+
+        private static double Borne01(double x) { return x < 0 ? 0 : x > 1 ? 1 : x; }
+
+        private void LisserArme(double cible)
+        {
+            gainArme = cible < gainArme ? attaqueArme * gainArme + (1 - attaqueArme) * cible : relacheArme * gainArme + (1 - relacheArme) * cible;
+            if (-gainArme > ReductionArmeMax) ReductionArmeMax = -gainArme;
         }
 
         /// <summary>Retard ajouté par le traitement (images).</summary>
@@ -147,6 +192,7 @@ namespace NettoyagePC
             {
                 canauxRetard = canaux; retard = new float[(avance + 1) * canaux]; sec = new float[(avance + 1) * canaux]; besoin = new float[avance + 1]; pos = 0;
                 gx1 = new double[canaux]; gx2 = new double[canaux]; gy1 = new double[canaux]; gy2 = new double[canaux];
+                px1 = new double[canaux]; px2 = new double[canaux]; py1 = new double[canaux]; py2 = new double[canaux];
                 for (int k = 0; k < besoin.Length; k++) besoin[k] = 1;
             }
             int lg = avance + 1;
@@ -155,10 +201,35 @@ namespace NettoyagePC
                 int b = i * canaux;
                 // 0. son d'origine gardé (pour « seulement en jeu »), puis dompteur de graves : graves séparés (passe-bas
                 //    200 Hz), baissés selon leur propre niveau, recombinés avec le reste intact (somme exacte si gain 0 dB)
+                for (int c = 0; c < canaux; c++) sec[pos * canaux + c] = t[b + c];
+                // 0 bis. ton arme (avant tout le reste : le compresseur ne voit plus tes tirs, il remonte mieux le reste)
+                if (Arme > 0 && canaux >= 2)
+                {
+                    double l = t[b], r = t[b + 1], milieu = (l + r) * 0.5, cotes = (l - r) * 0.5;
+                    if (canaux >= 6)
+                    {
+                        // ordre Windows : avant gauche, avant droite, centre, caisson de basses, puis arrières et côtés
+                        double fc = t[b + 2];
+                        pCentre = aArme * pCentre + (1 - aArme) * fc * fc;
+                        double nc = 10 * Math.Log10(pCentre + 1e-18);
+                        LisserArme(-ProfondeurCentre * Borne01((nc + 36) / 8));   // rien sous −36 dB, tout dès −28 dB
+                        t[b + 2] = (float)(fc * Math.Pow(10, gainArme / 20));
+                        milieu *= Math.Pow(10, gainArme * 0.5 / 20);                // la copie « fantôme » du centre dans l'avant
+                    }
+                    else
+                    {
+                        pMilieu = aArme * pMilieu + (1 - aArme) * milieu * milieu;
+                        pCotes = aArme * pCotes + (1 - aArme) * cotes * cotes;
+                        double nm = 10 * Math.Log10(pMilieu + 1e-18), ns = 10 * Math.Log10(pCotes + 1e-18);
+                        LisserArme(-ProfondeurStereo * Borne01((nm - ns - 9) / 6) * Borne01((nm + 24) / 6));   // fort ET centré
+                        milieu *= Math.Pow(10, gainArme / 20);
+                    }
+                    t[b] = (float)(milieu + cotes); t[b + 1] = (float)(milieu - cotes);
+                }
                 float pg = 0;
                 for (int c = 0; c < canaux; c++)
                 {
-                    float v = t[b + c]; sec[pos * canaux + c] = v;
+                    float v = t[b + c];
                     double lo = gb0 * v + gb1 * gx1[c] + gb2 * gx2[c] - ga1 * gy1[c] - ga2 * gy2[c];
                     gx2[c] = gx1[c]; gx1[c] = v; gy2[c] = gy1[c]; gy1[c] = lo;
                     if (lo * lo > pg) pg = (float)(lo * lo);
@@ -170,6 +241,24 @@ namespace NettoyagePC
                 if (-gainGraves > ReductionGravesMax) ReductionGravesMax = -gainGraves;
                 double kg = Math.Pow(10, gainGraves / 20) - 1;   // (graves × k) = graves + graves × (k − 1)
                 for (int c = 0; c < canaux; c++) t[b + c] = (float)(t[b + c] + gy1[c] * kg);
+                // 0 ter. présence adaptative : seulement quand la scène est calme (ni son fort, ni graves d'explosion, ni caisson)
+                if (GainPresence > 0)
+                {
+                    float ps = 0;
+                    for (int c = 0; c < canaux; c++) { float v = t[b + c]; if (v * v > ps) ps = v * v; }
+                    pScene = aNiveau * pScene + (1 - aNiveau) * ps;
+                    bool calme = 10 * Math.Log10(pScene + 1e-18) < -22 && gainGraves > -3;
+                    if (canaux >= 6) { double lf = t[b + 3]; pLfe = aGraves * pLfe + (1 - aGraves) * lf * lf; calme &= 10 * Math.Log10(pLfe + 1e-18) < -35; }
+                    presence = calme ? presMonte * presence + (1 - presMonte) : presDescend * presence;
+                    for (int c = 0; c < canaux; c++)
+                    {
+                        double x = t[b + c];
+                        double y = pb0 * x + pb1 * px1[c] + pb2 * px2[c] - pa1 * py1[c] - pa2 * py2[c];
+                        px2[c] = px1[c]; px1[c] = x; py2[c] = py1[c]; py1[c] = y;
+                        if (canaux >= 6 && c == 3) continue;   // pas de présence sur le caisson de basses
+                        t[b + c] = (float)(x + (y - x) * presence);
+                    }
+                }
                 // 1. niveau (moyenne sur 5 ms) et gain du compresseur
                 float p = 0;
                 for (int c = 0; c < canaux; c++) { float v = t[b + c]; if (v * v > p) p = v * v; }
@@ -281,6 +370,58 @@ namespace NettoyagePC
             int dec = comp.Retard;
             Array.Copy(y2, 2 * dec, y2, 0, y2.Length - 2 * dec);
             partAvec = part(y2);
+        }
+
+        /// <summary>
+        /// (essais) « Ton arme » : tu tires en rafale (son fort, au centre) pendant qu'un ennemi marche sur ta gauche (pas
+        /// faible). Part du pas ennemi dans le son (dB), traitement force 65 sans puis avec « ton arme » au niveau donné.
+        /// En stéréo (8 canaux faux : false) le pas est à gauche seulement ; en 7.1, tes tirs sont sur la voie centrale
+        /// (avec une copie plus faible à l'avant) et le pas sur le côté gauche.
+        /// </summary>
+        public static void MesurerArme(int arme, bool septUn, out double partSans, out double partAvec, out float crete)
+        {
+            int fe = DemoAudio.Frequence, n = (int)(1.4 * fe), k = septUn ? 8 : 2;
+            var pas = new float[n * k]; var tirs = new float[n * k];
+            var alea = new Random(5);
+            Func<double> bruit = () => alea.NextDouble() * 2 - 1;
+            var bp = DemoAudio.Biquad.PasseBande(2800, 1.2);
+            int d0 = (int)(0.6 * fe), lgPas = (int)(0.08 * fe);
+            for (int i = 0; i < lgPas; i++)
+            {
+                double tt = i / (double)fe, v = 0.03 * Math.Min(1, tt / 0.003) * Math.Exp(-tt / 0.03) * bp.Passer(bruit()) * 3;
+                pas[(d0 + i) * k + (septUn ? 6 : 0)] = (float)v;
+            }
+            var hp = DemoAudio.Biquad.PasseHaut(150, 0.7);
+            for (double debut = 0.2; debut < 1.2; debut += 0.09)
+                for (int i = 0; i < (int)(0.06 * fe); i++)
+                {
+                    double tt = i / (double)fe, v = 0.7 * Math.Exp(-tt / 0.02) * hp.Passer(bruit());
+                    int j = ((int)(debut * fe) + i) * k;
+                    if (septUn) { tirs[j + 2] += (float)v; tirs[j] += (float)(0.3 * v); tirs[j + 1] += (float)(0.3 * v); }
+                    else { tirs[j] += (float)v; tirs[j + 1] += (float)v; }
+                }
+            Func<float[], double> part = y =>
+            {
+                int a = d0 * k, b = (d0 + lgPas) * k;
+                double pr = 0, pp = 0, tot = 0;
+                for (int i = a; i < b; i++) { pr += y[i] * (double)pas[i]; pp += pas[i] * (double)pas[i]; tot += y[i] * (double)y[i]; }
+                double kk = pr / Math.Max(1e-20, pp), ep = kk * kk * pp;
+                return 10 * Math.Log10(ep / Math.Max(1e-20, tot) + 1e-20);
+            };
+            crete = 0;
+            double[] res = new double[2];
+            for (int essai = 0; essai < 2; essai++)
+            {
+                var y = new float[n * k];
+                for (int i = 0; i < y.Length; i++) y[i] = pas[i] + tirs[i];
+                var comp = new CompresseurPas(65, fe, essai == 0 ? 0 : arme);
+                comp.Traiter(y, n, k);
+                int dec = comp.Retard;
+                Array.Copy(y, k * dec, y, 0, y.Length - k * dec);
+                res[essai] = part(y);
+                foreach (var v in y) crete = Math.Max(crete, Math.Abs(v));
+            }
+            partSans = res[0]; partAvec = res[1];
         }
 
         public static void Mesurer(int force, out double ecartSans, out double ecartAvec, out double retourPas, out float creteAvec)

@@ -739,6 +739,26 @@ namespace NettoyagePC.Nouveau
                         rapport.AppendLine("Pas boostés : part du pas sous une explosion" + sb2);
                         verifier(gainSous >= 6, "pas boostés : un pas sous une explosion ressort de " + gainSous.ToString("F1", ci) + " dB (force 65)");
                     }
+                    {
+                        // « ton arme » : tes tirs baissés, le pas ennemi sur le côté ressort ; en stéréo et en 7.1
+                        var sb3 = new System.Text.StringBuilder(); double g2 = 0, g7 = 0; bool okA = true;
+                        foreach (bool sept in new[] { false, true })
+                            foreach (int arme in new[] { 1, 2 })
+                            {
+                                double ps, pa; float crA; MoteurSon.MesurerArme(arme, sept, out ps, out pa, out crA);
+                                sb3.Append(" " + (sept ? "7.1" : "stéréo") + " niveau " + arme + " : " + ps.ToString("F1", ci) + " → " + pa.ToString("F1", ci) + " dB");
+                                okA &= crA <= 0.9501f && !double.IsNaN(pa) && pa >= ps;
+                                if (arme == 2) { if (sept) g7 = pa - ps; else g2 = pa - ps; }
+                            }
+                        rapport.AppendLine("Pas boostés : part du pas ennemi pendant que tu tires" + sb3);
+                        verifier(okA && g2 >= 3 && g7 >= 3, "ton arme : pendant tes rafales, le pas ennemi ressort de " + g2.ToString("F1", ci) + " dB (stéréo) et " + g7.ToString("F1", ci) + " dB (7.1), sans saturation");
+                        // un son faible au centre (pas ennemi devant toi) n'est pas touché par « ton arme »
+                        var cA = new CompresseurPas(0, 48000, 2); var cB = new CompresseurPas(0, 48000, 0);
+                        var fa = new float[48000 * 2]; var alA = new Random(9); for (int i = 0; i < 48000; i++) { float v = (float)((alA.NextDouble() * 2 - 1) * 0.01); fa[2 * i] = v; fa[2 * i + 1] = v; }
+                        var fb = (float[])fa.Clone(); cA.Traiter(fa, 48000, 2); cB.Traiter(fb, 48000, 2);
+                        double dif = 0; for (int i = 0; i < fa.Length; i++) dif = Math.Max(dif, Math.Abs(fa[i] - fb[i]));
+                        verifier(dif < 1e-5 && cA.ReductionArmeMax < 0.01, "ton arme : un son faible au centre (pas devant toi) passe intact");
+                    }
                     rapport.AppendLine("Pas boostés : explosion / pas lointain sans compresseur " + e0.ToString("F1", ci) + " dB ;" + txt);
                     // silence : rien n'est fabriqué ; souffle très faible : pas remonté
                     var cs = new CompresseurPas(100, 48000); var sil = new float[9600]; cs.Traiter(sil, 4800, 2);
@@ -746,7 +766,7 @@ namespace NettoyagePC.Nouveau
                     double ns = 0; foreach (var v in souffle) ns += v * (double)v; cs = new CompresseurPas(100, 48000); cs.Traiter(souffle, 48000, 2);
                     double ns2 = 0; foreach (var v in souffle) ns2 += v * (double)v;
                     verifier(ok && gain65 >= 8 && Math.Abs(retour65) <= 3 && sil.All(v => v == 0) && 10 * Math.Log10(ns2 / ns) < 3, "pas boostés : le pas lointain gagne " + gain65.ToString("F1", ci) + " dB sur l'explosion (force 65), et celui d'après aussi, aucune saturation, silence et souffle pas remontés");
-                    var rm = new ReglagesMoteurSon { Actif = true, Force = 140, Source = "{0.0.1.00000000}.{11111111-2222-3333-4444-555555555555}", Destination = "pas un id", DefautAvant = "{0.0.0.00000000}.{11111111-2222-3333-4444-555555555555}" }.Borner();
+                    var rm = new ReglagesMoteurSon { Actif = true, Force = 140, Arme = 7, Source = "{0.0.1.00000000}.{11111111-2222-3333-4444-555555555555}", Destination = "pas un id", DefautAvant = "{0.0.0.00000000}.{11111111-2222-3333-4444-555555555555}" }.Borner();
                     var rr = ReglagesMoteurSon.Lire(rm.Json());
                     // sans câble virtuel (machine d'essai) : rien n'est branché ni lancé, et c'est dit
                     if (OperatingSystem.IsWindows() && MoteurSon.Cables().Count == 0)
@@ -758,7 +778,7 @@ namespace NettoyagePC.Nouveau
                     else if (!OperatingSystem.IsWindows()) verifier(MoteurSon.Allumer(65, true) == "Windows uniquement." && MoteurSon.Executer() == 2, "pas boostés hors Windows : refusé");
                     var ra = new ReglagesAudioJeu { AssistantFait = true };
                     verifier(ReglagesAudioJeu.DepuisJson(NettoyagePC.Json.Lire(NettoyagePC.Json.Ecrire(ra.VersJson())) as System.Collections.Generic.Dictionary<string, object>).AssistantFait && !new ReglagesAudioJeu().AssistantFait, "démarrage rapide : « fait » gardé dans les réglages");
-                    verifier(rr.Actif && rr.Force == 130 && rr.Source == rm.Source && rr.Destination == "" && rr.DefautAvant == rm.DefautAvant && rr.JeuxSeulement && ReglagesMoteurSon.Lire("{\"Source\":\"C:\\\\x\"}").Source == "", "pas boostés : réglages bornés et relus, identifiants invalides refusés");
+                    verifier(rr.Actif && rr.Force == 130 && rr.Arme == 2 && new ReglagesMoteurSon().Arme == 1 && rr.Source == rm.Source && rr.Destination == "" && rr.DefautAvant == rm.DefautAvant && rr.JeuxSeulement && ReglagesMoteurSon.Lire("{\"Source\":\"C:\\\\x\"}").Source == "", "pas boostés : réglages bornés et relus, identifiants invalides refusés");
                 }
                 // duel à l'oreille : candidats différents, tous au même volume, aucun ne sature
                 {

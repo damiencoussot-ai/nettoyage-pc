@@ -8,7 +8,9 @@ namespace NettoyagePC
         public static readonly List<KeyValuePair<string, string[]>> Liste = new List<KeyValuePair<string, string[]>>
         {
             N("5.20", "Pas boostés : les explosions sont baissées à part, sans toucher aux pas. Un pas pendant une explosion ressort de +7 dB, les pas lointains encore plus présents.",
-                "Nouveau niveau « Ultra » dans Pas boostés : le plus fort, les pas passent devant tout (+11 dB sous une explosion, +26 dB au loin)."),
+                "Nouveau niveau « Ultra » dans Pas boostés : le plus fort, les pas passent devant tout (+11 dB sous une explosion, +27 dB au loin).",
+                "« Ton arme » : tes rafales sont baissées, pas celles des ennemis. Un ennemi sur le côté pendant que tu tires ressort jusqu'à +8 dB (+13 dB en 7.1).",
+                "Présence adaptative : les aigus des pas ressortent quand c'est calme, les tirs ne deviennent jamais criards."),
             N("5.19", "« Velox Studio » ne mène plus nulle part : quand Pas boostés est coupé, le câble reprend son nom d'origine, et Velox prévient s'il le porte encore."),
             N("5.18", "« Velox Studio » dans Windows, Discord et tes jeux : un bouton du Studio son donne ce nom à la sortie par laquelle Velox traite ton son.",
                 "VB-Cable et Voicemeeter reconnus par leur pilote : tout marche même quand la sortie est renommée."),

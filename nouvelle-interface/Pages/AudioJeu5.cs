@@ -1757,7 +1757,7 @@ namespace NettoyagePC.Nouveau
             var m = v.Moteur ?? new ReglagesMoteurSon();
             var et = v.MoteurEtat ?? new MoteurSon.EtatMoteur();
             bool cable = v.Cables.Count > 0;
-            string sig = cable + "|" + m.Actif + "|" + m.Force + "|" + m.JeuxSeulement + "|" + pasOccupe + "|" + (et.Erreur != "");
+            string sig = cable + "|" + m.Actif + "|" + m.Force + "|" + m.Arme + "|" + m.JeuxSeulement + "|" + pasOccupe + "|" + (et.Erreur != "");
             if (sig != signaturePas)
             {
                 signaturePas = sig;
@@ -1786,9 +1786,23 @@ namespace NettoyagePC.Nouveau
                     Marquer(bJeux, m.JeuxSeulement, Studio.Cyan);
                     ligne.Children.Add(bJeux);
                     zonePas.Children.Add(ligne);
+                    // ton arme : tes propres tirs baissés, ceux des ennemis gardés
+                    var ligneArme = new WrapPanel();
+                    ligneArme.Children.Add(Studio.T(Langue.T("Ton arme :"), 12.5, Studio.Texte));
+                    string[] niveauxArme = { "Normale", "Réduite", "Très réduite" };
+                    for (int i = 0; i < niveauxArme.Length; i++)
+                    {
+                        int ia = i;
+                        var b = Puce(Langue.T(niveauxArme[i]), () => ReglerArme(ia));
+                        Marquer(b, m.Arme == i, Studio.Magenta);
+                        ligneArme.Children.Add(b);
+                    }
+                    ToolTip.SetTip(ligneArme, Langue.T("Tes tirs sont joués au centre du son, ceux des ennemis viennent d'une direction. Velox baisse seulement tes rafales : un ennemi qui marche sur le côté pendant que tu tires reste audible. Un son faible devant toi n'est pas touché."));
+                    zonePas.Children.Add(ligneArme);
                     tPasDirect = Studio.T("", 12, Studio.Texte);
                     zonePas.Children.Add(tPasDirect);
-                    zonePas.Children.Add(Studio.T(Langue.T("Léger : +11 dB sur les pas lointains face aux explosions. Fort : +18 dB. Extrême : +24 dB. Ultra : +26 dB, et un pas pendant une explosion ressort de +11 dB (le plus fort, moins naturel). Mesuré sur une scène de jeu. Le son passe par VB-Cable, puis Velox le joue sur ton casque : environ 25 ms de retard en plus. Dans le jeu, laisse la sortie audio sur « Par défaut »."), 11.5, Studio.Faible));
+                    zonePas.Children.Add(Studio.T(Langue.T("Léger : +13 dB sur les pas lointains face aux explosions. Fort : +20 dB. Extrême : +25 dB. Ultra : +27 dB, et un pas pendant une explosion ressort de +11 dB (le plus fort, moins naturel). Mesuré sur une scène de jeu. Les aigus des pas sont mis en avant seulement quand c'est calme : les tirs ne deviennent pas criards. Le son passe par VB-Cable, puis Velox le joue sur ton casque : environ 25 ms de retard en plus. Dans le jeu, laisse la sortie audio sur « Par défaut »."), 11.5, Studio.Faible));
+                    zonePas.Children.Add(Studio.T(Langue.T("Encore mieux en 7.1 : Panneau de configuration > Son > CABLE Input > Configurer > 7.1. Tes tirs arrivent alors sur leur propre voie (le centre) : Velox les baisse sans toucher aux ennemis autour de toi."), 11.5, Studio.Faible));
                 }
             }
             if (tPasDirect != null && cable)
@@ -1798,7 +1812,14 @@ namespace NettoyagePC.Nouveau
                 else if (et.Erreur != "") tPasDirect.Text = Langue.T(et.Erreur);
                 else if (!et.Marche) tPasDirect.Text = Langue.T("Démarrage du moteur…");
                 else if (!et.Jeu) tPasDirect.Text = Langue.F("En attente d'un jeu (le son passe tel quel) · retard {0} ms", et.LatenceMs);
-                else tPasDirect.Text = Langue.F("En marche · sons forts tenus jusqu'à −{0} dB · retard {1} ms", et.Reduction.ToString("F0", Langue.Culture), et.LatenceMs);
+                else
+                {
+                    string txt = Langue.F("En marche · sons forts tenus jusqu'à −{0} dB · retard {1} ms", et.Reduction.ToString("F0", Langue.Culture), et.LatenceMs);
+                    if (et.Canaux >= 6) txt += " · " + Langue.F("son {0} reçu", et.Canaux >= 8 ? "7.1" : "5.1");
+                    else if (et.Canaux == 2) txt += " · " + Langue.T("son stéréo reçu");
+                    if (m.Arme > 0 && et.ReductionArme >= 1) txt += " · " + Langue.F("ton arme −{0} dB", et.ReductionArme.ToString("F0", Langue.Culture));
+                    tPasDirect.Text = txt;
+                }
                 tPasDirect.Foreground = Studio.P(m.Actif && et.Erreur != "" ? Studio.Ambre : Studio.Texte);
             }
         }
@@ -1842,6 +1863,22 @@ namespace NettoyagePC.Nouveau
                 MoteurSon.Ecrire(m);   // le moteur relit ses réglages dans les 300 ms
                 if (Releve != null) Releve.Moteur = m;
                 if (force.HasValue) Confirmer(F, Langue.T("Pas boostés"), Langue.T(MoteurSon.Niveaux.First(x => x.Item2 == force.Value).Item1), true);
+                signaturePas = null; MajPas(Releve ?? new ReleveAudioJeu());
+            }
+            catch (Exception ex) { F.Statut(ex.Message, true); }
+        }
+
+        private void ReglerArme(int arme)
+        {
+            if (exemple) return;
+            if (simulation) { F.Statut(Langue.T("Simulation : rien n'est modifié."), true); return; }
+            try
+            {
+                var m = MoteurSon.Lire();
+                m.Arme = arme;
+                MoteurSon.Ecrire(m);   // le moteur relit ses réglages dans les 300 ms
+                if (Releve != null) Releve.Moteur = m;
+                Confirmer(F, Langue.T("Ton arme"), Langue.T(arme == 0 ? "Normale" : arme == 1 ? "Réduite" : "Très réduite"), true);
                 signaturePas = null; MajPas(Releve ?? new ReleveAudioJeu());
             }
             catch (Exception ex) { F.Statut(ex.Message, true); }

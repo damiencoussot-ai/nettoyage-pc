@@ -126,7 +126,7 @@ namespace NettoyagePC
 
         internal sealed class EtatMoteur
         {
-            public bool Marche, Jeu; public int LatenceMs; public double Reduction; public string Erreur = "";
+            public bool Marche, Jeu; public int LatenceMs, Canaux; public double Reduction, ReductionArme; public string Erreur = "";
         }
 
         public static bool EnMarche()
@@ -146,17 +146,19 @@ namespace NettoyagePC
                 if (p.Length < 5) return e;
                 var c = CultureInfo.InvariantCulture;
                 e.Marche = p[0] == "marche"; e.LatenceMs = int.Parse(p[1], c); e.Reduction = double.Parse(p[2], c); e.Jeu = p[3] == "1"; e.Erreur = p[4].Length > 300 ? p[4].Substring(0, 300) : p[4];
+                int nc; double ra;
+                if (p.Length >= 7 && int.TryParse(p[5], NumberStyles.Integer, c, out nc) && double.TryParse(p[6], NumberStyles.Float, c, out ra)) { e.Canaux = Math.Max(0, Math.Min(16, nc)); e.ReductionArme = ra; }
             }
             catch { }
             return e;
         }
 
-        private static void EcrireEtat(bool marche, int latence, double reduction, bool jeu, string erreur)
+        private static void EcrireEtat(bool marche, int latence, double reduction, bool jeu, string erreur, int canaux = 0, double reductionArme = 0)
         {
             try
             {
                 var c = CultureInfo.InvariantCulture;
-                File.WriteAllText(FichierEtat, (marche ? "marche" : "arret") + "|" + latence.ToString(c) + "|" + reduction.ToString("F1", c) + "|" + (jeu ? "1" : "0") + "|" + (erreur ?? "").Replace('|', ' ').Replace('\n', ' '));
+                File.WriteAllText(FichierEtat, (marche ? "marche" : "arret") + "|" + latence.ToString(c) + "|" + reduction.ToString("F1", c) + "|" + (jeu ? "1" : "0") + "|" + (erreur ?? "").Replace('|', ' ').Replace('\n', ' ') + "|" + canaux.ToString(c) + "|" + reductionArme.ToString("F1", c));
             }
             catch { }
         }
@@ -330,7 +332,7 @@ namespace NettoyagePC
                             var nr = Lire();
                             if (!nr.Actif) return;
                             bool appareils = nr.Source != r.Source || nr.Destination != r.Destination;
-                            if (comp != null && nr.Force != r.Force) comp = new CompresseurPas(nr.Force, fe);
+                            if (comp != null && (nr.Force != r.Force || nr.Arme != r.Arme)) comp = new CompresseurPas(nr.Force, fe, nr.Arme);
                             r = nr;
                             if (appareils) { if (cap != null) cap.Fermer(); if (ren != null) ren.Fermer(); cap = null; ren = null; }
                         }
@@ -348,7 +350,7 @@ namespace NettoyagePC
                         if (format != IntPtr.Zero) { Marshal.FreeCoTaskMem(format); format = IntPtr.Zero; }
                         erreur = Ouvrir(e, r, evenement, out cap, out ren, out format, out canaux, out fe, out flottant, out bits);
                         if (erreur != "") { derniereErreur = t; if (cap != null) cap.Fermer(); if (ren != null) ren.Fermer(); cap = null; ren = null; }
-                        else comp = new CompresseurPas(r.Force, fe);
+                        else comp = new CompresseurPas(r.Force, fe, r.Arme);
                     }
                     if (t - dernierEtat >= 500)
                     {
@@ -356,7 +358,8 @@ namespace NettoyagePC
                         int lat = 0;
                         try { int pad; if (ren != null && ren.Client.GetCurrentPadding(out pad) == 0) lat = (int)(1000.0 * pad / fe) + 10 + (comp != null ? 2 : 0); } catch { }
                         double red = comp != null ? comp.ReductionMax : 0; if (comp != null) comp.ReductionMax = 0;
-                        EcrireEtat(cap != null && ren != null, lat, red, !r.JeuxSeulement || jeu, erreur);
+                        double redA = comp != null ? comp.ReductionArmeMax : 0; if (comp != null) comp.ReductionArmeMax = 0;
+                        EcrireEtat(cap != null && ren != null, lat, red, !r.JeuxSeulement || jeu, erreur, cap != null ? canaux : 0, redA);
                     }
                     if (cap == null || ren == null) { Thread.Sleep(100); continue; }
                     evenement.WaitOne(100);
