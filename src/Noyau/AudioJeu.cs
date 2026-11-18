@@ -213,6 +213,7 @@ namespace NettoyagePC
             new ProfilAudio { Cle = "competitif", Nom = "Pas / compétitif", Carte = "Compétitif", Texte = "Pas et recharges en avant", Gains = new double[] { -5, -3, 2, 4, 3, -3 } },
             new ProfilAudio { Cle = "equilibre", Nom = "Équilibré", Carte = "Équilibré", Texte = "Plus de détail, sans excès", Gains = new double[] { -2, -1, 1, 2, 1, -1 } },
             new ProfilAudio { Cle = "extreme", Nom = "Pas extrême", Carte = "Pas extrême", Texte = "Maximum sur les pas, moins de graves", Gains = new double[] { -8, -5, 3, 6, 4, -4 } },
+            new ProfilAudio { Cle = "ultra", Nom = "Pas ultra", Carte = "Ultra", Texte = "Les pas devant tout : graves et explosions coupés au maximum", Gains = new double[] { -12, -8, 2, 9, 6, -2 } },
             new ProfilAudio { Cle = "immersion", Nom = "Immersion", Carte = "Immersion", Texte = "Graves et ambiance", Gains = new double[] { 3, 1, -1, -1, 0, 1 } },
             new ProfilAudio { Cle = "voix", Nom = "Voix / chat", Carte = "Voix / chat", Texte = "Les voix en avant", Gains = new double[] { -4, -1, 3, 2, 0, -2 } },
             new ProfilAudio { Cle = "neutre", Nom = "Neutre", Carte = "Neutre", Texte = "Aucune correction", Gains = new double[] { 0, 0, 0, 0, 0, 0 } },

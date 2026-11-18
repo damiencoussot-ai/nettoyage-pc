@@ -3780,6 +3780,10 @@ namespace NettoyagePC
             "Pas boostés : les explosions sont baissées à part, sans toucher aux pas. Un pas pendant une explosion ressort de +7 dB, les pas lointains encore plus présents.", "Boosted footsteps: explosions are lowered separately, without touching footsteps. A footstep during an explosion stands out by +7 dB, distant footsteps are even more present.", "Pasos potenciados: las explosiones se bajan aparte, sin tocar los pasos. Un paso durante una explosión destaca +7 dB y los pasos lejanos están aún más presentes.",
             "Ultra", "Ultra", "Ultra",
             "Nouveau niveau « Ultra » dans Pas boostés : le plus fort, les pas passent devant tout (+11 dB sous une explosion, +26 dB au loin).", "New “Ultra” level in Boosted footsteps: the strongest, footsteps come before everything (+11 dB under an explosion, +26 dB at a distance).", "Nuevo nivel «Ultra» en Pasos potenciados: el más fuerte, los pasos pasan por delante de todo (+11 dB bajo una explosión, +26 dB a distancia).",
+            "Pas ultra", "Ultra footsteps", "Pasos ultra",
+            "Les pas devant tout : graves et explosions coupés au maximum", "Footsteps above everything: bass and explosions cut to the max", "Los pasos por delante de todo: graves y explosiones recortados al máximo",
+            "Audio jeu : égaliseur actif (Pas ultra)", "Game audio: equalizer on (Ultra footsteps)", "Audio de juego: ecualizador activo (Pasos ultra)",
+            "Audio jeu : Auto jeux (Pas ultra)", "Game audio: Auto games (Ultra footsteps)", "Audio de juego: Auto juegos (Pasos ultra)",
         };
         private static readonly string[] Prefixes =
         {

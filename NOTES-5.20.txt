@@ -9,6 +9,8 @@ Amélioré
 - Nouveau niveau « Ultra » : le plus fort. Les bas-médiums des explosions sont tenus aussi : un pas pendant une
   explosion ressort de +11 dB, un pas lointain de +26 dB. Moins naturel (le volume « pompe » davantage), mais
   les pas passent devant tout.
+- Nouveau profil « Ultra » dans Profils (égaliseur seul, sans VB-Cable) : graves et explosions coupés au
+  maximum, pas et recharges très en avant.
 
 L'installateur est publié sous les deux noms : Velox-Setup-5.20.exe (winget, site) et
 NettoyagePC-Setup-5.20.exe (mise à jour des anciennes versions).
