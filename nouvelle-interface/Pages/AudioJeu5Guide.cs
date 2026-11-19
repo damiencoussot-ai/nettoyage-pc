@@ -46,7 +46,13 @@ namespace NettoyagePC.Nouveau
             bool nomme = studio != null && PorteNomStudio(studio.Nom);
             bool septUn = pas && et.Canaux >= 8;
             var jeu = AudioJeu.JeuVise(v.Jeu, r);
-            string sig = apo + "|" + branche + "|" + calibre + "|" + cable + "|" + pas + "|" + nomme + "|" + septUn + "|" + jeu.Cle + "|" + pasOccupe + "|" + nomOccupe;
+            // nom affiché par Windows pour le câble (sans le nom du pilote entre parenthèses), et sortie qui porte
+            // « Velox Studio » si ce n'est pas le câble (nom donné quand Pas boostés était coupé : souvent le casque)
+            Func<string, string> court = n => { n = n ?? ""; int i = n.IndexOf(" (", StringComparison.Ordinal); return i > 0 ? n.Substring(0, i) : n; };
+            var sortieCable = cable ? v.Windows.FirstOrDefault(w => w.Id == v.Cables[0].Sortie) : null;
+            string nomCable = sortieCable != null && sortieCable.Nom != "" ? court(sortieCable.Nom) : "CABLE Input";
+            var ailleurs = v.Windows.FirstOrDefault(w => PorteNomStudio(w.Nom) && (sortieCable == null || w.Id != sortieCable.Id));
+            string sig = nomCable + "|" + (ailleurs?.Id ?? "") + "|" + apo + "|" + branche + "|" + calibre + "|" + cable + "|" + pas + "|" + nomme + "|" + septUn + "|" + jeu.Cle + "|" + pasOccupe + "|" + nomOccupe;
             if (sig == signatureGuide) return;
             signatureGuide = sig;
             zoneGuide.Children.Clear();
@@ -68,10 +74,11 @@ namespace NettoyagePC.Nouveau
                 Langue.T("Force conseillée : Fort (Extrême si tu veux encore plus de pas). Ton arme : Réduite. Velox met le câble en sortie par défaut et joue le son traité sur ton casque."),
                 Langue.T("Allumer Pas boostés"), () => { if (cable) BasculerPas(true); }));
             zoneGuide.Children.Add(EtapeGuide(6, nomme, true, Langue.T("Donner le nom « Velox Studio »"),
-                Langue.T("Le câble apparaît alors sous ce nom dans Windows, Discord et tes jeux. Windows demande l'autorisation. Relance ton jeu après."),
+                Langue.T("Le câble apparaît alors sous ce nom dans Windows, Discord et tes jeux. Windows demande l'autorisation. Relance ton jeu après.")
+                + (ailleurs != null && m.Actif ? " " + Langue.T("En ce moment, « Velox Studio » est une autre sortie (souvent ton casque, nommé quand Pas boostés était coupé) : le bouton donne ce nom au câble et rend à l'autre son nom d'origine.") : ""),
                 Langue.T("Nommer « Velox Studio »"), () => { if (studio != null) NommerStudio(studio); }));
-            zoneGuide.Children.Add(EtapeGuide(7, septUn, false, Langue.T("Windows : Velox Studio en 7.1 (facultatif, pour aller plus loin)"),
-                Langue.T("Panneau de configuration > Son > onglet Lecture > Velox Studio (ou CABLE Input) > Configurer > 7.1 Surround > Suivant jusqu'à Terminer. Tes tirs arrivent alors sur leur propre voie : « Ton arme » les isole mieux. Dans ce cas, coupe le mode casque du jeu (étape 8) et allume « Son 7.1 virtuel » (mode Expert)."),
+            zoneGuide.Children.Add(EtapeGuide(7, septUn, false, Langue.T("Windows : le câble en 7.1 (facultatif, pour aller plus loin)"),
+                Langue.F("Panneau de configuration > Son > onglet Lecture > « {0} » (c'est le câble, sous-titré VB-Audio Virtual Cable) > Configurer > 7.1 Surround > Suivant jusqu'à Terminer. Tes tirs arrivent alors sur leur propre voie : « Ton arme » les isole mieux. Dans ce cas, coupe le mode casque du jeu (étape 8) et allume « Son 7.1 virtuel » (mode Expert).", nomCable),
                 Langue.T("Ouvrir les réglages Son de Windows"), () => { if (!exemple) Programmes.Ouvrir("control.exe", "mmsys.cpl"); }));
             string spatial = jeu.Spatial != "" ? " " + Langue.F("Option « {0} » : allume-la si Velox Studio est en stéréo, coupe-la si tu l'as mis en 7.1 (étape 7).", jeu.Spatial) : "";
             string dans = jeu.DansLeJeu != "" ? " " + Langue.F("Conseillé : {0}", Langue.T(jeu.DansLeJeu)) : "";
