@@ -236,7 +236,8 @@ namespace NettoyagePC.Nouveau
             releve.HeSuVi = new EtatHeSuVi { Present = true, Inclus = true, Actif = true, Modele = "gsx", Appareil = "Casque (Arctis Nova Pro)" };
             releve.Cables.Add(new CableVirtuel { Nom = "VB-Cable", Sortie = "{0.0.0.00000000}.{abcdef01-2345-6789-abcd-ef0123456789}", Entree = "{0.0.1.00000000}.{abcdef01-2345-6789-abcd-ef0123456780}" });
             releve.Moteur = new ReglagesMoteurSon { Actif = true, Force = 65, JeuxSeulement = true };
-            releve.MoteurEtat = new MoteurSon.EtatMoteur { Marche = true, Jeu = true, LatenceMs = 24, Reduction = 14 };
+            releve.Moteur.ParJeu["cod"] = new[] { 100, 1 };
+            releve.MoteurEtat = new MoteurSon.EtatMoteur { Marche = true, Jeu = true, LatenceMs = 24, Reduction = 14, Canaux = 8, ReductionArme = 7, Memoire = 10, JeuCle = "cod" };
             foreach (var m in new[] { "gsx;Sennheiser GSX", "atmos;Dolby Atmos for Headphones", "dtshx;DTS Headphone:X", "razer;Razer Surround", "sbx;Sound Blaster X-Fi MB", "cmss_game;Creative CMSS-3D Game", "dh-;Dolby Headphone", "oal;OpenAL" })
                 releve.HeSuVi.Modeles.Add(new ModeleHeSuVi { Nom = m.Split(';')[0], Description = m.Split(';')[1] });
             releve.Windows.Add(new SortieWindows { Id = "{0.0.0.00000000}.{" + casque + "}", Guid = casque, Nom = "Casque (Arctis Nova Pro)", ParDefaut = true });
@@ -758,6 +759,86 @@ namespace NettoyagePC.Nouveau
                         var fb = (float[])fa.Clone(); cA.Traiter(fa, 48000, 2); cB.Traiter(fb, 48000, 2);
                         double dif = 0; for (int i = 0; i < fa.Length; i++) dif = Math.Max(dif, Math.Abs(fa[i] - fb[i]));
                         verifier(dif < 1e-5 && cA.ReductionArmeMax < 0.01, "ton arme : un son faible au centre (pas devant toi) passe intact");
+                    }
+                    {
+                        // réécoute : 3 s gardées, rejouées sans puis avec, au même volume, puis silence et retour au direct
+                        var mr = new MemoireReecoute(2, 48000, 10);
+                        bool tropTot = mr.Lancer();
+                        var paquetS = new float[480 * 2]; var paquetT = new float[480 * 2]; int ech = 0;
+                        for (int p = 0; p < 300; p++)
+                        {
+                            for (int i = 0; i < 480; i++, ech++) { float v = (float)Math.Sin(2 * Math.PI * 440 * ech / 48000.0); paquetS[2 * i] = paquetS[2 * i + 1] = 0.1f * v; }
+                            mr.GarderSec(paquetS, 480);
+                            for (int i = 0; i < paquetS.Length; i++) paquetT[i] = paquetS[i] * 4;
+                            mr.GarderTraite(paquetT, 480);
+                        }
+                        bool lance = mr.Lancer(); int restantDebut = mr.SecondesRestantes;
+                        var sortie = new System.Collections.Generic.List<float>(); var bloc = new float[480 * 2];
+                        int tours = 0;
+                        while (mr.Phase != 0 && tours++ < 1000) { mr.Remplir(bloc, 480); sortie.AddRange(bloc); }
+                        double es1 = 0, es2 = 0, silRe = 0;
+                        for (int i = 0; i < 3 * 48000 * 2; i++) es1 += sortie[i] * (double)sortie[i];
+                        for (int i = 3 * 48000 * 2; i < 4 * 48000 * 2; i++) silRe = Math.Max(silRe, Math.Abs(sortie[i]));
+                        for (int i = 4 * 48000 * 2; i < 7 * 48000 * 2 && i < sortie.Count; i++) es2 += sortie[i] * (double)sortie[i];
+                        double ecartRe = 10 * Math.Log10(es2 / Math.Max(1e-20, es1));
+                        verifier(!tropTot && lance && Math.Abs(mr.GainTraite - 0.25f) < 0.01 && mr.GainSec == 1 && sortie.Count == 7 * 48000 * 2 && silRe == 0 && Math.Abs(ecartRe) < 0.1
+                            && restantDebut == 7 && mr.Phase == 0 && mr.Secondes == 0 && !mr.Lancer(),
+                            "réécoute : 3 s rejouées sans puis avec Velox (écart de volume " + ecartRe.ToString("F2", ci) + " dB), une seconde de silence entre les deux, puis retour au direct");
+                    }
+                    {
+                        // un réglage par jeu : retenu pendant la partie, réglage général sinon ; clés invalides refusées
+                        var mj = ReglagesMoteurSon.Lire("{\"Force\":35,\"Arme\":0,\"ParJeu\":{\"cod\":[100,2],\"../x\":[65,1],\"valorant\":[999,9]}}");
+                        int fj1, aj1, fj2, aj2, fj3, aj3; mj.Effectifs("cod", out fj1, out aj1); mj.Effectifs("apex", out fj2, out aj2); mj.Effectifs("", out fj3, out aj3);
+                        bool okJ = fj1 == 100 && aj1 == 2 && fj2 == 35 && aj2 == 0 && fj3 == 35 && mj.ParJeu.Count == 2 && mj.ParJeu["valorant"][0] == 130 && mj.ParJeu["valorant"][1] == 2 && !mj.ParJeu.ContainsKey("../x");
+                        var relu = ReglagesMoteurSon.Lire(mj.Json()); int fj4, aj4; relu.Effectifs("cod", out fj4, out aj4);
+                        okJ &= fj4 == 100 && aj4 == 2 && relu.ParJeuActif;
+                        AudioJeu5.AppliquerReglagePas(relu, "cod", 65, null); relu.Effectifs("cod", out fj4, out aj4);
+                        okJ &= fj4 == 65 && aj4 == 2 && relu.Force == 35;
+                        AudioJeu5.AppliquerReglagePas(relu, "", null, 1);
+                        okJ &= relu.Arme == 1 && relu.ParJeu["cod"][1] == 2;
+                        relu.ParJeuActif = false; relu.Effectifs("cod", out fj4, out aj4);
+                        okJ &= fj4 == 35 && aj4 == 1 && AudioJeu5.NomJeuCle("cod") != "" && AudioJeu5.NomJeuCle("zzz") == "";
+                        verifier(okJ, "un réglage par jeu : retenu pour le jeu en cours, réglage général ailleurs, relu, bornes et clés vérifiées");
+                    }
+                    {
+                        // test de direction : son sur les bonnes voies seulement, notation et conseils
+                        bool okD = true;
+                        for (int d = 0; d < 8; d++)
+                        {
+                            var sd = TestDirection.Son(d, 48000, d); var e8 = new double[8]; float pk = 0;
+                            for (int i = 0; i < sd.Length; i++) { e8[i % 8] += sd[i] * (double)sd[i]; pk = Math.Max(pk, Math.Abs(sd[i])); }
+                            int voies = e8.Count(x => x > 1e-6);
+                            okD &= pk < 0.9f && pk > 0.05f && voies == (d == 4 ? 2 : 1) && e8[3] == 0;
+                        }
+                        var joues = new[] { 0, 1, 2, 3, 4, 5, 6, 7 };
+                        var parfait = TestDirection.Noter(joues, joues, true);
+                        var miroir = TestDirection.Noter(joues, joues.Select(TestDirection.Miroir).ToArray(), false);
+                        var inverse = TestDirection.Noter(joues, joues.Select(x => (8 - x) % 8).ToArray(), true);
+                        okD &= parfait.Score == 8 && parfait.Exacts == 8 && parfait.Conseil.StartsWith("Très bonne")
+                            && miroir.DevantDerriere == 6 && miroir.Conseil.Contains("Son 7.1 virtuel") && inverse.GaucheDroite == 6 && inverse.Conseil.Contains("inversées");
+                        verifier(okD, "test de direction : chaque pas sur ses voies du 7.1, notation exacte, confusions devant/derrière et gauche/droite repérées");
+                    }
+                    {
+                        // test d'audition : niveaux des bips, clic → niveau, compensation (baisses seulement), lignes d'Equalizer APO
+                        var rampeA = TestAudition.Rampe(1000, 1, 48000); bool okA2 = true;
+                        foreach (int b in new[] { 0, 8, 16 })
+                        {
+                            double eg = 0, ed = 0; int a0 = b * 24000, a1 = a0 + 14400;
+                            for (int i = a0 + 960; i < a1 - 960; i++) { eg += rampeA[2 * i] * (double)rampeA[2 * i]; ed += rampeA[2 * i + 1] * (double)rampeA[2 * i + 1]; }
+                            double niv = 10 * Math.Log10(ed / (a1 - a0 - 1920));
+                            okA2 &= eg == 0 && Math.Abs(niv - (TestAudition.Depart + TestAudition.Pas * b)) < 0.2;
+                        }
+                        okA2 &= TestAudition.NiveauAuClic(0.3 + 0.5 * 3 + 0.1) == -80 && TestAudition.NiveauAuClic(0.1) == -95 && TestAudition.NiveauAuClic(99) == -15;
+                        double[] cg, cd;
+                        TestAudition.Compensation(new double?[] { -60, -60, -60, -60, -60, -60, null }, new double?[] { -45, -52, -60, -80, -60, -60, -80 }, out cg, out cd);
+                        okA2 &= cg[0] == -5 && cd[0] == 0 && cg[1] == 0 && cd[3] == -6 && cg[3] == 0 && cd[6] == -6 && cg.Concat(cd).All(x => x <= 0 && x >= -6);
+                        var ro = new ReglagesAudioJeu { Actif = true, OreilleG = cg, OreilleD = cd };
+                        string go = AudioJeu.Generer(ro, ""), gs = AudioJeu.Generer(new ReglagesAudioJeu { Actif = true }, "");
+                        var rlu = ReglagesAudioJeu.DepuisJson(NettoyagePC.Json.Lire(NettoyagePC.Json.Ecrire(ro.VersJson())) as System.Collections.Generic.Dictionary<string, object>);
+                        okA2 &= go.Contains("Channel: L\r\nFilter: ON PK Fc 500 Hz Gain -5.0 dB Q 1.41") && go.Contains("Channel: R\r\nFilter: ON PK Fc 3000 Hz Gain -6.0 dB Q 1.41") && go.Contains("Channel: all\r\nEndIf:")
+                            && !gs.Contains("Channel:") && rlu.OreilleG.SequenceEqual(cg) && rlu.OreilleD.SequenceEqual(cd) && rlu.Oreilles && !new ReglagesAudioJeu().Oreilles
+                            && AudioJeu.Preampli(ro) == AudioJeu.Preampli(new ReglagesAudioJeu { Actif = true });
+                        verifier(okA2, "test d'audition : bips au bon niveau dans une seule oreille, compensation par baisses (≤ 6 dB) écrite pour Equalizer APO et relue");
                     }
                     rapport.AppendLine("Pas boostés : explosion / pas lointain sans compresseur " + e0.ToString("F1", ci) + " dB ;" + txt);
                     // silence : rien n'est fabriqué ; souffle très faible : pas remonté

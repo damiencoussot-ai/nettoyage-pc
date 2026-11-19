@@ -69,7 +69,7 @@ namespace NettoyagePC.Nouveau
         }
     }
 
-    internal sealed class AudioJeu5 : Panel
+    internal sealed partial class AudioJeu5 : Panel
     {
         // ================================================================ veille et écriture (une seule pour toute la fenêtre)
 
@@ -543,7 +543,8 @@ namespace NettoyagePC.Nouveau
             public bool[] EtatEnvois = new bool[0];
         }
         private StackPanel zoneMix, zoneCasque, zoneSurround;
-        private TextBlock tDansLeJeu, tPasDirect;
+        private TextBlock tDansLeJeu, tPasDirect, tReecoute, tParJeu;
+        private Border bReecoute;
         private StackPanel zoneDemarrage, zoneVerif, zoneNom;
         private string signatureNom;
         private bool nomOccupe;
@@ -771,6 +772,7 @@ namespace NettoyagePC.Nouveau
             zoneVerif = new StackPanel { Spacing = 8 };
             g.Children.Add(Studio.Module("Vérification du son", zoneVerif));
             g.Children.Add(Studio.Module("Avant / après", ConstruireDemo()));
+            g.Children.Add(Studio.Module("Tests d'écoute", ConstruireTests()));
 
             // profils
             var grille = new UniformGrid { Columns = 4 };
@@ -1757,7 +1759,8 @@ namespace NettoyagePC.Nouveau
             var m = v.Moteur ?? new ReglagesMoteurSon();
             var et = v.MoteurEtat ?? new MoteurSon.EtatMoteur();
             bool cable = v.Cables.Count > 0;
-            string sig = cable + "|" + m.Actif + "|" + m.Force + "|" + m.Arme + "|" + m.JeuxSeulement + "|" + pasOccupe + "|" + (et.Erreur != "");
+            int forceVue, armeVue; m.Effectifs(et.JeuCle, out forceVue, out armeVue);
+            string sig = cable + "|" + m.Actif + "|" + forceVue + "|" + armeVue + "|" + m.ParJeuActif + "|" + et.JeuCle + "|" + m.JeuxSeulement + "|" + pasOccupe + "|" + (et.Erreur != "");
             if (sig != signaturePas)
             {
                 signaturePas = sig;
@@ -1778,7 +1781,7 @@ namespace NettoyagePC.Nouveau
                     {
                         var nn = n;
                         var b = Puce(Langue.T(n.Item1), () => ReglerPas(nn.Item2, null));
-                        Marquer(b, m.Force == n.Item2, Studio.Magenta);
+                        Marquer(b, forceVue == n.Item2, Studio.Magenta);
                         ligne.Children.Add(b);
                     }
                     var bJeux = Puce(Langue.T("Seulement en jeu"), () => ReglerPas(null, !m.JeuxSeulement));
@@ -1794,11 +1797,44 @@ namespace NettoyagePC.Nouveau
                     {
                         int ia = i;
                         var b = Puce(Langue.T(niveauxArme[i]), () => ReglerArme(ia));
-                        Marquer(b, m.Arme == i, Studio.Magenta);
+                        Marquer(b, armeVue == i, Studio.Magenta);
                         ligneArme.Children.Add(b);
                     }
                     ToolTip.SetTip(ligneArme, Langue.T("Tes tirs sont joués au centre du son, ceux des ennemis viennent d'une direction. Velox baisse seulement tes rafales : un ennemi qui marche sur le côté pendant que tu tires reste audible. Un son faible devant toi n'est pas touché."));
                     zonePas.Children.Add(ligneArme);
+                    // un réglage par jeu
+                    var ligneJeu = new WrapPanel();
+                    var bParJeu = Puce(Langue.T("Un réglage par jeu"), () => ReglerParJeu(!m.ParJeuActif));
+                    ToolTip.SetTip(bParJeu, Langue.T("Change la force ou « Ton arme » pendant une partie : Velox retient ce réglage pour ce jeu et le reprend à chaque fois qu'il tourne. Hors jeu, tu règles le réglage général."));
+                    Marquer(bParJeu, m.ParJeuActif, Studio.Cyan);
+                    ligneJeu.Children.Add(bParJeu);
+                    string nomJeu = NomJeuCle(et.JeuCle);
+                    int[] retenu;
+                    string txtJeu = !m.ParJeuActif ? Langue.T("Même réglage pour tous les jeux.")
+                        : nomJeu == "" ? Langue.T("Aucun jeu en cours : tu règles le réglage général.")
+                        : m.ParJeu.TryGetValue(et.JeuCle, out retenu) ? Langue.F("Réglage retenu pour {0}.", nomJeu)
+                        : Langue.F("{0} en cours : ton prochain changement sera retenu pour ce jeu.", nomJeu);
+                    tParJeu = Studio.T(txtJeu, 12, Studio.Discret);
+                    tParJeu.VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center;
+                    tParJeu.Margin = new Thickness(8, 0, 0, 0);
+                    ligneJeu.Children.Add(tParJeu);
+                    if (m.ParJeuActif && m.ParJeu.Count > 0)
+                    {
+                        var bOublier = Puce(Langue.T("Oublier les réglages par jeu"), () => OublierParJeu());
+                        Marquer(bOublier, false);
+                        ligneJeu.Children.Add(bOublier);
+                    }
+                    zonePas.Children.Add(ligneJeu);
+                    // réécoute avant / après
+                    var ligneRe = new WrapPanel();
+                    bReecoute = Studio.Bouton(Langue.T("Réécouter sans / avec Velox"), true, BasculerReecoute,
+                        Langue.T("Rejoue les 10 dernières secondes du jeu : d'abord sans Velox, puis avec, au même volume. Le meilleur moyen d'entendre ce que Velox change."));
+                    ligneRe.Children.Add(bReecoute);
+                    tReecoute = Studio.T("", 12, Studio.Discret);
+                    tReecoute.VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center;
+                    tReecoute.Margin = new Thickness(10, 0, 0, 0);
+                    ligneRe.Children.Add(tReecoute);
+                    zonePas.Children.Add(ligneRe);
                     tPasDirect = Studio.T("", 12, Studio.Texte);
                     zonePas.Children.Add(tPasDirect);
                     zonePas.Children.Add(Studio.T(Langue.T("Léger : +13 dB sur les pas lointains face aux explosions. Fort : +20 dB. Extrême : +25 dB. Ultra : +27 dB, et un pas pendant une explosion ressort de +11 dB (le plus fort, moins naturel). Mesuré sur une scène de jeu. Les aigus des pas sont mis en avant seulement quand c'est calme : les tirs ne deviennent pas criards. Le son passe par VB-Cable, puis Velox le joue sur ton casque : environ 25 ms de retard en plus. Dans le jeu, laisse la sortie audio sur « Par défaut »."), 11.5, Studio.Faible));
@@ -1821,6 +1857,20 @@ namespace NettoyagePC.Nouveau
                     tPasDirect.Text = txt;
                 }
                 tPasDirect.Foreground = Studio.P(m.Actif && et.Erreur != "" ? Studio.Ambre : Studio.Texte);
+            }
+            if (tReecoute != null && bReecoute != null && cable)
+            {
+                bool marche = m.Actif && et.Marche && et.Erreur == "";
+                bReecoute.IsEnabled = exemple || (marche && (et.Reecoute != 0 || et.Memoire >= 2));
+                bReecoute.Opacity = bReecoute.IsEnabled ? 1 : 0.45;
+                if (bReecoute.Child is TextBlock tb) tb.Text = Langue.T(et.Reecoute != 0 ? "Arrêter la réécoute" : "Réécouter sans / avec Velox");
+                if (!m.Actif) tReecoute.Text = Langue.T("Allume « Pas boostés » pour réécouter.");
+                else if (et.Reecoute == 1) tReecoute.Text = Langue.F("▶ Sans Velox… ({0} s)", et.ReecouteSecondes);
+                else if (et.Reecoute == 2) tReecoute.Text = Langue.T("…");
+                else if (et.Reecoute == 3) tReecoute.Text = Langue.F("▶ Avec Velox ({0} s)", et.ReecouteSecondes);
+                else if (!et.Marche) tReecoute.Text = "";
+                else if (!et.Jeu) tReecoute.Text = Langue.T("Lance une partie : hors jeu, le son passe tel quel (rien à comparer).");
+                else tReecoute.Text = Langue.F("{0} s gardées · même volume pour les deux", et.Memoire);
             }
         }
 
@@ -1858,7 +1908,7 @@ namespace NettoyagePC.Nouveau
             try
             {
                 var m = MoteurSon.Lire();
-                if (force.HasValue) m.Force = force.Value;
+                if (force.HasValue) AppliquerReglagePas(m, JeuEnCoursMoteur(), force.Value, null);
                 if (jeux.HasValue) m.JeuxSeulement = jeux.Value;
                 MoteurSon.Ecrire(m);   // le moteur relit ses réglages dans les 300 ms
                 if (Releve != null) Releve.Moteur = m;
@@ -1868,6 +1918,72 @@ namespace NettoyagePC.Nouveau
             catch (Exception ex) { F.Statut(ex.Message, true); }
         }
 
+        /// <summary>Nom du jeu reconnu pour cette clé ("" si aucune).</summary>
+        internal static string NomJeuCle(string cle)
+        {
+            if (string.IsNullOrEmpty(cle)) return "";
+            var j = AudioJeu.Jeux.FirstOrDefault(x => x.Cle == cle);
+            return j != null ? j.Nom : "";
+        }
+
+        /// <summary>
+        /// Applique un changement de force ou d'arme : pendant une partie (avec « un réglage par jeu »), il est retenu pour
+        /// ce jeu ; sinon il change le réglage général.
+        /// </summary>
+        internal static void AppliquerReglagePas(ReglagesMoteurSon m, string jeuCle, int? force, int? arme)
+        {
+            if (m.ParJeuActif && NomJeuCle(jeuCle) != "")
+            {
+                int f, a; m.Effectifs(jeuCle, out f, out a);
+                m.ParJeu[jeuCle] = new[] { force ?? f, arme ?? a };
+            }
+            else
+            {
+                if (force.HasValue) m.Force = force.Value;
+                if (arme.HasValue) m.Arme = arme.Value;
+            }
+        }
+
+        private string JeuEnCoursMoteur() { var et = (Releve ?? new ReleveAudioJeu()).MoteurEtat; return et != null && et.Marche ? et.JeuCle : ""; }
+
+        private void ReglerParJeu(bool actif)
+        {
+            if (exemple) return;
+            if (simulation) { F.Statut(Langue.T("Simulation : rien n'est modifié."), true); return; }
+            try
+            {
+                var m = MoteurSon.Lire(); m.ParJeuActif = actif; MoteurSon.Ecrire(m);
+                if (Releve != null) Releve.Moteur = m;
+                Confirmer(F, Langue.T("Un réglage par jeu"), Langue.T(actif ? "activé" : "coupé"), actif);
+                signaturePas = null; MajPas(Releve ?? new ReleveAudioJeu());
+            }
+            catch (Exception ex) { F.Statut(ex.Message, true); }
+        }
+
+        private void OublierParJeu()
+        {
+            if (exemple) return;
+            if (simulation) { F.Statut(Langue.T("Simulation : rien n'est modifié."), true); return; }
+            try
+            {
+                var m = MoteurSon.Lire(); m.ParJeu.Clear(); MoteurSon.Ecrire(m);
+                if (Releve != null) Releve.Moteur = m;
+                F.Statut(Langue.T("Réglages par jeu oubliés : le réglage général s'applique partout."));
+                signaturePas = null; MajPas(Releve ?? new ReleveAudioJeu());
+            }
+            catch (Exception ex) { F.Statut(ex.Message, true); }
+        }
+
+        private void BasculerReecoute()
+        {
+            if (exemple) return;
+            if (simulation) { F.Statut(Langue.T("Simulation : rien n'est modifié."), true); return; }
+            var et = (Releve ?? new ReleveAudioJeu()).MoteurEtat ?? new MoteurSon.EtatMoteur();
+            string err = MoteurSon.DemanderReecoute(et.Reecoute == 0);
+            if (err != "") { F.Statut(err, true); return; }
+            F.Statut(Langue.T(et.Reecoute == 0 ? "Réécoute : d'abord sans Velox, puis avec Velox, au même volume." : "Réécoute arrêtée."));
+        }
+
         private void ReglerArme(int arme)
         {
             if (exemple) return;
@@ -1875,7 +1991,7 @@ namespace NettoyagePC.Nouveau
             try
             {
                 var m = MoteurSon.Lire();
-                m.Arme = arme;
+                AppliquerReglagePas(m, JeuEnCoursMoteur(), null, arme);
                 MoteurSon.Ecrire(m);   // le moteur relit ses réglages dans les 300 ms
                 if (Releve != null) Releve.Moteur = m;
                 Confirmer(F, Langue.T("Ton arme"), Langue.T(arme == 0 ? "Normale" : arme == 1 ? "Réduite" : "Très réduite"), true);

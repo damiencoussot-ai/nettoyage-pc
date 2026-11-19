@@ -30,11 +30,30 @@ namespace NettoyagePC
         public string DefautAvant = "";
         /// <summary>« Ton arme » : 0 normale, 1 réduite, 2 très réduite (tes propres tirs baissés, ceux des ennemis gardés).</summary>
         public int Arme = 1;
+        /// <summary>« Un réglage par jeu » : un réglage fait pendant une partie est retenu pour ce jeu (clé « cod »,
+        /// « valorant »…) et repris à chaque fois qu'il tourne. Valeurs : force, arme.</summary>
+        public bool ParJeuActif = true;
+        public Dictionary<string, int[]> ParJeu = new Dictionary<string, int[]>();
+        private static readonly Regex CleJeu = new Regex("^[a-z0-9]{1,24}$");
+
+        /// <summary>Force et arme à utiliser quand ce jeu tourne ("" : aucun jeu).</summary>
+        public void Effectifs(string jeu, out int force, out int arme)
+        {
+            int[] v;
+            if (ParJeuActif && !string.IsNullOrEmpty(jeu) && ParJeu != null && ParJeu.TryGetValue(jeu, out v) && v != null && v.Length == 2) { force = v[0]; arme = v[1]; }
+            else { force = Force; arme = Arme; }
+        }
 
         public ReglagesMoteurSon Borner()
         {
             Force = Math.Max(0, Math.Min(130, Force));
             Arme = Math.Max(0, Math.Min(2, Arme));
+            var pj = new Dictionary<string, int[]>();
+            if (ParJeu != null)
+                foreach (var kv in ParJeu)
+                    if (kv.Key != null && CleJeu.IsMatch(kv.Key) && kv.Value != null && kv.Value.Length == 2 && pj.Count < 64)
+                        pj[kv.Key] = new[] { Math.Max(0, Math.Min(130, kv.Value[0])), Math.Max(0, Math.Min(2, kv.Value[1])) };
+            ParJeu = pj;
             if (!AudioWindows.IdValide(Destination)) Destination = "";
             if (!AudioWindows.IdEntreeValide(Source)) Source = "";
             if (!AudioWindows.IdValide(DefautAvant)) DefautAvant = "";
@@ -47,6 +66,7 @@ namespace NettoyagePC
             {
                 { "Actif", Actif }, { "Force", Force }, { "JeuxSeulement", JeuxSeulement },
                 { "Source", Source }, { "Destination", Destination }, { "DefautAvant", DefautAvant }, { "Arme", Arme },
+                { "ParJeuActif", ParJeuActif }, { "ParJeu", (ParJeu ?? new Dictionary<string, int[]>()).ToDictionary(kv => kv.Key, kv => (object)new object[] { kv.Value[0], kv.Value[1] }) },
             });
         }
 
@@ -65,6 +85,15 @@ namespace NettoyagePC
                 if (d.TryGetValue("Destination", out o)) r.Destination = Convert.ToString(o, CultureInfo.InvariantCulture) ?? "";
                 if (d.TryGetValue("DefautAvant", out o)) r.DefautAvant = Convert.ToString(o, CultureInfo.InvariantCulture) ?? "";
                 if (d.TryGetValue("Arme", out o)) r.Arme = (int)Math.Round(Convert.ToDouble(o, CultureInfo.InvariantCulture));
+                if (d.TryGetValue("ParJeuActif", out o) && o is bool pa) r.ParJeuActif = pa;
+                if (d.TryGetValue("ParJeu", out o) && o is Dictionary<string, object> pj)
+                    foreach (var kv in pj)
+                    {
+                        var l = new List<int>();
+                        if (kv.Value is System.Collections.IEnumerable en && !(kv.Value is string))
+                            foreach (var x in en) { try { l.Add((int)Math.Round(Convert.ToDouble(x, CultureInfo.InvariantCulture))); } catch { } }
+                        if (l.Count == 2) r.ParJeu[kv.Key] = l.ToArray();
+                    }
             }
             catch { return new ReglagesMoteurSon(); }
             return r.Borner();
@@ -293,6 +322,109 @@ namespace NettoyagePC
         }
     }
 
+    /// <summary>
+    /// Réécoute « avant / après » : les dernières secondes (10 au plus) sont gardées deux fois, telles que le jeu les a
+    /// jouées et telles que Velox les a traitées. Sur demande, elles sont rejouées : d'abord sans Velox, une seconde de
+    /// silence, puis avec Velox, au même volume moyen (le plus fort des deux est baissé : à l'oreille, « plus fort »
+    /// paraît toujours « mieux », la comparaison serait faussée). Pendant la réécoute, rien n'est gardé.
+    /// </summary>
+    internal sealed class MemoireReecoute
+    {
+        public readonly int Canaux, Frequence, Capacite;
+        private readonly float[] sec, traite;
+        private int pos, plein;
+        /// <summary>0 : rien ; 1 : « sans Velox » ; 2 : silence ; 3 : « avec Velox ».</summary>
+        public int Phase { get; private set; }
+        private long lu, longueur, depart, pause; private float kSec = 1, kTraite = 1;
+        /// <summary>(relevé) gains appliqués pour le même volume, sans puis avec.</summary>
+        public float GainSec { get { return kSec; } }
+        public float GainTraite { get { return kTraite; } }
+
+        public MemoireReecoute(int canaux, int frequence, int secondes)
+        {
+            Canaux = Math.Max(1, canaux); Frequence = Math.Max(8000, frequence); Capacite = Frequence * Math.Max(1, secondes);
+            sec = new float[Capacite * Canaux]; traite = new float[Capacite * Canaux];
+        }
+
+        /// <summary>Secondes gardées (pleines).</summary>
+        public int Secondes { get { return plein / Frequence; } }
+
+        /// <summary>Secondes restantes de la réécoute en cours (les deux écoutes comprises).</summary>
+        public int SecondesRestantes
+        {
+            get
+            {
+                if (Phase == 1) return (int)Math.Ceiling((longueur - lu) / (double)Frequence) + 1 + (int)Math.Ceiling(longueur / (double)Frequence);
+                if (Phase == 2) return (int)Math.Ceiling((pause + longueur) / (double)Frequence);
+                if (Phase == 3) return (int)Math.Ceiling((longueur - lu) / (double)Frequence);
+                return 0;
+            }
+        }
+
+        private void Garder(float[] dest, float[] t, int images, int debut)
+        {
+            for (int i = 0; i < images; i++) Array.Copy(t, i * Canaux, dest, ((debut + i) % Capacite) * Canaux, Canaux);
+        }
+
+        /// <summary>Garde le son d'origine de ce paquet (avant traitement).</summary>
+        public void GarderSec(float[] t, int images) { if (Phase == 0) Garder(sec, t, images, pos); }
+
+        /// <summary>Garde le son traité du même paquet, et avance.</summary>
+        public void GarderTraite(float[] t, int images)
+        {
+            if (Phase != 0) return;
+            Garder(traite, t, images, pos);
+            pos = (pos + images) % Capacite; plein = Math.Min(Capacite, plein + images);
+        }
+
+        /// <summary>Lance la réécoute (au moins 2 s gardées). Vrai si elle démarre.</summary>
+        public bool Lancer()
+        {
+            if (Phase != 0 || plein < 2 * Frequence) return false;
+            longueur = plein; depart = (pos - plein + Capacite) % Capacite;
+            double es = 0, et = 0;
+            for (long i = 0; i < longueur; i++)
+            {
+                long j = ((depart + i) % Capacite) * Canaux;
+                for (int c = 0; c < Canaux; c++) { es += sec[j + c] * (double)sec[j + c]; et += traite[j + c] * (double)traite[j + c]; }
+            }
+            kSec = 1; kTraite = 1;
+            if (es > 1e-12 && et > 1e-12)
+            {
+                float k = (float)Math.Sqrt(Math.Min(es, et) / Math.Max(es, et));
+                if (et > es) kTraite = k; else kSec = k;
+            }
+            Phase = 1; lu = 0;
+            return true;
+        }
+
+        public void Arreter() { if (Phase != 0) { Phase = 0; plein = 0; } }
+
+        /// <summary>Remplace ce paquet par la suite de la réécoute (silence une fois finie).</summary>
+        public void Remplir(float[] t, int images)
+        {
+            for (int i = 0; i < images; i++)
+            {
+                int b = i * Canaux;
+                if (Phase == 2)
+                {
+                    for (int c = 0; c < Canaux; c++) t[b + c] = 0;
+                    if (--pause <= 0) { Phase = 3; lu = 0; }
+                    continue;
+                }
+                if (Phase == 0) { for (int c = 0; c < Canaux; c++) t[b + c] = 0; continue; }
+                long j = ((depart + lu) % Capacite) * Canaux;
+                float[] src = Phase == 1 ? sec : traite; float k = Phase == 1 ? kSec : kTraite;
+                for (int c = 0; c < Canaux; c++) t[b + c] = src[j + c] * k;
+                if (++lu >= longueur)
+                {
+                    if (Phase == 1) { Phase = 2; pause = Frequence; }   // une seconde de silence entre les deux
+                    else { Phase = 0; plein = 0; }                      // fin : on repart sur du son neuf
+                }
+            }
+        }
+    }
+
     /// <summary>Un câble virtuel trouvé sur ce PC : sa sortie (où joue le jeu) et son entrée (que capte le moteur).</summary>
     internal sealed class CableVirtuel
     {
@@ -304,6 +436,15 @@ namespace NettoyagePC
         public const string SiteCable = "https://vb-audio.com/Cable/";
         public static string FichierReglages { get { return Path.Combine(Chemins.Local, "moteur-son.json"); } }
         public static string FichierEtat { get { return Path.Combine(Chemins.Local, "moteur-son-etat.txt"); } }
+        /// <summary>Demande de réécoute (« go » ou « stop »), lue puis effacée par le moteur.</summary>
+        public static string FichierReecoute { get { return Path.Combine(Chemins.Local, "moteur-son-reecoute.txt"); } }
+
+        /// <summary>Demande au moteur de rejouer les dernières secondes (sans puis avec Velox), ou d'arrêter (« stop »).</summary>
+        public static string DemanderReecoute(bool lancer)
+        {
+            try { Directory.CreateDirectory(Chemins.Local); File.WriteAllText(FichierReecoute, lancer ? "go" : "stop"); return ""; }
+            catch (Exception ex) { return ex.Message; }
+        }
 
         /// <summary>Préréglages proposés dans la page.</summary>
         public static readonly Tuple<string, int>[] Niveaux = { Tuple.Create("Léger", 35), Tuple.Create("Fort", 65), Tuple.Create("Extrême", 100), Tuple.Create("Ultra", 130) };
