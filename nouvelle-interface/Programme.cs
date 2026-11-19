@@ -131,6 +131,14 @@ namespace NettoyagePC.Nouveau
             }
             catch (Exception ex) { JournalDemarrage.Erreur("réglages (version 5)", ex); }
             try { Licence.Charger(); } catch (Exception ex) { JournalDemarrage.Erreur("licence (version 5)", ex); }
+            // après une mise à jour, l'installateur a arrêté le gardien et le moteur « Pas boostés » : ils repartent ici
+            // (sans moteur, le son partirait dans le câble virtuel sans arriver au casque)
+            if (!Installation5.Apercu && Natif.EstWindows && Appli.DossierAutotest == null && App.FichierEssaiDemarrage == null)
+                System.Threading.Tasks.Task.Run(() =>
+                {
+                    try { Gardien.DemarrerSiBesoin(); } catch (Exception ex) { JournalDemarrage.Erreur("relance du gardien", ex); }
+                    try { if (MoteurSon.Lire().Actif && !MoteurSon.EnMarche()) MoteurSon.Surveiller(); } catch (Exception ex) { JournalDemarrage.Erreur("relance du moteur audio", ex); }
+                });
             // licence de la boutique revérifiée en arrière-plan (au plus une fois par semaine, ou tout de suite si une clé offerte
             // est arrivée à sa date de fin : elle a peut-être été prolongée) ; l'interface suit grâce à Licence.Change
             if (Appli.DossierAutotest == null) System.Threading.Tasks.Task.Run(() => { try { Licence.VerifierSiBesoin(); } catch { } });

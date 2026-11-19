@@ -23,6 +23,7 @@ SetCompressor /SOLID lzma
 !define EDITEUR    "Damien"
 !define CLE_DESINST "Software\Microsoft\Windows\CurrentVersion\Uninstall\NettoyagePC"
 Var Precedente
+Var MoteurArrete
 
 Name "${NOM} ${VERSION}"
 OutFile "NettoyagePC-Setup-${VERSION}.exe"
@@ -107,6 +108,10 @@ Function .onInstSuccess
     System::Call 'shell32::SHChangeNotify(i 0x08000000, i 0x1000, p 0, p 0)'
     ${If} ${Silent}
         Exec '"$WINDIR\explorer.exe" "$INSTDIR\NettoyagePC.exe"'
+    ${ElseIf} $MoteurArrete == 1
+        ; « Pas boostés » était allumé : sans son moteur, le son n'arrive plus au casque. Velox est relancé tout de suite
+        ; (il relance le moteur), même si la case « Lancer » de la dernière page est décochée.
+        Exec '"$WINDIR\explorer.exe" "$INSTDIR\NettoyagePC.exe"'
     ${EndIf}
 FunctionEnd
 
@@ -123,6 +128,28 @@ Function AttendreFermeture
         System::Call 'kernel32::SetEvent(p r2)'
         System::Call 'kernel32::CloseHandle(p r2)'
         Sleep 1500
+    ${EndIf}
+    ; le moteur « Pas boostés » (processus à part, sans fenêtre) garde aussi le programme ouvert : il est arrêté, sans
+    ; toucher à ses réglages. Velox le relance à son lancement, juste après l'installation.
+    StrCpy $MoteurArrete 0
+    System::Call 'kernel32::OpenMutexW(i 0x00100000, i 0, w "Local\VeloxMoteurSon") p .r3'
+    ${If} $3 P<> 0
+        System::Call 'kernel32::CloseHandle(p r3)'
+        StrCpy $MoteurArrete 1
+        System::Call 'kernel32::OpenEventW(i 0x0002, i 0, w "Local\VeloxMoteurSon-Arret") p .r2'
+        ${If} $2 P<> 0
+            System::Call 'kernel32::SetEvent(p r2)'
+            System::Call 'kernel32::CloseHandle(p r2)'
+            Sleep 1500
+        ${EndIf}
+        ; moteur d'une version d'avant la 5.20 (sans signal d'arrêt) : seul ce processus est arrêté, pas la fenêtre de Velox
+        System::Call 'kernel32::OpenMutexW(i 0x00100000, i 0, w "Local\VeloxMoteurSon") p .r3'
+        ${If} $3 P<> 0
+            System::Call 'kernel32::CloseHandle(p r3)'
+            nsExec::Exec '"$SYSDIR\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -NonInteractive -ExecutionPolicy Bypass -EncodedCommand RwBlAHQALQBDAGkAbQBJAG4AcwB0AGEAbgBjAGUAIABXAGkAbgAzADIAXwBQAHIAbwBjAGUAcwBzACAALQBGAGkAbAB0AGUAcgAgACIATgBhAG0AZQA9ACcATgBlAHQAdABvAHkAYQBnAGUAUABDAC4AZQB4AGUAJwAiACAAfAAgAFcAaABlAHIAZQAtAE8AYgBqAGUAYwB0ACAAewAgACQAXwAuAEMAbwBtAG0AYQBuAGQATABpAG4AZQAgAC0AbABpAGsAZQAgACcAKgAtAC0AbQBvAHQAZQB1AHIALQBzAG8AbgAqACcAIAB9ACAAfAAgAEYAbwByAEUAYQBjAGgALQBPAGIAagBlAGMAdAAgAHsAIABTAHQAbwBwAC0AUAByAG8AYwBlAHMAcwAgAC0ASQBkACAAJABfAC4AUAByAG8AYwBlAHMAcwBJAGQAIAAtAEYAbwByAGMAZQAgAC0ARQByAHIAbwByAEEAYwB0AGkAbwBuACAAUwBpAGwAZQBuAHQAbAB5AEMAbwBuAHQAaQBuAHUAZQAgAH0A'
+            Pop $0
+            Sleep 1000
+        ${EndIf}
     ${EndIf}
     StrCpy $1 0
     boucle:

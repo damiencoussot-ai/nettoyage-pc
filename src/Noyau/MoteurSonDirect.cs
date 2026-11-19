@@ -17,6 +17,9 @@ namespace NettoyagePC
     internal static partial class MoteurSon
     {
         private const string NomVerrou = @"Local\VeloxMoteurSon";
+        /// <summary>Signal d'arrêt (l'installateur le donne avant une mise à jour) : le moteur s'arrête sans rien changer à
+        /// ses réglages ; Velox le relance à son prochain lancement.</summary>
+        public const string NomArret = @"Local\VeloxMoteurSon-Arret";
         private static readonly Regex NomSortieCable = new Regex(@"^CABLE(-[A-D])? Input$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
         private static readonly Regex NomEntreeCable = new Regex(@"^CABLE(-[A-D])? Output$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
         private const string CleEntrees = @"HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\MMDevices\Audio\Capture";
@@ -303,15 +306,17 @@ namespace NettoyagePC
             using (var verrou = new Mutex(true, NomVerrou, out seul))
             {
                 if (!seul) return 0;   // déjà en marche
-                try { Boucle(); }
+                EventWaitHandle arret = null;
+                try { arret = new EventWaitHandle(false, EventResetMode.ManualReset, NomArret); } catch { }
+                try { Boucle(arret); }
                 catch (Exception ex) { JournalDemarrage.Erreur("moteur audio", ex); EcrireEtat(false, 0, 0, false, ex.Message); return 1; }
-                finally { try { verrou.ReleaseMutex(); } catch { } }
+                finally { try { verrou.ReleaseMutex(); } catch { } if (arret != null) arret.Dispose(); }
             }
             EcrireEtat(false, 0, 0, false, "");
             return 0;
         }
 
-        private static void Boucle()
+        private static void Boucle(EventWaitHandle arret)
         {
             Thread.CurrentThread.Priority = ThreadPriority.Highest;
             IMMDeviceEnumerator e = (IMMDeviceEnumerator)new MMDeviceEnumeratorCom();
@@ -332,6 +337,7 @@ namespace NettoyagePC
             {
                 while (true)
                 {
+                    if (arret != null && arret.WaitOne(0)) return;   // mise à jour : arrêt demandé par l'installateur
                     long t = montre.ElapsedMilliseconds;
                     // réglages relus quand ils changent (la page les écrit) ; « coupé » : le moteur s'arrête
                     if (t - derniereLecture >= 300)
