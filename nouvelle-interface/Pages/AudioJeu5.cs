@@ -2612,10 +2612,30 @@ namespace NettoyagePC.Nouveau
             if (exemple) return;
             r.Gains = (double[])p.Gains.Clone();
             string nom = Langue.T(p.Nom);
+            // « Profil adapté à chaque jeu » : le profil choisi devient celui du jeu (celui qui tourne, sinon le dernier
+            // chargé, sinon Call of Duty / Warzone) ; sinon, Velox remettrait son propre profil au prochain lancement
+            string retenu = RetenirProfilJeu(r, Releve?.Jeu, p.Gains);
+            if (retenu != "")
+            {
+                AnnoncerApres(Langue.T("Profil retenu pour ce jeu"), nom + " · " + retenu);
+                Changer(Langue.F("Profil « {0} » retenu pour {1} : il sera repris à chaque lancement du jeu.", nom, retenu), false, true);
+                return;
+            }
             AnnoncerApres(Langue.T(r.Actif ? "Profil appliqué" : "Profil choisi"), nom + (r.Actif ? "" : " · " + Langue.T(r.AutoJeu ? "au lancement du jeu" : "égaliseur coupé")));
             Changer(r.Actif ? Langue.F("Profil « {0} » appliqué.", nom)
                 : r.AutoJeu ? Langue.F("Profil « {0} » choisi : il s'appliquera au lancement du jeu.", nom)
                 : Langue.F("Profil « {0} » choisi. L'égaliseur est coupé : active-le pour l'entendre.", nom), false, true);
+        }
+
+        /// <summary>Avec « Profil adapté à chaque jeu », retient ces gains pour le jeu visé ; nom du jeu, ou "" si rien n'est retenu.
+        /// Choisir le profil prévu par Velox pour ce jeu efface le choix retenu.</summary>
+        internal static string RetenirProfilJeu(ReglagesAudioJeu r, string exeEnCours, double[] gains)
+        {
+            if (!r.ProfilParJeu) return "";
+            var j = AudioJeu.JeuDe(exeEnCours) ?? AudioJeu.Jeux.FirstOrDefault(x => x.Cle == r.JeuEnCours) ?? AudioJeu.Jeux[0];
+            if (j.Gains.SequenceEqual(gains)) r.GainsParJeu.Remove(j.Cle);
+            else r.GainsParJeu[j.Cle] = (double[])gains.Clone();
+            return j.Nom;
         }
 
         private void ReglageAutomatique()

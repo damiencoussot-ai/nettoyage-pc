@@ -3994,3 +3994,5 @@ Un réglage par jeu, et deux tests d'écoute : direction des pas (8 directions) 
 Elle passe par Equalizer APO : elle n'agit pas avec l'égaliseur de Voicemeeter.	It goes through Equalizer APO: it has no effect with Voicemeeter's equalizer.	Pasa por Equalizer APO: no actúa con el ecualizador de Voicemeeter.
 Elle agira dès que l'égaliseur sera allumé.	It will take effect as soon as the equalizer is on.	Se aplicará en cuanto el ecualizador esté activado.
 Le câble s'appelle de nouveau « Velox Studio » : si ton jeu était ouvert, relance-le pour le voir.	The cable is called “Velox Studio” again: if your game was open, restart it to see it.	El cable vuelve a llamarse «Velox Studio»: si tu juego estaba abierto, reinícialo para verlo.
+Profil retenu pour ce jeu	Profile kept for this game	Perfil guardado para este juego
+Profil « {0} » retenu pour {1} : il sera repris à chaque lancement du jeu.	“{0}” profile kept for {1}: it will be loaded every time the game starts.	Perfil «{0}» guardado para {1}: se cargará cada vez que se inicie el juego.

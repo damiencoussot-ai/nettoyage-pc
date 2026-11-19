@@ -701,6 +701,18 @@ namespace NettoyagePC.Nouveau
                 verifier(okV && !c2 && okCs && c4 && !rj.Actif && rj.JeuEnCours == "", "Auto jeux : profil du jeu chargé au lancement, réglage de la partie gardé, coupé à la fermeture");
                 var rj2 = new ReglagesAudioJeu { AutoJeu = true, ProfilParJeu = false, Gains = (double[])competitif.Clone() };
                 verifier(AudioJeu.SuivreJeu(rj2, "r5apex.exe", false) && rj2.Actif && rj2.Gains.SequenceEqual(competitif), "Auto jeux sans profil par jeu : le profil choisi reste");
+                {
+                    // profil choisi pour un jeu : repris à son lancement à la place du profil prévu ; relu ; effacé si on reprend celui du jeu
+                    var ultra = AudioJeu.Profils.First(p => p.Cle == "ultra").Gains;
+                    var rp = new ReglagesAudioJeu { AutoJeu = true, ProfilParJeu = true };
+                    string nomJ = AudioJeu5.RetenirProfilJeu(rp, null, ultra);
+                    var rpl = ReglagesAudioJeu.DepuisJson(NettoyagePC.Json.Lire(NettoyagePC.Json.Ecrire(rp.VersJson())) as System.Collections.Generic.Dictionary<string, object>);
+                    rpl.Gains = (double[])AudioJeu.Profils[0].Gains.Clone();
+                    bool okP = nomJ == AudioJeu.Jeux[0].Nom && AudioJeu.SuivreJeu(rpl, "cod.exe", false) && rpl.Gains.SequenceEqual(ultra);
+                    AudioJeu5.RetenirProfilJeu(rpl, "cod.exe", AudioJeu.Jeux[0].Gains);
+                    okP &= rpl.GainsParJeu.Count == 0 && AudioJeu5.RetenirProfilJeu(new ReglagesAudioJeu(), "cod.exe", ultra) == "";
+                    verifier(okP, "profil adapté à chaque jeu : le profil choisi est retenu pour le jeu, repris à son lancement, effacé si on revient au profil du jeu");
+                }
                 var rjj = ReglagesAudioJeu.DepuisJson(Json.Lire(Json.Ecrire(new ReglagesAudioJeu { ProfilParJeu = true, JeuEnCours = "tarkov" }.VersJson())) as System.Collections.Generic.Dictionary<string, object>);
                 var rjf = ReglagesAudioJeu.DepuisJson(new System.Collections.Generic.Dictionary<string, object> { { "JeuEnCours", "x\ninclude" } });
                 verifier(rjj.ProfilParJeu && rjj.JeuEnCours == "tarkov" && rjf.JeuEnCours == "", "Auto jeux : réglages enregistrés et relus (jeu inconnu refusé)");
