@@ -290,6 +290,10 @@ namespace NettoyagePC
         {
             public IMMDevice Appareil; public IAudioClient Client; public IAudioCaptureClient Capture; public IAudioRenderClient Rendu;
             public int Images;
+            /// <summary>Réserve visée dans le tampon du casque (images) : petite au départ, agrandie seulement si le son
+            /// manque (le tampon s'est vidé). -1 : pas encore fixée.</summary>
+            public int Reserve = -1;
+            public bool Amorce;
             public void Fermer()
             {
                 try { if (Client != null) Client.Stop(); } catch { }
@@ -443,16 +447,24 @@ namespace NettoyagePC
         }
 
         /// <summary>
-        /// Écrit le son traité sur le casque. Retard visé : 20 ms dans le tampon du casque. Les horloges du câble et du casque
-        /// ne battent jamais exactement au même rythme : si le tampon dépasse 60 ms, le surplus est sauté ; s'il se vide,
-        /// 10 ms de silence sont remis pour repartir sans craquements à répétition.
+        /// Écrit le son traité sur le casque. Réserve visée : 12 ms dans le tampon du casque au départ (le retard ajouté
+        /// est surtout là). Si le tampon se vide (PC chargé : un craquement), la réserve grandit de 4 ms, jusqu'à 40 ms au
+        /// plus : chaque PC trouve ainsi le plus petit retard sans craquements. Les horloges du câble et du casque ne
+        /// battent jamais exactement au même rythme : au-delà de la réserve + 12 ms, le surplus est sauté.
         /// </summary>
         private static void Jouer(Flux ren, float[] t, int images, int canaux, int fe, bool flottant)
         {
             int pad;
             if (ren.Client.GetCurrentPadding(out pad) != 0) throw new InvalidOperationException("casque indisponible");
-            int vise = fe / 50, maxi = fe * 3 / 50, debut = 0;
-            if (pad == 0) EcrireRendu(ren, null, fe / 100, canaux, flottant, 0);   // tampon vide : 10 ms de marge
+            if (ren.Reserve < 0) ren.Reserve = fe * 12 / 1000;
+            int vise = ren.Reserve, maxi = ren.Reserve + fe * 12 / 1000, debut = 0;
+            if (pad == 0)
+            {
+                // tampon vide : après le tout premier paquet, c'est un manque (craquement) ; la réserve grandit
+                if (ren.Amorce) ren.Reserve = Math.Min(fe * 40 / 1000, ren.Reserve + fe * 4 / 1000);
+                ren.Amorce = true;
+                EcrireRendu(ren, null, Math.Min(ren.Images, ren.Reserve), canaux, flottant, 0);
+            }
             if (pad + images > maxi) { int trop = pad + images - vise; debut = Math.Min(images, Math.Max(0, trop)); }
             int restant = images - debut;
             if (ren.Client.GetCurrentPadding(out pad) != 0) throw new InvalidOperationException("casque indisponible");

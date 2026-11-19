@@ -33,6 +33,9 @@ namespace NettoyagePC
         /// <summary>« Un réglage par jeu » : un réglage fait pendant une partie est retenu pour ce jeu (clé « cod »,
         /// « valorant »…) et repris à chaque fois qu'il tourne. Valeurs : force, arme.</summary>
         public bool ParJeuActif = true;
+        /// <summary>Le câble s'appelait « Velox Studio » quand « Pas boostés » a été coupé (il a repris son nom d'origine) :
+        /// il le retrouve au prochain allumage.</summary>
+        public bool RenommerAuRallumage;
         public Dictionary<string, int[]> ParJeu = new Dictionary<string, int[]>();
         private static readonly Regex CleJeu = new Regex("^[a-z0-9]{1,24}$");
 
@@ -66,7 +69,7 @@ namespace NettoyagePC
             {
                 { "Actif", Actif }, { "Force", Force }, { "JeuxSeulement", JeuxSeulement },
                 { "Source", Source }, { "Destination", Destination }, { "DefautAvant", DefautAvant }, { "Arme", Arme },
-                { "ParJeuActif", ParJeuActif }, { "ParJeu", (ParJeu ?? new Dictionary<string, int[]>()).ToDictionary(kv => kv.Key, kv => (object)new object[] { kv.Value[0], kv.Value[1] }) },
+                { "ParJeuActif", ParJeuActif }, { "RenommerAuRallumage", RenommerAuRallumage }, { "ParJeu", (ParJeu ?? new Dictionary<string, int[]>()).ToDictionary(kv => kv.Key, kv => (object)new object[] { kv.Value[0], kv.Value[1] }) },
             });
         }
 
@@ -86,6 +89,7 @@ namespace NettoyagePC
                 if (d.TryGetValue("DefautAvant", out o)) r.DefautAvant = Convert.ToString(o, CultureInfo.InvariantCulture) ?? "";
                 if (d.TryGetValue("Arme", out o)) r.Arme = (int)Math.Round(Convert.ToDouble(o, CultureInfo.InvariantCulture));
                 if (d.TryGetValue("ParJeuActif", out o) && o is bool pa) r.ParJeuActif = pa;
+                if (d.TryGetValue("RenommerAuRallumage", out o) && o is bool ra) r.RenommerAuRallumage = ra;
                 if (d.TryGetValue("ParJeu", out o) && o is Dictionary<string, object> pj)
                     foreach (var kv in pj)
                     {

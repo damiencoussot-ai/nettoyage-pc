@@ -807,6 +807,7 @@ namespace NettoyagePC.Nouveau
                         relu.ParJeuActif = false; relu.Effectifs("cod", out fj4, out aj4);
                         okJ &= fj4 == 35 && aj4 == 1 && AudioJeu5.NomJeuCle("cod") != "" && AudioJeu5.NomJeuCle("zzz") == "";
                         verifier(okJ, "un réglage par jeu : retenu pour le jeu en cours, réglage général ailleurs, relu, bornes et clés vérifiées");
+                        verifier(ReglagesMoteurSon.Lire(new ReglagesMoteurSon { RenommerAuRallumage = true }.Json()).RenommerAuRallumage && !new ReglagesMoteurSon().RenommerAuRallumage, "Velox Studio : le nom à remettre au rallumage est gardé dans les réglages");
                     }
                     {
                         // test de direction : son sur les bonnes voies seulement, notation et conseils

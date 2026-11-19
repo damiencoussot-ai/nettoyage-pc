@@ -1838,7 +1838,7 @@ namespace NettoyagePC.Nouveau
                     zonePas.Children.Add(ligneRe);
                     tPasDirect = Studio.T("", 12, Studio.Texte);
                     zonePas.Children.Add(tPasDirect);
-                    zonePas.Children.Add(Studio.T(Langue.T("Léger : +13 dB sur les pas lointains face aux explosions. Fort : +20 dB. Extrême : +25 dB. Ultra : +27 dB, et un pas pendant une explosion ressort de +11 dB (le plus fort, moins naturel). Mesuré sur une scène de jeu. Les aigus des pas sont mis en avant seulement quand c'est calme : les tirs ne deviennent pas criards. Le son passe par VB-Cable, puis Velox le joue sur ton casque : environ 25 ms de retard en plus. Dans le jeu, laisse la sortie audio sur « Par défaut »."), 11.5, Studio.Faible));
+                    zonePas.Children.Add(Studio.T(Langue.T("Léger : +13 dB sur les pas lointains face aux explosions. Fort : +20 dB. Extrême : +25 dB. Ultra : +27 dB, et un pas pendant une explosion ressort de +11 dB (le plus fort, moins naturel). Mesuré sur une scène de jeu. Les aigus des pas sont mis en avant seulement quand c'est calme : les tirs ne deviennent pas criards. Le son passe par VB-Cable, puis Velox le joue sur ton casque : de 20 à 40 ms de retard en plus selon le PC (affiché en direct). Dans le jeu, laisse la sortie audio sur « Par défaut »."), 11.5, Studio.Faible));
                     zonePas.Children.Add(Studio.T(Langue.T("Encore mieux en 7.1 : Panneau de configuration > Son > CABLE Input > Configurer > 7.1. Tes tirs arrivent alors sur leur propre voie (le centre) : Velox les baisse sans toucher aux ennemis autour de toi."), 11.5, Studio.Faible));
                 }
             }
@@ -1884,12 +1884,29 @@ namespace NettoyagePC.Nouveau
             pasOccupe = true; signaturePas = null; MajPas(Releve ?? new ReleveAudioJeu());
             var f = F;
             var cables = (Releve ?? new ReleveAudioJeu()).Cables.Select(c => c.Sortie).ToList();
+            bool renomme = false;
             Task.Run(() =>
             {
-                if (allumer) return MoteurSon.Allumer(force, jeux);
+                if (allumer)
+                {
+                    string ea = MoteurSon.Allumer(force, jeux);
+                    if (ea != "") return ea;
+                    // il s'appelait « Velox Studio » avant d'être coupé : il retrouve ce nom (autorisation de Windows demandée)
+                    var ma = MoteurSon.Lire();
+                    if (ma.RenommerAuRallumage)
+                    {
+                        var cable = MoteurSon.Cables().FirstOrDefault(c => c.Entree == ma.Source);
+                        if (cable != null && NomStudio.Appliquer(cable.Sortie) == "") renomme = true;
+                        ma = MoteurSon.Lire(); ma.RenommerAuRallumage = false; try { MoteurSon.Ecrire(ma); } catch { }
+                    }
+                    return "";
+                }
+                bool etaitNomme = cables.Any(c => { try { return NomStudio.EstNomme(c); } catch { return false; } });
                 string e = MoteurSon.Couper(true);
-                // le câble ne mène plus au casque : s'il s'appelait « Velox Studio », il reprend son nom (piège sinon)
+                // le câble ne mène plus au casque : s'il s'appelait « Velox Studio », il reprend son nom (piège sinon) ; il le
+                // retrouvera au prochain allumage
                 foreach (var c in cables) { try { NomStudio.RetablirUn(c); } catch { } }
+                if (etaitNomme) { try { var mc = MoteurSon.Lire(); mc.RenommerAuRallumage = true; MoteurSon.Ecrire(mc); } catch { } }
                 return e;
             }).ContinueWith(t => Dispatcher.UIThread.Post(() =>
             {
@@ -1897,7 +1914,8 @@ namespace NettoyagePC.Nouveau
                 string err = t.IsFaulted ? (t.Exception.InnerException ?? t.Exception).Message : t.Result;
                 if (err != "") { f.Statut(Langue.T(err), true); Relever(); return; }
                 Confirmer(f, Langue.T(allumer ? "Pas boostés allumé" : "Pas boostés coupé"), allumer ? Langue.T("VB-Cable → Velox → ton casque") : Langue.T("le son va directement au casque"), allumer);
-                f.Statut(Langue.T(allumer ? "« Pas boostés » allumé : le jeu joue dans VB-Cable, Velox traite le son et le joue sur ton casque (changement de sortie annulable dans l'Historique)." : "« Pas boostés » coupé : ton casque est de nouveau la sortie par défaut."));
+                f.Statut(Langue.T(allumer ? "« Pas boostés » allumé : le jeu joue dans VB-Cable, Velox traite le son et le joue sur ton casque (changement de sortie annulable dans l'Historique)." : "« Pas boostés » coupé : ton casque est de nouveau la sortie par défaut.")
+                    + (renomme ? " " + Langue.T("Le câble s'appelle de nouveau « Velox Studio » : si ton jeu était ouvert, relance-le pour le voir.") : ""));
                 Relever();
             }));
         }
