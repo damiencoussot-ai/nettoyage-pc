@@ -626,6 +626,7 @@ namespace NettoyagePC.Nouveau
             {
                 ArreterDemo();
                 ArreterDuel(false);
+                ArreterTests();   // test d'écoute en cours : son arrêté, égaliseur remis
                 if (comparaison) Comparer(F, false);   // bouton « Comparer » encore maintenu : l'égaliseur revient
                 Appliquer();   // un réglage encore en attente n'est pas perdu
                 Direct(false);

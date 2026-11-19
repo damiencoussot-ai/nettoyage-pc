@@ -26,7 +26,7 @@ namespace NettoyagePC.Nouveau
         private int[] ordreDir; private readonly List<int> repDir = new List<int>(); private int etapeDir = -1; private bool dirSeptUn;
         private float[] sonDir;
         // audition
-        private List<Tuple<int, int>> essaisAud; private int etapeAud = -1; private double?[] seuilG, seuilD; private long debutBip; private bool repondu;
+        private List<Tuple<int, int>> essaisAud; private int etapeAud = -1, generationAud; private double?[] seuilG, seuilD; private long debutBip; private bool repondu;
 
         private Control ConstruireTests()
         {
@@ -142,7 +142,7 @@ namespace NettoyagePC.Nouveau
             essaisAud = new List<Tuple<int, int>>();
             for (int i = 0; i < n; i++) { essaisAud.Add(Tuple.Create(i, 0)); essaisAud.Add(Tuple.Create(i, 1)); }
             essaisAud = essaisAud.OrderBy(x => hasardTest.Next()).ToList();
-            etapeAud = 0; zoneAudResultat.Children.Clear();
+            etapeAud = 0; generationAud++; zoneAudResultat.Children.Clear();
             Contourner(F, true);   // l'égaliseur (et une compensation déjà en place) est coupé pendant le test
             bEntends.IsVisible = true;
             JouerAud();
@@ -179,15 +179,24 @@ namespace NettoyagePC.Nouveau
             var e = essaisAud[etapeAud];
             if (e.Item2 == 0) seuilG[e.Item1] = niveau; else seuilD[e.Item1] = niveau;
             etapeAud++;
+            int gen = generationAud;
             var minuterie = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(800) };
-            minuterie.Tick += (o, a) => { minuterie.Stop(); JouerAud(); };
+            minuterie.Tick += (o, a) => { minuterie.Stop(); if (gen == generationAud) JouerAud(); };   // test relancé entre-temps : rien
             minuterie.Start();
+        }
+
+        /// <summary>Arrête tout test d'écoute en cours (la page se ferme) : son coupé, égaliseur remis.</summary>
+        private void ArreterTests()
+        {
+            ArreterTest();
+            etapeDir = -1; if (grilleDir != null) grilleDir.IsVisible = false;
+            ArreterAud(true);
         }
 
         private void ArreterAud(bool remettre)
         {
             if (etapeAud < 0) return;
-            etapeAud = -1; ArreterTest(); bEntends.IsVisible = false;
+            etapeAud = -1; generationAud++; ArreterTest(); bEntends.IsVisible = false;
             if (remettre) Contourner(F, false);
         }
 
@@ -217,7 +226,10 @@ namespace NettoyagePC.Nouveau
         {
             if (exemple) return;
             r.OreilleG = (double[])cg.Clone(); r.OreilleD = (double[])cd.Clone(); r.Borner();
-            Changer(Langue.T(r.Oreilles ? "Compensation des oreilles appliquée." : "Compensation des oreilles retirée."), true, true);
+            string msg = Langue.T(r.Oreilles ? "Compensation des oreilles appliquée." : "Compensation des oreilles retirée.");
+            if (r.Oreilles && r.Moteur == "vm") msg += " " + Langue.T("Elle passe par Equalizer APO : elle n'agit pas avec l'égaliseur de Voicemeeter.");
+            else if (r.Oreilles && !r.Actif) msg += " " + Langue.T("Elle agira dès que l'égaliseur sera allumé.");
+            Changer(msg, true, true);
             AfficherCompensation();
         }
 

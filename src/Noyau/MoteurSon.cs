@@ -342,7 +342,9 @@ namespace NettoyagePC
 
         public MemoireReecoute(int canaux, int frequence, int secondes)
         {
-            Canaux = Math.Max(1, canaux); Frequence = Math.Max(8000, frequence); Capacite = Frequence * Math.Max(1, secondes);
+            Canaux = Math.Max(1, canaux); Frequence = Math.Max(8000, frequence);
+            // au plus 4 millions d'échantillons par anneau (10 s en 7.1 à 48 kHz ; moins à 192 kHz ou en 16 canaux)
+            Capacite = Math.Max(2 * Frequence, Math.Min(Frequence * Math.Max(1, secondes), 4000000 / Canaux));
             sec = new float[Capacite * Canaux]; traite = new float[Capacite * Canaux];
         }
 

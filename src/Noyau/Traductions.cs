@@ -3859,6 +3859,8 @@ namespace NettoyagePC
             "coupé", "off", "desactivado",
             "Réécoute sans / avec Velox : les 10 dernières secondes de ta partie, rejouées au même volume.", "Replay without / with Velox: the last 10 seconds of your match, played back at the same volume.", "Volver a escuchar sin / con Velox: los últimos 10 segundos de tu partida, al mismo volumen.",
             "Un réglage par jeu, et deux tests d'écoute : direction des pas (8 directions) et audition de tes deux oreilles.", "One setting per game, and two listening tests: footstep direction (8 directions) and hearing in both ears.", "Un ajuste por juego y dos pruebas de escucha: dirección de los pasos (8 direcciones) y audición de tus dos oídos.",
+            "Elle passe par Equalizer APO : elle n'agit pas avec l'égaliseur de Voicemeeter.", "It goes through Equalizer APO: it has no effect with Voicemeeter's equalizer.", "Pasa por Equalizer APO: no actúa con el ecualizador de Voicemeeter.",
+            "Elle agira dès que l'égaliseur sera allumé.", "It will take effect as soon as the equalizer is on.", "Se aplicará en cuanto el ecualizador esté activado.",
         };
         private static readonly string[] Prefixes =
         {
