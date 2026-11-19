@@ -819,6 +819,14 @@ namespace NettoyagePC.Nouveau
                         relu.ParJeuActif = false; relu.Effectifs("cod", out fj4, out aj4);
                         okJ &= fj4 == 35 && aj4 == 1 && AudioJeu5.NomJeuCle("cod") != "" && AudioJeu5.NomJeuCle("zzz") == "";
                         verifier(okJ, "un réglage par jeu : retenu pour le jeu en cours, réglage général ailleurs, relu, bornes et clés vérifiées");
+                        {
+                            // un échantillon invalide (NaN, infini) ne doit pas bloquer le traitement pour toujours
+                            var cn = new CompresseurPas(100, 48000, 2); var bn = new float[480 * 2];
+                            bn[10] = float.NaN; bn[11] = float.PositiveInfinity; cn.Traiter(bn, 480, 2);
+                            var bn2 = new float[480 * 2]; for (int i = 0; i < 480; i++) bn2[2 * i] = bn2[2 * i + 1] = (float)(0.1 * Math.Sin(i * 0.3));
+                            cn.Traiter(bn2, 480, 2);
+                            verifier(bn.Concat(bn2).All(x => !float.IsNaN(x) && !float.IsInfinity(x) && Math.Abs(x) <= 0.9501f) && bn2.Any(x => x != 0), "pas boostés : un échantillon invalide est remplacé par du silence, le son repart");
+                        }
                         verifier(ReglagesMoteurSon.Lire(new ReglagesMoteurSon { RenommerAuRallumage = true }.Json()).RenommerAuRallumage && !new ReglagesMoteurSon().RenommerAuRallumage, "Velox Studio : le nom à remettre au rallumage est gardé dans les réglages");
                     }
                     {

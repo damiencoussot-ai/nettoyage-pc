@@ -87,7 +87,6 @@ namespace NettoyagePC
                 if (!Natif.EstWindows || guidDefaut == "") return guidDefaut;
                 var r = Lire();
                 if (!r.Actif || r.Destination == "") return guidDefaut;
-                string nom = NomSeul(AudioJeu.NomSortie(guidDefaut));
                 string suffixe;
                 return EstCable(AudioJeu.NomSortie(guidDefaut), out suffixe) ? AudioWindows.GuidDe(r.Destination) : guidDefaut;
             }
@@ -165,16 +164,30 @@ namespace NettoyagePC
             return e;
         }
 
-        private static void EcrireEtat(bool marche, int latence, double reduction, bool jeu, string erreur, int canaux = 0, double reductionArme = 0,
+        private static string LigneEtat(bool marche, int latence, double reduction, bool jeu, string erreur, int canaux = 0, double reductionArme = 0,
             int reecoute = 0, int reecouteSecondes = 0, int memoire = 0, string jeuCle = "")
+        {
+            var c = CultureInfo.InvariantCulture;
+            return (marche ? "marche" : "arret") + "|" + latence.ToString(c) + "|" + reduction.ToString("F1", c) + "|" + (jeu ? "1" : "0") + "|" + (erreur ?? "").Replace('|', ' ').Replace('\n', ' ').Replace('\r', ' ') + "|" + canaux.ToString(c) + "|" + reductionArme.ToString("F1", c)
+                + "|" + reecoute.ToString(c) + "|" + reecouteSecondes.ToString(c) + "|" + memoire.ToString(c) + "|" + (jeuCle ?? "");
+        }
+
+        /// <summary>Écrit l'état d'un coup (fichier temporaire puis remplacement) : la page ne lit jamais une ligne à moitié écrite.</summary>
+        private static void EcrireLigneEtat(string ligne)
         {
             try
             {
-                var c = CultureInfo.InvariantCulture;
-                File.WriteAllText(FichierEtat, (marche ? "marche" : "arret") + "|" + latence.ToString(c) + "|" + reduction.ToString("F1", c) + "|" + (jeu ? "1" : "0") + "|" + (erreur ?? "").Replace('|', ' ').Replace('\n', ' ') + "|" + canaux.ToString(c) + "|" + reductionArme.ToString("F1", c)
-                    + "|" + reecoute.ToString(c) + "|" + reecouteSecondes.ToString(c) + "|" + memoire.ToString(c) + "|" + (jeuCle ?? ""));
+                string temp = FichierEtat + ".tmp";
+                File.WriteAllText(temp, ligne);
+                File.Move(temp, FichierEtat, true);
             }
-            catch { }
+            catch { try { File.WriteAllText(FichierEtat, ligne); } catch { } }
+        }
+
+        private static void EcrireEtat(bool marche, int latence, double reduction, bool jeu, string erreur, int canaux = 0, double reductionArme = 0,
+            int reecoute = 0, int reecouteSecondes = 0, int memoire = 0, string jeuCle = "")
+        {
+            EcrireLigneEtat(LigneEtat(marche, latence, reduction, jeu, erreur, canaux, reductionArme, reecoute, reecouteSecondes, memoire, jeuCle));
         }
 
         // ------------------------------------------------------------------ allumer, couper, surveiller (côté Velox)
@@ -320,9 +333,28 @@ namespace NettoyagePC
             return 0;
         }
 
+        [DllImport("avrt.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        private static extern IntPtr AvSetMmThreadCharacteristicsW(string tache, ref int index);
+        [DllImport("avrt.dll", SetLastError = true)]
+        private static extern bool AvRevertMmThreadCharacteristics(IntPtr poignee);
+
+        /// <summary>Jeu en cours, cherché par un fil à part (parcourir les processus prend parfois des dizaines de ms : dans le
+        /// fil du son, cela ferait des trous).</summary>
+        private static volatile string jeuDetecte = "";
+
         private static void Boucle(EventWaitHandle arret)
         {
             Thread.CurrentThread.Priority = ThreadPriority.Highest;
+            // priorité « audio pro » de Windows (MMCSS) : le fil du son passe devant le reste, même quand le jeu charge le PC
+            IntPtr mmcss = IntPtr.Zero;
+            try { int idx = 0; mmcss = AvSetMmThreadCharacteristicsW("Pro Audio", ref idx); } catch { }
+            var fini = new ManualResetEventSlim(false);
+            var chercheur = new Thread(() =>
+            {
+                while (!fini.IsSet) { try { jeuDetecte = JeuEnCours(); } catch { } fini.Wait(2000); }
+            }) { IsBackground = true, Priority = ThreadPriority.BelowNormal, Name = "Velox jeu en cours" };
+            chercheur.Start();
+            string etatEnAttente = null; bool ecritureEnCours = false; var verrouEtat = new object();
             IMMDeviceEnumerator e = (IMMDeviceEnumerator)new MMDeviceEnumeratorCom();
             Flux cap = null, ren = null;
             IntPtr format = IntPtr.Zero;
@@ -366,10 +398,10 @@ namespace NettoyagePC
                         try { dem = File.ReadAllText(FichierReecoute).Trim(); File.Delete(FichierReecoute); } catch { }
                         if (memoire != null) { if (dem == "stop") memoire.Arreter(); else if (dem == "go") memoire.Lancer(); }
                     }
-                    if (t - dernierJeu >= 2000)
+                    if (t - dernierJeu >= 250)
                     {
                         dernierJeu = t;
-                        jeuCle = JeuEnCours();
+                        jeuCle = jeuDetecte;
                         jeu = jeuCle != "";
                     }
                     // réglages effectifs : ceux retenus pour le jeu en cours (« un réglage par jeu »), sinon les réglages généraux
@@ -400,8 +432,26 @@ namespace NettoyagePC
                         try { int pad; if (ren != null && ren.Client.GetCurrentPadding(out pad) == 0) lat = (int)(1000.0 * pad / fe) + 10 + (comp != null ? 2 : 0); } catch { }
                         double red = comp != null ? comp.ReductionMax : 0; if (comp != null) comp.ReductionMax = 0;
                         double redA = comp != null ? comp.ReductionArmeMax : 0; if (comp != null) comp.ReductionArmeMax = 0;
-                        EcrireEtat(cap != null && ren != null, lat, red, !r.JeuxSeulement || jeu, erreur, cap != null ? canaux : 0, redA,
+                        // écrit par un fil à part (un fichier peut être retenu quelques ms par l'antivirus : pas dans le fil du son)
+                        string ligne = LigneEtat(cap != null && ren != null, lat, red, !r.JeuxSeulement || jeu, erreur, cap != null ? canaux : 0, redA,
                             memoire != null ? memoire.Phase : 0, memoire != null ? memoire.SecondesRestantes : 0, memoire != null ? memoire.Secondes : 0, jeuCle);
+                        lock (verrouEtat)
+                        {
+                            etatEnAttente = ligne;
+                            if (!ecritureEnCours)
+                            {
+                                ecritureEnCours = true;
+                                ThreadPool.QueueUserWorkItem(_ =>
+                                {
+                                    while (true)
+                                    {
+                                        string a;
+                                        lock (verrouEtat) { a = etatEnAttente; etatEnAttente = null; if (a == null) { ecritureEnCours = false; return; } }
+                                        EcrireLigneEtat(a);
+                                    }
+                                });
+                            }
+                        }
                     }
                     if (cap == null || ren == null) { Thread.Sleep(100); continue; }
                     evenement.WaitOne(100);
@@ -439,10 +489,14 @@ namespace NettoyagePC
             }
             finally
             {
+                fini.Set();
                 if (cap != null) cap.Fermer(); if (ren != null) ren.Fermer();
                 if (format != IntPtr.Zero) Marshal.FreeCoTaskMem(format);
                 AudioWindows.Liberer(e);
                 evenement.Dispose();
+                if (mmcss != IntPtr.Zero) { try { AvRevertMmThreadCharacteristics(mmcss); } catch { } }
+                // dernière écriture de l'état en attente, avant celle de l'arrêt (sinon elle pourrait passer après)
+                for (int i = 0; i < 40; i++) { lock (verrouEtat) { if (!ecritureEnCours) break; } Thread.Sleep(25); }
             }
         }
 

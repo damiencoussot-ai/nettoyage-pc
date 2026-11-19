@@ -244,7 +244,8 @@ namespace NettoyagePC
                 int b = i * canaux;
                 // 0. son d'origine gardé (pour « seulement en jeu »), puis dompteur de graves : graves séparés (passe-bas
                 //    200 Hz), baissés selon leur propre niveau, recombinés avec le reste intact (somme exacte si gain 0 dB)
-                for (int c = 0; c < canaux; c++) sec[pos * canaux + c] = t[b + c];
+                // un échantillon invalide (pilote en défaut) empoisonnerait tous les filtres pour toujours : remplacé par du silence
+                for (int c = 0; c < canaux; c++) { float v0 = t[b + c]; if (float.IsNaN(v0) || float.IsInfinity(v0)) t[b + c] = 0; sec[pos * canaux + c] = t[b + c]; }
                 // 0 bis. ton arme (avant tout le reste : le compresseur ne voit plus tes tirs, il remonte mieux le reste)
                 if (Arme > 0 && canaux >= 2)
                 {

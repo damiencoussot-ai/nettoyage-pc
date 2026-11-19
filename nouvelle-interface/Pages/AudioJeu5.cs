@@ -358,6 +358,7 @@ namespace NettoyagePC.Nouveau
             {
                 var p = AudioJeu.ProfilSuivant(r.Gains);
                 r.Gains = (double[])p.Gains.Clone();
+                try { RetenirProfilJeu(r, AudioJeu.JeuDetecte(), p.Gains); } catch { }   // repris au prochain lancement du jeu
                 message = Langue.F("Profil « {0} » appliqué.", Langue.T(p.Nom));
                 Bip(Enumerable.Repeat(660, Array.IndexOf(AudioJeu.Profils, p) + 1).ToArray());
                 BulleAudio.Montrer(Langue.T(p.Carte).ToUpper(Langue.Culture), Langue.T(r.Actif ? "profil appliqué" : "profil choisi (égaliseur coupé)"), r.Actif);
@@ -1343,7 +1344,7 @@ namespace NettoyagePC.Nouveau
 
         // ---------------------------------------------------------------- test avant / après à l'oreille
 
-        private TextBlock tDemo, tDemoDetail;
+        private TextBlock tDemoDetail;
         private Border bDemo, carteSans, carteAvec, bDuel;
         private StackPanel zoneDuel;
         // duel à l'oreille : candidats (nom, réglages), sons rendus, champion, challenger, ordre d'écoute, étape
@@ -2107,6 +2108,7 @@ namespace NettoyagePC.Nouveau
             if (!deja) ligne.Children.Add(Studio.Bouton(Langue.T("Appliquer ce profil"), true, () =>
             {
                 r.Gains = (double[])g.Item2.Gains.Clone();
+                RetenirProfilJeu(r, Releve?.Jeu, r.Gains);
                 AnnoncerApres(Langue.T(r.Actif ? "Profil appliqué" : "Profil choisi"), g.Item1);
                 ArreterDuel(false);
                 Changer(Langue.F("Profil « {0} » appliqué (choisi au duel à l'oreille).", g.Item1), false, true);
@@ -2592,6 +2594,7 @@ namespace NettoyagePC.Nouveau
         {
             if (exemple) return;
             r.Gains = (double[])j.Gains.Clone(); r.CoupeBas = j.CoupeBas;
+            RetenirProfilJeu(r, Releve?.Jeu, r.Gains);
             AnnoncerApres(Langue.T(r.Actif ? "Profil appliqué" : "Profil choisi"), j.Nom + (r.Actif ? "" : " · " + Langue.T("égaliseur coupé")));
             Changer(r.Actif ? Langue.F("Profil « {0} » appliqué.", j.Nom) : Langue.F("Profil « {0} » choisi. L'égaliseur est coupé : active-le pour l'entendre.", j.Nom), false, true);
         }
@@ -2633,7 +2636,7 @@ namespace NettoyagePC.Nouveau
         /// Choisir le profil prévu par Velox pour ce jeu efface le choix retenu.</summary>
         internal static string RetenirProfilJeu(ReglagesAudioJeu r, string exeEnCours, double[] gains)
         {
-            if (!r.ProfilParJeu) return "";
+            if (!r.AutoJeu || !r.ProfilParJeu) return "";
             var j = AudioJeu.JeuDe(exeEnCours) ?? AudioJeu.Jeux.FirstOrDefault(x => x.Cle == r.JeuEnCours) ?? AudioJeu.Jeux[0];
             if (j.Gains.SequenceEqual(gains)) r.GainsParJeu.Remove(j.Cle);
             else r.GainsParJeu[j.Cle] = (double[])gains.Clone();

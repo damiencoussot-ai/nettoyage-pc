@@ -104,7 +104,7 @@ namespace NettoyagePC
             {
                 var donnees = new byte[64 * 1024]; new Random(i).NextBytes(donnees);
                 long n = 0;
-                using (var h = new SHA256Managed())
+                using (var h = SHA256.Create())
                     while (chrono.ElapsedMilliseconds < ms && !Arret) { h.ComputeHash(donnees); n += donnees.Length; }
                 Interlocked.Add(ref total, n);
             }) { IsBackground = true, Priority = ThreadPriority.AboveNormal }).ToList();
