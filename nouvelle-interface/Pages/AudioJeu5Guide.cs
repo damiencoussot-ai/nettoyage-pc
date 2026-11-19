@@ -72,11 +72,11 @@ namespace NettoyagePC.Nouveau
                 Langue.T("Télécharger VB-Cable"), () => { if (!exemple) Programmes.Ouvrir(MoteurSon.SiteCable); }));
             zoneGuide.Children.Add(EtapeGuide(5, pas, true, Langue.T("Allumer « Pas boostés »"),
                 Langue.T("Force conseillée : Fort (Extrême si tu veux encore plus de pas). Ton arme : Réduite. Velox met le câble en sortie par défaut et joue le son traité sur ton casque."),
-                Langue.T("Allumer Pas boostés"), () => { if (cable) BasculerPas(true); }));
+                cable ? Langue.T("Allumer Pas boostés") : null, cable ? (Action)(() => BasculerPas(true)) : null));
             zoneGuide.Children.Add(EtapeGuide(6, nomme, true, Langue.T("Donner le nom « Velox Studio »"),
                 Langue.T("Le câble apparaît alors sous ce nom dans Windows, Discord et tes jeux. Windows demande l'autorisation. Relance ton jeu après.")
                 + (ailleurs != null && m.Actif ? " " + Langue.T("En ce moment, « Velox Studio » est une autre sortie (souvent ton casque, nommé quand Pas boostés était coupé) : le bouton donne ce nom au câble et rend à l'autre son nom d'origine.") : ""),
-                Langue.T("Nommer « Velox Studio »"), () => { if (studio != null) NommerStudio(studio); }));
+                studio != null ? Langue.T("Nommer « Velox Studio »") : null, studio != null ? (Action)(() => NommerStudio(studio)) : null));
             zoneGuide.Children.Add(EtapeGuide(7, septUn, false, Langue.T("Windows : le câble en 7.1 (facultatif, pour aller plus loin)"),
                 Langue.F("Panneau de configuration > Son > onglet Lecture > « {0} » (c'est le câble, sous-titré VB-Audio Virtual Cable) > Configurer > 7.1 Surround > Suivant jusqu'à Terminer. Tes tirs arrivent alors sur leur propre voie : « Ton arme » les isole mieux. Dans ce cas, coupe le mode casque du jeu (étape 8) et allume « Son 7.1 virtuel » (mode Expert).", nomCable),
                 Langue.T("Ouvrir les réglages Son de Windows"), () => { if (!exemple) Programmes.Ouvrir("control.exe", "mmsys.cpl"); }));
