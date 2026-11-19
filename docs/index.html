@@ -221,6 +221,7 @@ mark.a-completer { background: var(--orange); color: var(--sur-accent); padding:
     <nav class="nav" aria-label="Sections">
       <a href="#gratuit">Fonctions</a>
       <a href="#gamer">Mode Gamer</a>
+      <a href="#studio">Studio son</a>
       <a href="#premium">Premium</a>
       <a href="#securite">Sécurité</a>
       <a href="#questions">Questions</a>
@@ -233,7 +234,7 @@ mark.a-completer { background: var(--orange); color: var(--sur-accent); padding:
 <main id="haut">
   <div class="enveloppe ouverture">
     <div class="texte">
-      <span class="etiquette">// Nouveau : le profil Gamer, avec niveaux, défis et overlay en jeu</span>
+      <span class="etiquette">// Nouveau : le <a href="#studio" style="color:inherit">Studio son</a>, pour entendre chaque pas</span>
       <h1>Un PC propre, rapide et protégé, <em>sans rien casser</em>.</h1>
       <p class="chapo">Velox fait le ménage, accélère le démarrage et surveille la sécurité de votre ordinateur. Chaque action est expliquée, réversible, et rien ne se fait sans votre accord.</p>
       <p class="chapo" style="font-size:.95em;opacity:.8">Velox, c'est le nouveau nom de Nettoyage PC : même logiciel, même éditeur. Votre clé Premium reste valable.</p>
@@ -376,12 +377,52 @@ mark.a-completer { background: var(--orange); color: var(--sur-accent); padding:
 
   <hr class="separateur">
 
+  <section id="studio" class="gamer">
+    <div class="enveloppe">
+      <div class="titre-section">
+        <span class="etiquette">// Studio son · Premium, essai gratuit 7 jours</span>
+        <h2>Entends les pas <em>avant qu'ils te voient.</em></h2>
+        <p>Le Studio son remonte les pas et les recharges, calme les explosions, baisse tes propres rafales sans toucher aux tirs ennemis, et ne fait jamais saturer. Tout se règle dans Velox, en un clic : pas de PowerShell, pas de plugins à placer à la main.</p>
+      </div>
+      <ul class="atouts">
+        <li><span class="ico">01</span><strong>Pas boostés</strong><span class="d">Velox traite le son du jeu en direct : les sons faibles remontent, les explosions et les tirs sont tenus, et un limiteur empêche toute saturation. Quatre niveaux, de Léger à Ultra.</span></li>
+        <li><span class="ico">02</span><strong>Ton arme plus discrète</strong><span class="d">Tes propres rafales sont baissées, pas celles des ennemis : un ennemi qui marche sur ton côté pendant que tu tires reste audible. En 7.1, tes tirs arrivent sur leur propre voie et sont encore mieux isolés.</span></li>
+        <li><span class="ico">03</span><strong>Réécoute sans / avec Velox</strong><span class="d">Un bouton rejoue les 10 dernières secondes de ta partie, d'abord sans Velox, puis avec, au même volume. Ta propre partie, pas une démo.</span></li>
+        <li><span class="ico">04</span><strong>Calibré pour ton casque</strong><span class="d">Velox corrige les défauts de ton casque d'après des mesures de laboratoire (base libre AutoEq, plus de 6 000 modèles), puis ajoute le profil pas par-dessus.</span></li>
+        <li><span class="ico">05</span><strong>Tests d'écoute</strong><span class="d">Test de direction : 8 pas autour de toi, tu cliques d'où ils viennent. Test d'audition : Velox compare tes deux oreilles et compense si l'une entend nettement moins bien.</span></li>
+        <li><span class="ico">06</span><strong>Un réglage par jeu</strong><span class="d">Warzone, Valorant, CS2, Apex… Velox reconnaît le jeu lancé et reprend le réglage choisi pour lui. Chaque changement s'annule dans l'Historique.</span></li>
+      </ul>
+      <div class="galerie" style="grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr))">
+        <figure><div class="capture"><a href="img/studio-son.webp"><img src="img/studio-son.webp" width="1600" height="1000" loading="lazy" alt="Studio son : courbe de l'égaliseur au-dessus du spectre en direct, profils Compétitif, Équilibré, Pas extrême et Immersion, et liste des sorties audio avec Equalizer APO."></a></div><figcaption><strong>L'égaliseur de pas</strong> : profils prêts à l'emploi et spectre en direct.</figcaption></figure>
+        <figure><div class="capture"><a href="img/pas-boostes.webp"><img src="img/pas-boostes.webp" width="1240" height="800" loading="lazy" alt="Module Pas boostés : niveaux Léger, Fort, Extrême et Ultra, réglage Ton arme, un réglage par jeu retenu pour Call of Duty / Warzone, et bouton Réécouter sans / avec Velox."></a></div><figcaption><strong>Pas boostés</strong> : niveau, ton arme, réglage par jeu et réécoute.</figcaption></figure>
+      </div>
+      <div class="avant" style="margin-top:48px">
+        <div class="avant-texte">
+          <span class="badge-gamer">COMMENT ÇA MARCHE</span>
+          <h3>Trois étapes, et tu joues</h3>
+          <p><strong>1.</strong> Ouvre « Studio son » dans Velox : le démarrage rapide installe Equalizer APO et VB-Cable, deux outils gratuits et reconnus, depuis leurs sites officiels.</p>
+          <p><strong>2.</strong> Choisis ton casque et ton profil. Tout s'applique tout de suite, et chaque changement se remet d'un clic.</p>
+          <p><strong>3.</strong> Lance ta partie. Après un combat, clique « Réécouter sans / avec Velox » et juge à l'oreille.</p>
+        </div>
+        <div class="avant-texte">
+          <span class="badge-gamer">BON À SAVOIR</span>
+          <h3>Ce que Velox touche, et ce qu'il ne touche pas</h3>
+          <p>Velox agit seulement sur le son de Windows, comme un égaliseur ou le logiciel d'un casque. Il ne touche ni aux fichiers ni à la mémoire du jeu.</p>
+          <p>Avec « Pas boostés », le son passe par Velox avant ton casque, ce qui ajoute un léger retard. Velox l'affiche en direct, en millisecondes.</p>
+        </div>
+      </div>
+      <div class="actions" style="margin-top:32px"><a class="bouton principal" href="https://github.com/damiencoussot-ai/nettoyage-pc/releases/latest" data-telecharger>Télécharger Velox</a><a class="bouton" href="#premium">Premium · essai gratuit 7 jours</a></div>
+    </div>
+  </section>
+
+  <hr class="separateur">
+
   <section id="premium">
     <div class="enveloppe">
       <div class="premium-tete">
         <div class="titre-section" style="margin-bottom:0">
           <span class="etiquette">// Premium</span>
-          <h2>19 outils de pro, débloqués d'un coup</h2>
+          <h2>20 outils de pro, débloqués d'un coup</h2>
           <p>Premium comprend tous les outils ci-dessous, et les prochains outils Premium des versions 4 et 5, sans payer de nouveau.</p>
           <p>Essayez-le d'abord gratuitement 7 jours dans l'application, sans paiement ni coordonnées.</p>
         </div>
@@ -401,6 +442,7 @@ mark.a-completer { background: var(--orange); color: var(--sur-accent); padding:
       </div>
 
       <div class="outils">
+        <article class="outil"><h3>Studio son <small>nouveau</small></h3><p>Pas boostés, ton arme plus discrète, réécoute sans / avec, calibration du casque et tests d'écoute. <a href="#studio">Voir le Studio son</a>.</p></article>
         <article class="outil"><h3>Mode jeu automatique <small>nouveau</small></h3><p>Dès qu'un jeu se lance, le PC passe en mode performances et OneDrive se met en pause. Tout revient comme avant quand le jeu se ferme.</p></article>
         <article class="outil"><h3>Mises à jour automatiques <small>nouveau</small></h3><p>Chaque semaine, vos applications se mettent à jour par winget, l'outil officiel de Microsoft, sauf celles que vous excluez.</p></article>
         <article class="outil"><h3>Photos en double <small>nouveau</small></h3><p>Rafales, copies redimensionnées, photos retouchées : la meilleure est gardée, les autres partent à la Corbeille si vous le confirmez.</p></article>
@@ -497,9 +539,10 @@ mark.a-completer { background: var(--orange); color: var(--sur-accent); padding:
         <h2>Questions fréquentes</h2>
       </div>
       <div class="questions">
-        <details><summary>La version gratuite est-elle vraiment gratuite ?</summary><div class="reponse"><p>Oui. Le nettoyage, l'accélération, la protection et les outils restent gratuits, sans publicité et sans limite de durée. Premium ajoute 19 outils pour ceux qui veulent aller plus loin. Le profil Gamer (BOOST, overlay, niveaux et défis) est gratuit.</p></div></details>
+        <details><summary>La version gratuite est-elle vraiment gratuite ?</summary><div class="reponse"><p>Oui. Le nettoyage, l'accélération, la protection et les outils restent gratuits, sans publicité et sans limite de durée. Premium ajoute 20 outils, dont le Studio son, pour ceux qui veulent aller plus loin. Le profil Gamer (BOOST, overlay, niveaux et défis) est gratuit.</p></div></details>
         <details><summary>Premium, c'est un abonnement ?</summary><div class="reponse"><p>Oui : <strong>9,99 € TTC par mois, sans engagement</strong>. Déjà abonné à 4,99 € ? Votre prix ne change pas. Vous résiliez quand vous voulez, en un clic, depuis le lien reçu par e-mail ; Premium reste actif jusqu'à la fin du mois payé. La licence vaut sur 3 ordinateurs à la fois. Si vous avez acheté Premium en une seule fois avant le passage à l'abonnement, votre licence reste valable sans limite de durée. Le bouton « Retirer la licence de ce PC » libère une place.</p></div></details>
         <details><summary>Comment je reçois ma clé ?</summary><div class="reponse"><p>L'abonnement se prend sur le <a href="https://discord.gg/RjUawE3SXY" target="_blank" rel="noopener">serveur Discord officiel de Velox</a> : dans le salon #acheter-premium, tapez <code>/premium</code> puis « S'abonner ». Après le paiement sur la page sécurisée de Stripe, <strong>votre clé arrive en message privé sur Discord</strong> et s'affiche aussi à l'écran. Dans Velox : onglet Premium, « J'ai une clé », collez-la. La commande <code>/ma-cle</code> vous la remontre à tout moment.</p></div></details>
+        <details><summary>Le Studio son peut-il me faire bannir d'un jeu ?</summary><div class="reponse"><p>Velox ne touche ni aux fichiers ni à la mémoire des jeux : il agit seulement sur le son de Windows, comme un égaliseur ou le logiciel d'un casque. Personne ne peut garantir la décision d'un éditeur de jeu, mais Velox ne fait rien de ce que surveillent les anti-triche.</p></div></details>
         <details><summary>Faut-il Internet ?</summary><div class="reponse"><p>Pour activer la clé, oui. Elle est ensuite revérifiée environ une fois par semaine et reste active 45 jours sans Internet. Les fonctions gratuites marchent sans Internet, sauf la recherche des mises à jour et les tests du réseau.</p></div></details>
         <details><summary>Windows affiche « Windows a protégé votre ordinateur ». C'est normal ?</summary><div class="reponse"><p>Oui. Ce message apparaît pour les programmes qui ne sont pas encore signés par un éditeur connu de Microsoft. Cliquez sur <strong>Informations complémentaires</strong>, puis sur <strong>Exécuter quand même</strong>.</p><p>Pour vérifier que le fichier est bien l'original, comparez son empreinte avec le fichier <code>.sha256</code> publié avec chaque version sur la <a href="https://github.com/damiencoussot-ai/nettoyage-pc/releases">page des versions</a>. Dans PowerShell : <code>Get-FileHash Velox-Setup.exe</code>.</p></div></details>
         <details><summary>Qu'est-ce qui part sur Internet ?</summary><div class="reponse"><p>Presque rien : la recherche des mises à jour (auprès de GitHub), la vérification d'une clé Premium achetée (la clé et un identifiant anonyme du PC, du type « PC-1A2B3C4D », envoyés au service de licences de l'éditeur), et les tests du réseau que vous lancez vous-même. Tout est détaillé dans la <a href="confidentialite.html">politique de confidentialité</a>.</p></div></details>

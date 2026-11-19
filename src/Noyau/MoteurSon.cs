@@ -28,10 +28,32 @@ namespace NettoyagePC
         public string Source = "", Destination = "";
         /// <summary>Sortie par défaut de Windows avant que Velox la mette sur le câble (remise à l'arrêt).</summary>
         public string DefautAvant = "";
+        /// <summary>« Ton arme » : 0 normale, 1 réduite, 2 très réduite (tes propres tirs baissés, ceux des ennemis gardés).</summary>
+        public int Arme = 1;
+        /// <summary>« Un réglage par jeu » : un réglage fait pendant une partie est retenu pour ce jeu (clé « cod »,
+        /// « valorant »…) et repris à chaque fois qu'il tourne. Valeurs : force, arme.</summary>
+        public bool ParJeuActif = true;
+        public Dictionary<string, int[]> ParJeu = new Dictionary<string, int[]>();
+        private static readonly Regex CleJeu = new Regex("^[a-z0-9]{1,24}$");
+
+        /// <summary>Force et arme à utiliser quand ce jeu tourne ("" : aucun jeu).</summary>
+        public void Effectifs(string jeu, out int force, out int arme)
+        {
+            int[] v;
+            if (ParJeuActif && !string.IsNullOrEmpty(jeu) && ParJeu != null && ParJeu.TryGetValue(jeu, out v) && v != null && v.Length == 2) { force = v[0]; arme = v[1]; }
+            else { force = Force; arme = Arme; }
+        }
 
         public ReglagesMoteurSon Borner()
         {
-            Force = Math.Max(0, Math.Min(100, Force));
+            Force = Math.Max(0, Math.Min(130, Force));
+            Arme = Math.Max(0, Math.Min(2, Arme));
+            var pj = new Dictionary<string, int[]>();
+            if (ParJeu != null)
+                foreach (var kv in ParJeu)
+                    if (kv.Key != null && CleJeu.IsMatch(kv.Key) && kv.Value != null && kv.Value.Length == 2 && pj.Count < 64)
+                        pj[kv.Key] = new[] { Math.Max(0, Math.Min(130, kv.Value[0])), Math.Max(0, Math.Min(2, kv.Value[1])) };
+            ParJeu = pj;
             if (!AudioWindows.IdValide(Destination)) Destination = "";
             if (!AudioWindows.IdEntreeValide(Source)) Source = "";
             if (!AudioWindows.IdValide(DefautAvant)) DefautAvant = "";
@@ -43,7 +65,8 @@ namespace NettoyagePC
             return NettoyagePC.Json.Ecrire(new Dictionary<string, object>
             {
                 { "Actif", Actif }, { "Force", Force }, { "JeuxSeulement", JeuxSeulement },
-                { "Source", Source }, { "Destination", Destination }, { "DefautAvant", DefautAvant },
+                { "Source", Source }, { "Destination", Destination }, { "DefautAvant", DefautAvant }, { "Arme", Arme },
+                { "ParJeuActif", ParJeuActif }, { "ParJeu", (ParJeu ?? new Dictionary<string, int[]>()).ToDictionary(kv => kv.Key, kv => (object)new object[] { kv.Value[0], kv.Value[1] }) },
             });
         }
 
@@ -61,6 +84,16 @@ namespace NettoyagePC
                 if (d.TryGetValue("Source", out o)) r.Source = Convert.ToString(o, CultureInfo.InvariantCulture) ?? "";
                 if (d.TryGetValue("Destination", out o)) r.Destination = Convert.ToString(o, CultureInfo.InvariantCulture) ?? "";
                 if (d.TryGetValue("DefautAvant", out o)) r.DefautAvant = Convert.ToString(o, CultureInfo.InvariantCulture) ?? "";
+                if (d.TryGetValue("Arme", out o)) r.Arme = (int)Math.Round(Convert.ToDouble(o, CultureInfo.InvariantCulture));
+                if (d.TryGetValue("ParJeuActif", out o) && o is bool pa) r.ParJeuActif = pa;
+                if (d.TryGetValue("ParJeu", out o) && o is Dictionary<string, object> pj)
+                    foreach (var kv in pj)
+                    {
+                        var l = new List<int>();
+                        if (kv.Value is System.Collections.IEnumerable en && !(kv.Value is string))
+                            foreach (var x in en) { try { l.Add((int)Math.Round(Convert.ToDouble(x, CultureInfo.InvariantCulture))); } catch { } }
+                        if (l.Count == 2) r.ParJeu[kv.Key] = l.ToArray();
+                    }
             }
             catch { return new ReglagesMoteurSon(); }
             return r.Borner();
@@ -92,9 +125,48 @@ namespace NettoyagePC
         public double ReductionMax;     // (relevé) plus forte réduction depuis la dernière lecture, dB
         public const float Plafond = 0.95f;
 
-        public CompresseurPas(int force, int frequence)
+        // ---- dompteur de graves : les explosions et grondements (sous ~200 Hz, 350 Hz en Ultra) sont baissés à part, sans toucher aux
+        // médiums et aigus (pas, recharges) qui jouent en même temps : un pas sous une explosion reste audible.
+        public readonly double SeuilGraves, RapportGraves;
+        private readonly double gb0, gb1, gb2, ga1, ga2;            // passe-bas 200 Hz (Butterworth, 2e ordre)
+        private readonly double aGraves, attaqueGraves, relacheGraves;
+        private double puissanceGraves = 1e-12, gainGraves;          // dB (≤ 0)
+        private double[] gx1, gx2, gy1, gy2;
+        public double ReductionGravesMax;                            // (relevé) plus forte baisse des graves, dB
+
+        // ---- « ton arme » : tes propres tirs (et rechargements, pas, gadgets) sont joués au centre de l'image ; ceux des
+        // ennemis viennent d'une direction. En 5.1/7.1, la voie centrale forte est baissée (un son faible au centre, comme
+        // un pas ennemi devant toi, n'est pas touché) ; en stéréo, seul le « milieu » (ce qui est identique à gauche et à
+        // droite) est baissé, et seulement quand il est fort et nettement centré. Un ennemi sur le côté garde tout son niveau.
+        public readonly int Arme;
+        public readonly double ProfondeurCentre, ProfondeurStereo;  // dB de baisse au maximum
+        private readonly double aArme, attaqueArme, relacheArme;
+        private double pMilieu = 1e-12, pCotes = 1e-12, pCentre = 1e-12, gainArme;   // gainArme en dB (≤ 0)
+        public double ReductionArmeMax;                               // (relevé) plus forte baisse de ton arme, dB
+
+        // ---- présence adaptative : les aigus des pas (vers 2,8 kHz) sont mis en avant seulement quand la scène est calme
+        // (pas de tir, pas d'explosion) ; dès qu'un son fort arrive, la présence s'efface en 2 ms : les tirs ne deviennent
+        // jamais criards (c'est ce qu'un égaliseur fixe ne sait pas faire).
+        public readonly double GainPresence;                         // dB
+        private readonly double pb0, pb1, pb2, pa1, pa2;
+        private double[] px1, px2, py1, py2;
+        private double presence, pScene = 1e-12, pLfe = 1e-12;
+        private readonly double presMonte, presDescend;
+
+        public CompresseurPas(int force, int frequence) : this(force, frequence, 0) { }
+
+        public CompresseurPas(int force, int frequence, int arme)
         {
-            double f = Math.Max(0, Math.Min(100, force)) / 100.0;
+            double f = Math.Max(0, Math.Min(130, force)) / 100.0;
+            double ultra = Math.Max(0, f - 1) / 0.3;   // 0 jusqu'à Extrême, 1 en Ultra
+            SeuilGraves = -24 - 8 * f;                 // −24 dB (léger) à −32 dB (extrême), −34 dB (ultra)
+            RapportGraves = 3 + 5 * Math.Min(1, f) + 12 * ultra;   // 3:1 à 8:1, 20:1 en Ultra
+            double coupure = 200 + 150 * ultra;        // Ultra : les bas-médiums des explosions (jusqu'à 350 Hz) sont tenus aussi
+            {
+                double feG = Math.Max(8000, frequence), w = 2 * Math.PI * coupure / feG, al = Math.Sin(w) / (2 * 0.7071), c = Math.Cos(w), a0 = 1 + al;
+                gb0 = (1 - c) / 2 / a0; gb1 = (1 - c) / a0; gb2 = gb0; ga1 = -2 * c / a0; ga2 = (1 - al) / a0;
+                aGraves = Math.Exp(-1 / (0.010 * feG)); attaqueGraves = Math.Exp(-1 / (0.005 * feG)); relacheGraves = Math.Exp(-1 / (0.25 * feG));
+            }
             Seuil = -14 - 26 * f;                  // −14 dB (léger) à −40 dB (extrême)
             Rapport = 1.5 + 4.5 * f;               // 1,5:1 à 6:1
             Remontee = -Seuil * (1 - 1 / Rapport) * 0.7;
@@ -107,6 +179,26 @@ namespace NettoyagePC
             avance = Math.Max(1, (int)(0.0015 * fe));
             aMelange = Math.Exp(-1 / (0.1 * fe));
             gainLisse = Remontee;
+            // ton arme
+            Arme = Math.Max(0, Math.Min(2, arme));
+            ProfondeurCentre = Arme == 0 ? 0 : Arme == 1 ? 8 : 16;
+            ProfondeurStereo = Arme == 0 ? 0 : Arme == 1 ? 6 : 12;
+            aArme = Math.Exp(-1 / (0.003 * fe)); attaqueArme = Math.Exp(-1 / (0.001 * fe)); relacheArme = Math.Exp(-1 / (0.08 * fe));
+            // présence : cloche (RBJ) à 2,8 kHz, Q 0,9 ; +2,6 dB (léger) à +4,5 dB (extrême et ultra)
+            GainPresence = f <= 0 ? 0 : 1.5 + 3 * Math.Min(1, f);
+            {
+                double A = Math.Pow(10, GainPresence / 40), w = 2 * Math.PI * Math.Min(2800, 0.4 * fe) / fe, al = Math.Sin(w) / (2 * 0.9), c = Math.Cos(w), a0 = 1 + al / A;
+                pb0 = (1 + al * A) / a0; pb1 = -2 * c / a0; pb2 = (1 - al * A) / a0; pa1 = -2 * c / a0; pa2 = (1 - al / A) / a0;
+            }
+            presMonte = Math.Exp(-1 / (0.06 * fe)); presDescend = Math.Exp(-1 / (0.002 * fe));
+        }
+
+        private static double Borne01(double x) { return x < 0 ? 0 : x > 1 ? 1 : x; }
+
+        private void LisserArme(double cible)
+        {
+            gainArme = cible < gainArme ? attaqueArme * gainArme + (1 - attaqueArme) * cible : relacheArme * gainArme + (1 - relacheArme) * cible;
+            if (-gainArme > ReductionArmeMax) ReductionArmeMax = -gainArme;
         }
 
         /// <summary>Retard ajouté par le traitement (images).</summary>
@@ -128,12 +220,74 @@ namespace NettoyagePC
             if (retard == null || canauxRetard != canaux)
             {
                 canauxRetard = canaux; retard = new float[(avance + 1) * canaux]; sec = new float[(avance + 1) * canaux]; besoin = new float[avance + 1]; pos = 0;
+                gx1 = new double[canaux]; gx2 = new double[canaux]; gy1 = new double[canaux]; gy2 = new double[canaux];
+                px1 = new double[canaux]; px2 = new double[canaux]; py1 = new double[canaux]; py2 = new double[canaux];
                 for (int k = 0; k < besoin.Length; k++) besoin[k] = 1;
             }
             int lg = avance + 1;
             for (int i = 0; i < images; i++)
             {
                 int b = i * canaux;
+                // 0. son d'origine gardé (pour « seulement en jeu »), puis dompteur de graves : graves séparés (passe-bas
+                //    200 Hz), baissés selon leur propre niveau, recombinés avec le reste intact (somme exacte si gain 0 dB)
+                for (int c = 0; c < canaux; c++) sec[pos * canaux + c] = t[b + c];
+                // 0 bis. ton arme (avant tout le reste : le compresseur ne voit plus tes tirs, il remonte mieux le reste)
+                if (Arme > 0 && canaux >= 2)
+                {
+                    double l = t[b], r = t[b + 1], milieu = (l + r) * 0.5, cotes = (l - r) * 0.5;
+                    if (canaux >= 6)
+                    {
+                        // ordre Windows : avant gauche, avant droite, centre, caisson de basses, puis arrières et côtés
+                        double fc = t[b + 2];
+                        pCentre = aArme * pCentre + (1 - aArme) * fc * fc;
+                        double nc = 10 * Math.Log10(pCentre + 1e-18);
+                        LisserArme(-ProfondeurCentre * Borne01((nc + 36) / 8));   // rien sous −36 dB, tout dès −28 dB
+                        t[b + 2] = (float)(fc * Math.Pow(10, gainArme / 20));
+                        milieu *= Math.Pow(10, gainArme * 0.5 / 20);                // la copie « fantôme » du centre dans l'avant
+                    }
+                    else
+                    {
+                        pMilieu = aArme * pMilieu + (1 - aArme) * milieu * milieu;
+                        pCotes = aArme * pCotes + (1 - aArme) * cotes * cotes;
+                        double nm = 10 * Math.Log10(pMilieu + 1e-18), ns = 10 * Math.Log10(pCotes + 1e-18);
+                        LisserArme(-ProfondeurStereo * Borne01((nm - ns - 9) / 6) * Borne01((nm + 24) / 6));   // fort ET centré
+                        milieu *= Math.Pow(10, gainArme / 20);
+                    }
+                    t[b] = (float)(milieu + cotes); t[b + 1] = (float)(milieu - cotes);
+                }
+                float pg = 0;
+                for (int c = 0; c < canaux; c++)
+                {
+                    float v = t[b + c];
+                    double lo = gb0 * v + gb1 * gx1[c] + gb2 * gx2[c] - ga1 * gy1[c] - ga2 * gy2[c];
+                    gx2[c] = gx1[c]; gx1[c] = v; gy2[c] = gy1[c]; gy1[c] = lo;
+                    if (lo * lo > pg) pg = (float)(lo * lo);
+                }
+                puissanceGraves = aGraves * puissanceGraves + (1 - aGraves) * pg;
+                double nivG = 10 * Math.Log10(puissanceGraves + 1e-18), cibleG = 0;
+                if (nivG > SeuilGraves) cibleG = (SeuilGraves + (nivG - SeuilGraves) / RapportGraves) - nivG;
+                gainGraves = cibleG < gainGraves ? attaqueGraves * gainGraves + (1 - attaqueGraves) * cibleG : relacheGraves * gainGraves + (1 - relacheGraves) * cibleG;
+                if (-gainGraves > ReductionGravesMax) ReductionGravesMax = -gainGraves;
+                double kg = Math.Pow(10, gainGraves / 20) - 1;   // (graves × k) = graves + graves × (k − 1)
+                for (int c = 0; c < canaux; c++) t[b + c] = (float)(t[b + c] + gy1[c] * kg);
+                // 0 ter. présence adaptative : seulement quand la scène est calme (ni son fort, ni graves d'explosion, ni caisson)
+                if (GainPresence > 0)
+                {
+                    float ps = 0;
+                    for (int c = 0; c < canaux; c++) { float v = t[b + c]; if (v * v > ps) ps = v * v; }
+                    pScene = aNiveau * pScene + (1 - aNiveau) * ps;
+                    bool calme = 10 * Math.Log10(pScene + 1e-18) < -22 && gainGraves > -3;
+                    if (canaux >= 6) { double lf = t[b + 3]; pLfe = aGraves * pLfe + (1 - aGraves) * lf * lf; calme &= 10 * Math.Log10(pLfe + 1e-18) < -35; }
+                    presence = calme ? presMonte * presence + (1 - presMonte) : presDescend * presence;
+                    for (int c = 0; c < canaux; c++)
+                    {
+                        double x = t[b + c];
+                        double y = pb0 * x + pb1 * px1[c] + pb2 * px2[c] - pa1 * py1[c] - pa2 * py2[c];
+                        px2[c] = px1[c]; px1[c] = x; py2[c] = py1[c]; py1[c] = y;
+                        if (canaux >= 6 && c == 3) continue;   // pas de présence sur le caisson de basses
+                        t[b + c] = (float)(x + (y - x) * presence);
+                    }
+                }
                 // 1. niveau (moyenne sur 5 ms) et gain du compresseur
                 float p = 0;
                 for (int c = 0; c < canaux; c++) { float v = t[b + c]; if (v * v > p) p = v * v; }
@@ -148,7 +302,7 @@ namespace NettoyagePC
                 float g = (float)Math.Pow(10, gDb / 20);
                 // 2. échantillons compressés, mis dans la ligne à retard ; gain que demandera le limiteur pour eux
                 float crete = 0;
-                for (int c = 0; c < canaux; c++) { float v = t[b + c] * g; retard[pos * canaux + c] = v; sec[pos * canaux + c] = t[b + c]; if (Math.Abs(v) > crete) crete = Math.Abs(v); }
+                for (int c = 0; c < canaux; c++) { float v = t[b + c] * g; retard[pos * canaux + c] = v; if (Math.Abs(v) > crete) crete = Math.Abs(v); }
                 besoin[pos] = crete > Plafond ? Plafond / crete : 1;
                 // 3. limiteur : le plus petit gain demandé sur les 1,5 ms à venir, relâché en douceur
                 float mini = 1;
@@ -168,6 +322,111 @@ namespace NettoyagePC
         }
     }
 
+    /// <summary>
+    /// Réécoute « avant / après » : les dernières secondes (10 au plus) sont gardées deux fois, telles que le jeu les a
+    /// jouées et telles que Velox les a traitées. Sur demande, elles sont rejouées : d'abord sans Velox, une seconde de
+    /// silence, puis avec Velox, au même volume moyen (le plus fort des deux est baissé : à l'oreille, « plus fort »
+    /// paraît toujours « mieux », la comparaison serait faussée). Pendant la réécoute, rien n'est gardé.
+    /// </summary>
+    internal sealed class MemoireReecoute
+    {
+        public readonly int Canaux, Frequence, Capacite;
+        private readonly float[] sec, traite;
+        private int pos, plein;
+        /// <summary>0 : rien ; 1 : « sans Velox » ; 2 : silence ; 3 : « avec Velox ».</summary>
+        public int Phase { get; private set; }
+        private long lu, longueur, depart, pause; private float kSec = 1, kTraite = 1;
+        /// <summary>(relevé) gains appliqués pour le même volume, sans puis avec.</summary>
+        public float GainSec { get { return kSec; } }
+        public float GainTraite { get { return kTraite; } }
+
+        public MemoireReecoute(int canaux, int frequence, int secondes)
+        {
+            Canaux = Math.Max(1, canaux); Frequence = Math.Max(8000, frequence);
+            // au plus 4 millions d'échantillons par anneau (10 s en 7.1 à 48 kHz ; moins à 192 kHz ou en 16 canaux)
+            Capacite = Math.Max(2 * Frequence, Math.Min(Frequence * Math.Max(1, secondes), 4000000 / Canaux));
+            sec = new float[Capacite * Canaux]; traite = new float[Capacite * Canaux];
+        }
+
+        /// <summary>Secondes gardées (pleines).</summary>
+        public int Secondes { get { return plein / Frequence; } }
+
+        /// <summary>Secondes restantes de la réécoute en cours (les deux écoutes comprises).</summary>
+        public int SecondesRestantes
+        {
+            get
+            {
+                if (Phase == 1) return (int)Math.Ceiling((longueur - lu) / (double)Frequence) + 1 + (int)Math.Ceiling(longueur / (double)Frequence);
+                if (Phase == 2) return (int)Math.Ceiling((pause + longueur) / (double)Frequence);
+                if (Phase == 3) return (int)Math.Ceiling((longueur - lu) / (double)Frequence);
+                return 0;
+            }
+        }
+
+        private void Garder(float[] dest, float[] t, int images, int debut)
+        {
+            for (int i = 0; i < images; i++) Array.Copy(t, i * Canaux, dest, ((debut + i) % Capacite) * Canaux, Canaux);
+        }
+
+        /// <summary>Garde le son d'origine de ce paquet (avant traitement).</summary>
+        public void GarderSec(float[] t, int images) { if (Phase == 0) Garder(sec, t, images, pos); }
+
+        /// <summary>Garde le son traité du même paquet, et avance.</summary>
+        public void GarderTraite(float[] t, int images)
+        {
+            if (Phase != 0) return;
+            Garder(traite, t, images, pos);
+            pos = (pos + images) % Capacite; plein = Math.Min(Capacite, plein + images);
+        }
+
+        /// <summary>Lance la réécoute (au moins 2 s gardées). Vrai si elle démarre.</summary>
+        public bool Lancer()
+        {
+            if (Phase != 0 || plein < 2 * Frequence) return false;
+            longueur = plein; depart = (pos - plein + Capacite) % Capacite;
+            double es = 0, et = 0;
+            for (long i = 0; i < longueur; i++)
+            {
+                long j = ((depart + i) % Capacite) * Canaux;
+                for (int c = 0; c < Canaux; c++) { es += sec[j + c] * (double)sec[j + c]; et += traite[j + c] * (double)traite[j + c]; }
+            }
+            kSec = 1; kTraite = 1;
+            if (es > 1e-12 && et > 1e-12)
+            {
+                float k = (float)Math.Sqrt(Math.Min(es, et) / Math.Max(es, et));
+                if (et > es) kTraite = k; else kSec = k;
+            }
+            Phase = 1; lu = 0;
+            return true;
+        }
+
+        public void Arreter() { if (Phase != 0) { Phase = 0; plein = 0; } }
+
+        /// <summary>Remplace ce paquet par la suite de la réécoute (silence une fois finie).</summary>
+        public void Remplir(float[] t, int images)
+        {
+            for (int i = 0; i < images; i++)
+            {
+                int b = i * Canaux;
+                if (Phase == 2)
+                {
+                    for (int c = 0; c < Canaux; c++) t[b + c] = 0;
+                    if (--pause <= 0) { Phase = 3; lu = 0; }
+                    continue;
+                }
+                if (Phase == 0) { for (int c = 0; c < Canaux; c++) t[b + c] = 0; continue; }
+                long j = ((depart + lu) % Capacite) * Canaux;
+                float[] src = Phase == 1 ? sec : traite; float k = Phase == 1 ? kSec : kTraite;
+                for (int c = 0; c < Canaux; c++) t[b + c] = src[j + c] * k;
+                if (++lu >= longueur)
+                {
+                    if (Phase == 1) { Phase = 2; pause = Frequence; }   // une seconde de silence entre les deux
+                    else { Phase = 0; plein = 0; }                      // fin : on repart sur du son neuf
+                }
+            }
+        }
+    }
+
     /// <summary>Un câble virtuel trouvé sur ce PC : sa sortie (où joue le jeu) et son entrée (que capte le moteur).</summary>
     internal sealed class CableVirtuel
     {
@@ -179,9 +438,18 @@ namespace NettoyagePC
         public const string SiteCable = "https://vb-audio.com/Cable/";
         public static string FichierReglages { get { return Path.Combine(Chemins.Local, "moteur-son.json"); } }
         public static string FichierEtat { get { return Path.Combine(Chemins.Local, "moteur-son-etat.txt"); } }
+        /// <summary>Demande de réécoute (« go » ou « stop »), lue puis effacée par le moteur.</summary>
+        public static string FichierReecoute { get { return Path.Combine(Chemins.Local, "moteur-son-reecoute.txt"); } }
+
+        /// <summary>Demande au moteur de rejouer les dernières secondes (sans puis avec Velox), ou d'arrêter (« stop »).</summary>
+        public static string DemanderReecoute(bool lancer)
+        {
+            try { Directory.CreateDirectory(Chemins.Local); File.WriteAllText(FichierReecoute, lancer ? "go" : "stop"); return ""; }
+            catch (Exception ex) { return ex.Message; }
+        }
 
         /// <summary>Préréglages proposés dans la page.</summary>
-        public static readonly Tuple<string, int>[] Niveaux = { Tuple.Create("Léger", 35), Tuple.Create("Fort", 65), Tuple.Create("Extrême", 100) };
+        public static readonly Tuple<string, int>[] Niveaux = { Tuple.Create("Léger", 35), Tuple.Create("Fort", 65), Tuple.Create("Extrême", 100), Tuple.Create("Ultra", 130) };
 
         public static ReglagesMoteurSon Lire()
         {
@@ -202,6 +470,103 @@ namespace NettoyagePC
         /// vers −1 dB) de 1 à 2 s, puis un pas lointain à 2,4 s. Écarts (dB) entre l'explosion et le premier pas sans puis
         /// avec le compresseur, écart du pas d'après l'explosion (le compresseur doit s'être relâché), et crête finale.
         /// </summary>
+        /// <summary>
+        /// (essais) Un pas (bande 1,5 à 5 kHz, −40 dB) qui tombe pendant une explosion forte : part du pas dans le son, en
+        /// dB, sans puis avec le traitement (mesurée par corrélation avec le pas seul). Plus elle monte, plus le pas ressort.
+        /// </summary>
+        public static void MesurerSousExplosion(int force, out double partSans, out double partAvec)
+        {
+            int fe = DemoAudio.Frequence, n = 2 * fe;
+            var pas = new float[n * 2]; var expl = new float[n * 2];
+            var alea = new Random(11);
+            Func<double> bruit = () => alea.NextDouble() * 2 - 1;
+            var bp = DemoAudio.Biquad.PasseBande(2800, 1.2);
+            int d0 = (int)(0.6 * fe);
+            for (int i = 0; i < (int)(0.08 * fe); i++)
+            {
+                double tt = i / (double)fe, v = 0.03 * Math.Min(1, tt / 0.003) * Math.Exp(-tt / 0.03) * bp.Passer(bruit()) * 3;
+                pas[2 * (d0 + i)] = (float)v; pas[2 * (d0 + i) + 1] = (float)v;
+            }
+            var lp = DemoAudio.Biquad.PasseBas(150, 0.8); double ph = 0;
+            for (int i = 0; i < (int)(1.4 * fe); i++)
+            {
+                double tt = i / (double)fe, env = Math.Min(1, tt / 0.01) * Math.Exp(-tt / 0.6);
+                ph += 2 * Math.PI * 45 / fe;
+                double v = Math.Max(-0.9, Math.Min(0.9, env * (0.45 * Math.Sin(ph) + 0.5 * lp.Passer(bruit()) * 6)));
+                int k = (int)(0.2 * fe) + i; expl[2 * k] = (float)v; expl[2 * k + 1] = (float)v;
+            }
+            var mix = new float[n * 2];
+            for (int i = 0; i < mix.Length; i++) mix[i] = pas[i] + expl[i];
+            Func<float[], double> part = y =>
+            {
+                // énergie de la composante « pas » (projection sur le pas seul) / énergie totale, sur la fenêtre du pas
+                int a = 2 * d0, b = 2 * (d0 + (int)(0.08 * fe));
+                double pr = 0, pp = 0, tot = 0;
+                for (int i = a; i < b; i++) { pr += y[i] * (double)pas[i]; pp += pas[i] * (double)pas[i]; tot += y[i] * (double)y[i]; }
+                double k = pr / Math.Max(1e-20, pp), ep = k * k * pp;
+                return 10 * Math.Log10(ep / Math.Max(1e-20, tot) + 1e-20);
+            };
+            partSans = part(mix);
+            var y2 = (float[])mix.Clone();
+            var comp = new CompresseurPas(force, fe);
+            comp.Traiter(y2, n, 2);
+            int dec = comp.Retard;
+            Array.Copy(y2, 2 * dec, y2, 0, y2.Length - 2 * dec);
+            partAvec = part(y2);
+        }
+
+        /// <summary>
+        /// (essais) « Ton arme » : tu tires en rafale (son fort, au centre) pendant qu'un ennemi marche sur ta gauche (pas
+        /// faible). Part du pas ennemi dans le son (dB), traitement force 65 sans puis avec « ton arme » au niveau donné.
+        /// En stéréo (8 canaux faux : false) le pas est à gauche seulement ; en 7.1, tes tirs sont sur la voie centrale
+        /// (avec une copie plus faible à l'avant) et le pas sur le côté gauche.
+        /// </summary>
+        public static void MesurerArme(int arme, bool septUn, out double partSans, out double partAvec, out float crete)
+        {
+            int fe = DemoAudio.Frequence, n = (int)(1.4 * fe), k = septUn ? 8 : 2;
+            var pas = new float[n * k]; var tirs = new float[n * k];
+            var alea = new Random(5);
+            Func<double> bruit = () => alea.NextDouble() * 2 - 1;
+            var bp = DemoAudio.Biquad.PasseBande(2800, 1.2);
+            int d0 = (int)(0.6 * fe), lgPas = (int)(0.08 * fe);
+            for (int i = 0; i < lgPas; i++)
+            {
+                double tt = i / (double)fe, v = 0.03 * Math.Min(1, tt / 0.003) * Math.Exp(-tt / 0.03) * bp.Passer(bruit()) * 3;
+                pas[(d0 + i) * k + (septUn ? 6 : 0)] = (float)v;
+            }
+            var hp = DemoAudio.Biquad.PasseHaut(150, 0.7);
+            for (double debut = 0.2; debut < 1.2; debut += 0.09)
+                for (int i = 0; i < (int)(0.06 * fe); i++)
+                {
+                    double tt = i / (double)fe, v = 0.7 * Math.Exp(-tt / 0.02) * hp.Passer(bruit());
+                    int j = ((int)(debut * fe) + i) * k;
+                    if (septUn) { tirs[j + 2] += (float)v; tirs[j] += (float)(0.3 * v); tirs[j + 1] += (float)(0.3 * v); }
+                    else { tirs[j] += (float)v; tirs[j + 1] += (float)v; }
+                }
+            Func<float[], double> part = y =>
+            {
+                int a = d0 * k, b = (d0 + lgPas) * k;
+                double pr = 0, pp = 0, tot = 0;
+                for (int i = a; i < b; i++) { pr += y[i] * (double)pas[i]; pp += pas[i] * (double)pas[i]; tot += y[i] * (double)y[i]; }
+                double kk = pr / Math.Max(1e-20, pp), ep = kk * kk * pp;
+                return 10 * Math.Log10(ep / Math.Max(1e-20, tot) + 1e-20);
+            };
+            crete = 0;
+            double[] res = new double[2];
+            for (int essai = 0; essai < 2; essai++)
+            {
+                var y = new float[n * k];
+                for (int i = 0; i < y.Length; i++) y[i] = pas[i] + tirs[i];
+                var comp = new CompresseurPas(65, fe, essai == 0 ? 0 : arme);
+                comp.Traiter(y, n, k);
+                int dec = comp.Retard;
+                Array.Copy(y, k * dec, y, 0, y.Length - k * dec);
+                res[essai] = part(y);
+                foreach (var v in y) crete = Math.Max(crete, Math.Abs(v));
+            }
+            partSans = res[0]; partAvec = res[1];
+        }
+
         public static void Mesurer(int force, out double ecartSans, out double ecartAvec, out double retourPas, out float creteAvec)
         {
             int fe = DemoAudio.Frequence, n = 3 * fe;

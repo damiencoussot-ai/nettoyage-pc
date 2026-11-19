@@ -1595,7 +1595,6 @@ J'ai {0} améliorations à te proposer. D'abord, {1}. Ensuite, {2}.	I have {0} i
 Et une autre dans la liste.	And one more in the list.	Y otra más en la lista.
 Et {0} autres dans la liste.	And {0} more in the list.	Y {0} más en la lista.
 Clique sur « Optimiser en 1 clic », ou sur les boutons de la liste.	Click "Optimize in 1 click", or the buttons in the list.	Haz clic en «Optimizar en 1 clic» o en los botones de la lista.
-
 # 4.5.1
 Corrections de l'accueil : boutons, mesures et liste se placent bien sous le texte d'état, même sur plusieurs lignes ou quand la page est descendue.	Home page fixes: buttons, readings and the list now sit correctly below the status text, even when it wraps or the page is scrolled down.	Correcciones en el inicio: los botones, las mediciones y la lista se colocan bien bajo el texto de estado, aunque ocupe varias líneas o la página esté desplazada.
 Briefing vocal : le premier briefing après la création du profil n'est plus coupé, et les boutons « Écouter » suivent mieux la voix de Windows.	Voice briefing: the first briefing after creating your profile is no longer cut off, and the "Listen" buttons follow the Windows voice more reliably.	Resumen por voz: el primer resumen tras crear el perfil ya no se corta, y los botones «Escuchar» siguen mejor la voz de Windows.
@@ -3767,7 +3766,6 @@ Fort	Strong	Fuerte
 Extrême	Extreme	Extremo
 Seulement en jeu	Only in game	Solo en juego
 Le son est traité seulement quand un jeu reconnu tourne (Warzone, Valorant, CS2…) : musique et vidéos restent intactes.	Sound is processed only while a recognized game is running (Warzone, Valorant, CS2…): music and videos stay untouched.	El sonido solo se procesa cuando hay un juego reconocido en marcha (Warzone, Valorant, CS2…): la música y los vídeos quedan intactos.
-Léger : +9 dB sur les pas lointains face aux explosions. Fort : +16 dB. Extrême : +23 dB (mesuré sur une scène de jeu). Le son passe par VB-Cable, puis Velox le joue sur ton casque : environ 25 ms de retard en plus. Dans le jeu, laisse la sortie audio sur « Par défaut ».	Light: +9 dB on distant footsteps against explosions. Strong: +16 dB. Extreme: +23 dB (measured on a game scene). Sound goes through VB-Cable, then Velox plays it on your headset: about 25 ms of extra delay. In the game, leave the audio output on “Default”.	Ligero: +9 dB en los pasos lejanos frente a las explosiones. Fuerte: +16 dB. Extremo: +23 dB (medido en una escena de juego). El sonido pasa por VB-Cable y Velox lo reproduce en tus auriculares: unos 25 ms de retraso extra. En el juego, deja la salida de audio en «Predeterminado».
 Branchement en cours…	Wiring up…	Conectando…
 Coupé : le son va directement au casque.	Off: sound goes straight to the headset.	Desactivado: el sonido va directo a los auriculares.
 Démarrage du moteur…	Starting the engine…	Arrancando el motor…
@@ -3909,3 +3907,89 @@ Remettre le nom du câble	Restore the cable's name	Restaurar el nombre del cable
 Le câble a repris son nom d'origine.	The cable got its original name back.	El cable ha recuperado su nombre original.
 C'est le câble de Pas boostés : le son n'arrive au casque que tant que Pas boostés est allumé. En le coupant, Velox remet son nom d'origine.	It's the Boosted footsteps cable: sound only reaches the headset while Boosted footsteps is on. When you turn it off, Velox restores its original name.	Es el cable de Pasos potenciados: el sonido solo llega a los auriculares mientras Pasos potenciados esté activado. Al desactivarlo, Velox restaura su nombre original.
 « Velox Studio » ne mène plus nulle part : quand Pas boostés est coupé, le câble reprend son nom d'origine, et Velox prévient s'il le porte encore.	“Velox Studio” no longer leads nowhere: when Boosted footsteps is off, the cable gets its original name back, and Velox warns if it still has it.	«Velox Studio» ya no lleva a ninguna parte: cuando Pasos potenciados está desactivado, el cable recupera su nombre original y Velox avisa si aún lo tiene.
+Pas boostés : les explosions sont baissées à part, sans toucher aux pas. Un pas pendant une explosion ressort de +7 dB, les pas lointains encore plus présents.	Boosted footsteps: explosions are lowered separately, without touching footsteps. A footstep during an explosion stands out by +7 dB, distant footsteps are even more present.	Pasos potenciados: las explosiones se bajan aparte, sin tocar los pasos. Un paso durante una explosión destaca +7 dB y los pasos lejanos están aún más presentes.
+Ultra	Ultra	Ultra
+Nouveau niveau « Ultra » dans Pas boostés : le plus fort, les pas passent devant tout (+11 dB sous une explosion, +27 dB au loin).	New “Ultra” level in Boosted footsteps: the strongest, footsteps come before everything (+11 dB under an explosion, +27 dB at a distance).	Nuevo nivel «Ultra» en Pasos potenciados: el más fuerte, los pasos pasan por delante de todo (+11 dB bajo una explosión, +27 dB a distancia).
+Pas ultra	Ultra footsteps	Pasos ultra
+Les pas devant tout : graves et explosions coupés au maximum	Footsteps above everything: bass and explosions cut to the max	Los pasos por delante de todo: graves y explosiones recortados al máximo
+Audio jeu : égaliseur actif (Pas ultra)	Game audio: equalizer on (Ultra footsteps)	Audio de juego: ecualizador activo (Pasos ultra)
+Audio jeu : Auto jeux (Pas ultra)	Game audio: Auto games (Ultra footsteps)	Audio de juego: Auto juegos (Pasos ultra)
+Les pas très en avant, son clair et plein	Footsteps far forward, clear and full sound	Los pasos muy por delante, sonido claro y lleno
+Léger : +13 dB sur les pas lointains face aux explosions. Fort : +20 dB. Extrême : +25 dB. Ultra : +27 dB, et un pas pendant une explosion ressort de +11 dB (le plus fort, moins naturel). Mesuré sur une scène de jeu. Les aigus des pas sont mis en avant seulement quand c'est calme : les tirs ne deviennent pas criards. Le son passe par VB-Cable, puis Velox le joue sur ton casque : environ 25 ms de retard en plus. Dans le jeu, laisse la sortie audio sur « Par défaut ».	Light: +13 dB on distant footsteps against explosions. Strong: +20 dB. Extreme: +25 dB. Ultra: +27 dB, and a footstep during an explosion stands out by +11 dB (the strongest, less natural). Measured on a game scene. Footstep treble is brought forward only when things are calm: gunfire never turns harsh. Sound goes through VB-Cable, then Velox plays it on your headset: about 25 ms of extra delay. In the game, leave the audio output on "Default".	Ligero: +13 dB en los pasos lejanos frente a las explosiones. Fuerte: +20 dB. Extremo: +25 dB. Ultra: +27 dB, y un paso durante una explosión resalta +11 dB (el más fuerte, menos natural). Medido en una escena de juego. Los agudos de los pasos se realzan solo cuando hay calma: los disparos nunca se vuelven estridentes. El sonido pasa por VB-Cable y luego Velox lo reproduce en tus auriculares: unos 25 ms de retraso extra. En el juego, deja la salida de audio en «Predeterminado».
+Ton arme :	Your weapon:	Tu arma:
+Ton arme	Your weapon	Tu arma
+Normale	Normal	Normal
+Réduite	Reduced	Reducida
+Très réduite	Very reduced	Muy reducida
+Tes tirs sont joués au centre du son, ceux des ennemis viennent d'une direction. Velox baisse seulement tes rafales : un ennemi qui marche sur le côté pendant que tu tires reste audible. Un son faible devant toi n'est pas touché.	Your shots play in the center of the sound, enemy ones come from a direction. Velox lowers only your bursts: an enemy walking to your side while you shoot stays audible. A quiet sound in front of you is left untouched.	Tus disparos suenan en el centro del sonido, los de los enemigos vienen de una dirección. Velox baja solo tus ráfagas: un enemigo que camina a tu lado mientras disparas sigue audible. Un sonido débil delante de ti no se toca.
+Encore mieux en 7.1 : Panneau de configuration > Son > CABLE Input > Configurer > 7.1. Tes tirs arrivent alors sur leur propre voie (le centre) : Velox les baisse sans toucher aux ennemis autour de toi.	Even better in 7.1: Control Panel > Sound > CABLE Input > Configure > 7.1. Your shots then arrive on their own channel (the center): Velox lowers them without touching the enemies around you.	Aún mejor en 7.1: Panel de control > Sonido > CABLE Input > Configurar > 7.1. Tus disparos llegan entonces por su propio canal (el central): Velox los baja sin tocar a los enemigos a tu alrededor.
+son {0} reçu	{0} sound received	sonido {0} recibido
+son stéréo reçu	stereo sound received	sonido estéreo recibido
+ton arme −{0} dB	your weapon −{0} dB	tu arma −{0} dB
+« Ton arme » : tes rafales sont baissées, pas celles des ennemis. Un ennemi sur le côté pendant que tu tires ressort jusqu'à +8 dB (+13 dB en 7.1).	“Your weapon”: your bursts are lowered, not the enemies'. An enemy to your side while you shoot stands out by up to +8 dB (+13 dB in 7.1).	«Tu arma»: tus ráfagas se bajan, no las de los enemigos. Un enemigo a tu lado mientras disparas resalta hasta +8 dB (+13 dB en 7.1).
+Présence adaptative : les aigus des pas ressortent quand c'est calme, les tirs ne deviennent jamais criards.	Adaptive presence: footstep treble stands out when it's calm, gunfire never turns harsh.	Presencia adaptativa: los agudos de los pasos resaltan cuando hay calma, los disparos nunca se vuelven estridentes.
+Allume « Pas boostés » pour réécouter.	Turn on “Boosted footsteps” to replay.	Activa «Pasos potenciados» para volver a escuchar.
+Appliquer la compensation	Apply the compensation	Aplicar la compensación
+Aucun jeu en cours : tu règles le réglage général.	No game running: you are adjusting the general setting.	Ningún juego en curso: ajustas el ajuste general.
+Bip {0} sur {1} : oreille {2}, {3} Hz. Clique « J'entends » dès que tu l'entends.	Beep {0} of {1}: {2} ear, {3} Hz. Click “I hear it” as soon as you hear it.	Pitido {0} de {1}: oído {2}, {3} Hz. Pulsa «Lo oigo» en cuanto lo oigas.
+Change la force ou « Ton arme » pendant une partie : Velox retient ce réglage pour ce jeu et le reprend à chaque fois qu'il tourne. Hors jeu, tu règles le réglage général.	Change the strength or “Your weapon” during a match: Velox remembers it for that game and uses it every time the game runs. Outside a game, you adjust the general setting.	Cambia la fuerza o «Tu arma» durante una partida: Velox lo recuerda para ese juego y lo aplica cada vez que se ejecuta. Fuera del juego, ajustas el ajuste general.
+Compensation des oreilles active.	Ear compensation active.	Compensación de oídos activa.
+Coupe d'abord « Son 7.1 virtuel » : il mélange les deux oreilles, le test serait faux. Rallume-le après.	First turn off “Virtual 7.1 sound”: it mixes both ears, the test would be wrong. Turn it back on afterwards.	Primero desactiva «Sonido 7.1 virtual»: mezcla los dos oídos y la prueba sería errónea. Vuelve a activarlo después.
+Derrière	Behind	Detrás
+Derrière à droite	Behind right	Detrás a la derecha
+Derrière à gauche	Behind left	Detrás a la izquierda
+Devant	In front	Delante
+Devant à droite	Front right	Delante a la derecha
+Devant à gauche	Front left	Delante a la izquierda
+À droite	Right	A la derecha
+À gauche	Left	A la izquierda
+Devant et derrière se confondent : c'est normal en stéréo simple. Allume « Son 7.1 virtuel » (mode Expert), puis refais le test.	Front and back get mixed up: that's normal in plain stereo. Turn on “Virtual 7.1 sound” (Expert mode), then take the test again.	Delante y detrás se confunden: es normal en estéreo simple. Activa «Sonido 7.1 virtual» (modo Experto) y repite la prueba.
+Devant et derrière se confondent : essaie une autre tête virtuelle dans « Son 7.1 virtuel », puis refais le test. Garde celle qui donne le meilleur score.	Front and back get mixed up: try another virtual head in “Virtual 7.1 sound”, then take the test again. Keep the one with the best score.	Delante y detrás se confunden: prueba otra cabeza virtual en «Sonido 7.1 virtual» y repite la prueba. Quédate con la de mejor puntuación.
+Gauche et droite semblent inversées : vérifie que ton casque est dans le bon sens (L sur l'oreille gauche).	Left and right seem swapped: check that your headset is the right way round (L on the left ear).	Izquierda y derecha parecen invertidas: comprueba que tus auriculares están bien puestos (L en el oído izquierdo).
+J'entends	I hear it	Lo oigo
+Lance une partie : hors jeu, le son passe tel quel (rien à comparer).	Start a match: outside a game, sound passes through unchanged (nothing to compare).	Inicia una partida: fuera del juego, el sonido pasa tal cual (nada que comparar).
+Lancer le test d'audition	Start the hearing test	Iniciar la prueba de audición
+Lancer le test de direction	Start the direction test	Iniciar la prueba de dirección
+Lecture impossible sur cette sortie.	Cannot play on this output.	No se puede reproducir en esta salida.
+Localisation moyenne : refais le test au calme. Si le score reste bas, essaie une autre tête virtuelle dans « Son 7.1 virtuel ».	Average localization: take the test again somewhere quiet. If the score stays low, try another virtual head in “Virtual 7.1 sound”.	Localización media: repite la prueba en silencio. Si la puntuación sigue baja, prueba otra cabeza virtual en «Sonido 7.1 virtual».
+Même réglage pour tous les jeux.	Same setting for every game.	Mismo ajuste para todos los juegos.
+Oublier les réglages par jeu	Forget per-game settings	Olvidar los ajustes por juego
+Pas {0} sur 8 : d'où vient-il ?	Footstep {0} of 8: where is it coming from?	Paso {0} de 8: ¿de dónde viene?
+Rejoue les 10 dernières secondes du jeu : d'abord sans Velox, puis avec, au même volume. Le meilleur moyen d'entendre ce que Velox change.	Replays the last 10 seconds of the game: first without Velox, then with it, at the same volume. The best way to hear what Velox changes.	Reproduce los últimos 10 segundos del juego: primero sin Velox y luego con él, al mismo volumen. La mejor forma de oír lo que cambia Velox.
+Réglage retenu pour {0}.	Setting remembered for {0}.	Ajuste guardado para {0}.
+Réglages par jeu oubliés : le réglage général s'applique partout.	Per-game settings forgotten: the general setting applies everywhere.	Ajustes por juego olvidados: el ajuste general se aplica en todas partes.
+Réécouter sans / avec Velox	Replay without / with Velox	Volver a escuchar sin / con Velox
+Score : {0} / 8	Score: {0} / 8	Puntuación: {0} / 8
+Son invalide.	Invalid sound.	Sonido no válido.
+Sortie audio indisponible.	Audio output unavailable.	Salida de audio no disponible.
+Sortie audio introuvable.	Audio output not found.	Salida de audio no encontrada.
+Tes deux oreilles entendent pareil (moins de 10 dB d'écart partout) : aucune compensation n'est utile.	Both your ears hear the same (less than 10 dB apart everywhere): no compensation is needed.	Tus dos oídos oyen igual (menos de 10 dB de diferencia en todas partes): no hace falta compensación.
+Test d'audition : un bip très faible monte doucement dans une oreille ; clique « J'entends » dès que tu l'entends. 14 bips, environ 2 minutes, au calme. Velox compare tes deux oreilles et compense si l'une entend nettement moins bien à une fréquence.	Hearing test: a very quiet beep slowly rises in one ear; click “I hear it” as soon as you hear it. 14 beeps, about 2 minutes, somewhere quiet. Velox compares your two ears and compensates if one hears clearly less at a frequency.	Prueba de audición: un pitido muy débil sube poco a poco en un oído; pulsa «Lo oigo» en cuanto lo oigas. 14 pitidos, unos 2 minutos, en silencio. Velox compara tus dos oídos y compensa si uno oye claramente peor en una frecuencia.
+Test de direction : 8 pas joués autour de toi, chacun d'une direction différente. Clique d'où vient chaque pas. Le score montre si ton réglage place vraiment les ennemis (devant, derrière, sur les côtés).	Direction test: 8 footsteps played around you, each from a different direction. Click where each one comes from. The score shows whether your setup really places enemies (front, back, sides).	Prueba de dirección: 8 pasos alrededor de ti, cada uno desde una dirección distinta. Pulsa de dónde viene cada paso. La puntuación muestra si tu ajuste sitúa de verdad a los enemigos (delante, detrás, a los lados).
+Tests d'écoute	Listening tests	Pruebas de escucha
+Très bonne localisation : ton réglage place bien les pas autour de toi.	Very good localization: your setup places footsteps well around you.	Muy buena localización: tu ajuste sitúa bien los pasos a tu alrededor.
+Un réglage par jeu	One setting per game	Un ajuste por juego
+Une oreille entend nettement moins bien à certaines fréquences : Velox peut baisser l'autre au même endroit, pour que les pas sonnent pareil des deux côtés.	One ear hears clearly less at some frequencies: Velox can lower the other ear there, so footsteps sound the same on both sides.	Un oído oye claramente peor en algunas frecuencias: Velox puede bajar el otro ahí, para que los pasos suenen igual en ambos lados.
+~Windows refuse la lecture (code 	Windows refuses playback (code 	Windows rechaza la reproducción (código 
+droite	right	derecho
+gauche	left	izquierdo
+non entendu	not heard	no oído
+oreille droite baissée de {0} dB	right ear lowered by {0} dB	oído derecho bajado {0} dB
+oreille gauche baissée de {0} dB	left ear lowered by {0} dB	oído izquierdo bajado {0} dB
+{0} confusions devant/derrière	{0} front/back mix-ups	{0} confusiones delante/detrás
+{0} en cours : ton prochain changement sera retenu pour ce jeu.	{0} running: your next change will be remembered for this game.	{0} en curso: tu próximo cambio se guardará para este juego.
+{0} exacts	{0} exact	{0} exactos
+{0} s gardées · même volume pour les deux	{0} s kept · same volume for both	{0} s guardados · mismo volumen para ambos
+↻ Rejouer	↻ Replay	↻ Repetir
+▶ Avec Velox ({0} s)	▶ With Velox ({0} s)	▶ Con Velox ({0} s)
+▶ Sans Velox… ({0} s)	▶ Without Velox… ({0} s)	▶ Sin Velox… ({0} s)
+Arrêter la réécoute	Stop the replay	Detener la reproducción
+Réécoute : d'abord sans Velox, puis avec Velox, au même volume.	Replay: first without Velox, then with Velox, at the same volume.	Reproducción: primero sin Velox y luego con Velox, al mismo volumen.
+Réécoute arrêtée.	Replay stopped.	Reproducción detenida.
+Compensation des oreilles appliquée.	Ear compensation applied.	Compensación de oídos aplicada.
+Compensation des oreilles retirée.	Ear compensation removed.	Compensación de oídos retirada.
+coupé	off	desactivado
+Réécoute sans / avec Velox : les 10 dernières secondes de ta partie, rejouées au même volume.	Replay without / with Velox: the last 10 seconds of your match, played back at the same volume.	Volver a escuchar sin / con Velox: los últimos 10 segundos de tu partida, al mismo volumen.
+Un réglage par jeu, et deux tests d'écoute : direction des pas (8 directions) et audition de tes deux oreilles.	One setting per game, and two listening tests: footstep direction (8 directions) and hearing in both ears.	Un ajuste por juego y dos pruebas de escucha: dirección de los pasos (8 direcciones) y audición de tus dos oídos.
+Elle passe par Equalizer APO : elle n'agit pas avec l'égaliseur de Voicemeeter.	It goes through Equalizer APO: it has no effect with Voicemeeter's equalizer.	Pasa por Equalizer APO: no actúa con el ecualizador de Voicemeeter.
+Elle agira dès que l'égaliseur sera allumé.	It will take effect as soon as the equalizer is on.	Se aplicará en cuanto el ecualizador esté activado.

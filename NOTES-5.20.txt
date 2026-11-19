@@ -1,0 +1,34 @@
+Velox 5.20 : des pas qui ressortent même sous les explosions
+
+Amélioré
+- Pas boostés : nouveau « dompteur de graves ». Les explosions, grondements et véhicules (sous 200 Hz) sont
+  baissés à part, sans toucher aux médiums et aigus où se trouvent les pas et les recharges. Un pas qui tombe
+  pendant une explosion ressort de +7 dB (mesuré sur une scène de jeu, force Fort).
+- Pas lointains encore plus présents face aux explosions : +20 dB en Fort (au lieu de +16), +25 dB en Extrême
+  (au lieu de +22,7), toujours sans saturer.
+- Nouveau réglage « Ton arme » (Normale, Réduite, Très réduite) : tes propres rafales sont baissées, celles des
+  ennemis gardées. Un ennemi qui marche sur le côté pendant que tu tires ressort de +4 à +8 dB en stéréo, et de
+  +7 à +13 dB si VB-Cable est réglé en 7.1 (tes tirs arrivent alors sur la voie centrale). Un son faible devant
+  toi n'est jamais touché.
+- Présence adaptative : les aigus des pas sont mis en avant seulement quand la scène est calme ; dès qu'un tir ou
+  une explosion arrive, ils reviennent à la normale en 2 ms. Les pas sont plus nets sans rendre les tirs criards.
+- Nouveau niveau « Ultra » : le plus fort. Les bas-médiums des explosions sont tenus aussi : un pas pendant une
+  explosion ressort de +11 dB, un pas lointain de +27 dB. Moins naturel (le volume « pompe » davantage), mais
+  les pas passent devant tout.
+- Réécoute « sans / avec Velox » : un bouton rejoue les 10 dernières secondes de ta partie, d'abord sans Velox,
+  puis avec, au même volume (le plus fort des deux est baissé, pour une comparaison honnête).
+- Un réglage par jeu : la force et « Ton arme » réglées pendant une partie sont retenues pour ce jeu et reprises
+  à chaque fois qu'il tourne.
+- Tests d'écoute :
+  - Test de direction : 8 pas autour de toi, tu cliques d'où ils viennent. Score, confusions devant/derrière et
+    gauche/droite, et le conseil qui va avec (7.1 virtuel, tête virtuelle, sens du casque).
+  - Test d'audition : un bip monte dans chaque oreille, tu cliques quand tu l'entends. Si une oreille entend
+    nettement moins bien à une fréquence (10 dB d'écart ou plus), Velox baisse l'autre au même endroit (6 dB au
+    plus, jamais de hausse). Ce n'est pas un examen médical.
+- Nouveau profil « Ultra » dans Profils (égaliseur seul, sans VB-Cable) : pas et recharges très en avant,
+  explosions calmées, en gardant un son clair et plein (aigus ouverts, graves seulement tenus).
+
+L'installateur est publié sous les deux noms : Velox-Setup-5.20.exe (winget, site) et
+NettoyagePC-Setup-5.20.exe (mise à jour des anciennes versions).
+
+SHA256 de Velox-Setup-5.20.exe : voir le fichier Velox-Setup-5.20.sha256

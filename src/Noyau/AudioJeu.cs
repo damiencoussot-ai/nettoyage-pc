@@ -84,8 +84,11 @@ namespace NettoyagePC
         /// dont le profil a été chargé (pour ne pas écraser un réglage fait pendant la partie).</summary>
         public bool ProfilParJeu;
         public string JeuEnCours = "";
+        /// <summary>Compensation du test d'audition : baisse (dB, ≤ 0) de chaque oreille aux fréquences de TestAudition.</summary>
+        public double[] OreilleG = new double[TestAudition.Frequences.Length], OreilleD = new double[TestAudition.Frequences.Length];
+        public bool Oreilles { get { return OreilleG.Any(x => x < 0) || OreilleD.Any(x => x < 0); } }
 
-        public ReglagesAudioJeu Copie() { var c = (ReglagesAudioJeu)MemberwiseClone(); c.Gains = (double[])Gains.Clone(); c.CalibFiltres = new List<FiltreAudio>(CalibFiltres ?? new List<FiltreAudio>()); return c; }
+        public ReglagesAudioJeu Copie() { var c = (ReglagesAudioJeu)MemberwiseClone(); c.Gains = (double[])Gains.Clone(); c.CalibFiltres = new List<FiltreAudio>(CalibFiltres ?? new List<FiltreAudio>()); c.OreilleG = (double[])OreilleG.Clone(); c.OreilleD = (double[])OreilleD.Clone(); return c; }
 
         private static double Borne(double v, double min, double max, double pas)
         {
@@ -107,6 +110,14 @@ namespace NettoyagePC
             CibleEcrite = AudioJeu.NormaliserGuid(CibleEcrite);
             if (Moteur != "vm") Moteur = "apo";
             BusVm = Math.Max(0, Math.Min(7, BusVm)); VmEcrit = Math.Max(-1, Math.Min(7, VmEcrit));
+            int nf = TestAudition.Frequences.Length;
+            var og = new double[nf]; var od = new double[nf];
+            for (int i = 0; i < nf; i++)
+            {
+                og[i] = Borne(OreilleG != null && i < OreilleG.Length ? OreilleG[i] : 0, -6, 0, 0.5);
+                od[i] = Borne(OreilleD != null && i < OreilleD.Length ? OreilleD[i] : 0, -6, 0, 0.5);
+            }
+            OreilleG = og; OreilleD = od;
             return this;
         }
 
@@ -119,6 +130,7 @@ namespace NettoyagePC
                 { "Raccourcis", Raccourcis }, { "Moteur", Moteur }, { "BusVm", BusVm }, { "VmEcrit", VmEcrit }, { "AppareilVm", AppareilVm ?? "" },
                 { "SansEtiquetteVm", SansEtiquetteVm }, { "AssistantFait", AssistantFait }, { "ModeExpert", ModeExpert },
                 { "ProfilParJeu", ProfilParJeu }, { "JeuEnCours", JeuEnCours ?? "" },
+                { "OreilleG", OreilleG.Select(x => (object)x).ToArray() }, { "OreilleD", OreilleD.Select(x => (object)x).ToArray() },
                 { "CalibActive", CalibActive }, { "CalibNom", CalibNom ?? "" }, { "CalibSource", CalibSource ?? "" },
                 { "CalibFiltres", (CalibFiltres ?? new List<FiltreAudio>()).Select(f => (object)new object[] { f.Type, f.Fc, f.Gain, f.Q }).ToArray() },
             };
@@ -147,6 +159,14 @@ namespace NettoyagePC
             r.ModeExpert = Json.Bool(d, "ModeExpert");
             r.ProfilParJeu = Json.Bool(d, "ProfilParJeu");
             string je = Json.Texte(d, "JeuEnCours"); r.JeuEnCours = AudioJeu.Jeux.Any(j => j.Cle == je) ? je : "";
+            foreach (var cote in new[] { "OreilleG", "OreilleD" })
+            {
+                var lo = Json.Valeur(d, cote) as System.Collections.IEnumerable;
+                if (lo == null || lo is string) continue;
+                var v = new List<double>();
+                foreach (var x in lo) { try { v.Add(Convert.ToDouble(x, CultureInfo.InvariantCulture)); } catch { v.Add(0); } }
+                if (v.Count == TestAudition.Frequences.Length) { if (cote == "OreilleG") r.OreilleG = v.ToArray(); else r.OreilleD = v.ToArray(); }
+            }
             r.CalibActive = Json.Bool(d, "CalibActive");
             string cn = Json.Texte(d, "CalibNom"), cs = Json.Texte(d, "CalibSource");
             r.CalibNom = cn.Length <= 150 ? cn : ""; r.CalibSource = cs.Length <= 120 ? cs : "";
@@ -213,6 +233,7 @@ namespace NettoyagePC
             new ProfilAudio { Cle = "competitif", Nom = "Pas / compétitif", Carte = "Compétitif", Texte = "Pas et recharges en avant", Gains = new double[] { -5, -3, 2, 4, 3, -3 } },
             new ProfilAudio { Cle = "equilibre", Nom = "Équilibré", Carte = "Équilibré", Texte = "Plus de détail, sans excès", Gains = new double[] { -2, -1, 1, 2, 1, -1 } },
             new ProfilAudio { Cle = "extreme", Nom = "Pas extrême", Carte = "Pas extrême", Texte = "Maximum sur les pas, moins de graves", Gains = new double[] { -8, -5, 3, 6, 4, -4 } },
+            new ProfilAudio { Cle = "ultra", Nom = "Pas ultra", Carte = "Ultra", Texte = "Les pas très en avant, son clair et plein", Gains = new double[] { -5, -4, 1, 7, 5, 2 } },
             new ProfilAudio { Cle = "immersion", Nom = "Immersion", Carte = "Immersion", Texte = "Graves et ambiance", Gains = new double[] { 3, 1, -1, -1, 0, 1 } },
             new ProfilAudio { Cle = "voix", Nom = "Voix / chat", Carte = "Voix / chat", Texte = "Les voix en avant", Gains = new double[] { -4, -1, 3, 2, 0, -2 } },
             new ProfilAudio { Cle = "neutre", Nom = "Neutre", Carte = "Neutre", Texte = "Aucune correction", Gains = new double[] { 0, 0, 0, 0, 0, 0 } },
@@ -369,6 +390,8 @@ namespace NettoyagePC
                 ligne("Preamp: -" + Math.Abs(r.Balance).ToString("F1", c) + " dB");
                 ligne("Channel: all");
             }
+            // compensation du test d'audition (baisses seulement : rien ne peut saturer)
+            sb.Append(TestAudition.Lignes(r.OreilleG, r.OreilleD));
             ligne("EndIf:");
             return sb.ToString();
         }
