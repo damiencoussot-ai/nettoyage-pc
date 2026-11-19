@@ -1,0 +1,40 @@
+Velox 5.21 : le Studio son passe un cap
+
+La 5.20 n'a pas été publiée seule : tout ce qu'elle apporte est dans cette version.
+
+Nouveau
+- Guide pas à pas dans le Studio son : installer Equalizer APO et VB-Cable, brancher le casque, allumer
+  Pas boostés, nommer « Velox Studio », régler Windows et le jeu. Velox coche chaque étape faite et
+  donne le bouton qui la fait.
+- Ton arme (Normale, Réduite, Très réduite) : tes propres rafales sont baissées, pas celles des
+  ennemis. Un ennemi sur le côté pendant que tu tires ressort de +4 à +8 dB en stéréo, de +7 à +13 dB
+  si VB-Cable est réglé en 7.1. Un son faible devant toi n'est jamais touché.
+- Réécoute sans / avec Velox : un bouton rejoue les 10 dernières secondes de ta partie, d'abord sans
+  Velox, puis avec, au même volume.
+- Un réglage par jeu : la force et « Ton arme » réglées pendant une partie sont retenues pour ce jeu.
+- Tests d'écoute : test de direction (8 pas autour de toi) et test d'audition (Velox compare tes deux
+  oreilles et compense, par des baisses seulement, si l'une entend nettement moins bien).
+- Niveau « Ultra » dans Pas boostés, et profil « Ultra » dans Profils (clair et plein).
+
+Amélioré
+- Pas plus présents : les aigus des pas (vers 2,8 kHz) et leur choc (vers 300 Hz) sont mis en avant
+  seulement quand la scène est calme ; dès qu'un tir ou une explosion arrive, ils reviennent à la
+  normale en 2 ms. Les tirs ne deviennent pas criards.
+- Pas lointains face aux explosions : +14 dB en Léger, +22 dB en Fort, +26 dB en Extrême, +27 dB en
+  Ultra (mesuré sur une scène de test), sans saturation.
+- Dompteur de graves : les explosions sont baissées à part ; un pas pendant une explosion ressort de
+  +7 dB en Fort, +11 dB en Ultra.
+- Retard du son plus court avec Pas boostés : la réserve devant le casque part de 12 ms et ne grandit
+  que si le son manque (20 à 40 ms de retard selon le PC, affiché en direct).
+- Profil adapté à chaque jeu : le profil que tu choisis est retenu pour le jeu et repris à chaque
+  lancement (avant, Velox remettait le sien).
+
+Corrigé
+- La mise à jour restait bloquée sur « Velox est encore ouvert » quand Pas boostés tournait.
+- Le câble ne retrouvait pas le nom « Velox Studio » quand on rallumait Pas boostés.
+- Le gardien n'était pas relancé au démarrage de Velox après une mise à jour.
+
+L'installateur est publié sous les deux noms : Velox-Setup-5.21.exe (winget, site) et
+NettoyagePC-Setup-5.21.exe (mise à jour des anciennes versions).
+
+SHA256 de Velox-Setup-5.21.exe : voir le fichier Velox-Setup-5.21.sha256

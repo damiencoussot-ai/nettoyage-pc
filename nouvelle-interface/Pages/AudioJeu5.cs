@@ -756,6 +756,7 @@ namespace NettoyagePC.Nouveau
             zoneDemarrage = new StackPanel { Spacing = 10 };
             moduleDemarrage = Studio.Module("Démarrage rapide", zoneDemarrage);
             g.Children.Add(moduleDemarrage);
+            g.Children.Add(Studio.Module("Guide pas à pas", ConstruireGuide()));
             courbe = new CourbeEq5 { Reglages = r, Allume = r.Actif };
             AutomationProperties.SetName(courbe, Langue.T("Courbe de l'égaliseur"));
             courbe.GainChange += (k, db) =>
@@ -1172,6 +1173,7 @@ namespace NettoyagePC.Nouveau
             if (exemple) vu.Definir(0.42f, 0.36f);
             MajCasque();
             MajDemarrage(v);
+            MajGuide(v);
             MajNom(v);
             MajVerif(v);
             MajPas(v);
@@ -1838,7 +1840,7 @@ namespace NettoyagePC.Nouveau
                     zonePas.Children.Add(ligneRe);
                     tPasDirect = Studio.T("", 12, Studio.Texte);
                     zonePas.Children.Add(tPasDirect);
-                    zonePas.Children.Add(Studio.T(Langue.T("Léger : +13 dB sur les pas lointains face aux explosions. Fort : +20 dB. Extrême : +25 dB. Ultra : +27 dB, et un pas pendant une explosion ressort de +11 dB (le plus fort, moins naturel). Mesuré sur une scène de jeu. Les aigus des pas sont mis en avant seulement quand c'est calme : les tirs ne deviennent pas criards. Le son passe par VB-Cable, puis Velox le joue sur ton casque : de 20 à 40 ms de retard en plus selon le PC (affiché en direct). Dans le jeu, laisse la sortie audio sur « Par défaut »."), 11.5, Studio.Faible));
+                    zonePas.Children.Add(Studio.T(Langue.T("Léger : +14 dB sur les pas lointains face aux explosions. Fort : +22 dB. Extrême : +26 dB. Ultra : +27 dB, et un pas pendant une explosion ressort de +11 dB (le plus fort, moins naturel). Mesuré sur une scène de jeu. Les aigus des pas sont mis en avant seulement quand c'est calme : les tirs ne deviennent pas criards. Le son passe par VB-Cable, puis Velox le joue sur ton casque : de 20 à 40 ms de retard en plus selon le PC (affiché en direct). Dans le jeu, laisse la sortie audio sur « Par défaut »."), 11.5, Studio.Faible));
                     zonePas.Children.Add(Studio.T(Langue.T("Encore mieux en 7.1 : Panneau de configuration > Son > CABLE Input > Configurer > 7.1. Tes tirs arrivent alors sur leur propre voie (le centre) : Velox les baisse sans toucher aux ennemis autour de toi."), 11.5, Studio.Faible));
                 }
             }

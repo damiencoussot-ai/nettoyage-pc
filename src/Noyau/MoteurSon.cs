@@ -154,6 +154,10 @@ namespace NettoyagePC
         public readonly double GainPresence;                         // dB
         private readonly double pb0, pb1, pb2, pa1, pa2;
         private double[] px1, px2, py1, py2;
+        // « corps » des pas (le choc du talon, vers 300 Hz), mis en avant avec la présence, à moitié de son gain
+        public readonly double GainCorps;
+        private readonly double cb0, cb1, cb2, ca1, ca2;
+        private double[] cx1, cx2, cy1, cy2;
         private double presence, pScene = 1e-12, pLfe = 1e-12;
         private readonly double presMonte, presDescend;
 
@@ -173,7 +177,7 @@ namespace NettoyagePC
             }
             Seuil = -14 - 26 * f;                  // −14 dB (léger) à −40 dB (extrême)
             Rapport = 1.5 + 4.5 * f;               // 1,5:1 à 6:1
-            Remontee = -Seuil * (1 - 1 / Rapport) * 0.7;
+            Remontee = -Seuil * (1 - 1 / Rapport) * 0.8;
             double fe = Math.Max(8000, frequence);
             aNiveau = Math.Exp(-1 / (0.005 * fe));
             attaque = Math.Exp(-1 / (0.0015 * fe));
@@ -189,7 +193,12 @@ namespace NettoyagePC
             ProfondeurStereo = Arme == 0 ? 0 : Arme == 1 ? 6 : 12;
             aArme = Math.Exp(-1 / (0.003 * fe)); attaqueArme = Math.Exp(-1 / (0.001 * fe)); relacheArme = Math.Exp(-1 / (0.08 * fe));
             // présence : cloche (RBJ) à 2,8 kHz, Q 0,9 ; +2,6 dB (léger) à +4,5 dB (extrême et ultra)
-            GainPresence = f <= 0 ? 0 : 1.5 + 3 * Math.Min(1, f);
+            GainPresence = f <= 0 ? 0 : 2 + 4 * Math.Min(1, f);   // +3,4 dB (léger) à +6 dB (extrême et ultra)
+            GainCorps = GainPresence / 2;
+            {
+                double A = Math.Pow(10, GainCorps / 40), w = 2 * Math.PI * 300 / Math.Max(8000, frequence), al = Math.Sin(w) / (2 * 1.0), c = Math.Cos(w), a0 = 1 + al / A;
+                cb0 = (1 + al * A) / a0; cb1 = -2 * c / a0; cb2 = (1 - al * A) / a0; ca1 = -2 * c / a0; ca2 = (1 - al / A) / a0;
+            }
             {
                 double A = Math.Pow(10, GainPresence / 40), w = 2 * Math.PI * Math.Min(2800, 0.4 * fe) / fe, al = Math.Sin(w) / (2 * 0.9), c = Math.Cos(w), a0 = 1 + al / A;
                 pb0 = (1 + al * A) / a0; pb1 = -2 * c / a0; pb2 = (1 - al * A) / a0; pa1 = -2 * c / a0; pa2 = (1 - al / A) / a0;
@@ -226,6 +235,7 @@ namespace NettoyagePC
                 canauxRetard = canaux; retard = new float[(avance + 1) * canaux]; sec = new float[(avance + 1) * canaux]; besoin = new float[avance + 1]; pos = 0;
                 gx1 = new double[canaux]; gx2 = new double[canaux]; gy1 = new double[canaux]; gy2 = new double[canaux];
                 px1 = new double[canaux]; px2 = new double[canaux]; py1 = new double[canaux]; py2 = new double[canaux];
+                cx1 = new double[canaux]; cx2 = new double[canaux]; cy1 = new double[canaux]; cy2 = new double[canaux];
                 for (int k = 0; k < besoin.Length; k++) besoin[k] = 1;
             }
             int lg = avance + 1;
@@ -288,6 +298,9 @@ namespace NettoyagePC
                         double x = t[b + c];
                         double y = pb0 * x + pb1 * px1[c] + pb2 * px2[c] - pa1 * py1[c] - pa2 * py2[c];
                         px2[c] = px1[c]; px1[c] = x; py2[c] = py1[c]; py1[c] = y;
+                        double z = cb0 * y + cb1 * cx1[c] + cb2 * cx2[c] - ca1 * cy1[c] - ca2 * cy2[c];
+                        cx2[c] = cx1[c]; cx1[c] = y; cy2[c] = cy1[c]; cy1[c] = z;
+                        y = z;
                         if (canaux >= 6 && c == 3) continue;   // pas de présence sur le caisson de basses
                         t[b + c] = (float)(x + (y - x) * presence);
                     }
