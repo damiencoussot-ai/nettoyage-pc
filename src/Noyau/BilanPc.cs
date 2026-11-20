@@ -33,7 +33,9 @@ namespace NettoyagePC
             var d = new DonneesBilan();
             try { var dq = new DriveInfo(Environment.GetEnvironmentVariable("SystemDrive") ?? Path.GetPathRoot(Chemins.Windows)); if (dq.IsReady) { d.DisqueLibre = dq.AvailableFreeSpace; d.DisqueTotal = dq.TotalSize; } } catch { }
             long n; d.Corbeille = Natif.TailleCorbeille(out n);
-            d.Temp = TailleFichiers.Dossier(Path.GetTempPath());
+            // même règle que le nettoyage (fichiers de plus de JoursTemp jours) : sinon les fichiers récents, que le nettoyage
+            // laisse exprès (ils peuvent servir), garderaient ce point affiché après chaque nettoyage
+            d.Temp = TailleFichiers.Dossier(Path.GetTempPath(), null, DateTime.Now.AddDays(-new OptionsMoteur().JoursTemp));
             try { var j = new DirectoryInfo(Chemins.Donnees).GetFiles("journal_*.txt").OrderByDescending(x => x.LastWriteTime).FirstOrDefault(); if (j != null) d.DernierJournal = j.LastWriteTime; } catch { }
             d.Tache = Moteur.TacheExiste(Moteur.TacheHebdo);
             ulong t, l; Natif.Memoire(out t, out l); d.RamTotal = t; d.RamLibre = l;

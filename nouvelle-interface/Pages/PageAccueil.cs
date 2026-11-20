@@ -119,7 +119,7 @@ namespace NettoyagePC.Nouveau
                 F.BilanPret += Recevoir;
                 if (F.Bilan != null) Appliquer(F.Bilan, false);
                 // bilan de plus de 5 minutes, ou aucun : on le (re)calcule
-                if (F.Bilan == null || (DateTime.Now - F.Bilan.Date).TotalMinutes > 5) F.ActualiserBilan();
+                if (F.Bilan == null || F.BilanPerime || (DateTime.Now - F.Bilan.Date).TotalMinutes > 5) F.ActualiserBilan();
                 if (!F.Source.Immediat) { minuteur.Start(); Mesurer(); }
             };
             DetachedFromVisualTree += (s, e) => { F.BilanPret -= Recevoir; minuteur.Stop(); if (Courante == this) Courante = null; };

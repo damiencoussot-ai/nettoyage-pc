@@ -1,6 +1,6 @@
 Velox 5.21 : le Studio son passe un cap
 
-La 5.20 n'a pas été publiée seule : tout ce qu'elle apporte est dans cette version.
+Cette version reprend et termine tout ce qu'avait commencé la 5.20.
 
 Nouveau
 - Guide pas à pas dans le Studio son : installer Equalizer APO et VB-Cable, brancher le casque, allumer
@@ -30,6 +30,10 @@ Amélioré
   lancement (avant, Velox remettait le sien).
 
 Corrigé
+- Accueil : un point « fichiers temporaires récupérables » restait affiché après chaque nettoyage (le
+  bilan comptait aussi les fichiers récents, que le nettoyage garde exprès). Et le bilan se recalcule dès
+  le retour à l'accueil après un pilote, Sécurité Windows ou les programmes au démarrage.
+- Rapport de problème : il contient maintenant l'état complet du son (Studio son, Pas boostés, câble).
 - La mise à jour restait bloquée sur « Velox est encore ouvert » quand Pas boostés tournait.
 - Le câble ne retrouvait pas le nom « Velox Studio » quand on rallumait Pas boostés.
 - Le gardien n'était pas relancé au démarrage de Velox après une mise à jour.
