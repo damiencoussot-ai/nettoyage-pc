@@ -79,8 +79,11 @@ namespace NettoyagePC
             {
                 double pct = 100 * d.DisqueLibre / d.DisqueTotal;
                 string txt = "Disque " + sd + " " + Format.Taille(d.DisqueLibre) + " libres (" + pct.ToString("0", Appli.Fr) + " %)";
-                if (pct < 10) { Point("probleme", txt + " : presque plein, Windows ralentit.", "Libérer de l'espace", "action:complet"); }
-                else if (pct < 20) { Point("attention", txt + " : il commence à se remplir.", "Nettoyer", "action:standard"); }
+                // déjà nettoyé il y a moins de 24 h et toujours plein : un nouveau nettoyage ne changerait rien, ce sont de gros
+                // fichiers (jeux, vidéos, téléchargements) qu'il faut trier : le bouton mène à « Disques et gros fichiers »
+                bool dejaNettoye = d.DernierJournal.HasValue && (DateTime.Now - d.DernierJournal.Value).TotalHours < 24;
+                if (pct < 10) { if (dejaNettoye) Point("probleme", txt + " : presque plein, Windows ralentit.", "Voir les gros fichiers", "page:Disques"); else Point("probleme", txt + " : presque plein, Windows ralentit.", "Libérer de l'espace", "action:complet"); }
+                else if (pct < 20) { if (dejaNettoye) Point("attention", txt + " : il commence à se remplir.", "Voir les gros fichiers", "page:Disques"); else Point("attention", txt + " : il commence à se remplir.", "Nettoyer", "action:standard"); }
                 else Point("ok", txt, null, null);
             }
             // la Corbeille ne compte que si le nettoyage la vide (réglage désactivé par défaut)

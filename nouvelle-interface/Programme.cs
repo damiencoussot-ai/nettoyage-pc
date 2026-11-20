@@ -827,6 +827,26 @@ namespace NettoyagePC.Nouveau
                             cn.Traiter(bn2, 480, 2);
                             verifier(bn.Concat(bn2).All(x => !float.IsNaN(x) && !float.IsInfinity(x) && Math.Abs(x) <= 0.9501f) && bn2.Any(x => x != 0), "pas boostés : un échantillon invalide est remplacé par du silence, le son repart");
                         }
+                        {
+                            // bilan : fichiers temporaires comptés comme le nettoyage les supprime (plus de 2 jours)
+                            string dt = Path.Combine(Path.GetTempPath(), "velox-essai-bilan-" + Guid.NewGuid().ToString("N").Substring(0, 8));
+                            Directory.CreateDirectory(dt);
+                            try
+                            {
+                                string vieux = Path.Combine(dt, "vieux.tmp"), recent = Path.Combine(dt, "recent.tmp");
+                                File.WriteAllBytes(vieux, new byte[3000]); File.WriteAllBytes(recent, new byte[5000]);
+                                File.SetLastWriteTime(vieux, DateTime.Now.AddDays(-3));
+                                long tout = TailleFichiers.Dossier(dt), nettoyable = TailleFichiers.Dossier(dt, null, DateTime.Now.AddDays(-new OptionsMoteur().JoursTemp));
+                                verifier(tout == 8000 && nettoyable == 3000, "bilan : seuls les fichiers temporaires que le nettoyage supprime sont comptés (" + nettoyable + " sur " + tout + " octets)");
+                            }
+                            finally { try { Directory.Delete(dt, true); } catch { } }
+                            // disque presque plein, déjà nettoyé aujourd'hui : le bouton mène aux gros fichiers (pas un nettoyage de plus)
+                            var db = new DonneesBilan { DisqueTotal = 100e9, DisqueLibre = 15e9, DernierJournal = DateTime.Now.AddHours(-1) };
+                            var p1 = BilanPc.Points(db).First();
+                            db.DernierJournal = DateTime.Now.AddDays(-3); var p2 = BilanPc.Points(db).First();
+                            db.DisqueLibre = 5e9; var p3 = BilanPc.Points(db).First();
+                            verifier(p1.Cible == "page:Disques" && p2.Cible == "action:standard" && p3.Cible == "action:complet" && p3.Etat == "probleme", "bilan : disque plein déjà nettoyé → gros fichiers ; sinon nettoyage");
+                        }
                         verifier(ReglagesMoteurSon.Lire(new ReglagesMoteurSon { RenommerAuRallumage = true }.Json()).RenommerAuRallumage && !new ReglagesMoteurSon().RenommerAuRallumage, "Velox Studio : le nom à remettre au rallumage est gardé dans les réglages");
                     }
                     {

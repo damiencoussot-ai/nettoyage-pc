@@ -33,6 +33,8 @@ Corrigé
 - Accueil : un point « fichiers temporaires récupérables » restait affiché après chaque nettoyage (le
   bilan comptait aussi les fichiers récents, que le nettoyage garde exprès). Et le bilan se recalcule dès
   le retour à l'accueil après un pilote, Sécurité Windows ou les programmes au démarrage.
+- Accueil : disque presque plein alors qu'un nettoyage vient d'être fait, le bouton mène maintenant aux
+  gros fichiers (un nouveau nettoyage ne changerait rien).
 - Rapport de problème : il contient maintenant l'état complet du son (Studio son, Pas boostés, câble).
 - La mise à jour restait bloquée sur « Velox est encore ouvert » quand Pas boostés tournait.
 - Le câble ne retrouvait pas le nom « Velox Studio » quand on rallumait Pas boostés.
