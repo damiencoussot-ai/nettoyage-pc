@@ -16,13 +16,14 @@ namespace NettoyagePC.Nouveau
         {
             var P = Habillage.P;
             var s = new StackPanel { Spacing = 12 };
-            s.Children.Add(new TextBlock { Text = Langue.T("Le rapport contient la version de Velox, celle de Windows et les dernières erreurs du journal. Ton nom, celui du PC, tes adresses e-mail et tes dossiers personnels sont masqués. Tu le vois en entier avant de l'envoyer."), FontFamily = Habillage.Corps, FontSize = 13.5, Foreground = Habillage.Pinceau(P.Discret), TextWrapping = TextWrapping.Wrap });
+            s.Children.Add(new TextBlock { Text = Langue.T("Le rapport contient la version de Velox, celle de Windows, l'état du son (Studio son) et les dernières erreurs du journal. Ton nom, celui du PC, tes adresses e-mail et tes dossiers personnels sont masqués. Tu le vois en entier avant de l'envoyer."), FontFamily = Habillage.Corps, FontSize = 13.5, Foreground = Habillage.Pinceau(P.Discret), TextWrapping = TextWrapping.Wrap });
             s.Children.Add(new TextBlock { Text = Langue.T("Que s'est-il passé ? (facultatif)"), FontFamily = Habillage.Corps, FontSize = 13.5, FontWeight = FontWeight.SemiBold, Foreground = Habillage.Pinceau(P.Texte) });
             var description = new TextBox { AcceptsReturn = true, TextWrapping = TextWrapping.Wrap, Height = 70, MaxLength = 1500, Watermark = Langue.T("Par exemple : la fenêtre se ferme quand je clique sur Nettoyage profond.") };
             s.Children.Add(description);
             s.Children.Add(new TextBlock { Text = Langue.T("Le rapport qui sera envoyé :"), FontFamily = Habillage.Corps, FontSize = 13.5, FontWeight = FontWeight.SemiBold, Foreground = Habillage.Pinceau(P.Texte) });
             var apercu = new TextBox { IsReadOnly = true, AcceptsReturn = true, TextWrapping = TextWrapping.Wrap, Height = 220, FontFamily = Habillage.Console, FontSize = 11.5 };
-            Func<string> rapport = () => RapportBug.Creer(description.Text ?? "");
+            string son = RapportBug.SectionSon();   // relevé une fois (appareils, processus) : pas à chaque lettre tapée
+            Func<string> rapport = () => RapportBug.Creer(description.Text ?? "", son);
             apercu.Text = rapport();
             description.TextChanged += (o, e) => apercu.Text = rapport();
             s.Children.Add(apercu);
