@@ -84,11 +84,22 @@ namespace NettoyagePC
         /// dont le profil a été chargé (pour ne pas écraser un réglage fait pendant la partie).</summary>
         public bool ProfilParJeu;
         public string JeuEnCours = "";
+        /// <summary>Profil choisi par l'utilisateur pour un jeu (clé du jeu → gains) : chargé à la place du profil prévu
+        /// par Velox quand ce jeu se lance (« Profil adapté à chaque jeu »).</summary>
+        public Dictionary<string, double[]> GainsParJeu = new Dictionary<string, double[]>();
+
+        /// <summary>Gains à charger au lancement de ce jeu : ceux choisis pour lui, sinon ceux prévus par Velox.</summary>
+        public double[] GainsDuJeu(JeuAudio j)
+        {
+            double[] g;
+            return GainsParJeu != null && GainsParJeu.TryGetValue(j.Cle, out g) && g != null && g.Length == AudioJeu.Bandes.Length ? (double[])g.Clone() : (double[])j.Gains.Clone();
+        }
         /// <summary>Compensation du test d'audition : baisse (dB, ≤ 0) de chaque oreille aux fréquences de TestAudition.</summary>
         public double[] OreilleG = new double[TestAudition.Frequences.Length], OreilleD = new double[TestAudition.Frequences.Length];
         public bool Oreilles { get { return OreilleG.Any(x => x < 0) || OreilleD.Any(x => x < 0); } }
 
-        public ReglagesAudioJeu Copie() { var c = (ReglagesAudioJeu)MemberwiseClone(); c.Gains = (double[])Gains.Clone(); c.CalibFiltres = new List<FiltreAudio>(CalibFiltres ?? new List<FiltreAudio>()); c.OreilleG = (double[])OreilleG.Clone(); c.OreilleD = (double[])OreilleD.Clone(); return c; }
+        public ReglagesAudioJeu Copie() { var c = (ReglagesAudioJeu)MemberwiseClone(); c.Gains = (double[])Gains.Clone(); c.CalibFiltres = new List<FiltreAudio>(CalibFiltres ?? new List<FiltreAudio>()); c.OreilleG = (double[])OreilleG.Clone(); c.OreilleD = (double[])OreilleD.Clone();
+            c.GainsParJeu = (GainsParJeu ?? new Dictionary<string, double[]>()).ToDictionary(kv => kv.Key, kv => (double[])kv.Value.Clone()); return c; }
 
         private static double Borne(double v, double min, double max, double pas)
         {
@@ -118,6 +129,12 @@ namespace NettoyagePC
                 od[i] = Borne(OreilleD != null && i < OreilleD.Length ? OreilleD[i] : 0, -6, 0, 0.5);
             }
             OreilleG = og; OreilleD = od;
+            var gj = new Dictionary<string, double[]>();
+            if (GainsParJeu != null)
+                foreach (var kv in GainsParJeu)
+                    if (kv.Key != null && AudioJeu.Jeux.Any(j => j.Cle == kv.Key) && kv.Value != null && kv.Value.Length == AudioJeu.Bandes.Length)
+                        gj[kv.Key] = kv.Value.Select(x => Borne(x, -12, 12, 0.5)).ToArray();
+            GainsParJeu = gj;
             return this;
         }
 
@@ -130,6 +147,7 @@ namespace NettoyagePC
                 { "Raccourcis", Raccourcis }, { "Moteur", Moteur }, { "BusVm", BusVm }, { "VmEcrit", VmEcrit }, { "AppareilVm", AppareilVm ?? "" },
                 { "SansEtiquetteVm", SansEtiquetteVm }, { "AssistantFait", AssistantFait }, { "ModeExpert", ModeExpert },
                 { "ProfilParJeu", ProfilParJeu }, { "JeuEnCours", JeuEnCours ?? "" },
+                { "GainsParJeu", (GainsParJeu ?? new Dictionary<string, double[]>()).ToDictionary(kv => kv.Key, kv => (object)kv.Value.Select(x => (object)x).ToArray()) },
                 { "OreilleG", OreilleG.Select(x => (object)x).ToArray() }, { "OreilleD", OreilleD.Select(x => (object)x).ToArray() },
                 { "CalibActive", CalibActive }, { "CalibNom", CalibNom ?? "" }, { "CalibSource", CalibSource ?? "" },
                 { "CalibFiltres", (CalibFiltres ?? new List<FiltreAudio>()).Select(f => (object)new object[] { f.Type, f.Fc, f.Gain, f.Q }).ToArray() },
@@ -159,6 +177,15 @@ namespace NettoyagePC
             r.ModeExpert = Json.Bool(d, "ModeExpert");
             r.ProfilParJeu = Json.Bool(d, "ProfilParJeu");
             string je = Json.Texte(d, "JeuEnCours"); r.JeuEnCours = AudioJeu.Jeux.Any(j => j.Cle == je) ? je : "";
+            if (Json.Valeur(d, "GainsParJeu") is Dictionary<string, object> gpj)
+                foreach (var kv in gpj)
+                {
+                    var lg = kv.Value as System.Collections.IEnumerable;
+                    if (lg == null || lg is string) continue;
+                    var v = new List<double>();
+                    foreach (var x in lg) { try { v.Add(Convert.ToDouble(x, CultureInfo.InvariantCulture)); } catch { v.Add(0); } }
+                    r.GainsParJeu[kv.Key] = v.ToArray();
+                }
             foreach (var cote in new[] { "OreilleG", "OreilleD" })
             {
                 var lo = Json.Valeur(d, cote) as System.Collections.IEnumerable;
@@ -597,7 +624,7 @@ namespace NettoyagePC
             string cle = j != null ? j.Cle : "";
             if (j != null && r.ProfilParJeu && r.JeuEnCours != cle)
             {
-                r.Gains = (double[])j.Gains.Clone(); r.CoupeBas = j.CoupeBas;
+                r.Gains = r.GainsDuJeu(j); r.CoupeBas = j.CoupeBas;
                 changer = true;
             }
             if (r.JeuEnCours != cle) { r.JeuEnCours = cle; changer = true; }

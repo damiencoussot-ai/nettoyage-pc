@@ -131,6 +131,14 @@ namespace NettoyagePC.Nouveau
             }
             catch (Exception ex) { JournalDemarrage.Erreur("réglages (version 5)", ex); }
             try { Licence.Charger(); } catch (Exception ex) { JournalDemarrage.Erreur("licence (version 5)", ex); }
+            // après une mise à jour, l'installateur a arrêté le gardien et le moteur « Pas boostés » : ils repartent ici
+            // (sans moteur, le son partirait dans le câble virtuel sans arriver au casque)
+            if (!Installation5.Apercu && Natif.EstWindows && Appli.DossierAutotest == null && App.FichierEssaiDemarrage == null)
+                System.Threading.Tasks.Task.Run(() =>
+                {
+                    try { Gardien.DemarrerSiBesoin(); } catch (Exception ex) { JournalDemarrage.Erreur("relance du gardien", ex); }
+                    try { if (MoteurSon.Lire().Actif && !MoteurSon.EnMarche()) MoteurSon.Surveiller(); } catch (Exception ex) { JournalDemarrage.Erreur("relance du moteur audio", ex); }
+                });
             // licence de la boutique revérifiée en arrière-plan (au plus une fois par semaine, ou tout de suite si une clé offerte
             // est arrivée à sa date de fin : elle a peut-être été prolongée) ; l'interface suit grâce à Licence.Change
             if (Appli.DossierAutotest == null) System.Threading.Tasks.Task.Run(() => { try { Licence.VerifierSiBesoin(); } catch { } });
@@ -693,6 +701,18 @@ namespace NettoyagePC.Nouveau
                 verifier(okV && !c2 && okCs && c4 && !rj.Actif && rj.JeuEnCours == "", "Auto jeux : profil du jeu chargé au lancement, réglage de la partie gardé, coupé à la fermeture");
                 var rj2 = new ReglagesAudioJeu { AutoJeu = true, ProfilParJeu = false, Gains = (double[])competitif.Clone() };
                 verifier(AudioJeu.SuivreJeu(rj2, "r5apex.exe", false) && rj2.Actif && rj2.Gains.SequenceEqual(competitif), "Auto jeux sans profil par jeu : le profil choisi reste");
+                {
+                    // profil choisi pour un jeu : repris à son lancement à la place du profil prévu ; relu ; effacé si on reprend celui du jeu
+                    var ultra = AudioJeu.Profils.First(p => p.Cle == "ultra").Gains;
+                    var rp = new ReglagesAudioJeu { AutoJeu = true, ProfilParJeu = true };
+                    string nomJ = AudioJeu5.RetenirProfilJeu(rp, null, ultra);
+                    var rpl = ReglagesAudioJeu.DepuisJson(NettoyagePC.Json.Lire(NettoyagePC.Json.Ecrire(rp.VersJson())) as System.Collections.Generic.Dictionary<string, object>);
+                    rpl.Gains = (double[])AudioJeu.Profils[0].Gains.Clone();
+                    bool okP = nomJ == AudioJeu.Jeux[0].Nom && AudioJeu.SuivreJeu(rpl, "cod.exe", false) && rpl.Gains.SequenceEqual(ultra);
+                    AudioJeu5.RetenirProfilJeu(rpl, "cod.exe", AudioJeu.Jeux[0].Gains);
+                    okP &= rpl.GainsParJeu.Count == 0 && AudioJeu5.RetenirProfilJeu(new ReglagesAudioJeu(), "cod.exe", ultra) == "";
+                    verifier(okP, "profil adapté à chaque jeu : le profil choisi est retenu pour le jeu, repris à son lancement, effacé si on revient au profil du jeu");
+                }
                 var rjj = ReglagesAudioJeu.DepuisJson(Json.Lire(Json.Ecrire(new ReglagesAudioJeu { ProfilParJeu = true, JeuEnCours = "tarkov" }.VersJson())) as System.Collections.Generic.Dictionary<string, object>);
                 var rjf = ReglagesAudioJeu.DepuisJson(new System.Collections.Generic.Dictionary<string, object> { { "JeuEnCours", "x\ninclude" } });
                 verifier(rjj.ProfilParJeu && rjj.JeuEnCours == "tarkov" && rjf.JeuEnCours == "", "Auto jeux : réglages enregistrés et relus (jeu inconnu refusé)");
@@ -799,6 +819,15 @@ namespace NettoyagePC.Nouveau
                         relu.ParJeuActif = false; relu.Effectifs("cod", out fj4, out aj4);
                         okJ &= fj4 == 35 && aj4 == 1 && AudioJeu5.NomJeuCle("cod") != "" && AudioJeu5.NomJeuCle("zzz") == "";
                         verifier(okJ, "un réglage par jeu : retenu pour le jeu en cours, réglage général ailleurs, relu, bornes et clés vérifiées");
+                        {
+                            // un échantillon invalide (NaN, infini) ne doit pas bloquer le traitement pour toujours
+                            var cn = new CompresseurPas(100, 48000, 2); var bn = new float[480 * 2];
+                            bn[10] = float.NaN; bn[11] = float.PositiveInfinity; cn.Traiter(bn, 480, 2);
+                            var bn2 = new float[480 * 2]; for (int i = 0; i < 480; i++) bn2[2 * i] = bn2[2 * i + 1] = (float)(0.1 * Math.Sin(i * 0.3));
+                            cn.Traiter(bn2, 480, 2);
+                            verifier(bn.Concat(bn2).All(x => !float.IsNaN(x) && !float.IsInfinity(x) && Math.Abs(x) <= 0.9501f) && bn2.Any(x => x != 0), "pas boostés : un échantillon invalide est remplacé par du silence, le son repart");
+                        }
+                        verifier(ReglagesMoteurSon.Lire(new ReglagesMoteurSon { RenommerAuRallumage = true }.Json()).RenommerAuRallumage && !new ReglagesMoteurSon().RenommerAuRallumage, "Velox Studio : le nom à remettre au rallumage est gardé dans les réglages");
                     }
                     {
                         // test de direction : son sur les bonnes voies seulement, notation et conseils

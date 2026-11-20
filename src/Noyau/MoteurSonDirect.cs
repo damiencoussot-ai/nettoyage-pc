@@ -17,6 +17,9 @@ namespace NettoyagePC
     internal static partial class MoteurSon
     {
         private const string NomVerrou = @"Local\VeloxMoteurSon";
+        /// <summary>Signal d'arrêt (l'installateur le donne avant une mise à jour) : le moteur s'arrête sans rien changer à
+        /// ses réglages ; Velox le relance à son prochain lancement.</summary>
+        public const string NomArret = @"Local\VeloxMoteurSon-Arret";
         private static readonly Regex NomSortieCable = new Regex(@"^CABLE(-[A-D])? Input$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
         private static readonly Regex NomEntreeCable = new Regex(@"^CABLE(-[A-D])? Output$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
         private const string CleEntrees = @"HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\MMDevices\Audio\Capture";
@@ -84,7 +87,6 @@ namespace NettoyagePC
                 if (!Natif.EstWindows || guidDefaut == "") return guidDefaut;
                 var r = Lire();
                 if (!r.Actif || r.Destination == "") return guidDefaut;
-                string nom = NomSeul(AudioJeu.NomSortie(guidDefaut));
                 string suffixe;
                 return EstCable(AudioJeu.NomSortie(guidDefaut), out suffixe) ? AudioWindows.GuidDe(r.Destination) : guidDefaut;
             }
@@ -162,16 +164,30 @@ namespace NettoyagePC
             return e;
         }
 
-        private static void EcrireEtat(bool marche, int latence, double reduction, bool jeu, string erreur, int canaux = 0, double reductionArme = 0,
+        private static string LigneEtat(bool marche, int latence, double reduction, bool jeu, string erreur, int canaux = 0, double reductionArme = 0,
             int reecoute = 0, int reecouteSecondes = 0, int memoire = 0, string jeuCle = "")
+        {
+            var c = CultureInfo.InvariantCulture;
+            return (marche ? "marche" : "arret") + "|" + latence.ToString(c) + "|" + reduction.ToString("F1", c) + "|" + (jeu ? "1" : "0") + "|" + (erreur ?? "").Replace('|', ' ').Replace('\n', ' ').Replace('\r', ' ') + "|" + canaux.ToString(c) + "|" + reductionArme.ToString("F1", c)
+                + "|" + reecoute.ToString(c) + "|" + reecouteSecondes.ToString(c) + "|" + memoire.ToString(c) + "|" + (jeuCle ?? "");
+        }
+
+        /// <summary>Écrit l'état d'un coup (fichier temporaire puis remplacement) : la page ne lit jamais une ligne à moitié écrite.</summary>
+        private static void EcrireLigneEtat(string ligne)
         {
             try
             {
-                var c = CultureInfo.InvariantCulture;
-                File.WriteAllText(FichierEtat, (marche ? "marche" : "arret") + "|" + latence.ToString(c) + "|" + reduction.ToString("F1", c) + "|" + (jeu ? "1" : "0") + "|" + (erreur ?? "").Replace('|', ' ').Replace('\n', ' ') + "|" + canaux.ToString(c) + "|" + reductionArme.ToString("F1", c)
-                    + "|" + reecoute.ToString(c) + "|" + reecouteSecondes.ToString(c) + "|" + memoire.ToString(c) + "|" + (jeuCle ?? ""));
+                string temp = FichierEtat + ".tmp";
+                File.WriteAllText(temp, ligne);
+                File.Move(temp, FichierEtat, true);
             }
-            catch { }
+            catch { try { File.WriteAllText(FichierEtat, ligne); } catch { } }
+        }
+
+        private static void EcrireEtat(bool marche, int latence, double reduction, bool jeu, string erreur, int canaux = 0, double reductionArme = 0,
+            int reecoute = 0, int reecouteSecondes = 0, int memoire = 0, string jeuCle = "")
+        {
+            EcrireLigneEtat(LigneEtat(marche, latence, reduction, jeu, erreur, canaux, reductionArme, reecoute, reecouteSecondes, memoire, jeuCle));
         }
 
         // ------------------------------------------------------------------ allumer, couper, surveiller (côté Velox)
@@ -287,6 +303,10 @@ namespace NettoyagePC
         {
             public IMMDevice Appareil; public IAudioClient Client; public IAudioCaptureClient Capture; public IAudioRenderClient Rendu;
             public int Images;
+            /// <summary>Réserve visée dans le tampon du casque (images) : petite au départ, agrandie seulement si le son
+            /// manque (le tampon s'est vidé). -1 : pas encore fixée.</summary>
+            public int Reserve = -1;
+            public bool Amorce;
             public void Fermer()
             {
                 try { if (Client != null) Client.Stop(); } catch { }
@@ -303,17 +323,38 @@ namespace NettoyagePC
             using (var verrou = new Mutex(true, NomVerrou, out seul))
             {
                 if (!seul) return 0;   // déjà en marche
-                try { Boucle(); }
+                EventWaitHandle arret = null;
+                try { arret = new EventWaitHandle(false, EventResetMode.ManualReset, NomArret); } catch { }
+                try { Boucle(arret); }
                 catch (Exception ex) { JournalDemarrage.Erreur("moteur audio", ex); EcrireEtat(false, 0, 0, false, ex.Message); return 1; }
-                finally { try { verrou.ReleaseMutex(); } catch { } }
+                finally { try { verrou.ReleaseMutex(); } catch { } if (arret != null) arret.Dispose(); }
             }
             EcrireEtat(false, 0, 0, false, "");
             return 0;
         }
 
-        private static void Boucle()
+        [DllImport("avrt.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        private static extern IntPtr AvSetMmThreadCharacteristicsW(string tache, ref int index);
+        [DllImport("avrt.dll", SetLastError = true)]
+        private static extern bool AvRevertMmThreadCharacteristics(IntPtr poignee);
+
+        /// <summary>Jeu en cours, cherché par un fil à part (parcourir les processus prend parfois des dizaines de ms : dans le
+        /// fil du son, cela ferait des trous).</summary>
+        private static volatile string jeuDetecte = "";
+
+        private static void Boucle(EventWaitHandle arret)
         {
             Thread.CurrentThread.Priority = ThreadPriority.Highest;
+            // priorité « audio pro » de Windows (MMCSS) : le fil du son passe devant le reste, même quand le jeu charge le PC
+            IntPtr mmcss = IntPtr.Zero;
+            try { int idx = 0; mmcss = AvSetMmThreadCharacteristicsW("Pro Audio", ref idx); } catch { }
+            var fini = new ManualResetEventSlim(false);
+            var chercheur = new Thread(() =>
+            {
+                while (!fini.IsSet) { try { jeuDetecte = JeuEnCours(); } catch { } fini.Wait(2000); }
+            }) { IsBackground = true, Priority = ThreadPriority.BelowNormal, Name = "Velox jeu en cours" };
+            chercheur.Start();
+            string etatEnAttente = null; bool ecritureEnCours = false; var verrouEtat = new object();
             IMMDeviceEnumerator e = (IMMDeviceEnumerator)new MMDeviceEnumeratorCom();
             Flux cap = null, ren = null;
             IntPtr format = IntPtr.Zero;
@@ -332,6 +373,7 @@ namespace NettoyagePC
             {
                 while (true)
                 {
+                    if (arret != null && arret.WaitOne(0)) return;   // mise à jour : arrêt demandé par l'installateur
                     long t = montre.ElapsedMilliseconds;
                     // réglages relus quand ils changent (la page les écrit) ; « coupé » : le moteur s'arrête
                     if (t - derniereLecture >= 300)
@@ -356,10 +398,10 @@ namespace NettoyagePC
                         try { dem = File.ReadAllText(FichierReecoute).Trim(); File.Delete(FichierReecoute); } catch { }
                         if (memoire != null) { if (dem == "stop") memoire.Arreter(); else if (dem == "go") memoire.Lancer(); }
                     }
-                    if (t - dernierJeu >= 2000)
+                    if (t - dernierJeu >= 250)
                     {
                         dernierJeu = t;
-                        jeuCle = JeuEnCours();
+                        jeuCle = jeuDetecte;
                         jeu = jeuCle != "";
                     }
                     // réglages effectifs : ceux retenus pour le jeu en cours (« un réglage par jeu »), sinon les réglages généraux
@@ -390,8 +432,26 @@ namespace NettoyagePC
                         try { int pad; if (ren != null && ren.Client.GetCurrentPadding(out pad) == 0) lat = (int)(1000.0 * pad / fe) + 10 + (comp != null ? 2 : 0); } catch { }
                         double red = comp != null ? comp.ReductionMax : 0; if (comp != null) comp.ReductionMax = 0;
                         double redA = comp != null ? comp.ReductionArmeMax : 0; if (comp != null) comp.ReductionArmeMax = 0;
-                        EcrireEtat(cap != null && ren != null, lat, red, !r.JeuxSeulement || jeu, erreur, cap != null ? canaux : 0, redA,
+                        // écrit par un fil à part (un fichier peut être retenu quelques ms par l'antivirus : pas dans le fil du son)
+                        string ligne = LigneEtat(cap != null && ren != null, lat, red, !r.JeuxSeulement || jeu, erreur, cap != null ? canaux : 0, redA,
                             memoire != null ? memoire.Phase : 0, memoire != null ? memoire.SecondesRestantes : 0, memoire != null ? memoire.Secondes : 0, jeuCle);
+                        lock (verrouEtat)
+                        {
+                            etatEnAttente = ligne;
+                            if (!ecritureEnCours)
+                            {
+                                ecritureEnCours = true;
+                                ThreadPool.QueueUserWorkItem(_ =>
+                                {
+                                    while (true)
+                                    {
+                                        string a;
+                                        lock (verrouEtat) { a = etatEnAttente; etatEnAttente = null; if (a == null) { ecritureEnCours = false; return; } }
+                                        EcrireLigneEtat(a);
+                                    }
+                                });
+                            }
+                        }
                     }
                     if (cap == null || ren == null) { Thread.Sleep(100); continue; }
                     evenement.WaitOne(100);
@@ -429,24 +489,36 @@ namespace NettoyagePC
             }
             finally
             {
+                fini.Set();
                 if (cap != null) cap.Fermer(); if (ren != null) ren.Fermer();
                 if (format != IntPtr.Zero) Marshal.FreeCoTaskMem(format);
                 AudioWindows.Liberer(e);
                 evenement.Dispose();
+                if (mmcss != IntPtr.Zero) { try { AvRevertMmThreadCharacteristics(mmcss); } catch { } }
+                // dernière écriture de l'état en attente, avant celle de l'arrêt (sinon elle pourrait passer après)
+                for (int i = 0; i < 40; i++) { lock (verrouEtat) { if (!ecritureEnCours) break; } Thread.Sleep(25); }
             }
         }
 
         /// <summary>
-        /// Écrit le son traité sur le casque. Retard visé : 20 ms dans le tampon du casque. Les horloges du câble et du casque
-        /// ne battent jamais exactement au même rythme : si le tampon dépasse 60 ms, le surplus est sauté ; s'il se vide,
-        /// 10 ms de silence sont remis pour repartir sans craquements à répétition.
+        /// Écrit le son traité sur le casque. Réserve visée : 12 ms dans le tampon du casque au départ (le retard ajouté
+        /// est surtout là). Si le tampon se vide (PC chargé : un craquement), la réserve grandit de 4 ms, jusqu'à 40 ms au
+        /// plus : chaque PC trouve ainsi le plus petit retard sans craquements. Les horloges du câble et du casque ne
+        /// battent jamais exactement au même rythme : au-delà de la réserve + 12 ms, le surplus est sauté.
         /// </summary>
         private static void Jouer(Flux ren, float[] t, int images, int canaux, int fe, bool flottant)
         {
             int pad;
             if (ren.Client.GetCurrentPadding(out pad) != 0) throw new InvalidOperationException("casque indisponible");
-            int vise = fe / 50, maxi = fe * 3 / 50, debut = 0;
-            if (pad == 0) EcrireRendu(ren, null, fe / 100, canaux, flottant, 0);   // tampon vide : 10 ms de marge
+            if (ren.Reserve < 0) ren.Reserve = fe * 12 / 1000;
+            int vise = ren.Reserve, maxi = ren.Reserve + fe * 12 / 1000, debut = 0;
+            if (pad == 0)
+            {
+                // tampon vide : après le tout premier paquet, c'est un manque (craquement) ; la réserve grandit
+                if (ren.Amorce) ren.Reserve = Math.Min(fe * 40 / 1000, ren.Reserve + fe * 4 / 1000);
+                ren.Amorce = true;
+                EcrireRendu(ren, null, Math.Min(ren.Images, ren.Reserve), canaux, flottant, 0);
+            }
             if (pad + images > maxi) { int trop = pad + images - vise; debut = Math.Min(images, Math.Max(0, trop)); }
             int restant = images - debut;
             if (ren.Client.GetCurrentPadding(out pad) != 0) throw new InvalidOperationException("casque indisponible");

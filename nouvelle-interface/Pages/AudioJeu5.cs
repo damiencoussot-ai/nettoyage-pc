@@ -358,6 +358,7 @@ namespace NettoyagePC.Nouveau
             {
                 var p = AudioJeu.ProfilSuivant(r.Gains);
                 r.Gains = (double[])p.Gains.Clone();
+                try { RetenirProfilJeu(r, AudioJeu.JeuDetecte(), p.Gains); } catch { }   // repris au prochain lancement du jeu
                 message = Langue.F("Profil « {0} » appliqué.", Langue.T(p.Nom));
                 Bip(Enumerable.Repeat(660, Array.IndexOf(AudioJeu.Profils, p) + 1).ToArray());
                 BulleAudio.Montrer(Langue.T(p.Carte).ToUpper(Langue.Culture), Langue.T(r.Actif ? "profil appliqué" : "profil choisi (égaliseur coupé)"), r.Actif);
@@ -756,6 +757,7 @@ namespace NettoyagePC.Nouveau
             zoneDemarrage = new StackPanel { Spacing = 10 };
             moduleDemarrage = Studio.Module("Démarrage rapide", zoneDemarrage);
             g.Children.Add(moduleDemarrage);
+            g.Children.Add(Studio.Module("Guide pas à pas", ConstruireGuide()));
             courbe = new CourbeEq5 { Reglages = r, Allume = r.Actif };
             AutomationProperties.SetName(courbe, Langue.T("Courbe de l'égaliseur"));
             courbe.GainChange += (k, db) =>
@@ -1172,6 +1174,7 @@ namespace NettoyagePC.Nouveau
             if (exemple) vu.Definir(0.42f, 0.36f);
             MajCasque();
             MajDemarrage(v);
+            MajGuide(v);
             MajNom(v);
             MajVerif(v);
             MajPas(v);
@@ -1341,7 +1344,7 @@ namespace NettoyagePC.Nouveau
 
         // ---------------------------------------------------------------- test avant / après à l'oreille
 
-        private TextBlock tDemo, tDemoDetail;
+        private TextBlock tDemoDetail;
         private Border bDemo, carteSans, carteAvec, bDuel;
         private StackPanel zoneDuel;
         // duel à l'oreille : candidats (nom, réglages), sons rendus, champion, challenger, ordre d'écoute, étape
@@ -1838,7 +1841,7 @@ namespace NettoyagePC.Nouveau
                     zonePas.Children.Add(ligneRe);
                     tPasDirect = Studio.T("", 12, Studio.Texte);
                     zonePas.Children.Add(tPasDirect);
-                    zonePas.Children.Add(Studio.T(Langue.T("Léger : +13 dB sur les pas lointains face aux explosions. Fort : +20 dB. Extrême : +25 dB. Ultra : +27 dB, et un pas pendant une explosion ressort de +11 dB (le plus fort, moins naturel). Mesuré sur une scène de jeu. Les aigus des pas sont mis en avant seulement quand c'est calme : les tirs ne deviennent pas criards. Le son passe par VB-Cable, puis Velox le joue sur ton casque : environ 25 ms de retard en plus. Dans le jeu, laisse la sortie audio sur « Par défaut »."), 11.5, Studio.Faible));
+                    zonePas.Children.Add(Studio.T(Langue.T("Léger : +14 dB sur les pas lointains face aux explosions. Fort : +22 dB. Extrême : +26 dB. Ultra : +27 dB, et un pas pendant une explosion ressort de +11 dB (le plus fort, moins naturel). Mesuré sur une scène de jeu. Les aigus des pas sont mis en avant seulement quand c'est calme : les tirs ne deviennent pas criards. Le son passe par VB-Cable, puis Velox le joue sur ton casque : de 20 à 40 ms de retard en plus selon le PC (affiché en direct). Dans le jeu, laisse la sortie audio sur « Par défaut »."), 11.5, Studio.Faible));
                     zonePas.Children.Add(Studio.T(Langue.T("Encore mieux en 7.1 : Panneau de configuration > Son > CABLE Input > Configurer > 7.1. Tes tirs arrivent alors sur leur propre voie (le centre) : Velox les baisse sans toucher aux ennemis autour de toi."), 11.5, Studio.Faible));
                 }
             }
@@ -1884,12 +1887,29 @@ namespace NettoyagePC.Nouveau
             pasOccupe = true; signaturePas = null; MajPas(Releve ?? new ReleveAudioJeu());
             var f = F;
             var cables = (Releve ?? new ReleveAudioJeu()).Cables.Select(c => c.Sortie).ToList();
+            bool renomme = false;
             Task.Run(() =>
             {
-                if (allumer) return MoteurSon.Allumer(force, jeux);
+                if (allumer)
+                {
+                    string ea = MoteurSon.Allumer(force, jeux);
+                    if (ea != "") return ea;
+                    // il s'appelait « Velox Studio » avant d'être coupé : il retrouve ce nom (autorisation de Windows demandée)
+                    var ma = MoteurSon.Lire();
+                    if (ma.RenommerAuRallumage)
+                    {
+                        var cable = MoteurSon.Cables().FirstOrDefault(c => c.Entree == ma.Source);
+                        if (cable != null && NomStudio.Appliquer(cable.Sortie) == "") renomme = true;
+                        ma = MoteurSon.Lire(); ma.RenommerAuRallumage = false; try { MoteurSon.Ecrire(ma); } catch { }
+                    }
+                    return "";
+                }
+                bool etaitNomme = cables.Any(c => { try { return NomStudio.EstNomme(c); } catch { return false; } });
                 string e = MoteurSon.Couper(true);
-                // le câble ne mène plus au casque : s'il s'appelait « Velox Studio », il reprend son nom (piège sinon)
+                // le câble ne mène plus au casque : s'il s'appelait « Velox Studio », il reprend son nom (piège sinon) ; il le
+                // retrouvera au prochain allumage
                 foreach (var c in cables) { try { NomStudio.RetablirUn(c); } catch { } }
+                if (etaitNomme) { try { var mc = MoteurSon.Lire(); mc.RenommerAuRallumage = true; MoteurSon.Ecrire(mc); } catch { } }
                 return e;
             }).ContinueWith(t => Dispatcher.UIThread.Post(() =>
             {
@@ -1897,7 +1917,8 @@ namespace NettoyagePC.Nouveau
                 string err = t.IsFaulted ? (t.Exception.InnerException ?? t.Exception).Message : t.Result;
                 if (err != "") { f.Statut(Langue.T(err), true); Relever(); return; }
                 Confirmer(f, Langue.T(allumer ? "Pas boostés allumé" : "Pas boostés coupé"), allumer ? Langue.T("VB-Cable → Velox → ton casque") : Langue.T("le son va directement au casque"), allumer);
-                f.Statut(Langue.T(allumer ? "« Pas boostés » allumé : le jeu joue dans VB-Cable, Velox traite le son et le joue sur ton casque (changement de sortie annulable dans l'Historique)." : "« Pas boostés » coupé : ton casque est de nouveau la sortie par défaut."));
+                f.Statut(Langue.T(allumer ? "« Pas boostés » allumé : le jeu joue dans VB-Cable, Velox traite le son et le joue sur ton casque (changement de sortie annulable dans l'Historique)." : "« Pas boostés » coupé : ton casque est de nouveau la sortie par défaut.")
+                    + (renomme ? " " + Langue.T("Le câble s'appelle de nouveau « Velox Studio » : si ton jeu était ouvert, relance-le pour le voir.") : ""));
                 Relever();
             }));
         }
@@ -2087,6 +2108,7 @@ namespace NettoyagePC.Nouveau
             if (!deja) ligne.Children.Add(Studio.Bouton(Langue.T("Appliquer ce profil"), true, () =>
             {
                 r.Gains = (double[])g.Item2.Gains.Clone();
+                RetenirProfilJeu(r, Releve?.Jeu, r.Gains);
                 AnnoncerApres(Langue.T(r.Actif ? "Profil appliqué" : "Profil choisi"), g.Item1);
                 ArreterDuel(false);
                 Changer(Langue.F("Profil « {0} » appliqué (choisi au duel à l'oreille).", g.Item1), false, true);
@@ -2572,6 +2594,7 @@ namespace NettoyagePC.Nouveau
         {
             if (exemple) return;
             r.Gains = (double[])j.Gains.Clone(); r.CoupeBas = j.CoupeBas;
+            RetenirProfilJeu(r, Releve?.Jeu, r.Gains);
             AnnoncerApres(Langue.T(r.Actif ? "Profil appliqué" : "Profil choisi"), j.Nom + (r.Actif ? "" : " · " + Langue.T("égaliseur coupé")));
             Changer(r.Actif ? Langue.F("Profil « {0} » appliqué.", j.Nom) : Langue.F("Profil « {0} » choisi. L'égaliseur est coupé : active-le pour l'entendre.", j.Nom), false, true);
         }
@@ -2594,10 +2617,30 @@ namespace NettoyagePC.Nouveau
             if (exemple) return;
             r.Gains = (double[])p.Gains.Clone();
             string nom = Langue.T(p.Nom);
+            // « Profil adapté à chaque jeu » : le profil choisi devient celui du jeu (celui qui tourne, sinon le dernier
+            // chargé, sinon Call of Duty / Warzone) ; sinon, Velox remettrait son propre profil au prochain lancement
+            string retenu = RetenirProfilJeu(r, Releve?.Jeu, p.Gains);
+            if (retenu != "")
+            {
+                AnnoncerApres(Langue.T("Profil retenu pour ce jeu"), nom + " · " + retenu);
+                Changer(Langue.F("Profil « {0} » retenu pour {1} : il sera repris à chaque lancement du jeu.", nom, retenu), false, true);
+                return;
+            }
             AnnoncerApres(Langue.T(r.Actif ? "Profil appliqué" : "Profil choisi"), nom + (r.Actif ? "" : " · " + Langue.T(r.AutoJeu ? "au lancement du jeu" : "égaliseur coupé")));
             Changer(r.Actif ? Langue.F("Profil « {0} » appliqué.", nom)
                 : r.AutoJeu ? Langue.F("Profil « {0} » choisi : il s'appliquera au lancement du jeu.", nom)
                 : Langue.F("Profil « {0} » choisi. L'égaliseur est coupé : active-le pour l'entendre.", nom), false, true);
+        }
+
+        /// <summary>Avec « Profil adapté à chaque jeu », retient ces gains pour le jeu visé ; nom du jeu, ou "" si rien n'est retenu.
+        /// Choisir le profil prévu par Velox pour ce jeu efface le choix retenu.</summary>
+        internal static string RetenirProfilJeu(ReglagesAudioJeu r, string exeEnCours, double[] gains)
+        {
+            if (!r.AutoJeu || !r.ProfilParJeu) return "";
+            var j = AudioJeu.JeuDe(exeEnCours) ?? AudioJeu.Jeux.FirstOrDefault(x => x.Cle == r.JeuEnCours) ?? AudioJeu.Jeux[0];
+            if (j.Gains.SequenceEqual(gains)) r.GainsParJeu.Remove(j.Cle);
+            else r.GainsParJeu[j.Cle] = (double[])gains.Clone();
+            return j.Nom;
         }
 
         private void ReglageAutomatique()
