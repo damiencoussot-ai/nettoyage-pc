@@ -386,7 +386,7 @@ namespace NettoyagePC
             int canaux = 2, fe = 48000; bool flottant = true; int bits = 32;
             bool jeu = false; string erreur = "", jeuCle = "";
             float[] tampon = new float[0];
-            int forceEnCours = -1, armeEnCours = -1;
+            int forceEnCours = -1, armeEnCours = -1, styleEnCours = -1;
             MemoireReecoute memoire = null;
             long dernierVolume = -10000; float gainEntree = 1, gainSortie = 1, volumeDb = 0;
             // garde-fou : si le pilote du câble n'appliquait pas le volume de Windows, la compensation dépasserait le niveau
@@ -440,7 +440,7 @@ namespace NettoyagePC
                     if (cap != null && ren != null)
                     {
                         int fv, av; r.Effectifs(jeuCle, out fv, out av);
-                        if (comp == null || fv != forceEnCours || av != armeEnCours) { comp = new CompresseurPas(fv, fe, av); forceEnCours = fv; armeEnCours = av; }
+                        if (comp == null || fv != forceEnCours || av != armeEnCours || r.Style != styleEnCours) { comp = new CompresseurPas(fv, fe, av, true, r.Style); forceEnCours = fv; armeEnCours = av; styleEnCours = r.Style; }
                     }
                     if (comp != null) comp.MelangeCible = !r.JeuxSeulement || jeu ? 1 : 0;
                     // ouverture (ou réouverture après une erreur, une seconde plus tard)
@@ -453,7 +453,7 @@ namespace NettoyagePC
                         else
                         {
                             int fv, av; r.Effectifs(jeuCle, out fv, out av);
-                            comp = new CompresseurPas(fv, fe, av); forceEnCours = fv; armeEnCours = av;
+                            comp = new CompresseurPas(fv, fe, av, true, r.Style); forceEnCours = fv; armeEnCours = av; styleEnCours = r.Style;
                             if (memoire == null || memoire.Canaux != canaux || memoire.Frequence != fe) memoire = new MemoireReecoute(canaux, fe, 10);
                         }
                     }

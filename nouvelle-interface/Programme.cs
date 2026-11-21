@@ -104,7 +104,7 @@ namespace NettoyagePC.Nouveau
                 }
                 return 0;
             }
-            if (args.Length >= 4 && args[0] == "--traiter-wav") return MoteurSon.TraiterWav(args[1], args[2], int.Parse(args[3]), args.Length >= 5 ? int.Parse(args[4]) : 1);
+            if (args.Length >= 4 && args[0] == "--traiter-wav") return MoteurSon.TraiterWav(args[1], args[2], int.Parse(args[3]), args.Length >= 5 ? int.Parse(args[4]) : 1, args.Length >= 6 ? int.Parse(args[5]) : 1);
             App.CommandeInitiale = CommandeExterne.Lire(args);
 
             int ie = Array.IndexOf(args, "--essai-demarrage");
@@ -904,9 +904,11 @@ namespace NettoyagePC.Nouveau
                                 sbC.Append(" force " + fr + " : " + cS.ToString("F1", ci) + " → " + cA.ToString("F1", ci) + " dB");
                                 okC &= cA >= cS - 4 && cS > 12;
                             }
-                            rapport.AppendLine("Pas boostés : contraste des pas proches sur un fond faible" + sbC);
+                            foreach (int fr in new[] { 65, 100 }) { double cS, cA; MoteurSon.MesurerContraste(fr, out cS, out cA, CompresseurPas.StylePuissant); sbC.Append(" (Puissant " + fr + " : " + cA.ToString("F1", ci) + " dB)"); }
+                            rapport.AppendLine("Pas boostés : contraste des pas proches sur un fond faible (style Net)" + sbC);
                             verifier(okC, "pas boostés : les pas proches gardent leur contraste sur le fond (plus d'écrasement)" + sbC);
                         }
+                        verifier(ReglagesMoteurSon.Lire(new ReglagesMoteurSon { Style = 0 }.Json()).Style == 0 && new ReglagesMoteurSon().Style == 1 && ReglagesMoteurSon.Lire("{\"Style\":7}").Style == 1, "pas boostés : style (Puissant par défaut, Net) gardé et borné");
                         verifier(ReglagesMoteurSon.Lire(new ReglagesMoteurSon { RenommerAuRallumage = true }.Json()).RenommerAuRallumage && !new ReglagesMoteurSon().RenommerAuRallumage, "Velox Studio : le nom à remettre au rallumage est gardé dans les réglages");
                     }
                     {

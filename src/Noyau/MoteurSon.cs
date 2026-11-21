@@ -30,6 +30,9 @@ namespace NettoyagePC
         public string DefautAvant = "";
         /// <summary>« Ton arme » : 0 normale, 1 réduite, 2 très réduite (tes propres tirs baissés, ceux des ennemis gardés).</summary>
         public int Arme = 1;
+        /// <summary>Style du traitement : 1 « Puissant » (tout plus fort, pas très en avant : forte compression), 0 « Net »
+        /// (les pas gardent leur relief, le fond monte peu).</summary>
+        public int Style = 1;
         /// <summary>« Un réglage par jeu » : un réglage fait pendant une partie est retenu pour ce jeu (clé « cod »,
         /// « valorant »…) et repris à chaque fois qu'il tourne. Valeurs : force, arme.</summary>
         public bool ParJeuActif = true;
@@ -51,6 +54,7 @@ namespace NettoyagePC
         {
             Force = Math.Max(0, Math.Min(130, Force));
             Arme = Math.Max(0, Math.Min(2, Arme));
+            Style = Math.Max(0, Math.Min(1, Style));
             var pj = new Dictionary<string, int[]>();
             if (ParJeu != null)
                 foreach (var kv in ParJeu)
@@ -68,7 +72,7 @@ namespace NettoyagePC
             return NettoyagePC.Json.Ecrire(new Dictionary<string, object>
             {
                 { "Actif", Actif }, { "Force", Force }, { "JeuxSeulement", JeuxSeulement },
-                { "Source", Source }, { "Destination", Destination }, { "DefautAvant", DefautAvant }, { "Arme", Arme },
+                { "Source", Source }, { "Destination", Destination }, { "DefautAvant", DefautAvant }, { "Arme", Arme }, { "Style", Style },
                 { "ParJeuActif", ParJeuActif }, { "RenommerAuRallumage", RenommerAuRallumage }, { "ParJeu", (ParJeu ?? new Dictionary<string, int[]>()).ToDictionary(kv => kv.Key, kv => (object)new object[] { kv.Value[0], kv.Value[1] }) },
             });
         }
@@ -88,6 +92,7 @@ namespace NettoyagePC
                 if (d.TryGetValue("Destination", out o)) r.Destination = Convert.ToString(o, CultureInfo.InvariantCulture) ?? "";
                 if (d.TryGetValue("DefautAvant", out o)) r.DefautAvant = Convert.ToString(o, CultureInfo.InvariantCulture) ?? "";
                 if (d.TryGetValue("Arme", out o)) r.Arme = (int)Math.Round(Convert.ToDouble(o, CultureInfo.InvariantCulture));
+                if (d.TryGetValue("Style", out o)) r.Style = (int)Math.Round(Convert.ToDouble(o, CultureInfo.InvariantCulture));
                 if (d.TryGetValue("ParJeuActif", out o) && o is bool pa) r.ParJeuActif = pa;
                 if (d.TryGetValue("RenommerAuRallumage", out o) && o is bool ra) r.RenommerAuRallumage = ra;
                 if (d.TryGetValue("ParJeu", out o) && o is Dictionary<string, object> pj)
@@ -165,6 +170,21 @@ namespace NettoyagePC
         private readonly Biquad2[] bandePasHaut, bandePasBas, bandeChocHaut, bandeChocBas;
         private readonly double rfMonte, rfDescendRapide, rfLent, rgMonte, rgDescend, rfCrete;
         private double crPas, crChoc;
+        private readonly double forceRel;
+        // côté du son (bande des pas) : niveau à gauche et à droite, pour remonter surtout ce qui vient d'un côté (un
+        // ennemi) plutôt que ce qui est au centre (tes propres pas, tes mouvements, ton rechargement)
+        private double pGauche = 1e-12, pDroite = 1e-12;
+        // réglés sur de vrais enregistrements de Warzone : un son bref au centre n'est pas remonté (souvent tes propres pas
+        // ou mouvements), un son nettement d'un côté l'est pleinement, et la différence gauche/droite des sons de la bande des
+        // pas est accentuée de 4 dB (en Extrême) : +2 à +3 dB d'écart en faveur de ce qui vient d'un côté.
+        internal const double PoidsCentre = 0, EcartPlein = 8, AccentCotes = 4;
+
+        /// <summary>Poids de la remontée selon le côté : PoidsCentre pour un son centré (gauche = droite), 1 dès que l'un
+        /// des côtés dépasse l'autre de EcartPlein dB.</summary>
+        internal static double PoidsCote(double gaucheDb, double droiteDb)
+        {
+            return PoidsCentre + (1 - PoidsCentre) * Math.Max(0, Math.Min(1, Math.Abs(gaucheDb - droiteDb) / EcartPlein));
+        }
         private double pRapidePas = 1e-12, pLentPas = 1e-12, pRapideChoc = 1e-12, pLentChoc = 1e-12, gainRenfortPas, gainRenfortChoc;
         private double[] bufPas = new double[16], bufChoc = new double[16];
         public double RenfortRelevéMax;                               // (relevé) plus forte remontée d'un pas, dB
@@ -199,9 +219,17 @@ namespace NettoyagePC
         public CompresseurPas(int force, int frequence, int arme) : this(force, frequence, arme, true) { }
 
         /// <summary>« renfort » faux : sans renforceur de pas (essais de comparaison).</summary>
-        public CompresseurPas(int force, int frequence, int arme, bool renfort)
+        public const int StyleNet = 0, StylePuissant = 1;
+        public readonly int Style;
+        private readonly double seuilArmeStereo, seuilArmeCentre;
+
+        public CompresseurPas(int force, int frequence, int arme, bool renfort) : this(force, frequence, arme, renfort, StylePuissant) { }
+
+        public CompresseurPas(int force, int frequence, int arme, bool renfort, int style)
         {
+            Style = style == StyleNet ? StyleNet : StylePuissant;
             double f = Math.Max(0, Math.Min(130, force)) / 100.0;
+            forceRel = f;
             double ultra = Math.Max(0, f - 1) / 0.3;   // 0 jusqu'à Extrême, 1 en Ultra
             SeuilGraves = -24 - 8 * f;                 // −24 dB (léger) à −32 dB (extrême), −34 dB (ultra)
             RapportGraves = 3 + 5 * Math.Min(1, f) + 12 * ultra;   // 3:1 à 8:1, 20:1 en Ultra
@@ -214,9 +242,11 @@ namespace NettoyagePC
             // réglé sur de vrais enregistrements de Warzone : un pas proche arrive vers −20 dB ; un seuil plus bas (ancien
             // réglage, −31 dB en Fort) l'écrasait comme une explosion et remontait le fond de 20 dB : les pas s'y noyaient.
             // Seuil au-dessus des pas, rapport modéré, remontée limitée : le fond ne monte que de 3 à 8 dB.
-            Seuil = -6 - 8 * f;                    // −9 dB (léger) à −14 dB (extrême), −16 dB (ultra)
-            Rapport = 1.5 + 3 * f;                 // 2,5:1 à 4,5:1 (5,4:1 en ultra)
-            Remontee = -Seuil * (1 - 1 / Rapport) * 0.4;
+            // « Net » : seuil au-dessus des pas, remontée limitée. « Puissant » : forte compression, tout est remonté (le
+            // style préféré à l'oreille par les testeurs : les pas sont plus forts dans l'absolu, le fond aussi).
+            if (Style == StyleNet) { Seuil = -6 - 8 * f; Rapport = 1.5 + 3 * f; Remontee = -Seuil * (1 - 1 / Rapport) * 0.4; }
+            else { Seuil = -14 - 26 * f; Rapport = 1.5 + 4.5 * f; Remontee = -Seuil * (1 - 1 / Rapport) * 0.8; }
+            seuilArmeStereo = Style == StyleNet ? 14 : 24; seuilArmeCentre = Style == StyleNet ? 26 : 36;
             double fe = Math.Max(8000, frequence);
             aNiveau = Math.Exp(-1 / (0.005 * fe));
             attaque = Math.Exp(-1 / (0.0015 * fe));
@@ -234,7 +264,7 @@ namespace NettoyagePC
             // présence : cloche (RBJ) à 2,8 kHz, Q 0,9 ; +2,6 dB (léger) à +4,5 dB (extrême et ultra)
             // présence « seulement au calme » retirée : sur de vrais enregistrements, elle remontait le souffle du fond (qui est
             // « calme ») et pas le pas (qui est « fort ») ; le renforceur de pas fait mieux ce travail.
-            GainPresence = 0;   // +3,4 dB (léger) à +6 dB (extrême et ultra)
+            GainPresence = Style == StyleNet || f <= 0 ? 0 : 2 + 4 * Math.Min(1, f);   // Puissant : +3,4 dB (léger) à +6 dB (extrême)
             GainCorps = GainPresence / 2;
             {
                 double A = Math.Pow(10, GainCorps / 40), w = 2 * Math.PI * 300 / Math.Max(8000, frequence), al = Math.Sin(w) / (2 * 1.0), c = Math.Cos(w), a0 = 1 + al / A;
@@ -308,7 +338,7 @@ namespace NettoyagePC
                         double fc = t[b + 2];
                         pCentre = aArme * pCentre + (1 - aArme) * fc * fc;
                         double nc = 10 * Math.Log10(pCentre + 1e-18);
-                        LisserArme(-ProfondeurCentre * Borne01((nc + 26) / 8));   // rien sous −26 dB, tout dès −18 dB   // rien sous −36 dB, tout dès −28 dB
+                        LisserArme(-ProfondeurCentre * Borne01((nc + seuilArmeCentre) / 8));   // rien sous −26 dB, tout dès −18 dB   // rien sous −36 dB, tout dès −28 dB
                         t[b + 2] = (float)(fc * Math.Pow(10, gainArme / 20));
                         milieu *= Math.Pow(10, gainArme * 0.5 / 20);                // la copie « fantôme » du centre dans l'avant
                     }
@@ -317,7 +347,7 @@ namespace NettoyagePC
                         pMilieu = aArme * pMilieu + (1 - aArme) * milieu * milieu;
                         pCotes = aArme * pCotes + (1 - aArme) * cotes * cotes;
                         double nm = 10 * Math.Log10(pMilieu + 1e-18), ns = 10 * Math.Log10(pCotes + 1e-18);
-                        LisserArme(-ProfondeurStereo * Borne01((nm - ns - 9) / 6) * Borne01((nm + 14) / 6));   // fort (−14 dB et plus) ET centré   // fort ET centré
+                        LisserArme(-ProfondeurStereo * Borne01((nm - ns - 9) / 6) * Borne01((nm + seuilArmeStereo) / 6));   // fort (−14 dB et plus) ET centré   // fort ET centré
                         milieu *= Math.Pow(10, gainArme / 20);
                     }
                     t[b] = (float)(milieu + cotes); t[b + 1] = (float)(milieu - cotes);
@@ -386,8 +416,29 @@ namespace NettoyagePC
                     double ip = 10 * Math.Log10(crPas + 1e-18) - 3, ic = 10 * Math.Log10(crChoc + 1e-18) - 3;
                     double gp = gainRenfortPas * Faible(Math.Max(rp, ip)), gc = gainRenfortChoc * Faible(Math.Max(rc, ic));
                     if (gp > RenfortRelevéMax) RenfortRelevéMax = gp;
+                    if (canaux == 2 && AccentCotes > 0)
+                    {
+                        // accent des côtés : dans la bande des pas, la différence gauche/droite (ce qui vient d'un côté) est
+                        // remontée ; ce qui est au centre (tes propres sons) ne bouge pas
+                        double ks = Math.Pow(10, AccentCotes * Math.Min(1, forceRel) / 20) - 1, sPas = (bufPas[0] - bufPas[1]) * 0.5 * ks;
+                        t[b] = (float)(t[b] + sPas); t[b + 1] = (float)(t[b + 1] - sPas);
+                    }
+                    if (canaux == 2)
+                    {
+                        // stéréo : un ennemi sur le côté est plus fort d'un côté ; tes propres sons sont au centre
+                        double g2 = bufPas[0] * bufPas[0], d2 = bufPas[1] * bufPas[1];
+                        pGauche = g2 > pGauche ? rfMonte * pGauche + (1 - rfMonte) * g2 : rfDescendRapide * pGauche + (1 - rfDescendRapide) * g2;
+                        pDroite = d2 > pDroite ? rfMonte * pDroite + (1 - rfMonte) * d2 : rfDescendRapide * pDroite + (1 - rfDescendRapide) * d2;
+                        double w = PoidsCote(10 * Math.Log10(pGauche + 1e-18), 10 * Math.Log10(pDroite + 1e-18));
+                        gp *= w; gc *= w;
+                    }
                     double kp = Math.Pow(10, gp / 20) - 1, kc = Math.Pow(10, gc / 20) - 1;
-                    for (int c = 0; c < canaux && c < 16; c++) t[b + c] = (float)(t[b + c] + bufPas[c] * kp + bufChoc[c] * kc);
+                    for (int c = 0; c < canaux && c < 16; c++)
+                    {
+                        // 5.1 / 7.1 : la voie centrale porte tes propres sons : remontée réduite
+                        double f2 = canaux >= 6 && c == 2 ? PoidsCentre : 1;
+                        t[b + c] = (float)(t[b + c] + (bufPas[c] * kp + bufChoc[c] * kc) * f2);
+                    }
                 }
                 // 1. niveau (moyenne sur 5 ms) et gain du compresseur
                 float p = 0;
@@ -754,14 +805,14 @@ namespace NettoyagePC
 
         /// <summary>(réglage) Passe un WAV 16 bits (enregistré par « Enregistrer pour analyse ») par le traitement, en blocs de
         /// 10 ms comme le moteur, et écrit le résultat. 0 si c'est fait.</summary>
-        public static int TraiterWav(string entree, string sortie, int force, int arme)
+        public static int TraiterWav(string entree, string sortie, int force, int arme, int style = CompresseurPas.StylePuissant)
         {
             var o = File.ReadAllBytes(entree);
             int canaux = BitConverter.ToInt16(o, 22), fe = BitConverter.ToInt32(o, 24);
             int n = (o.Length - 44) / 2;
             var t = new float[n];
             for (int i = 0; i < n; i++) t[i] = BitConverter.ToInt16(o, 44 + 2 * i) / 32768f;
-            var comp = new CompresseurPas(force, fe, arme);
+            var comp = new CompresseurPas(force, fe, arme, true, style);
             int bloc = fe / 100 * canaux;
             var b = new float[bloc];
             for (int p = 0; p + bloc <= n; p += bloc) { Array.Copy(t, p, b, 0, bloc); comp.Traiter(b, bloc / canaux, canaux); Array.Copy(b, 0, t, p, bloc); }
@@ -777,7 +828,7 @@ namespace NettoyagePC
         /// (niveau pendant les pas moins médiane hors des pas, par tranches de 20 ms), sans puis avec le traitement. L'ancien
         /// réglage le faisait passer de ~20 dB à ~5 dB (les pas se noyaient dans le fond remonté).
         /// </summary>
-        public static void MesurerContraste(int force, out double contrasteSans, out double contrasteAvec)
+        public static void MesurerContraste(int force, out double contrasteSans, out double contrasteAvec, int style = CompresseurPas.StyleNet)
         {
             int fe = DemoAudio.Frequence, n = 6 * fe;
             var t = new float[n * 2]; var evenement = new bool[n / (fe / 50) + 1];
@@ -811,7 +862,7 @@ namespace NettoyagePC
             };
             contrasteSans = contraste(t);
             var c2 = (float[])t.Clone();
-            var comp = new CompresseurPas(force, fe, 1);
+            var comp = new CompresseurPas(force, fe, 1, true, style);
             for (int p = 0; p + fe / 100 <= n; p += fe / 100) { var b = new float[fe / 100 * 2]; Array.Copy(c2, 2 * p, b, 0, b.Length); comp.Traiter(b, fe / 100, 2); Array.Copy(b, 0, c2, 2 * p, b.Length); }
             int dec = comp.Retard; Array.Copy(c2, 2 * dec, c2, 0, c2.Length - 2 * dec);
             contrasteAvec = contraste(c2);

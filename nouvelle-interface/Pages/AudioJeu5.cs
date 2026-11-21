@@ -1764,7 +1764,7 @@ namespace NettoyagePC.Nouveau
             var et = v.MoteurEtat ?? new MoteurSon.EtatMoteur();
             bool cable = v.Cables.Count > 0;
             int forceVue, armeVue; m.Effectifs(et.JeuCle, out forceVue, out armeVue);
-            string sig = cable + "|" + m.Actif + "|" + forceVue + "|" + armeVue + "|" + m.ParJeuActif + "|" + et.JeuCle + "|" + m.JeuxSeulement + "|" + pasOccupe + "|" + (et.Erreur != "");
+            string sig = cable + "|" + m.Actif + "|" + forceVue + "|" + armeVue + "|" + m.ParJeuActif + "|" + m.Style + "|" + et.JeuCle + "|" + m.JeuxSeulement + "|" + pasOccupe + "|" + (et.Erreur != "");
             if (sig != signaturePas)
             {
                 signaturePas = sig;
@@ -1806,6 +1806,18 @@ namespace NettoyagePC.Nouveau
                     }
                     ToolTip.SetTip(ligneArme, Langue.T("Tes tirs sont joués au centre du son, ceux des ennemis viennent d'une direction. Velox baisse seulement tes rafales : un ennemi qui marche sur le côté pendant que tu tires reste audible. Un son faible devant toi n'est pas touché."));
                     zonePas.Children.Add(ligneArme);
+                    // style : Puissant (tout plus fort) ou Net (relief gardé)
+                    var ligneStyle = new WrapPanel();
+                    ligneStyle.Children.Add(Studio.T(Langue.T("Style :"), 12.5, Studio.Texte));
+                    foreach (var st in new[] { Tuple.Create(1, "Puissant"), Tuple.Create(0, "Net") })
+                    {
+                        var sst = st;
+                        var b = Puce(Langue.T(st.Item2), () => ReglerStyle(sst.Item1));
+                        Marquer(b, m.Style == st.Item1, Studio.Magenta);
+                        ligneStyle.Children.Add(b);
+                    }
+                    ToolTip.SetTip(ligneStyle, Langue.T("Puissant : tout est plus fort, les pas très en avant (le fond monte aussi). Net : les pas gardent leur relief, le fond monte peu. Change en pleine partie et garde celui où tu entends le mieux les ennemis."));
+                    zonePas.Children.Add(ligneStyle);
                     // un réglage par jeu
                     var ligneJeu = new WrapPanel();
                     var bParJeu = Puce(Langue.T("Un réglage par jeu"), () => ReglerParJeu(!m.ParJeuActif));
@@ -1845,7 +1857,7 @@ namespace NettoyagePC.Nouveau
                     zonePas.Children.Add(ligneRe);
                     tPasDirect = Studio.T("", 12, Studio.Texte);
                     zonePas.Children.Add(tPasDirect);
-                    zonePas.Children.Add(Studio.T(Langue.T("Réglé sur de vrais enregistrements de Warzone : les pas proches gardent tout leur relief, le fond n'est presque pas remonté, et le renforceur de pas détache les pas faibles sans remonter les tirs. Pas lointains face aux explosions : +9 dB en Léger, +15 dB en Fort, +19 dB en Extrême, +24 dB en Ultra (le plus fort, moins naturel). Le son passe par VB-Cable, puis Velox le joue sur ton casque : de 20 à 40 ms de retard en plus selon le PC (affiché en direct). Dans le jeu, laisse la sortie audio sur « Par défaut »."), 11.5, Studio.Faible));
+                    zonePas.Children.Add(Studio.T(Langue.T("Style Puissant : tout est remonté fort, les pas lointains gagnent jusqu'à +25 dB face aux explosions (Fort). Style Net : les pas proches gardent leur relief et le fond monte peu. Dans les deux, le renforceur remonte les pas brefs qui viennent d'un côté (les ennemis) plutôt que tes propres sons au centre, sans remonter les tirs. Le son passe par VB-Cable, puis Velox le joue sur ton casque : de 20 à 40 ms de retard en plus selon le PC (affiché en direct). Dans le jeu, laisse la sortie audio sur « Par défaut »."), 11.5, Studio.Faible));
                     zonePas.Children.Add(Studio.T(Langue.T("Encore mieux en 7.1 : Panneau de configuration > Son > CABLE Input > Configurer > 7.1. Tes tirs arrivent alors sur leur propre voie (le centre) : Velox les baisse sans toucher aux ennemis autour de toi."), 11.5, Studio.Faible));
                 }
             }
@@ -2018,6 +2030,20 @@ namespace NettoyagePC.Nouveau
             string err = MoteurSon.DemanderReecoute(et.Reecoute == 0);
             if (err != "") { F.Statut(err, true); return; }
             F.Statut(Langue.T(et.Reecoute == 0 ? "Réécoute : d'abord sans Velox, puis avec Velox, au même volume." : "Réécoute arrêtée."));
+        }
+
+        private void ReglerStyle(int style)
+        {
+            if (exemple) return;
+            if (simulation) { F.Statut(Langue.T("Simulation : rien n'est modifié."), true); return; }
+            try
+            {
+                var m = MoteurSon.Lire(); m.Style = style; MoteurSon.Ecrire(m);   // le moteur l'applique dans la demi-seconde
+                if (Releve != null) Releve.Moteur = m;
+                Confirmer(F, Langue.T("Style"), Langue.T(style == 1 ? "Puissant" : "Net"), true);
+                signaturePas = null; MajPas(Releve ?? new ReleveAudioJeu());
+            }
+            catch (Exception ex) { F.Statut(ex.Message, true); }
         }
 
         private void ReglerArme(int arme)

@@ -21,13 +21,17 @@ Amélioré
   l'ancien réglage écrasait les pas proches et remontait le fond de ~20 dB, les pas s'y noyaient (contraste
   des pas tombé de ~19 dB à ~5 dB). Maintenant les pas gardent tout leur relief (contraste conservé, voire
   augmenté), prennent ~4 à 6 dB de plus de place dans le son, et le fond n'est presque plus remonté.
+- Deux styles dans Pas boostés : « Puissant » (par défaut : tout plus fort, pas très en avant) et « Net »
+  (les pas gardent leur relief, le fond monte peu). Change en pleine partie, garde celui que tu préfères.
+- Le renforceur remonte surtout les sons brefs qui viennent d'un côté (les ennemis), pas tes propres pas et
+  mouvements au centre.
 - Nouveau renforceur de pas : les sons brefs et faibles dans la bande des pas (et le choc du talon) sont
   remontés quelques dizaines de millisecondes, jusqu'à +12 dB en Fort et +18 dB en Ultra. Un son continu
   (vent, moteur) ou fort (tir, explosion) n'est pas touché, dès sa première milliseconde.
 - Nouveau bouton « Enregistrer pour analyse » : les 10 dernières secondes, sans et avec Velox, en deux
   fichiers sur le Bureau.
-- Pas lointains face aux explosions : +9 dB en Léger, +15 dB en Fort, +19 dB en Extrême, +24 dB en Ultra
-  (mesuré sur une scène de test), sans saturation.
+- Pas lointains face aux explosions (style Puissant) : +15 dB en Léger, +25 dB en Fort, +27 dB en Extrême
+  et Ultra (mesuré sur une scène de test), sans saturation.
 - Dompteur de graves : les explosions sont baissées à part ; un pas pendant une explosion ressort de
   +8 dB en Fort, +12 dB en Ultra.
 - Retard du son plus court avec Pas boostés : la réserve devant le casque part de 12 ms et ne grandit
