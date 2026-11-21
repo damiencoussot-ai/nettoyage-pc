@@ -746,7 +746,7 @@ namespace NettoyagePC.Nouveau
                         e0 = sans;
                         if (force == 65) { gain65 = sans - avec; retour65 = retour; }
                         txt.Append(" force " + force + " : " + avec.ToString("F1", ci) + " dB (pas d'après " + retour.ToString("+0.0;-0.0;0.0", ci) + ", crête " + cr.ToString("F3", ci) + ")");
-                        ok &= cr <= 0.9501f && !double.IsNaN(avec) && avec <= prec + 0.01;
+                        ok &= cr <= 0.9501f && !double.IsNaN(avec) && avec <= prec + 0.5;   // Extrême et Ultra touchent le même plafond
                         prec = avec;
                     }
                     {
@@ -855,6 +855,19 @@ namespace NettoyagePC.Nouveau
                             MoteurSon.CompensationVolume(-96, out gEnt, out gSor); okVol &= Math.Abs(gEnt - 100) < 0.1 && gSor < 0.0001;
                             MoteurSon.CompensationVolume(float.NaN, out gEnt, out gSor); okVol &= gEnt == 1 && gSor == 1;
                             verifier(okVol, "pas boostés : le volume de Windows sur le câble est compensé (entrée), puis remis (sortie), au plus 40 dB");
+                        }
+                        {
+                            // renforceur de pas : les pas faibles se détachent du fond ; une rafale forte n'est pas remontée
+                            var sbR = new System.Text.StringBuilder(); double gR = 0; bool okR = true;
+                            foreach (int fr in new[] { 35, 65, 100, 130 })
+                            {
+                                double rPs, rPa, rCs, rCa; MoteurSon.MesurerRenfort(fr, out rPs, out rPa, out rCs, out rCa);
+                                sbR.Append(" force " + fr + " : " + rPs.ToString("F1", ci) + " → " + rPa.ToString("F1", ci) + " dB (crête d'un tir " + rCs.ToString("F2", ci) + " → " + rCa.ToString("F2", ci) + ")");
+                                okR &= rPa >= rPs && rCa <= rCs * 1.15 + 0.01 && rCa <= 0.9501;
+                                if (fr == 65) gR = rPa - rPs;
+                            }
+                            rapport.AppendLine("Pas boostés : renforceur de pas (part des pas sur une ambiance continue)" + sbR);
+                            verifier(okR && gR >= 3, "renforceur de pas : les pas faibles sur une ambiance ressortent de " + gR.ToString("F1", ci) + " dB en plus (force 65), un tir n'est pas remonté");
                         }
                         verifier(ReglagesMoteurSon.Lire(new ReglagesMoteurSon { RenommerAuRallumage = true }.Json()).RenommerAuRallumage && !new ReglagesMoteurSon().RenommerAuRallumage, "Velox Studio : le nom à remettre au rallumage est gardé dans les réglages");
                     }

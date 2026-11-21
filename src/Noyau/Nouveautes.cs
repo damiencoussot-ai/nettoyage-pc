@@ -8,7 +8,7 @@ namespace NettoyagePC
         public static readonly List<KeyValuePair<string, string[]>> Liste = new List<KeyValuePair<string, string[]>>
         {
             N("5.21", "Guide pas à pas dans le Studio son : de l'installation aux réglages dans Warzone, chaque étape cochée quand elle est faite, avec son bouton.",
-                "Pas encore plus présents : les aigus et le choc des pas (vers 300 Hz) sont mis en avant quand c'est calme. Pas lointains : +22 dB face aux explosions en Fort.",
+                "Pas encore plus présents : les aigus et le choc des pas (vers 300 Hz) sont mis en avant quand c'est calme. Pas lointains : +27 dB face aux explosions en Fort, et un renforceur détache les pas faibles du fond.",
                 "Retard du son plus court avec Pas boostés (réserve adaptative), profil choisi retenu pour chaque jeu, et nom « Velox Studio » retrouvé au rallumage.",
                 "La mise à jour n'est plus bloquée par « Velox est encore ouvert » quand Pas boostés tourne."),
             N("5.20", "Pas boostés : les explosions sont baissées à part, sans toucher aux pas. Un pas pendant une explosion ressort de +7 dB, les pas lointains encore plus présents.",

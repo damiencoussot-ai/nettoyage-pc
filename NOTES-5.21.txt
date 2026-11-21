@@ -17,13 +17,16 @@ Nouveau
 - Niveau « Ultra » dans Pas boostés, et profil « Ultra » dans Profils (clair et plein).
 
 Amélioré
+- Nouveau renforceur de pas : les sons brefs et faibles dans la bande des pas (et le choc du talon) sont
+  remontés quelques dizaines de millisecondes, jusqu'à +8 dB en Fort et +12 dB en Ultra. Un son continu
+  (vent, moteur) ou fort (tir, explosion) n'est pas touché : les pas se détachent du fond.
 - Pas plus présents : les aigus des pas (vers 2,8 kHz) et leur choc (vers 300 Hz) sont mis en avant
   seulement quand la scène est calme ; dès qu'un tir ou une explosion arrive, ils reviennent à la
   normale en 2 ms. Les tirs ne deviennent pas criards.
-- Pas lointains face aux explosions : +14 dB en Léger, +22 dB en Fort, +26 dB en Extrême, +27 dB en
-  Ultra (mesuré sur une scène de test), sans saturation.
+- Pas lointains face aux explosions : +16 dB en Léger, +27 dB en Fort, +28 dB en Extrême et en Ultra
+  (mesuré sur une scène de test), sans saturation.
 - Dompteur de graves : les explosions sont baissées à part ; un pas pendant une explosion ressort de
-  +7 dB en Fort, +11 dB en Ultra.
+  +12 dB en Fort, +18 dB en Ultra.
 - Retard du son plus court avec Pas boostés : la réserve devant le casque part de 12 ms et ne grandit
   que si le son manque (20 à 40 ms de retard selon le PC, affiché en direct).
 - Profil adapté à chaque jeu : le profil que tu choisis est retenu pour le jeu et repris à chaque
