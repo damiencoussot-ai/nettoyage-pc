@@ -39,6 +39,8 @@ namespace NettoyagePC.Nouveau
         public List<CableVirtuel> Cables = new List<CableVirtuel>();
         public ReglagesMoteurSon Moteur = new ReglagesMoteurSon();
         public MoteurSon.EtatMoteur MoteurEtat = new MoteurSon.EtatMoteur();
+        /// <summary>Dernières parties jouées avec « Pas boostés » (de la plus ancienne à la plus récente).</summary>
+        public List<PartieJouee> Parties = new List<PartieJouee>();
 
         public static ReleveAudioJeu Lire()
         {
@@ -53,6 +55,7 @@ namespace NettoyagePC.Nouveau
                 r.Cables = MoteurSon.Cables(r.Windows);
                 r.Moteur = MoteurSon.Lire();
                 r.MoteurEtat = MoteurSon.LireEtat();
+                r.Parties = MoteurSon.Parties();
                 // allumé mais moteur arrêté (PC redémarré sans gardien…) : relancé
                 if (r.Moteur.Actif && r.Cables.Count > 0 && !MoteurSon.EnMarche()) MoteurSon.Surveiller();   // relancé, ou coupé (casque remis) s'il ne démarre pas
                 if (r.Etat.Present)
@@ -559,6 +562,11 @@ namespace NettoyagePC.Nouveau
         private void AppliquerMode()
         {
             foreach (var c in modulesExpert) c.IsVisible = r.ModeExpert;
+            foreach (var c in modulesSimple) c.IsVisible = !r.ModeExpert;
+            if (r.ModeExpert) ouverts.Clear();
+            foreach (var c in modulesSurDemande) c.IsVisible = r.ModeExpert || ouverts.Contains(c);
+            AppliquerVisibiliteGuide();
+            if (corps != null) { deuxColonnes = null; Disposer(corps.Bounds.Width > 0 ? corps.Bounds.Width : 1000); }
             if (bSimple != null) { Marquer(bSimple, !r.ModeExpert, Studio.Cyan); Marquer(bExpert, r.ModeExpert, Studio.Magenta); }
         }
 
@@ -748,7 +756,7 @@ namespace NettoyagePC.Nouveau
         private Control Construire()
         {
             var pile = new StackPanel();
-            pile.Children.Add(EnTete(true));
+            pile.Children.Add(Expert(EnTete(true)));   // mode Simple : l'en-tête du panneau « Ton son » le remplace
             avis = new StackPanel { Spacing = 8, Margin = new Thickness(0, 0, 0, 8) };
             pile.Children.Add(avis);
 
@@ -757,7 +765,9 @@ namespace NettoyagePC.Nouveau
             zoneDemarrage = new StackPanel { Spacing = 10 };
             moduleDemarrage = Studio.Module("Démarrage rapide", zoneDemarrage);
             g.Children.Add(moduleDemarrage);
-            g.Children.Add(Studio.Module("Guide pas à pas", ConstruireGuide()));
+            g.Children.Add(SimpleSeul(ConstruireSimple()));
+            moduleGuide = Studio.Module("Guide pas à pas", ConstruireGuide());
+            g.Children.Add(moduleGuide);
             courbe = new CourbeEq5 { Reglages = r, Allume = r.Actif };
             AutomationProperties.SetName(courbe, Langue.T("Courbe de l'égaliseur"));
             courbe.GainChange += (k, db) =>
@@ -771,11 +781,11 @@ namespace NettoyagePC.Nouveau
             legende.Children.Add(Legende(Studio.Cyan, "Spectre en direct"));
             legende.Children.Add(Legende(Studio.Magenta, "Égaliseur"));
             var bloc = new StackPanel { Spacing = 8, Children = { courbe, Studio.T(Langue.T("Glisse un point pour régler sa bande (ou flèches du clavier). En fond, ce que joue ta sortie en ce moment."), 12, Studio.Faible) } };
-            g.Children.Add(Studio.Module("Réponse en fréquence", bloc, legende));
+            g.Children.Add(Expert(Studio.Module("Réponse en fréquence", bloc, legende)));
             zoneVerif = new StackPanel { Spacing = 8 };
-            g.Children.Add(Studio.Module("Vérification du son", zoneVerif));
-            g.Children.Add(Studio.Module("Avant / après", ConstruireDemo()));
-            g.Children.Add(Studio.Module("Tests d'écoute", ConstruireTests()));
+            moduleVerif = Studio.Module("Vérification du son", zoneVerif);
+            g.Children.Add(Expert(Studio.Module("Avant / après", ConstruireDemo())));
+            g.Children.Add(Expert(Studio.Module("Tests d'écoute", ConstruireTests())));
 
             // profils
             var grille = new UniformGrid { Columns = 4 };
@@ -801,13 +811,16 @@ namespace NettoyagePC.Nouveau
             tProfil = Studio.T("", 12.5, Studio.Discret);
             tDansLeJeu = Studio.T("", 12, Studio.Faible);
             tDansLeJeu.Margin = new Thickness(0, 6, 0, 0);
-            g.Children.Add(Studio.Module("Profils", new StackPanel { Children = { grille, autres, tProfil, tDansLeJeu } }));
+            moduleProfils = SurDemande(Studio.Module("Profils", new StackPanel { Children = { grille, autres, tProfil, tDansLeJeu } }));
+            g.Children.Add(moduleProfils);
             zoneNom = new StackPanel { Spacing = 8 };
-            g.Children.Add(Studio.Module("Velox Studio dans tes jeux", zoneNom));
+            g.Children.Add(Expert(Studio.Module("Velox Studio dans tes jeux", zoneNom)));
             zonePas = new StackPanel { Spacing = 10 };
-            g.Children.Add(Studio.Module("Pas boostés (bêta)", zonePas));
+            g.Children.Add(Expert(Studio.Module("Pas boostés (bêta)", zonePas)));
             zoneCasque = new StackPanel { Spacing = 10 };
-            g.Children.Add(Studio.Module("Calibration du casque", zoneCasque));
+            moduleCasque = SurDemande(Studio.Module("Calibration du casque", zoneCasque));
+            g.Children.Add(moduleCasque);
+            g.Children.Add(SurDemande(moduleVerif));   // vérification : en bas, pour dépanner
             zoneSurround = new StackPanel { Spacing = 10 };
             g.Children.Add(Expert(Studio.Module("Son 7.1 virtuel", zoneSurround)));
 
@@ -873,7 +886,7 @@ namespace NettoyagePC.Nouveau
             zoneVm = new StackPanel { Spacing = 8 };
             d.Children.Add(Expert(Studio.Module("Voicemeeter", zoneVm)));
             zoneAuto = new StackPanel { Spacing = 12 };
-            d.Children.Add(Studio.Module("Automatismes", zoneAuto));
+            d.Children.Add(Expert(Studio.Module("Automatismes", zoneAuto)));
             zoneFichier = new StackPanel { Spacing = 8 };
             tChemin = new TextBlock { FontFamily = Studio.Chiffres, FontSize = 11, Foreground = Studio.P(Studio.Faible), TextWrapping = TextWrapping.Wrap };
             tFichier = new TextBlock { FontFamily = Studio.Chiffres, FontSize = 11, Foreground = Studio.P(Studio.Discret), TextWrapping = TextWrapping.NoWrap };
@@ -907,7 +920,7 @@ namespace NettoyagePC.Nouveau
         /// <summary>Deux colonnes en grand, une seule (la droite passe dessous) en étroit.</summary>
         private void Disposer(double largeur)
         {
-            bool deux = largeur >= 920;
+            bool deux = largeur >= 920 && r.ModeExpert;   // mode Simple : une seule colonne, plus lisible
             if (deuxColonnes == deux) return;
             deuxColonnes = deux;
             corps.ColumnDefinitions = new ColumnDefinitions(deux ? "*,16,330" : "*");
@@ -1178,6 +1191,7 @@ namespace NettoyagePC.Nouveau
             MajNom(v);
             MajVerif(v);
             MajPas(v);
+            MajSimple(v);
             MajSurround(v);
             MajSorties(v);
             MajVoicemeeter();

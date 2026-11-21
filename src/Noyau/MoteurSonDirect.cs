@@ -392,6 +392,7 @@ namespace NettoyagePC
             // garde-fou : si le pilote du câble n'appliquait pas le volume de Windows, la compensation dépasserait le niveau
             // plein (un son de jeu ne dépasse pas ~1) : au 3e dépassement net (×2), elle est coupée pour la session
             int depassements = 0; bool sansCompensation = false;
+            var suivi = new SuiviPartie();   // « Dernières parties » : jeu, durée, réglage, explosions tenues, retard
             try
             {
                 while (true)
@@ -464,6 +465,8 @@ namespace NettoyagePC
                         try { int pad; if (ren != null && ren.Client.GetCurrentPadding(out pad) == 0) lat = (int)(1000.0 * pad / fe) + 10 + (comp != null ? 2 : 0); } catch { }
                         double red = comp != null ? comp.ReductionMax : 0; if (comp != null) comp.ReductionMax = 0;
                         double redA = comp != null ? comp.ReductionArmeMax : 0; if (comp != null) comp.ReductionArmeMax = 0;
+                        var finie = suivi.Relever(DateTime.Now, jeuCle, styleEnCours, forceEnCours, red, lat);
+                        if (finie != null) ThreadPool.QueueUserWorkItem(_ => NoterPartie(finie));   // fichier : jamais dans le fil du son
                         // écrit par un fil à part (un fichier peut être retenu quelques ms par l'antivirus : pas dans le fil du son)
                         string ligne = LigneEtat(cap != null && ren != null, lat, red, !r.JeuxSeulement || jeu, erreur, cap != null ? canaux : 0, redA,
                             memoire != null ? memoire.Phase : 0, memoire != null ? memoire.SecondesRestantes : 0, memoire != null ? memoire.Secondes : 0, jeuCle);
@@ -539,6 +542,7 @@ namespace NettoyagePC
             finally
             {
                 fini.Set();
+                try { NoterPartie(suivi.Finir(DateTime.Now)); } catch { }   // moteur arrêté en pleine partie
                 if (cap != null) cap.Fermer(); if (ren != null) ren.Fermer();
                 if (format != IntPtr.Zero) Marshal.FreeCoTaskMem(format);
                 AudioWindows.Liberer(e);

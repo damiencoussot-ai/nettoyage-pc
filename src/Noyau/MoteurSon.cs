@@ -937,3 +937,106 @@ namespace NettoyagePC
         }
     }
 }
+
+namespace NettoyagePC
+{
+    /// <summary>Une partie jouée avec « Pas boostés » : jeu, début, durée, style, force, plus forte réduction des
+    /// explosions et retard moyen. Affichée dans « Dernières parties » du Studio son.</summary>
+    internal sealed class PartieJouee
+    {
+        public DateTime Debut;
+        public string Jeu = "";
+        public int Minutes, Style, Force, Retard;
+        public double Explosions;
+
+        private static readonly System.Globalization.CultureInfo C = System.Globalization.CultureInfo.InvariantCulture;
+
+        public string Ligne()
+        {
+            return Debut.ToString("yyyy-MM-ddTHH:mm", C) + "|" + Jeu + "|" + Minutes.ToString(C) + "|" + Style.ToString(C) + "|" + Force.ToString(C) + "|"
+                + Explosions.ToString("0.0", C) + "|" + Retard.ToString(C);
+        }
+
+        public static PartieJouee Lire(string ligne)
+        {
+            var p = (ligne ?? "").Trim().Split('|');
+            if (p.Length < 7) return null;
+            DateTime d; int mi, st, fo, re; double ex;
+            if (!DateTime.TryParseExact(p[0], "yyyy-MM-ddTHH:mm", C, System.Globalization.DateTimeStyles.None, out d)) return null;
+            if (!System.Text.RegularExpressions.Regex.IsMatch(p[1], "^[a-z0-9]{1,24}$")) return null;
+            if (!int.TryParse(p[2], System.Globalization.NumberStyles.Integer, C, out mi) || !int.TryParse(p[3], System.Globalization.NumberStyles.Integer, C, out st)
+                || !int.TryParse(p[4], System.Globalization.NumberStyles.Integer, C, out fo) || !double.TryParse(p[5], System.Globalization.NumberStyles.Float, C, out ex)
+                || !int.TryParse(p[6], System.Globalization.NumberStyles.Integer, C, out re)) return null;
+            return new PartieJouee { Debut = d, Jeu = p[1], Minutes = Math.Max(0, Math.Min(10000, mi)), Style = st == 0 ? 0 : 1, Force = Math.Max(0, Math.Min(200, fo)),
+                Explosions = Math.Max(0, Math.Min(60, ex)), Retard = Math.Max(0, Math.Min(500, re)) };
+        }
+    }
+
+    /// <summary>Suit la partie en cours dans le moteur (appelé par le fil du son, sans lecture ni écriture de fichier) et
+    /// rend la partie finie quand le jeu se ferme ou change. Une partie de moins d'une minute n'est pas retenue.</summary>
+    internal sealed class SuiviPartie
+    {
+        private string jeu = "";
+        private DateTime debut;
+        private int style, force, mesures; private long sommeRetard; private double explosions;
+
+        /// <summary>Nouveau relevé (toutes les 500 ms). Renvoie la partie qui vient de finir, ou null.</summary>
+        public PartieJouee Relever(DateTime maintenant, string jeuCle, int style, int force, double reduction, int retard)
+        {
+            jeuCle = jeuCle ?? "";
+            PartieJouee finie = null;
+            if (jeuCle != jeu) { finie = Finir(maintenant); if (jeuCle != "") { jeu = jeuCle; debut = maintenant; mesures = 0; sommeRetard = 0; explosions = 0; } }
+            if (jeu == "") return finie;
+            if (force >= 0) { this.style = style; this.force = force; }   // le dernier réglage de la partie (−1 : traitement pas encore ouvert)
+            if (reduction > explosions) explosions = reduction;
+            if (retard > 0) { sommeRetard += retard; mesures++; }
+            return finie;
+        }
+
+        /// <summary>Fin de la partie en cours (jeu fermé, moteur arrêté) : la partie, ou null si trop courte ou aucune.</summary>
+        public PartieJouee Finir(DateTime maintenant)
+        {
+            if (jeu == "") return null;
+            var p = new PartieJouee { Debut = debut, Jeu = jeu, Minutes = (int)Math.Round((maintenant - debut).TotalMinutes), Style = style, Force = force,
+                Explosions = Math.Round(explosions, 1), Retard = mesures > 0 ? (int)Math.Round((double)sommeRetard / mesures) : 0 };
+            jeu = "";
+            return (maintenant - debut).TotalSeconds >= 60 ? p : null;
+        }
+    }
+
+    internal static partial class MoteurSon
+    {
+        public static string FichierParties { get { return System.IO.Path.Combine(Chemins.Local, "moteur-son-parties.txt"); } }
+        public const int PartiesGardees = 20;
+
+        /// <summary>Ajoute une partie au journal (les 20 dernières sont gardées).</summary>
+        public static void NoterPartie(PartieJouee p)
+        {
+            if (p == null) return;
+            try
+            {
+                System.IO.Directory.CreateDirectory(Chemins.Local);
+                var lignes = Parties().Select(x => x.Ligne()).ToList();
+                lignes.Add(p.Ligne());
+                if (lignes.Count > PartiesGardees) lignes.RemoveRange(0, lignes.Count - PartiesGardees);
+                string temp = FichierParties + ".tmp";
+                System.IO.File.WriteAllLines(temp, lignes);
+                System.IO.File.Move(temp, FichierParties, true);
+            }
+            catch (Exception ex) { JournalDemarrage.Erreur("journal des parties", ex); }
+        }
+
+        /// <summary>Les parties retenues, de la plus ancienne à la plus récente.</summary>
+        public static List<PartieJouee> Parties()
+        {
+            var l = new List<PartieJouee>();
+            try
+            {
+                if (!System.IO.File.Exists(FichierParties)) return l;
+                foreach (var s in System.IO.File.ReadAllLines(FichierParties).Take(200)) { var p = PartieJouee.Lire(s); if (p != null) l.Add(p); }
+            }
+            catch { }
+            return l;
+        }
+    }
+}

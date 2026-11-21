@@ -835,6 +835,30 @@ namespace NettoyagePC.Nouveau
                             "réécoute : 3 s rejouées sans puis avec Velox (écart de volume " + ecartRe.ToString("F2", ci) + " dB), une seconde de silence entre les deux, puis retour au direct");
                     }
                     {
+                        // « Dernières parties » : suivi dans le moteur, ligne du journal, lignes abîmées refusées
+                        var suiviP = new SuiviPartie(); var t0 = new DateTime(2026, 11, 21, 20, 0, 0);
+                        bool rien = suiviP.Relever(t0, "", 1, 65, 0, 0) == null && suiviP.Relever(t0.AddSeconds(1), "cod", 1, 65, 10, 20) == null
+                            && suiviP.Relever(t0.AddMinutes(10), "cod", 0, 100, 18.4, 30) == null;
+                        var finie = suiviP.Relever(t0.AddMinutes(20), "", 0, 100, 0, 0);
+                        bool courte = suiviP.Relever(t0.AddMinutes(21), "apex", 1, 65, 5, 25) == null && suiviP.Relever(t0.AddMinutes(21.5), "valorant", 1, 65, 5, 25) == null;   // 30 s d'Apex : pas retenu
+                        var arret = suiviP.Finir(t0.AddMinutes(30));
+                        var relue = finie != null ? PartieJouee.Lire(finie.Ligne()) : null;
+                        verifier(rien && finie != null && finie.Jeu == "cod" && finie.Minutes == 20 && finie.Style == 0 && finie.Force == 100 && Math.Abs(finie.Explosions - 18.4) < 0.01 && finie.Retard == 25
+                            && courte && arret != null && arret.Jeu == "valorant" && suiviP.Finir(t0.AddMinutes(40)) == null
+                            && relue != null && relue.Ligne() == finie.Ligne() && relue.Debut == t0
+                            && PartieJouee.Lire("2026-11-21T20:00|../x|5|1|65|3|20") == null && PartieJouee.Lire("abc") == null && PartieJouee.Lire(null) == null
+                            && PartieJouee.Lire("2026-11-21T20:00|cod|5|7|999|80|9999").Force == 200 && PartieJouee.Lire("2026-11-21T20:00|cod|5|7|999|80|9999").Style == 1,
+                            "dernières parties : partie suivie (jeu, durée, dernier réglage, explosions, retard moyen), parties de moins d'une minute ignorées, lignes abîmées refusées");
+                        int[] crans = { 35, 65, 100, 130 };
+                        verifier(Crans5.Position(crans, 35) == 0 && Crans5.Position(crans, 65) == 1 && Crans5.Position(crans, 130) == 3 && Math.Abs(Crans5.Position(crans, 80) - (1 + 15.0 / 35)) < 1e-9
+                            && Crans5.Position(crans, 10) == 0 && Crans5.Position(crans, 500) == 3,
+                            "curseur à crans : position des niveaux, valeur hors crans placée entre deux");
+                        var nuit = new DateTime(2026, 11, 21, 23, 0, 0);
+                        verifier(AudioJeu5.QuandPartie(new DateTime(2026, 11, 21, 20, 8, 0), nuit) == "20:08" && AudioJeu5.QuandPartie(new DateTime(2026, 11, 20, 19, 47, 0), nuit) == "hier 19:47"
+                            && AudioJeu5.QuandPartie(new DateTime(2026, 11, 2, 19, 47, 0), nuit) == "02/11" && AudioJeu5.NomForce(65) == "Fort" && AudioJeu5.NomForce(80) == "80 %",
+                            "dernières parties : heure (aujourd'hui, hier, date) et nom de la force");
+                    }
+                    {
                         // un réglage par jeu : retenu pendant la partie, réglage général sinon ; clés invalides refusées
                         var mj = ReglagesMoteurSon.Lire("{\"Force\":35,\"Arme\":0,\"ParJeu\":{\"cod\":[100,2],\"../x\":[65,1],\"valorant\":[999,9]}}");
                         int fj1, aj1, fj2, aj2, fj3, aj3; mj.Effectifs("cod", out fj1, out aj1); mj.Effectifs("apex", out fj2, out aj2); mj.Effectifs("", out fj3, out aj3);
@@ -1797,7 +1821,7 @@ namespace NettoyagePC.Nouveau
                 f.Afficher("Audio", false);
                 for (int k = 0; k < 4; k++) { Dispatcher.UIThread.RunJobs(); AvaloniaHeadlessPlatform.ForceRenderTimerTick(); }
                 var vus = f.GetVisualDescendants().ToList();
-                bool studioVu = vus.OfType<Marche5>().Count() == 1 && vus.OfType<CourbeEq5>().Count() == 5 && vus.OfType<Molette5>().Count() == 4 && vus.OfType<Fader5>().Count() == 6 + AudioJeu5.ExempleVoicemeeter.Entrees.Count + AudioJeu5.ExempleVoicemeeter.Bus.Count && vus.OfType<VuMetre5>().Count() >= 3
+                bool studioVu = vus.OfType<Marche5>().Count(x => x.IsEffectivelyVisible) == 1 && vus.OfType<CourbeEq5>().Count() == 5 && vus.OfType<Molette5>().Count() == 4 && vus.OfType<Fader5>().Count() == 6 + AudioJeu5.ExempleVoicemeeter.Entrees.Count + AudioJeu5.ExempleVoicemeeter.Bus.Count && vus.OfType<VuMetre5>().Count() >= 3
                     && vus.OfType<TextBlock>().Any(t => t.Text == "COMPARER") && Avalonia.Automation.AutomationProperties.GetName(vus.OfType<Molette5>().First()) == "Force";
                 Capturer(f, dossier, "sombre-audio.png", rapport, ref erreurs);
                 AudioJeu5.Confirmer(f, Langue.T("Profil appliqué"), "Valorant", true);
@@ -1846,9 +1870,39 @@ namespace NettoyagePC.Nouveau
                     f.Afficher("Accueil", false); f.Afficher("Audio", false);
                     for (int k = 0; k < 4; k++) { Dispatcher.UIThread.RunJobs(); AvaloniaHeadlessPlatform.ForceRenderTimerTick(); }
                     var visibles = f.GetVisualDescendants().OfType<TextBlock>().Where(t => t.IsEffectivelyVisible).Select(t => t.Text ?? "").ToList();
-                    bool simpleOk = visibles.Contains("Pas boostés : actif") && !visibles.Contains("Inversion gauche / droite") && !visibles.Contains("Voir le fichier écrit") && visibles.Contains("Simple") && visibles.Contains("Expert");
+                    var vusSimple = f.GetVisualDescendants().Where(x => x.IsEffectivelyVisible).ToList();
+                    bool simpleOk = visibles.Contains("ACTIF") && visibles.Contains("▶ Réécouter sans / avec") && visibles.Contains("Tout fonctionne") && visibles.Contains("Compétitif")
+                        && visibles.Contains("Call of Duty / Warzone détecté") && vusSimple.OfType<Crans5>().Count() == 1 && vusSimple.OfType<Marche5>().Count() == 1
+                        && !visibles.Contains("COMPARER") && !visibles.Contains("Pas boostés : actif") && !visibles.Contains("Inversion gauche / droite") && !visibles.Contains("Voir le fichier écrit") && visibles.Contains("Simple") && visibles.Contains("Expert");
                     if (!simpleOk) { erreurs++; rapport.AppendLine("ERREUR : audio : mode Simple (modules experts encore visibles, ou essentiels cachés)"); }
                     Capturer(f, dossier, "sombre-audio-simple.png", rapport, ref erreurs);
+                    // dernières parties remplies, « Changer » du casque (le module s'ouvre), puis petite fenêtre et thème clair
+                    var hier = DateTime.Now.Date.AddDays(-1);
+                    AudioJeu5.Exemple.Parties = new System.Collections.Generic.List<PartieJouee>
+                    {
+                        new PartieJouee { Debut = hier.AddHours(19).AddMinutes(32), Jeu = "cod", Minutes = 14, Style = 0, Force = 65, Explosions = 10, Retard = 28 },
+                        new PartieJouee { Debut = DateTime.Now.Date.AddHours(0).AddMinutes(7), Jeu = "cod", Minutes = 22, Style = 1, Force = 100, Explosions = 23.4, Retard = 30 },
+                        new PartieJouee { Debut = DateTime.Now.Date.AddHours(0).AddMinutes(8), Jeu = "valorant", Minutes = 31, Style = 1, Force = 65, Explosions = 18, Retard = 26 },
+                    };
+                    f.Afficher("Accueil", false); f.Afficher("Audio", false);
+                    for (int k = 0; k < 4; k++) { Dispatcher.UIThread.RunJobs(); AvaloniaHeadlessPlatform.ForceRenderTimerTick(); }
+                    var vp = f.GetVisualDescendants().OfType<TextBlock>().Where(t => t.IsEffectivelyVisible).Select(t => t.Text ?? "").ToList();
+                    bool partiesVues = vp.Contains("Valorant") && vp.Contains("hier 19:32") && vp.Contains("jusqu'à −23 dB") && vp.Contains("Extrême") && !vp.Contains("Tes parties apparaîtront ici après ta première partie avec Pas boostés (une minute au moins).");
+                    bool casqueFerme = !vp.Contains("CALIBRATION DU CASQUE");
+                    var changer = f.GetVisualDescendants().OfType<TextBlock>().FirstOrDefault(t => t.IsEffectivelyVisible && t.Text == "Changer ›");
+                    if (changer != null) changer.RaiseEvent(new Avalonia.Input.PointerReleasedEventArgs(changer, null, changer, new Point(1, 1), 0, new Avalonia.Input.PointerPointProperties(), Avalonia.Input.KeyModifiers.None, Avalonia.Input.MouseButton.Left));
+                    for (int k = 0; k < 3; k++) Dispatcher.UIThread.RunJobs();
+                    bool casqueOuvert = f.GetVisualDescendants().OfType<TextBlock>().Any(t => t.IsEffectivelyVisible && t.Text == "CALIBRATION DU CASQUE");
+                    if (!partiesVues || !casqueFerme || !casqueOuvert) { erreurs++; rapport.AppendLine("ERREUR : audio : mode Simple, dernières parties ou « Changer » (parties " + partiesVues + ", casque fermé " + casqueFerme + ", ouvert " + casqueOuvert + ")"); }
+                    foreach (var defil in f.GetVisualDescendants().OfType<ScrollViewer>().Where(x => x.Content is AudioJeu5).Take(1)) defil.Offset = new Vector(0, 0);
+                    Capturer(f, dossier, "sombre-audio-simple-parties.png", rapport, ref erreurs);
+                    f.Width = 1000; f.Height = 760; f.Afficher("Audio", false);
+                    Capturer(f, dossier, "petit-audio-simple.png", rapport, ref erreurs);
+                    f.Width = 1240; f.Height = 800;
+                    f.ChangerTheme(false); f.Afficher("Audio", false);
+                    Capturer(f, dossier, "clair-audio-simple.png", rapport, ref erreurs);
+                    f.ChangerTheme(true);
+                    AudioJeu5.Exemple.Parties = new System.Collections.Generic.List<PartieJouee>();
                     AudioJeu5.ExempleReglages.ModeExpert = true;
                 }
                 try { File.WriteAllBytes(Path.Combine(dossier, "scene-avant-apres.wav"), DemoAudio.Wav()); } catch { }   // (pour écouter la scène du test avant / après)

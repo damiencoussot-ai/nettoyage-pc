@@ -57,6 +57,7 @@ namespace NettoyagePC.Nouveau
             signatureGuide = sig;
             zoneGuide.Children.Clear();
             int faites = new[] { apo, branche, cable, pas, nomme }.Count(x => x);
+            guideComplet = faites == 5; AppliquerVisibiliteGuide();
             zoneGuide.Children.Add(Studio.T(Langue.F("Tout pour entendre les pas, dans l'ordre. {0} étapes essentielles sur 5 sont faites. Velox coche ce qu'il peut vérifier lui-même.", faites), 12.5, Studio.Discret));
 
             zoneGuide.Children.Add(EtapeGuide(1, apo, true, Langue.T("Installer Equalizer APO (gratuit)"),

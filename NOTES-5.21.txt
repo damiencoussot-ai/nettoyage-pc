@@ -3,6 +3,12 @@ Velox 5.21 : le Studio son passe un cap
 Cette version reprend et termine tout ce qu'avait commencé la 5.20.
 
 Nouveau
+- Nouveau Studio son en mode Simple : un seul écran, arrondi et clair. Un gros bouton pour Pas boostés,
+  la force des pas sur un curseur (Léger, Fort, Extrême, Ultra), Puissant ou Net, Réécouter, et quatre
+  chiffres en direct (retard, explosions tenues, ton arme, stéréo ou 7.1). En dessous : ton casque,
+  ton profil et la vérification, chacun avec « Changer ». Tous les autres réglages sont dans Expert.
+- Dernières parties : Velox note chaque partie jouée avec Pas boostés (jeu, style, force, explosions
+  tenues, retard) et affiche les cinq dernières.
 - Guide pas à pas dans le Studio son : installer Equalizer APO et VB-Cable, brancher le casque, allumer
   Pas boostés, nommer « Velox Studio », régler Windows et le jeu. Velox coche chaque étape faite et
   donne le bouton qui la fait.
