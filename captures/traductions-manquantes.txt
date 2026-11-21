@@ -1,0 +1,282 @@
+// PERFIL
+// PROFILE
+// SISTEMA
+// SYSTEM
+# MW Sound Optimizer 3.0 - fichier genere automatiquement
+> ANÁLISIS EN CURSO…
+> ANÁLISIS TERMINADO · 12:37:59
+> SCAN COMPLETE · 12:37:58
+> SCAN IN PROGRESS…
+▲ CAN BE IMPROVED
+▲ MEJORABLE
+▸ APLICACIONES
+▸ APPS
+▸ AYUDA REMOTA
+▸ BACKUP
+▸ CLEANUP
+▸ CONSEJOS PARA MEJORARLO
+▸ COPIA DE SEGURIDAD
+▸ DISCOS Y ARCHIVOS GRANDES
+▸ DISKS AND LARGE FILES
+▸ DUPLICADOS
+▸ DUPLICATES
+▸ FICHA DE TU PC
+▸ GAMES
+▸ HARDWARE
+▸ INICIO DE WINDOWS
+▸ JUEGOS
+▸ LIMPIEZA
+▸ NETWORK
+▸ OPTIMIZACIÓN
+▸ OPTIMIZATION
+▸ RED
+▸ REMOTE HELP
+▸ SECURITY
+▸ SEGURIDAD
+▸ STARTUP
+▸ TIPS TO IMPROVE IT
+▸ VELOX
+▸ WINDOWS AND DRIVERS
+▸ WINDOWS Y CONTROLADORES
+▸ YOUR PC'S PROFILE
+◆  Auto games: the equalizer turns on with the game, with its profile, and off with it. Hotkeys in the middle of a match.
+◆  Auto juegos: el ecualizador se enciende con el juego, con su perfil, y se apaga con él. Atajos de teclado en plena partida.
+◆  Calibración de tus auriculares: más de 6 000 modelos medidos en laboratorio, para un sonido neutro de estudio.
+◆  Curva del ecualizador y espectro de tu sonido en directo, ruedas y faders para ajustarlo todo de oído.
+◆  Equalizer curve and live spectrum of your sound, knobs and faders to tune everything by ear.
+◆  Headphone calibration: over 6,000 lab-measured models, for a neutral studio sound.
+◆  Perfiles pensados para cada shooter (Warzone, Valorant, CS2, Fortnite, Apex…): los pasos y las recargas pasan delante, las explosiones atrás.
+◆  Profiles designed for each shooter (Warzone, Valorant, CS2, Fortnite, Apex…): footsteps and reloads come forward, explosions step back.
+◆  Salida predeterminada de Windows en un clic, Voicemeeter reconocido (niveles, ecualizador de Banana y Potato).
+◆  Windows default output in one click, Voicemeeter recognized (levels, Banana and Potato equalizer).
+○ sin Equalizer APO
+○ without Equalizer APO
+● Equalizer APO
+★  ACCESO RÁPIDO
+★  QUICK ACCESS
+⚠  ALERTAS
+⚠  ALERTAS · 5
+⚠  ALERTS
+⚠  ALERTS · 5
+✔  14-day money-back guarantee
+✔  3 PC, todas las versiones
+✔  3 PCs, all versions
+✔  Ecualizador encendido.
+✔  Equalizer on.
+✔  No ads, no tracking
+✔  No commitment, cancel anytime
+✔  Pago seguro (Stripe)
+✔  Satisfecho o reembolsado 14 días
+✔  Secure payment (Stripe)
+✔  Sin permanencia, cancela cuando quieras
+✔  Sin publicidad ni rastreo
+✔  Tu PC está bien equipado: nada que cambiar por ahora.
+✔  Your PC is well equipped: nothing to change for now.
+✖  Equalizer APO is not installed: click the “EQUALIZER APO” indicator at the top.
+✖  Equalizer APO no está instalado: pulsa el indicador «EQUALIZER APO» arriba.
+0 aplicación(es), 0 KB en total (tamaño estimado)
+0 app(s), 0 KB in total (estimated size)
+1,03 GB recuperables ahora mismo (papelera y archivos temporales).
+1. Instalar Equalizer APO (gratis)
+1. Install Equalizer APO (free)
+1.03 GB recoverable right now (recycle bin and temporary files).
+1.2 kHz
+10 s guardados · mismo volumen para ambos
+10 s kept · same volume for both
+2. Conectar Equalizer APO a tus auriculares
+2. Hook Equalizer APO to your headset
+2.5 kHz
+20 herramientas profesionales, desbloqueadas de una vez
+20 pro tools, unlocked at once
+3 a la vez. Antes de regalar un PC, «Gestionar la licencia» libera su plaza.
+3 at the same time. Before giving a PC away, "Manage the license" frees its slot.
+3. Choose your headset (optional, recommended)
+3. Elegir tus auriculares (opcional, recomendado)
+4 kHz
+4 logical cores
+4. Instalar VB-Cable (gratis)
+4. Install VB-Cable (free)
+5 mejoras posibles. Pulsa «Optimizar en 1 clic» para hacerlo todo de una vez, o elige abajo.
+5 other points checked: all good.
+5 possible improvements. Click "Optimize in 1 click" to do everything at once, or choose below.
+5 puntos más comprobados: todo bien.
+5. Activar «Pasos potenciados»
+5. Turn on “Boosted footsteps”
+6. Darle el nombre «Velox Studio»
+6. Give it the name “Velox Studio”
+604 Mbit/s
+7. Windows: el cable en 7.1 (opcional, para ir más lejos)
+7. Windows: the cable in 7.1 (optional, to go further)
+7.5 kHz
+8. En Call of Duty / Warzone (compruébalo tú mismo)
+8. In Call of Duty / Warzone (check it yourself)
+9. Check by ear
+9. Comprobar de oído
+912 Mbit/s
+Ahora mismo: Sennheiser GSX
+Ajuste guardado para Call of Duty / Warzone.
+ALMACENAMIENTO 44%
+Alt
+Apex Legends
+ATMOS
+Battlefield 2042
+build 0
+By default, cleaning leaves the Recycle Bin alone: what you put there stays recoverable. You can ask Velox to empty it at every clean to free more space. Currently: Velox never empties the Recycle Bin.
+C:\Program Files\EqualizerAPO\config/MW_optimizer.txt
+Call of Duty / Warzone
+Casque (Arctis Nova Pro)
+Channel: all
+Channel: L
+Cloudflare
+Cloudflare es el más rápido (6 ms frente a 24 ms hoy). Selecciónalo y luego «Usar el servidor elegido».
+Cloudflare is the fastest (6 ms versus 24 ms today). Select it then "Use the chosen server".
+CMSS_GAME
+Con la fuerza al 110 %, las ganancias realmente aplicadas son: −5,5 dB  −3,3 dB  +2,2 dB  +4,4 dB  +3,3 dB  −3,3 dB.
+Con Voicemeeter, el sonido del juego pasa primero por «Voicemeeter Input» y luego sale por el dispositivo del bus A1 (Casque (Arctis Nova Pro)). Equalizer APO actúa en la salida donde está instalado: elige aquella en la que oyes el efecto.
+Control Panel > Sound > Playback tab > “CABLE Input” (that's the cable, subtitled VB-Audio Virtual Cable) > Configure > 7.1 Surround > Next until Finish. Your shots then arrive on their own channel: “Your weapon” isolates them better. In that case, turn off the game's headphone mode (step 8) and turn on “Virtual 7.1 sound” (Expert mode).
+Copy: L=1.150*L+-0.150*R R=1.150*R+-0.150*L
+Counter-Strike 2
+Ctrl
+Ctrl+K
+Current profile: Footsteps / competitive · strength 110%
+derecha +1,5 dB
+Desactivar los que pueden esperar (0)
+DTSHX
+En Call of Duty / Warzone, desactiva la opción «Modo de auriculares mejorado (Enhanced Headphone Mode)» mientras el 7.1 virtual esté activado: dos espacializaciones a la vez difuminan la dirección de los pasos. O al revés: deja la opción del juego y desactiva el 7.1 virtual. Prueba las dos y quédate con la que mejor sitúe los pasos.
+En Call of Duty / Warzone: efectos a 100, música a 0, diálogos sobre 40, audio mono desactivado y reducción de acúfenos activada (calma las explosiones). Prueba la mezcla Treyarch y luego la de Auriculares: quédate con la que mejor sitúe los pasos.
+En marcha · sonidos fuertes contenidos hasta −14 dB · retraso 24 ms · sonido 7.1 recibido · tu arma −7 dB
+EndIf:
+English
+Entrada 1
+Entrada 2
+Entrada 3
+Equalizer APO
+EQUALIZER APO
+Escape from Tarkov
+Español
+ESTUDIO DE SONIDO  ·  AUDIO DE JUEGO
+Everything to hear footsteps, in order. 0 of 5 essential steps are done. Velox ticks what it can check itself.
+Everything to hear footsteps, in order. 4 of 5 essential steps are done. Velox ticks what it can check itself.
+Filter 1: ON LSC Fc 105 Hz Gain -4.1 dB Q 0.70
+Filter 10: ON PK Fc 824 Hz Gain -1.4 dB Q 1.88
+Filter 11: ON LSC Fc 100 Hz Gain -5.5 dB Q 0.70
+Filter 12: ON PK Fc 250 Hz Gain -3.3 dB Q 1.00
+Filter 13: ON PK Fc 1200 Hz Gain 2.2 dB Q 1.20
+Filter 14: ON PK Fc 2500 Hz Gain 4.4 dB Q 1.40
+Filter 15: ON PK Fc 4000 Hz Gain 3.3 dB Q 1.50
+Filter 16: ON PK Fc 7500 Hz Gain -3.3 dB Q 2.00
+Filter 2: ON PK Fc 134 Hz Gain -5.8 dB Q 0.90
+Filter 3: ON PK Fc 56 Hz Gain 4.4 dB Q 1.50
+Filter 4: ON PK Fc 3993 Hz Gain 5.8 dB Q 3.24
+Filter 5: ON PK Fc 341 Hz Gain 2.6 dB Q 2.32
+Filter 6: ON HSC Fc 10000 Hz Gain -1.9 dB Q 0.70
+Filter 7: ON PK Fc 6469 Hz Gain 3.7 dB Q 5.11
+Filter 8: ON PK Fc 9152 Hz Gain 2.7 dB Q 2.58
+Filter 9: ON PK Fc 1532 Hz Gain 2.0 dB Q 2.79
+Fortnite
+FREE ON C:
+Fuente oficial: github.com/damiencoussot-ai/nettoyage-pc
+Game Audio menu: output (sound device) on “Velox Studio” or “Default”. Voice chat directly on your headset, to keep voices natural. “Mode casque amélioré (Enhanced Headphone Mode)” option: turn it on if Velox Studio is in stereo, turn it off if you set it to 7.1 (step 7). Recommended: effects at 100, music at 0, dialogue around 40, mono audio off and tinnitus reduction on (it tames explosions). Try the Treyarch mix, then the Headphones mix: keep the one where you locate footsteps best.
+GAME: CALL OF DUTY / WARZONE
+Google
+GSX
+Haut-parleurs (Realtek(R) Audio)
+Hay otros procesamientos activos en Equalizer APO (YouSound, HeSuVi): sus efectos se suman a este ecualizador.
+Hello, Damien.
+Hola, Damien.
+HUD: el aspecto futurista, desde la versión 5.5. Clásico: el aspecto anterior. Tus herramientas, favoritos y ajustes siguen siendo los mismos. Actualmente: HUD.
+HUD: the futuristic look, since version 5.5. Classic: the previous look. Your tools, favorites and settings stay the same. Currently: HUD.
+If: (sizeof(regexSearch("capture", stage)) == 0)
+In Call of Duty / Warzone, turn off the “Enhanced Headphone Mode” option while virtual 7.1 is on: two spatializations stacked blur the direction of footsteps. Or the other way round: keep the game's option and turn virtual 7.1 off. Try both, keep the one where you locate footsteps best.
+In Call of Duty / Warzone: effects at 100, music at 0, dialogue around 40, mono audio off and tinnitus reduction on (it tames explosions). Try the Treyarch mix, then the Headphones mix: keep the one where you locate footsteps best.
+Input 1
+Input 2
+Input 3
+INTÉGRITÉ.SYS
+JUEGO: CALL OF DUTY / WARZONE
+LIBRE EN C:
+Light, dark or automatic theme (follows the Windows setting). The sun / moon button at the top also switches in one click. Currently: Dark theme.
+LISTO
+Measured by oratory1990 · 10 correction filters
+Medido por oratory1990 · 10 filtros de corrección
+MEMORIA 100%
+MEMORY 100%
+Menú Audio del juego: salida (dispositivo de sonido) en «Velox Studio» o «Predeterminado». Chat de voz directamente en tus auriculares, para mantener voces naturales. Opción «Mode casque amélioré (Enhanced Headphone Mode)»: actívala si Velox Studio está en estéreo, desactívala si lo pusiste en 7.1 (paso 7). Recomendado: efectos a 100, música a 0, diálogos sobre 40, audio mono desactivado y reducción de acúfenos activada (calma las explosiones). Prueba la mezcla Treyarch y luego la de Auriculares: quédate con la que mejor sitúe los pasos.
+Micro
+MODULE 00 // SYSTEM
+MODULE 01 // DASHBOARD
+MODULE 02 // DISK SPACE
+MODULE 03 // PERFORMANCE
+MODULE 04 // SECURITY
+MODULE 05 // DIAGNOSTICS
+MODULE 06 // PRO TOOLS
+MODULE 07 // SOUND STUDIO
+MÓDULO 00 // SISTEMA
+MÓDULO 01 // PANEL
+MÓDULO 02 // ESPACIO EN DISCO
+MÓDULO 03 // RENDIMIENTO
+MÓDULO 04 // SEGURIDAD
+MÓDULO 05 // DIAGNÓSTICO
+MÓDULO 06 // HERRAMIENTAS PRO
+MÓDULO 07 // ESTUDIO DE SONIDO
+Motor de la versión 5.21
+MUTE
+OAL
+Official source: github.com/damiencoussot-ai/nettoyage-pc
+Other processing is active in Equalizer APO (YouSound, HeSuVi): its effects add to this equalizer.
+Overwatch 2
+Panel de control > Sonido > pestaña Reproducción > «CABLE Input» (es el cable, con el subtítulo VB-Audio Virtual Cable) > Configurar > 7.1 Surround > Siguiente hasta Finalizar. Tus disparos llegan entonces por su propio canal: «Tu arma» los aísla mejor. En ese caso, desactiva el modo auriculares del juego (paso 8) y activa «Sonido 7.1 virtual» (modo Experto).
+Perfil actual: Pasos / competitivo · fuerza 110 %
+Por defecto, la limpieza no toca la papelera: lo que pusiste allí sigue siendo recuperable. Puedes pedir a Velox que la vacíe en cada limpieza para liberar más espacio. Actualmente: Velox nunca vacía la papelera.
+Preamp: -1.5 dB
+Preamp: -10.0 dB
+Preamp: -10.8 dB
+PRO
+PUBG
+Quad9
+Rainbow Six Siege
+RAZER
+READY
+Realtek Gaming 2.5GbE Family Controller
+right +1.5 dB
+Right now: Sennheiser GSX
+Running · loud sounds held back up to −14 dB · delay 24 ms · 7.1 sound received · your weapon −7 dB
+RYZEN 7 7800X3D · RX 7900 XTX
+SBX
+SECURITY 60%
+SEGURIDAD 60%
+Setting remembered for Call of Duty / Warzone.
+Sí: 9,99 € al mes, sin permanencia. Lo cancelas cuando quieras (enlace en el correo de Stripe); Premium sigue activo hasta el final del mes pagado. Si compraste Premium en un solo pago antes, es tuyo para siempre.
+SOUND STUDIO  ·  GAME AUDIO
+SteelSeries Arctis Nova Pro Wireless (wired)
+STORAGE 44%
+Subscribe  ·  9,99 € / month
+Suscribirse  ·  9,99 € / mes
+Tema claro, oscuro o automático (sigue el ajuste de Windows). El botón sol / luna de arriba también cambia en un clic. Actualmente: Tema oscuro.
+Todo para oír los pasos, en orden. 0 de 5 pasos esenciales hechos. Velox marca lo que puede comprobar por sí mismo.
+Todo para oír los pasos, en orden. 4 de 5 pasos esenciales hechos. Velox marca lo que puede comprobar por sí mismo.
+Tu PC se puede mejorar : 5 puntos detectados.
+Turn off the ones that can wait (0)
+V5.21 · EN LÍNEA
+V5.21 · ONLINE
+Valorant
+Voicemeeter
+VOICEMEETER
+Voicemeeter A1
+Voicemeeter A2
+Voicemeeter A3
+Voicemeeter AUX
+VOICEMEETER BANANA
+Voicemeeter Banana  ·  2.1.1.8
+Voicemeeter Banana: volume, mute and sends of each input to the buses. Every setting can be undone in History. Double-click a fader: 0 dB.
+Voicemeeter Banana: volumen, silencio y envíos de cada entrada a los buses. Cada ajuste se deshace en el Historial. Doble clic en un fader: 0 dB.
+Voicemeeter Input (VB-Audio Voicemeeter VAIO)
+Voicemeeter VAIO
+Windows
+WINDOWS
+Windows Update is not responding (service stopped or no Internet connection). The Windows Update component can't be found on this PC.
+Windows Update no responde (servicio detenido o sin conexión a Internet). No se encuentra el componente Windows Update en este PC.
+With strength at 110%, the gains actually applied are: −5.5 dB  −3.3 dB  +2.2 dB  +4.4 dB  +3.3 dB  −3.3 dB.
+With Voicemeeter, game sound first goes through “Voicemeeter Input”, then comes out on the device of bus A1 (Casque (Arctis Nova Pro)). Equalizer APO works on the output where it is installed: target the one where you hear the effect.
+Yes: 9,99 € per month, no commitment. Stop whenever you like (link in the Stripe e-mail); Premium stays active until the end of the paid month. If you bought Premium in one payment before, it stays yours for life.
+Your PC can be improved : 5 items found.
