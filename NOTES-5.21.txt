@@ -25,6 +25,9 @@ Amélioré
   (les pas gardent leur relief, le fond monte peu). Change en pleine partie, garde celui que tu préfères.
 - Le renforceur remonte surtout les sons brefs qui viennent d'un côté (les ennemis), pas tes propres pas et
   mouvements au centre.
+- Style Puissant plus précis : l'attaque des pas passe avant le compresseur (un pas qui claque au lieu de
+  baver), le renforceur s'ajoute après lui (il n'est plus annulé), monte jusqu'à 8 kHz (là où l'oreille
+  situe gauche et droite) et accentue davantage les côtés.
 - Nouveau renforceur de pas : les sons brefs et faibles dans la bande des pas (et le choc du talon) sont
   remontés quelques dizaines de millisecondes, jusqu'à +12 dB en Fort et +18 dB en Ultra. Un son continu
   (vent, moteur) ou fort (tir, explosion) n'est pas touché, dès sa première milliseconde.

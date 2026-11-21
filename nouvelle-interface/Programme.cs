@@ -957,7 +957,7 @@ namespace NettoyagePC.Nouveau
                     var souffle = new float[96000]; var al = new Random(3); for (int i = 0; i < souffle.Length; i++) souffle[i] = (float)((al.NextDouble() * 2 - 1) * 0.0001);
                     double ns = 0; foreach (var v in souffle) ns += v * (double)v; cs = new CompresseurPas(100, 48000); cs.Traiter(souffle, 48000, 2);
                     double ns2 = 0; foreach (var v in souffle) ns2 += v * (double)v;
-                    verifier(ok && gain65 >= 8 && Math.Abs(retour65) <= 3 && sil.All(v => v == 0) && 10 * Math.Log10(ns2 / ns) < 3, "pas boostés : le pas lointain gagne " + gain65.ToString("F1", ci) + " dB sur l'explosion (force 65), et celui d'après aussi, aucune saturation, silence et souffle pas remontés");
+                    verifier(ok && gain65 >= 8 && Math.Abs(retour65) <= 3 && sil.All(v => v == 0) && 10 * Math.Log10(ns2 / ns) < 3, "pas boostés : le pas lointain gagne " + gain65.ToString("F1", ci) + " dB sur l'explosion (force 65), et celui d'après aussi, aucune saturation, silence et souffle pas remontés [ok=" + ok + " retour=" + retour65.ToString("F1", ci) + " silence=" + sil.All(v => v == 0) + " souffle=" + (10 * Math.Log10(ns2 / ns)).ToString("F1", ci) + "]");
                     var rm = new ReglagesMoteurSon { Actif = true, Force = 140, Arme = 7, Source = "{0.0.1.00000000}.{11111111-2222-3333-4444-555555555555}", Destination = "pas un id", DefautAvant = "{0.0.0.00000000}.{11111111-2222-3333-4444-555555555555}" }.Borner();
                     var rr = ReglagesMoteurSon.Lire(rm.Json());
                     // sans câble virtuel (machine d'essai) : rien n'est branché ni lancé, et c'est dit

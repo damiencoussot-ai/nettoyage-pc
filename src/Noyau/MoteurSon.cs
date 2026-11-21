@@ -170,14 +170,19 @@ namespace NettoyagePC
         private readonly Biquad2[] bandePasHaut, bandePasBas, bandeChocHaut, bandeChocBas;
         private readonly double rfMonte, rfDescendRapide, rfLent, rgMonte, rgDescend, rfCrete;
         private double crPas, crChoc;
-        private readonly double forceRel;
+        private readonly double forceRel, facteurChoc;
+        private readonly bool renfortApres;
+        private readonly double[] ajoutRenfort = new double[16];
+
         // côté du son (bande des pas) : niveau à gauche et à droite, pour remonter surtout ce qui vient d'un côté (un
         // ennemi) plutôt que ce qui est au centre (tes propres pas, tes mouvements, ton rechargement)
         private double pGauche = 1e-12, pDroite = 1e-12;
         // réglés sur de vrais enregistrements de Warzone : un son bref au centre n'est pas remonté (souvent tes propres pas
         // ou mouvements), un son nettement d'un côté l'est pleinement, et la différence gauche/droite des sons de la bande des
         // pas est accentuée de 4 dB (en Extrême) : +2 à +3 dB d'écart en faveur de ce qui vient d'un côté.
-        internal const double PoidsCentre = 0, EcartPlein = 8, AccentCotes = 4;
+        internal const double PoidsCentre = 0, EcartPlein = 8;
+        /// <summary>Accent des côtés (dB, en Extrême) : 4 en Net, 6 en Puissant (direction plus nette).</summary>
+        private readonly double accentCotes;
 
         /// <summary>Poids de la remontée selon le côté : PoidsCentre pour un son centré (gauche = droite), 1 dès que l'un
         /// des côtés dépasse l'autre de EcartPlein dB.</summary>
@@ -249,7 +254,10 @@ namespace NettoyagePC
             seuilArmeStereo = Style == StyleNet ? 14 : 24; seuilArmeCentre = Style == StyleNet ? 26 : 36;
             double fe = Math.Max(8000, frequence);
             aNiveau = Math.Exp(-1 / (0.005 * fe));
-            attaque = Math.Exp(-1 / (0.0015 * fe));
+            // Puissant : l'attaque du pas passe avant que le compresseur réagisse (10 ms : un pas qui claque, plus précis ;
+            // le limiteur tient les crêtes), et le renforceur s'ajoute après le compresseur, qui ne l'annule plus
+            attaque = Math.Exp(-1 / ((Style == StyleNet ? 0.0015 : 0.010) * fe));
+            renfortApres = Style == StylePuissant;
             relache = Math.Exp(-1 / ((0.20 - 0.09 * f) * fe));          // 200 ms à 110 ms : les pas reviennent vite après un tir
             gardeMonte = Math.Exp(-1 / (0.002 * fe)); gardeDescend = Math.Exp(-1 / (0.08 * fe));
             relacheLim = Math.Exp(-1 / (0.06 * fe));
@@ -276,14 +284,18 @@ namespace NettoyagePC
             }
             presMonte = Math.Exp(-1 / (0.06 * fe)); presDescend = Math.Exp(-1 / (0.002 * fe));
             // renforceur : +4,5 dB (léger) à +12 dB (fort), +15 dB (extrême), +18 dB (ultra)
-            RenfortMax = 1.5 * (!renfort || f <= 0 ? 0 : f <= 0.35 ? 3 * f / 0.35 : f <= 0.65 ? 3 + 5 * (f - 0.35) / 0.3 : f <= 1 ? 8 + 2 * (f - 0.65) / 0.35 : 10 + 2 * Math.Min(1, (f - 1) / 0.3));
+            // Puissant : un peu plus fort (×1,3), plus net (relâché en 40 ms : le « clac » du pas plutôt que sa traîne), bande
+            // jusqu'à 8 kHz (là où l'oreille situe gauche/droite) et « boum » du talon moins remonté (les graves brouillent la direction)
+            accentCotes = Style == StyleNet ? 4 : 6;
+            facteurChoc = Style == StyleNet ? 0.5 : 0.25;
+            RenfortMax = (Style == StyleNet ? 1.5 : 1.95) * (!renfort || f <= 0 ? 0 : f <= 0.35 ? 3 * f / 0.35 : f <= 0.65 ? 3 + 5 * (f - 0.35) / 0.3 : f <= 1 ? 8 + 2 * (f - 0.65) / 0.35 : 10 + 2 * Math.Min(1, (f - 1) / 0.3));
             rfMonte = Math.Exp(-1 / (0.002 * fe)); rfDescendRapide = Math.Exp(-1 / (0.015 * fe)); rfLent = Math.Exp(-1 / (0.06 * fe));
-            rgMonte = Math.Exp(-1 / (0.002 * fe)); rgDescend = Math.Exp(-1 / (0.07 * fe));
+            rgMonte = Math.Exp(-1 / (0.002 * fe)); rgDescend = Math.Exp(-1 / ((Style == StyleNet ? 0.07 : 0.04) * fe));
             rfCrete = Math.Exp(-1 / (0.01 * fe));
             bandePasHaut = new Biquad2[16]; bandePasBas = new Biquad2[16]; bandeChocHaut = new Biquad2[16]; bandeChocBas = new Biquad2[16];
             for (int c = 0; c < 16; c++)
             {
-                bandePasHaut[c] = new Biquad2(true, 700, fe); bandePasBas[c] = new Biquad2(false, 5000, fe);
+                bandePasHaut[c] = new Biquad2(true, 700, fe); bandePasBas[c] = new Biquad2(false, Style == StyleNet ? 5000 : 8000, fe);
                 bandeChocHaut[c] = new Biquad2(true, 150, fe); bandeChocBas[c] = new Biquad2(false, 350, fe);
             }
         }
@@ -373,7 +385,8 @@ namespace NettoyagePC
                     float ps = 0;
                     for (int c = 0; c < canaux; c++) { float v = t[b + c]; if (v * v > ps) ps = v * v; }
                     pScene = aNiveau * pScene + (1 - aNiveau) * ps;
-                    bool calme = 10 * Math.Log10(pScene + 1e-18) < -22 && gainGraves > -3;
+                    double nScene = 10 * Math.Log10(pScene + 1e-18);
+                    bool calme = nScene < -22 && nScene > -60 && gainGraves > -3;   // calme, mais pas le quasi-silence (souffle)
                     if (canaux >= 6) { double lf = t[b + 3]; pLfe = aGraves * pLfe + (1 - aGraves) * lf * lf; calme &= 10 * Math.Log10(pLfe + 1e-18) < -35; }
                     presence = calme ? presMonte * presence + (1 - presMonte) : presDescend * presence;
                     for (int c = 0; c < canaux; c++)
@@ -406,7 +419,7 @@ namespace NettoyagePC
                     pLentChoc = rfLent * pLentChoc + (1 - rfLent) * pc;
                     double rp = 10 * Math.Log10(pRapidePas + 1e-18), rc = 10 * Math.Log10(pRapideChoc + 1e-18);
                     double cp = rp < -70 ? 0 : RenfortMax * Bref(rp, 10 * Math.Log10(pLentPas + 1e-18));          // souffle : rien
-                    double cc = rc < -70 ? 0 : RenfortMax / 2 * Bref(rc, 10 * Math.Log10(pLentChoc + 1e-18));
+                    double cc = rc < -70 ? 0 : RenfortMax * facteurChoc * Bref(rc, 10 * Math.Log10(pLentChoc + 1e-18));
                     // le « bref » est tenu ~70 ms (tout le pas) ; le « faible » agit tout de suite
                     gainRenfortPas = cp > gainRenfortPas ? rgMonte * gainRenfortPas + (1 - rgMonte) * cp : rgDescend * gainRenfortPas + (1 - rgDescend) * cp;
                     gainRenfortChoc = cc > gainRenfortChoc ? rgMonte * gainRenfortChoc + (1 - rgMonte) * cc : rgDescend * gainRenfortChoc + (1 - rgDescend) * cc;
@@ -416,11 +429,11 @@ namespace NettoyagePC
                     double ip = 10 * Math.Log10(crPas + 1e-18) - 3, ic = 10 * Math.Log10(crChoc + 1e-18) - 3;
                     double gp = gainRenfortPas * Faible(Math.Max(rp, ip)), gc = gainRenfortChoc * Faible(Math.Max(rc, ic));
                     if (gp > RenfortRelevéMax) RenfortRelevéMax = gp;
-                    if (canaux == 2 && AccentCotes > 0)
+                    if (canaux == 2 && accentCotes > 0)
                     {
                         // accent des côtés : dans la bande des pas, la différence gauche/droite (ce qui vient d'un côté) est
                         // remontée ; ce qui est au centre (tes propres sons) ne bouge pas
-                        double ks = Math.Pow(10, AccentCotes * Math.Min(1, forceRel) / 20) - 1, sPas = (bufPas[0] - bufPas[1]) * 0.5 * ks;
+                        double ks = Math.Pow(10, accentCotes * Math.Min(1, forceRel) / 20) - 1, sPas = (bufPas[0] - bufPas[1]) * 0.5 * ks;
                         t[b] = (float)(t[b] + sPas); t[b + 1] = (float)(t[b + 1] - sPas);
                     }
                     if (canaux == 2)
@@ -437,7 +450,9 @@ namespace NettoyagePC
                     {
                         // 5.1 / 7.1 : la voie centrale porte tes propres sons : remontée réduite
                         double f2 = canaux >= 6 && c == 2 ? PoidsCentre : 1;
-                        t[b + c] = (float)(t[b + c] + (bufPas[c] * kp + bufChoc[c] * kc) * f2);
+                        double ajout = (bufPas[c] * kp + bufChoc[c] * kc) * f2;
+                        if (renfortApres) ajoutRenfort[c] = ajout;      // ajouté après le compresseur (il ne l'annule plus)
+                        else t[b + c] = (float)(t[b + c] + ajout);
                     }
                 }
                 // 1. niveau (moyenne sur 5 ms) et gain du compresseur
@@ -454,7 +469,12 @@ namespace NettoyagePC
                 float g = (float)Math.Pow(10, gDb / 20);
                 // 2. échantillons compressés, mis dans la ligne à retard ; gain que demandera le limiteur pour eux
                 float crete = 0;
-                for (int c = 0; c < canaux; c++) { float v = t[b + c] * g; retard[pos * canaux + c] = v; if (Math.Abs(v) > crete) crete = Math.Abs(v); }
+                for (int c = 0; c < canaux; c++)
+                {
+                    float v = t[b + c] * g;
+                    if (renfortApres && c < 16) { v += (float)(ajoutRenfort[c] * g); ajoutRenfort[c] = 0; }
+                    retard[pos * canaux + c] = v; if (Math.Abs(v) > crete) crete = Math.Abs(v);
+                }
                 besoin[pos] = crete > Plafond ? Plafond / crete : 1;
                 // 3. limiteur : le plus petit gain demandé sur les 1,5 ms à venir, relâché en douceur
                 float mini = 1;
