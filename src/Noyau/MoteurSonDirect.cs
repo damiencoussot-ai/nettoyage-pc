@@ -298,10 +298,28 @@ namespace NettoyagePC
         private static readonly Guid IID_IAudioCaptureClient = new Guid("C8ADBD64-E71E-48a0-A4DE-185C395CD317");
         private static readonly Guid IID_IAudioRenderClient = new Guid("F294ACFC-3146-4483-A7BF-ADDCA7C260E2");
         private static readonly Guid FormatFlottant = new Guid("00000003-0000-0010-8000-00aa00389b71");
+        private static readonly Guid IID_IAudioEndpointVolume = new Guid("5CDF2C82-841E-4546-9722-0CF74078229A");
+
+        /// <summary>
+        /// Volume de Windows sur le câble (touches de volume, curseur de la barre des tâches : le câble est la sortie par
+        /// défaut) : il baisse le son AVANT Velox. Sans correction, à 30 % de volume le jeu arrive ~20 dB trop bas, rien ne
+        /// dépasse le seuil du compresseur, tout est remonté pareil et les pas ne ressortent pas. Velox remonte donc l'entrée
+        /// de ce que le volume a retiré (au plus 40 dB), traite au niveau plein, puis remet le volume à la sortie : le
+        /// volume de Windows reste le volume d'écoute, sans affaiblir le traitement. Gains (entrée, sortie) pour ce volume.
+        /// </summary>
+        internal static void CompensationVolume(float db, out float entree, out float sortie)
+        {
+            if (float.IsNaN(db) || db >= 0) { entree = 1; sortie = 1; return; }
+            float d = Math.Max(-40f, db);
+            entree = (float)Math.Pow(10, -d / 20.0);
+            sortie = (float)Math.Pow(10, db / 20.0);
+        }
 
         private sealed class Flux
         {
             public IMMDevice Appareil; public IAudioClient Client; public IAudioCaptureClient Capture; public IAudioRenderClient Rendu;
+            /// <summary>(capture) volume de Windows sur la sortie du câble, et l'appareil qui le porte.</summary>
+            public IMMDevice SortieCable; public IAudioEndpointVolume Volume;
             public int Images;
             /// <summary>Réserve visée dans le tampon du casque (images) : petite au départ, agrandie seulement si le son
             /// manque (le tampon s'est vidé). -1 : pas encore fixée.</summary>
@@ -311,7 +329,8 @@ namespace NettoyagePC
             {
                 try { if (Client != null) Client.Stop(); } catch { }
                 AudioWindows.Liberer(Capture); AudioWindows.Liberer(Rendu); AudioWindows.Liberer(Client); AudioWindows.Liberer(Appareil);
-                Capture = null; Rendu = null; Client = null; Appareil = null;
+                AudioWindows.Liberer(Volume); AudioWindows.Liberer(SortieCable);
+                Capture = null; Rendu = null; Client = null; Appareil = null; Volume = null; SortieCable = null;
             }
         }
 
@@ -369,6 +388,10 @@ namespace NettoyagePC
             float[] tampon = new float[0];
             int forceEnCours = -1, armeEnCours = -1;
             MemoireReecoute memoire = null;
+            long dernierVolume = -10000; float gainEntree = 1, gainSortie = 1, volumeDb = 0;
+            // garde-fou : si le pilote du câble n'appliquait pas le volume de Windows, la compensation dépasserait le niveau
+            // plein (un son de jeu ne dépasse pas ~1) : au 3e dépassement net (×2), elle est coupée pour la session
+            int depassements = 0; bool sansCompensation = false;
             try
             {
                 while (true)
@@ -454,6 +477,11 @@ namespace NettoyagePC
                         }
                     }
                     if (cap == null || ren == null) { Thread.Sleep(100); continue; }
+                    if (t - dernierVolume >= 250 && cap.Volume != null && !sansCompensation)
+                    {
+                        dernierVolume = t;
+                        try { float db; if (cap.Volume.GetMasterVolumeLevel(out db) == 0) { volumeDb = db; CompensationVolume(db, out gainEntree, out gainSortie); } } catch { gainEntree = 1; gainSortie = 1; }
+                    }
                     evenement.WaitOne(100);
                     try
                     {
@@ -469,6 +497,17 @@ namespace NettoyagePC
                             else if (flottant) Marshal.Copy(donnees, tampon, 0, n);
                             else for (int i = 0; i < n; i++) tampon[i] = Marshal.ReadInt16(donnees, i * 2) / 32768f;
                             cap.Capture.ReleaseBuffer(images);
+                            if (gainEntree != 1)
+                            {
+                                float crete = 0;
+                                for (int i = 0; i < n; i++) { tampon[i] *= gainEntree; float a = Math.Abs(tampon[i]); if (a > crete) crete = a; }   // le volume de Windows retiré
+                                if (crete > 2f && ++depassements >= 3)
+                                {
+                                    sansCompensation = true; JournalDemarrage.Noter("Moteur audio : le pilote du câble n'applique pas le volume de Windows, compensation coupée.");
+                                    for (int i = 0; i < n; i++) tampon[i] /= gainEntree;
+                                    gainEntree = 1; gainSortie = 1;
+                                }
+                            }
                             if (memoire == null || memoire.Phase == 0)
                             {
                                 if (memoire != null) memoire.GarderSec(tampon, images);
@@ -476,6 +515,7 @@ namespace NettoyagePC
                                 if (memoire != null) memoire.GarderTraite(tampon, images);
                             }
                             else memoire.Remplir(tampon, images);   // réécoute : le son du jeu est remplacé par l'enregistrement
+                            if (gainSortie != 1) for (int i = 0; i < n; i++) tampon[i] *= gainSortie;   // et remis : c'est le volume d'écoute
                             Jouer(ren, tampon, images, canaux, fe, flottant);
                         }
                     }
@@ -575,6 +615,17 @@ namespace NettoyagePC
             if (ren.Client.GetService(ref iid, out o) != 0 || !(o is IAudioRenderClient)) return "Lecture sur le casque impossible.";
             ren.Rendu = (IAudioRenderClient)o;
             if (ren.Client.Start() != 0 || cap.Client.Start() != 0) return "Le son n'a pas pu démarrer.";
+            // volume de Windows sur la sortie du câble (compensé par le moteur) ; sans lui, le traitement se fait tel quel
+            try
+            {
+                var c = Cables().FirstOrDefault(x => x.Entree == r.Source);
+                if (c != null && e.GetDevice(c.Sortie, out cap.SortieCable) == 0 && cap.SortieCable != null)
+                {
+                    iid = IID_IAudioEndpointVolume;
+                    if (cap.SortieCable.Activate(ref iid, CLSCTX_ALL, IntPtr.Zero, out o) == 0 && o is IAudioEndpointVolume v) cap.Volume = v;
+                }
+            }
+            catch { }
             return "";
         }
 
@@ -594,6 +645,18 @@ namespace NettoyagePC
             catch { }
             return cle;
         }
+    }
+
+    [ComImport, Guid("5CDF2C82-841E-4546-9722-0CF74078229A"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+    internal interface IAudioEndpointVolume
+    {
+        [PreserveSig] int RegisterControlChangeNotify(IntPtr notif);
+        [PreserveSig] int UnregisterControlChangeNotify(IntPtr notif);
+        [PreserveSig] int GetChannelCount(out int nombre);
+        [PreserveSig] int SetMasterVolumeLevel(float db, ref Guid contexte);
+        [PreserveSig] int SetMasterVolumeLevelScalar(float niveau, ref Guid contexte);
+        [PreserveSig] int GetMasterVolumeLevel(out float db);
+        [PreserveSig] int GetMasterVolumeLevelScalar(out float niveau);
     }
 
     [ComImport, Guid("F294ACFC-3146-4483-A7BF-ADDCA7C260E2"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]

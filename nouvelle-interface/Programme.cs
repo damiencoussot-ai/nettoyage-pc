@@ -847,6 +847,15 @@ namespace NettoyagePC.Nouveau
                             db.DisqueLibre = 5e9; var p3 = BilanPc.Points(db).First();
                             verifier(p1.Cible == "page:Disques" && p2.Cible == "action:standard" && p3.Cible == "action:complet" && p3.Etat == "probleme", "bilan : disque plein déjà nettoyé → gros fichiers ; sinon nettoyage");
                         }
+                        {
+                            // volume de Windows sur le câble : compensé à l'entrée, remis à la sortie, au plus 40 dB
+                            float gEnt, gSor; bool okVol = true;
+                            MoteurSon.CompensationVolume(0, out gEnt, out gSor); okVol &= gEnt == 1 && gSor == 1;
+                            MoteurSon.CompensationVolume(-20, out gEnt, out gSor); okVol &= Math.Abs(gEnt - 10) < 0.01 && Math.Abs(gSor - 0.1) < 0.001 && Math.Abs(gEnt * gSor - 1) < 0.001;
+                            MoteurSon.CompensationVolume(-96, out gEnt, out gSor); okVol &= Math.Abs(gEnt - 100) < 0.1 && gSor < 0.0001;
+                            MoteurSon.CompensationVolume(float.NaN, out gEnt, out gSor); okVol &= gEnt == 1 && gSor == 1;
+                            verifier(okVol, "pas boostés : le volume de Windows sur le câble est compensé (entrée), puis remis (sortie), au plus 40 dB");
+                        }
                         verifier(ReglagesMoteurSon.Lire(new ReglagesMoteurSon { RenommerAuRallumage = true }.Json()).RenommerAuRallumage && !new ReglagesMoteurSon().RenommerAuRallumage, "Velox Studio : le nom à remettre au rallumage est gardé dans les réglages");
                     }
                     {

@@ -30,6 +30,10 @@ Amélioré
   lancement (avant, Velox remettait le sien).
 
 Corrigé
+- Pas boostés : baisser le volume de Windows (touches de volume) affaiblissait le traitement, car ce volume
+  agit sur le câble, avant Velox. À 30 % de volume, presque rien n'était traité : les pas ne ressortaient
+  pas, et la réécoute « avec » sonnait comme « sans ». Velox compense maintenant ce volume : il traite le son
+  à pleine force, puis remet ton volume d'écoute.
 - Accueil : un point « fichiers temporaires récupérables » restait affiché après chaque nettoyage (le
   bilan comptait aussi les fichiers récents, que le nettoyage garde exprès). Et le bilan se recalcule dès
   le retour à l'accueil après un pilote, Sécurité Windows ou les programmes au démarrage.
