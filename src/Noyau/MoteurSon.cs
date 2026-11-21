@@ -180,15 +180,18 @@ namespace NettoyagePC
         // réglés sur de vrais enregistrements de Warzone : un son bref au centre n'est pas remonté (souvent tes propres pas
         // ou mouvements), un son nettement d'un côté l'est pleinement, et la différence gauche/droite des sons de la bande des
         // pas est accentuée de 4 dB (en Extrême) : +2 à +3 dB d'écart en faveur de ce qui vient d'un côté.
-        internal const double PoidsCentre = 0, EcartPlein = 8;
+        internal const double EcartPlein = 8;
+        /// <summary>Remontée d'un son bref au centre : 0 en Net ; 0,5 en Puissant (un ennemi juste derrière ou devant arrive
+        /// aussi au centre, en stéréo : il ne doit pas être oublié).</summary>
+        private readonly double poidsCentre;
         /// <summary>Accent des côtés (dB, en Extrême) : 4 en Net, 6 en Puissant (direction plus nette).</summary>
         private readonly double accentCotes;
 
         /// <summary>Poids de la remontée selon le côté : PoidsCentre pour un son centré (gauche = droite), 1 dès que l'un
         /// des côtés dépasse l'autre de EcartPlein dB.</summary>
-        internal static double PoidsCote(double gaucheDb, double droiteDb)
+        internal static double PoidsCote(double gaucheDb, double droiteDb, double poidsCentre)
         {
-            return PoidsCentre + (1 - PoidsCentre) * Math.Max(0, Math.Min(1, Math.Abs(gaucheDb - droiteDb) / EcartPlein));
+            return poidsCentre + (1 - poidsCentre) * Math.Max(0, Math.Min(1, Math.Abs(gaucheDb - droiteDb) / EcartPlein));
         }
         private double pRapidePas = 1e-12, pLentPas = 1e-12, pRapideChoc = 1e-12, pLentChoc = 1e-12, gainRenfortPas, gainRenfortChoc;
         private double[] bufPas = new double[16], bufChoc = new double[16];
@@ -287,6 +290,7 @@ namespace NettoyagePC
             // Puissant : un peu plus fort (×1,3), plus net (relâché en 40 ms : le « clac » du pas plutôt que sa traîne), bande
             // jusqu'à 8 kHz (là où l'oreille situe gauche/droite) et « boum » du talon moins remonté (les graves brouillent la direction)
             accentCotes = Style == StyleNet ? 4 : 6;
+            poidsCentre = Style == StyleNet ? 0 : 0.5;
             facteurChoc = Style == StyleNet ? 0.5 : 0.25;
             RenfortMax = (Style == StyleNet ? 1.5 : 1.95) * (!renfort || f <= 0 ? 0 : f <= 0.35 ? 3 * f / 0.35 : f <= 0.65 ? 3 + 5 * (f - 0.35) / 0.3 : f <= 1 ? 8 + 2 * (f - 0.65) / 0.35 : 10 + 2 * Math.Min(1, (f - 1) / 0.3));
             rfMonte = Math.Exp(-1 / (0.002 * fe)); rfDescendRapide = Math.Exp(-1 / (0.015 * fe)); rfLent = Math.Exp(-1 / (0.06 * fe));
@@ -442,14 +446,14 @@ namespace NettoyagePC
                         double g2 = bufPas[0] * bufPas[0], d2 = bufPas[1] * bufPas[1];
                         pGauche = g2 > pGauche ? rfMonte * pGauche + (1 - rfMonte) * g2 : rfDescendRapide * pGauche + (1 - rfDescendRapide) * g2;
                         pDroite = d2 > pDroite ? rfMonte * pDroite + (1 - rfMonte) * d2 : rfDescendRapide * pDroite + (1 - rfDescendRapide) * d2;
-                        double w = PoidsCote(10 * Math.Log10(pGauche + 1e-18), 10 * Math.Log10(pDroite + 1e-18));
+                        double w = PoidsCote(10 * Math.Log10(pGauche + 1e-18), 10 * Math.Log10(pDroite + 1e-18), poidsCentre);
                         gp *= w; gc *= w;
                     }
                     double kp = Math.Pow(10, gp / 20) - 1, kc = Math.Pow(10, gc / 20) - 1;
                     for (int c = 0; c < canaux && c < 16; c++)
                     {
                         // 5.1 / 7.1 : la voie centrale porte tes propres sons : remontée réduite
-                        double f2 = canaux >= 6 && c == 2 ? PoidsCentre : 1;
+                        double f2 = canaux >= 6 && c == 2 ? 0 : 1;   // en 7.1, l'arrière a ses propres voies : seul le centre est retenu
                         double ajout = (bufPas[c] * kp + bufChoc[c] * kc) * f2;
                         if (renfortApres) ajoutRenfort[c] = ajout;      // ajouté après le compresseur (il ne l'annule plus)
                         else t[b + c] = (float)(t[b + c] + ajout);
