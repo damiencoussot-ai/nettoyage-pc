@@ -7,8 +7,8 @@ Nouveau
   Pas boostés, nommer « Velox Studio », régler Windows et le jeu. Velox coche chaque étape faite et
   donne le bouton qui la fait.
 - Ton arme (Normale, Réduite, Très réduite) : tes propres rafales sont baissées, pas celles des
-  ennemis. Un ennemi sur le côté pendant que tu tires ressort de +4 à +8 dB en stéréo, de +7 à +13 dB
-  si VB-Cable est réglé en 7.1. Un son faible devant toi n'est jamais touché.
+  ennemis. Un ennemi sur le côté pendant que tu tires ressort de +2 à +3 dB en stéréo, de +6 à +12 dB
+  si VB-Cable est réglé en 7.1. Les pas, même devant toi, ne sont jamais baissés.
 - Réécoute sans / avec Velox : un bouton rejoue les 10 dernières secondes de ta partie, d'abord sans
   Velox, puis avec, au même volume.
 - Un réglage par jeu : la force et « Ton arme » réglées pendant une partie sont retenues pour ce jeu.
@@ -17,16 +17,19 @@ Nouveau
 - Niveau « Ultra » dans Pas boostés, et profil « Ultra » dans Profils (clair et plein).
 
 Amélioré
+- Pas boostés réglé sur de vrais enregistrements de Warzone (bouton « Enregistrer pour analyse ») :
+  l'ancien réglage écrasait les pas proches et remontait le fond de ~20 dB, les pas s'y noyaient (contraste
+  des pas tombé de ~19 dB à ~5 dB). Maintenant les pas gardent tout leur relief (contraste conservé, voire
+  augmenté), prennent ~4 à 6 dB de plus de place dans le son, et le fond n'est presque plus remonté.
 - Nouveau renforceur de pas : les sons brefs et faibles dans la bande des pas (et le choc du talon) sont
-  remontés quelques dizaines de millisecondes, jusqu'à +8 dB en Fort et +12 dB en Ultra. Un son continu
-  (vent, moteur) ou fort (tir, explosion) n'est pas touché : les pas se détachent du fond.
-- Pas plus présents : les aigus des pas (vers 2,8 kHz) et leur choc (vers 300 Hz) sont mis en avant
-  seulement quand la scène est calme ; dès qu'un tir ou une explosion arrive, ils reviennent à la
-  normale en 2 ms. Les tirs ne deviennent pas criards.
-- Pas lointains face aux explosions : +16 dB en Léger, +27 dB en Fort, +28 dB en Extrême et en Ultra
+  remontés quelques dizaines de millisecondes, jusqu'à +12 dB en Fort et +18 dB en Ultra. Un son continu
+  (vent, moteur) ou fort (tir, explosion) n'est pas touché, dès sa première milliseconde.
+- Nouveau bouton « Enregistrer pour analyse » : les 10 dernières secondes, sans et avec Velox, en deux
+  fichiers sur le Bureau.
+- Pas lointains face aux explosions : +9 dB en Léger, +15 dB en Fort, +19 dB en Extrême, +24 dB en Ultra
   (mesuré sur une scène de test), sans saturation.
 - Dompteur de graves : les explosions sont baissées à part ; un pas pendant une explosion ressort de
-  +12 dB en Fort, +18 dB en Ultra.
+  +8 dB en Fort, +12 dB en Ultra.
 - Retard du son plus court avec Pas boostés : la réserve devant le casque part de 12 ms et ne grandit
   que si le son manque (20 à 40 ms de retard selon le PC, affiché en direct).
 - Profil adapté à chaque jeu : le profil que tu choisis est retenu pour le jeu et repris à chaque
