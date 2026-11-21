@@ -1,0 +1,171 @@
+Bilan réel : note 52, 11 points, en 383 ms
+  [Probleme] Protection antivirus en temps réel désactivée.  -> uri:windowsdefender://threat
+  [Attention] Disque C: 25,93 Go libres (17 %) : il commence à se remplir.  -> page:Disques
+  [Attention] HyperVMonitor : résolution 1024 × 768 au lieu de 1920 × 1080 (image plus nette)  -> page:Potentiel
+  [Attention] Entretien automatique désactivé : ton PC ne se nettoie pas tout seul.  -> action:planifier
+  [Attention] Aucun point de restauration : impossible de revenir en arrière en cas de problème.  -> action:point
+  [Ok] Fichiers temporaires : 158,5 Mo
+  [Ok] Dernière action : 21/11/2026 12:48
+  [Ok] Mémoire vive utilisée à 21 %.
+  [Ok] 3 programme(s) au démarrage.  -> page:Demarrage
+  [Ok] Disques en bonne santé.  -> page:Materiel
+  [Ok] Pare-feu Windows actif.
+  secteurs : 69.20466735394999 / 100 / 30 / 90
+  mesures : processeur 0 %, mémoire 20.920452596841514 %, disque 25,93 Go libres, température -1
+Versions : 5.10 > 5.9.10 > 5.9.9, 5.10 = 5.10.0.0
+Ping us-east-1 : 53 ms (gigue 2.3, perte 0 %) : Très bon : tous les jeux en ligne
+Ping eu-west-3 : 130 ms (gigue 1.9, perte 0 %) : Moyen : retard sensible
+Ping eu-south-2 : 137 ms (gigue 0.5, perte 0 %) : Moyen : retard sensible
+Ping ap-southeast-1 : 181 ms (gigue 5.4, perte 0 %) : Trop loin pour jouer confortablement
+Taille de C:\Windows\system32\drivers\etc : 23 Ko
+Jeux détectés : 0
+Extinction prévue : aucune
+Démarrages notés : 0 ; code de joueur : VLX1-5-1019-9-22-14-12-f6b80f
+Utilisation GPU : -1 puis 8 (−1 = pas de compteur sur cette machine)
+Wi-Fi : disponible False, connecté False, erreur « service Wi-Fi absent (1062) » ; verdict : Ce PC n'a pas de Wi-Fi (ou il est désactivé). (1 conseil(s))
+Programmes installés : 58
+Restes trouvés : Réglages et données du programme C:\Users\runneradmin\AppData\Roaming\VeloxEssaiRestes (5000 o, protégé False) | Raccourci du Bureau C:\Users\runneradmin\Desktop\VeloxEssaiRestes.lnk (5 o, protégé False)
+Restes mis à la corbeille : 2 ; dossier encore là : False ; raccourci encore là : False
+Restauration depuis la corbeille : 2 remis, 0 introuvable(s) ; dossier revenu : True
+FPS en direct (fichier d'essai) : 100 (jeu.exe) puis 50 (jeu.exe)
+Boîte noire (partie simulée) : en cours True, reçue True, saccades 2 (programme:Discord:200, chaleur:processeur:150), FPS moyen 99.6, FPS 1 % 97.6, note 40, causes 2, relue jeu-essai.exe 2
+Boîte noire (règles) : True
+Activité des programmes : 2 actif(s), ce programme (NettoyagePC) : 110 % d'un cœur, disque occupé à 1 %, les plus actifs : NettoyagePC 110%, WindowsTerminal 5%
+Qui ralentit mon PC (2 s) : 1 programme(s), verdict « Rien ne ralentit ton PC en ce moment. » 
+Autopilote (simulé) : verdicts priorite:garde: / alimentation:annule:aucun ; relu : priorite=garde(, 12 blocs, FPS min 57 %), alimentation=annule(aucun, 24 blocs, FPS min 0 %) ; réglages appliqués 19, retirés 19, priorité encore appliquée : False
+Autopilote (test statistique) : True
+Autopilote (priorité réelle) : haute True (High), notée True, rétablie Normal, note effacée True, anti-triche vu : False
+Autopilote (alimentation réelle) : avant 381b4222-f694-41f0-9685-ff5bb260df2e, pendant 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c (True), après 381b4222-f694-41f0-9685-ff5bb260df2e
+FPS en direct (PresentMon réel) : fichier lisible pendant la mesure True (0 o), 12 lecture(s), FPS vus -1 (), état avant l'arrêt : en marche, arrêté après le témoin : True, fichier laissé : False
+Pas boostés : part du pas sous une explosion force 35 : -27.5 → -19.2 dB force 65 : -27.5 → -15.8 dB force 100 : -27.5 → -14.2 dB force 130 : -27.5 → -9.4 dB
+Pas boostés : part du pas ennemi pendant que tu tires stéréo niveau 1 : -22.0 → -16.4 dB stéréo niveau 2 : -22.0 → -11.8 dB 7.1 niveau 1 : -20.6 → -12.0 dB 7.1 niveau 2 : -20.6 → -7.3 dB
+Pas boostés : renforceur de pas (part des pas sur une ambiance continue) force 35 : -19.0 → -17.4 dB (crête d'un tir 0.84 → 0.83) force 65 : -18.6 → -14.4 dB (crête d'un tir 0.80 → 0.84) force 100 : -18.4 → -16.5 dB (crête d'un tir 0.73 → 0.80) force 130 : -18.8 → -16.8 dB (crête d'un tir 0.67 → 0.76)
+Pas boostés : explosion / pas lointain sans compresseur 32.1 dB ; force 0 : 26.6 dB (pas d'après -0.1, crête 0.712) force 35 : 15.6 dB (pas d'après -0.2, crête 0.950) force 65 : 5.0 dB (pas d'après 0.0, crête 0.950) force 100 : 4.3 dB (pas d'après +1.4, crête 0.950) force 130 : 4.4 dB (pas d'après +0.9, crête 0.950)
+Audio jeu (fichier d'Equalizer APO, config.txt, Historique, annulation, désinstallation) : tous les essais passent ; Preamp des deux valeurs de contrôle : Preamp: -5.2 dB et Preamp: -7.2 dB
+OK : classique-Accueil.png
+OK : sombre-Accueil.png
+OK : sombre-Nettoyer.png
+OK : sombre-Premium.png
+OK : clair-Accueil.png
+OK : clair-Nettoyer.png
+OK : clair-Premium.png
+OK : sombre-Nettoyer-Disques.png
+OK : sombre-Nettoyer-Doublons.png
+OK : sombre-Nettoyer-options.png
+OK : sombre-Accelerer-Optimisation.png
+OK : sombre-Accelerer-Jeux.png
+OK : sombre-Accelerer-Demarrage.png
+OK : sombre-Accelerer-Applications.png
+OK : sombre-demarrage-conseils.png
+OK : sombre-gains.png
+OK : sombre-majapplis.png
+OK : sombre-profils.png
+OK : sombre-signaler.png
+OK : sombre-moniteur.png
+OK : sombre-widget.png
+OK : sombre-visite.png
+OK : sombre-Nettoyer-hud.png
+OK : sombre-annonce.png
+OK : sombre-annonce-velox.png
+OK : sombre-gamer-accueil.png
+OK : sombre-gamer-trophee.png
+OK : sombre-gamer-boost.png
+OK : sombre-gamer-session.png
+OK : sombre-gamer-qg.png
+OK : sombre-gamer-carte.png
+OK : sombre-gamer-niveau.png
+OK : sombre-gamer-succes.png
+OK : clair-gamer-accueil.png
+OK : sombre-etat.png
+OK : sombre-Accueil-etat.png
+OK : sombre-favoris.png
+OK : sombre-Outils-MonPc.png
+OK : sombre-Outils-Materiel.png
+OK : sombre-Outils-Potentiel.png
+OK : sombre-Outils-Aide.png
+OK : sombre-memoire.png
+OK : sombre-fps.png
+OK : sombre-batterie.png
+OK : sombre-sante.png
+OK : sombre-energie.png
+OK : sombre-gardien.png
+OK : sombre-enqueteur.png
+OK : sombre-benchmark.png
+OK : sombre-assistant.png
+OK : sombre-modejeu.png
+OK : sombre-temps-demarrage.png
+OK : sombre-ping-jeu.png
+OK : sombre-mes-jeux.png
+OK : sombre-extinction.png
+OK : sombre-wifi.png
+OK : sombre-restes.png
+OK : sombre-boitenoire.png
+OK : sombre-coupable.png
+OK : sombre-autopilote.png
+OK : sombre-majapps.png
+OK : sombre-photos.png
+OK : sombre-bulletin.png
+OK : sombre-reseau-premium.png
+OK : sombre-audio-verrou.png
+OK : sombre-audio.png
+OK : sombre-audio-confirmation.png
+OK : sombre-audio-bas.png
+OK : sombre-audio-sorties.png
+OK : sombre-audio-fin.png
+OK : sombre-audio-surround.png
+OK : sombre-audio-pas-boostes.png
+OK : sombre-audio-mixage.png
+OK : sombre-audio-demarrage.png
+OK : sombre-audio-simple.png
+OK : grand-audio.png
+OK : clair-audio.png
+OK : petit-audio.png
+OK : sombre-audio-sans-apo.png
+OK : sombre-palette-audiojeu.png
+Audio (interface) : rubrique sous Premium True, carte dans Accélérer > Jeux True, favori Premium True, ouverture par sa clé True, page verrouillée sans Premium True, studio True, Ctrl+K « audio » True, Ctrl+K « entends pas les pas » True
+OK : sombre-plantages.png
+OK : sombre-demarrage.png
+OK : sombre-Outils-Reseau.png
+OK : sombre-Historique.png
+OK : sombre-MisesAJour.png
+OK : sombre-Pilotes.png
+OK : sombre-Premium-page.png
+OK : sombre-achat.png
+OK : sombre-carte-espace.png
+OK : sombre-confidentialite.png
+OK : sombre-bienvenue.png
+OK : sombre-simple.png
+OK : clair-simple.png
+OK : sombre-Reglages.png
+OK : sombre-couleur-rubis.png
+OK : clair-couleur-emeraude.png
+OK : sombre-couleur-amethyste.png
+OK : sombre-Proteger.png
+OK : sombre-Sauvegarde.png
+OK : sombre-bouclier.png
+OK : clair-bouclier-urgence.png
+OK : sombre-palette.png
+OK : sombre-action-en-cours.png
+OK : sombre-action-finie.png
+OK : sombre-question.png
+OK : clair-question.png
+OK : petit-Accueil.png
+OK : en-Accueil.png
+OK : en-Nettoyer.png
+OK : en-Proteger.png
+OK : en-Premium.png
+OK : en-Reglages.png
+OK : en-Outils-Reseau.png
+OK : en-question.png
+OK : en-audio.png
+OK : en-audio-bas.png
+OK : es-Accueil.png
+OK : es-Nettoyer.png
+OK : es-Proteger.png
+OK : es-Premium.png
+OK : es-Reglages.png
+OK : es-Outils-Reseau.png
+OK : es-question.png
+OK : es-audio.png
+OK : es-audio-bas.png
+Fin : 0 erreur(s).

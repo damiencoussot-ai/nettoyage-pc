@@ -1,0 +1,4 @@
+commit 8d3d8d4178e6a6514087199177c7eaa678367050
+publication success
+essais success
+installation failure
