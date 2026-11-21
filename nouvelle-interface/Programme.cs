@@ -1903,6 +1903,23 @@ namespace NettoyagePC.Nouveau
                     Capturer(f, dossier, "clair-audio-simple.png", rapport, ref erreurs);
                     f.ChangerTheme(true);
                     AudioJeu5.Exemple.Parties = new System.Collections.Generic.List<PartieJouee>();
+                    // débutant : VB-Cable pas encore installé, puis Pas boostés coupé
+                    var cablesAvant = AudioJeu5.Exemple.Cables; bool actifAvant = AudioJeu5.Exemple.Moteur.Actif;
+                    AudioJeu5.Exemple.Cables = new System.Collections.Generic.List<CableVirtuel>();
+                    f.Afficher("Accueil", false); f.Afficher("Audio", false);
+                    for (int k = 0; k < 4; k++) { Dispatcher.UIThread.RunJobs(); AvaloniaHeadlessPlatform.ForceRenderTimerTick(); }
+                    var vc = f.GetVisualDescendants().OfType<TextBlock>().Where(t => t.IsEffectivelyVisible).Select(t => t.Text ?? "").ToList();
+                    var rond = f.GetVisualDescendants().OfType<Marche5>().FirstOrDefault(x => x.IsEffectivelyVisible);
+                    bool sansCable = vc.Contains("À INSTALLER") && vc.Contains("Suivre le guide") && rond != null && !rond.IsEffectivelyEnabled && !rond.Actif
+                        && !f.GetVisualDescendants().OfType<Crans5>().Any(x => x.IsEffectivelyVisible);
+                    Capturer(f, dossier, "sombre-audio-simple-sans-cable.png", rapport, ref erreurs);
+                    AudioJeu5.Exemple.Cables = cablesAvant; AudioJeu5.Exemple.Moteur.Actif = false;
+                    f.Afficher("Accueil", false); f.Afficher("Audio", false);
+                    for (int k = 0; k < 4; k++) { Dispatcher.UIThread.RunJobs(); AvaloniaHeadlessPlatform.ForceRenderTimerTick(); }
+                    var vo = f.GetVisualDescendants().OfType<TextBlock>().Where(t => t.IsEffectivelyVisible).Select(t => t.Text ?? "").ToList();
+                    bool coupe = vo.Contains("COUPÉ") && vo.Contains("Pas boostés est coupé : allume-le pour entendre les pas.") && vo.Count(x => x == "—") >= 4;
+                    AudioJeu5.Exemple.Moteur.Actif = actifAvant;
+                    if (!sansCable || !coupe) { erreurs++; rapport.AppendLine("ERREUR : audio : mode Simple, débutant (sans câble " + sansCable + ", coupé " + coupe + ")"); }
                     AudioJeu5.ExempleReglages.ModeExpert = true;
                 }
                 try { File.WriteAllBytes(Path.Combine(dossier, "scene-avant-apres.wav"), DemoAudio.Wav()); } catch { }   // (pour écouter la scène du test avant / après)

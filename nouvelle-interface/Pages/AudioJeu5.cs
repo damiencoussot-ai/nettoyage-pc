@@ -1915,6 +1915,7 @@ namespace NettoyagePC.Nouveau
             var m = (Releve ?? new ReleveAudioJeu()).Moteur ?? new ReglagesMoteurSon();
             int force = m.Force; bool jeux = m.JeuxSeulement;
             pasOccupe = true; signaturePas = null; MajPas(Releve ?? new ReleveAudioJeu());
+            signatureSimple = null; MajSimple(Releve ?? new ReleveAudioJeu());   // gros bouton : « BRANCHEMENT… », désactivé
             var f = F;
             var cables = (Releve ?? new ReleveAudioJeu()).Cables.Select(c => c.Sortie).ToList();
             bool renomme = false;
@@ -1943,7 +1944,7 @@ namespace NettoyagePC.Nouveau
                 return e;
             }).ContinueWith(t => Dispatcher.UIThread.Post(() =>
             {
-                pasOccupe = false; signaturePas = null;
+                pasOccupe = false; signaturePas = null; signatureSimple = null;
                 string err = t.IsFaulted ? (t.Exception.InnerException ?? t.Exception).Message : t.Result;
                 if (err != "") { f.Statut(Langue.T(err), true); Relever(); return; }
                 Confirmer(f, Langue.T(allumer ? "Pas boostés allumé" : "Pas boostés coupé"), allumer ? Langue.T("VB-Cable → Velox → ton casque") : Langue.T("le son va directement au casque"), allumer);
@@ -1966,6 +1967,7 @@ namespace NettoyagePC.Nouveau
                 if (Releve != null) Releve.Moteur = m;
                 if (force.HasValue) Confirmer(F, Langue.T("Pas boostés"), Langue.T(MoteurSon.Niveaux.First(x => x.Item2 == force.Value).Item1), true);
                 signaturePas = null; MajPas(Releve ?? new ReleveAudioJeu());
+                signatureSimple = null; MajSimple(Releve ?? new ReleveAudioJeu());
             }
             catch (Exception ex) { F.Statut(ex.Message, true); }
         }
@@ -2031,10 +2033,27 @@ namespace NettoyagePC.Nouveau
             if (exemple) return;
             var et = (Releve ?? new ReleveAudioJeu()).MoteurEtat ?? new MoteurSon.EtatMoteur();
             if (!et.Marche || et.Memoire < 2) { F.Statut(Langue.T("Lance une partie avec Pas boostés allumé, joue quelques secondes, puis clique de nouveau."), true); return; }
+            if (et.Reecoute != 0) { F.Statut(Langue.T("Attends la fin de la réécoute, puis clique de nouveau."), true); return; }
+            if (exportEnCours) return;
             string err = MoteurSon.DemanderExport();
             if (err != "") { F.Statut(err, true); return; }
-            F.Statut(Langue.T("Enregistré sur ton Bureau : deux fichiers « Velox-son-… » (sans et avec Velox). Envoie-les pour l'analyse."));
+            exportEnCours = true;
+            F.Statut(Langue.T("Enregistrement en cours…"));
+            var f = F;
+            // le moteur répond par un fichier : succès annoncé seulement quand les deux WAV sont vraiment écrits
+            System.Threading.Tasks.Task.Run(() => MoteurSon.AttendreExport(6000)).ContinueWith(t => Dispatcher.UIThread.Post(() =>
+            {
+                exportEnCours = false;
+                string res = t.IsFaulted ? null : t.Result;
+                if (res != null && res.StartsWith("ok|", StringComparison.Ordinal))
+                    f.Statut(Langue.T("Enregistré sur ton Bureau : deux fichiers « Velox-son-… » (sans et avec Velox). Envoie-les pour l'analyse."));
+                else if (res == "vide") f.Statut(Langue.T("Lance une partie avec Pas boostés allumé, joue quelques secondes, puis clique de nouveau."), true);
+                else if (res != null && res.StartsWith("erreur|", StringComparison.Ordinal)) f.Statut(Langue.F("Enregistrement impossible : {0}", res.Substring(7)), true);
+                else f.Statut(Langue.T("Le moteur du son n'a pas répondu : vérifie que Pas boostés est allumé, puis réessaie."), true);
+            }));
         }
+
+        private bool exportEnCours;
 
         private void BasculerReecoute()
         {
@@ -2056,6 +2075,7 @@ namespace NettoyagePC.Nouveau
                 if (Releve != null) Releve.Moteur = m;
                 Confirmer(F, Langue.T("Style"), Langue.T(style == 1 ? "Puissant" : "Net"), true);
                 signaturePas = null; MajPas(Releve ?? new ReleveAudioJeu());
+                signatureSimple = null; MajSimple(Releve ?? new ReleveAudioJeu());
             }
             catch (Exception ex) { F.Statut(ex.Message, true); }
         }

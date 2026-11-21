@@ -22,10 +22,19 @@ namespace NettoyagePC.Nouveau
             s.Children.Add(description);
             s.Children.Add(new TextBlock { Text = Langue.T("Le rapport qui sera envoyé :"), FontFamily = Habillage.Corps, FontSize = 13.5, FontWeight = FontWeight.SemiBold, Foreground = Habillage.Pinceau(P.Texte) });
             var apercu = new TextBox { IsReadOnly = true, AcceptsReturn = true, TextWrapping = TextWrapping.Wrap, Height = 220, FontFamily = Habillage.Console, FontSize = 11.5 };
-            string son = RapportBug.SectionSon();   // relevé une fois (appareils, processus) : pas à chaque lettre tapée
+            // l'état du son est relevé une fois (appareils, Equalizer APO, processus : jusqu'à quelques centaines de ms), en
+            // arrière-plan pour ne pas figer la fenêtre, puis l'aperçu se complète
+            bool windows = OperatingSystem.IsWindows();
+            string son = windows ? Langue.T("Son : relevé en cours…") + Environment.NewLine : RapportBug.SectionSon();
             Func<string> rapport = () => RapportBug.Creer(description.Text ?? "", son);
             apercu.Text = rapport();
             description.TextChanged += (o, e) => apercu.Text = rapport();
+            if (windows)
+                System.Threading.Tasks.Task.Run(() => RapportBug.SectionSon()).ContinueWith(t => Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                {
+                    son = t.IsFaulted ? "Son : illisible" + Environment.NewLine : t.Result;
+                    apercu.Text = rapport();
+                }));
             s.Children.Add(apercu);
             var boutons = new WrapPanel { Orientation = Orientation.Horizontal };
             FenetreInterieure fen = null;

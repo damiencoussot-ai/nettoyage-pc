@@ -4087,3 +4087,8 @@ jusqu'à −{0} dB	up to −{0} dB	hasta −{0} dB
 Égaliseur : actif	Equalizer: on	Ecualizador: activado
 Égaliseur : coupé	Equalizer: off	Ecualizador: desactivado
 Égaliseur, câble, casque	Equalizer, cable, headset	Ecualizador, cable, auriculares
+Son : relevé en cours…	Sound: reading…	Sonido: leyendo…
+Attends la fin de la réécoute, puis clique de nouveau.	Wait for the replay to finish, then click again.	Espera a que termine la reproducción y vuelve a hacer clic.
+Enregistrement en cours…	Saving…	Guardando…
+Enregistrement impossible : {0}	Could not save: {0}	No se pudo guardar: {0}
+Le moteur du son n'a pas répondu : vérifie que Pas boostés est allumé, puis réessaie.	The sound engine didn't respond: check that Boosted footsteps is on, then try again.	El motor de sonido no respondió: comprueba que Pasos potenciados está activado y vuelve a intentarlo.

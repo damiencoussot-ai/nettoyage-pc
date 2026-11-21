@@ -581,30 +581,50 @@ namespace NettoyagePC
         /// <summary>
         /// Enregistre les secondes gardées en deux fichiers WAV (16 bits), sans puis avec Velox, tels quels (pas au même
         /// volume) : pour analyser le vrai son d'un jeu. Noms : « prefixe-sans.wav » et « prefixe-avec.wav ». Faux s'il y a
-        /// moins de 2 s gardées.
+        /// moins de 2 s gardées ou pendant une réécoute.
         /// </summary>
         public bool Exporter(string prefixe)
         {
-            if (Phase != 0 || plein < 2 * Frequence) return false;
-            long debut = (pos - plein + Capacite) % Capacite;
-            foreach (var x in new[] { Tuple.Create("-sans.wav", sec), Tuple.Create("-avec.wav", traite) })
-            {
-                int octets = plein * Canaux * 2;
-                using (var f = new FileStream(prefixe + x.Item1, FileMode.Create, FileAccess.Write))
-                using (var w = new BinaryWriter(f))
-                {
-                    w.Write(System.Text.Encoding.ASCII.GetBytes("RIFF")); w.Write(36 + octets); w.Write(System.Text.Encoding.ASCII.GetBytes("WAVE"));
-                    w.Write(System.Text.Encoding.ASCII.GetBytes("fmt ")); w.Write(16); w.Write((short)1); w.Write((short)Canaux); w.Write(Frequence);
-                    w.Write(Frequence * Canaux * 2); w.Write((short)(Canaux * 2)); w.Write((short)16);
-                    w.Write(System.Text.Encoding.ASCII.GetBytes("data")); w.Write(octets);
-                    for (long i = 0; i < plein; i++)
-                    {
-                        long j = ((debut + i) % Capacite) * Canaux;
-                        for (int c = 0; c < Canaux; c++) w.Write((short)Math.Round(Math.Max(-1, Math.Min(1, x.Item2[j + c])) * 32767));
-                    }
-                }
-            }
+            float[] sans, avec;
+            if (!Copier(out sans, out avec)) return false;
+            EcrireWav(prefixe + "-sans.wav", sans, Canaux, Frequence);
+            EcrireWav(prefixe + "-avec.wav", avec, Canaux, Frequence);
             return true;
+        }
+
+        /// <summary>Copie (rapide, sans disque) des secondes gardées, sans et avec Velox, dans l'ordre. Faux s'il y a moins
+        /// de 2 s gardées ou pendant une réécoute. Le fil du son copie ; l'écriture des fichiers se fait ailleurs.</summary>
+        public bool Copier(out float[] sans, out float[] avec)
+        {
+            sans = null; avec = null;
+            if (Phase != 0 || plein < 2 * Frequence) return false;
+            int debut = (int)(((long)pos - plein + Capacite) % Capacite);
+            sans = CopierAnneau(sec, debut); avec = CopierAnneau(traite, debut);
+            return true;
+        }
+
+        private float[] CopierAnneau(float[] source, int debut)
+        {
+            var d = new float[(long)plein * Canaux];
+            int premier = Math.Min(plein, Capacite - debut);
+            Array.Copy(source, (long)debut * Canaux, d, 0, (long)premier * Canaux);
+            if (premier < plein) Array.Copy(source, 0, d, (long)premier * Canaux, (long)(plein - premier) * Canaux);
+            return d;
+        }
+
+        /// <summary>Écrit un WAV 16 bits (échantillons entrelacés, bornés à ±1).</summary>
+        public static void EcrireWav(string chemin, float[] d, int canaux, int frequence)
+        {
+            int octets = d.Length * 2;
+            using (var f = new FileStream(chemin, FileMode.Create, FileAccess.Write))
+            using (var w = new BinaryWriter(f))
+            {
+                w.Write(System.Text.Encoding.ASCII.GetBytes("RIFF")); w.Write(36 + octets); w.Write(System.Text.Encoding.ASCII.GetBytes("WAVE"));
+                w.Write(System.Text.Encoding.ASCII.GetBytes("fmt ")); w.Write(16); w.Write((short)1); w.Write((short)canaux); w.Write(frequence);
+                w.Write(frequence * canaux * 2); w.Write((short)(canaux * 2)); w.Write((short)16);
+                w.Write(System.Text.Encoding.ASCII.GetBytes("data")); w.Write(octets);
+                foreach (var v in d) w.Write((short)Math.Round(Math.Max(-1, Math.Min(1, v)) * 32767));
+            }
         }
 
         /// <summary>Remplace ce paquet par la suite de la réécoute (silence une fois finie).</summary>
@@ -653,11 +673,27 @@ namespace NettoyagePC
             catch (Exception ex) { return ex.Message; }
         }
 
+        /// <summary>Résultat du dernier enregistrement pour analyse, écrit par le moteur : « ok|chemin », « vide » (moins de
+        /// 2 s gardées, ou réécoute en cours) ou « erreur|message ».</summary>
+        public static string FichierExport { get { return Path.Combine(Chemins.Local, "moteur-son-export.txt"); } }
+
         /// <summary>Demande au moteur d'enregistrer les dernières secondes (sans et avec Velox) sur le Bureau.</summary>
         public static string DemanderExport()
         {
-            try { Directory.CreateDirectory(Chemins.Local); File.WriteAllText(FichierReecoute, "export"); return ""; }
+            try { Directory.CreateDirectory(Chemins.Local); try { File.Delete(FichierExport); } catch { } File.WriteAllText(FichierReecoute, "export"); return ""; }
             catch (Exception ex) { return ex.Message; }
+        }
+
+        /// <summary>Attend (au plus « ms ») le résultat de l'enregistrement : null si le moteur n'a pas répondu.</summary>
+        public static string AttendreExport(int ms)
+        {
+            var montre = System.Diagnostics.Stopwatch.StartNew();
+            while (montre.ElapsedMilliseconds < ms)
+            {
+                try { if (File.Exists(FichierExport)) { string t = File.ReadAllText(FichierExport).Trim(); if (t != "") return t; } } catch { }
+                System.Threading.Thread.Sleep(100);
+            }
+            return null;
         }
 
         /// <summary>Préréglages proposés dans la page.</summary>
@@ -1010,9 +1046,12 @@ namespace NettoyagePC
         public const int PartiesGardees = 20;
 
         /// <summary>Ajoute une partie au journal (les 20 dernières sont gardées).</summary>
+        private static readonly object verrouParties = new object();
+
         public static void NoterPartie(PartieJouee p)
         {
             if (p == null) return;
+            lock (verrouParties)   // fin de partie (fil du pool) et arrêt du moteur peuvent écrire en même temps
             try
             {
                 System.IO.Directory.CreateDirectory(Chemins.Local);

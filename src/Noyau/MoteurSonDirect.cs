@@ -391,7 +391,7 @@ namespace NettoyagePC
             long dernierVolume = -10000; float gainEntree = 1, gainSortie = 1, volumeDb = 0;
             // garde-fou : si le pilote du câble n'appliquait pas le volume de Windows, la compensation dépasserait le niveau
             // plein (un son de jeu ne dépasse pas ~1) : au 3e dépassement net (×2), elle est coupée pour la session
-            int depassements = 0; bool sansCompensation = false;
+            int depassements = 0; bool sansCompensation = false; long derniereVariation = -10000;
             var suivi = new SuiviPartie();   // « Dernières parties » : jeu, durée, réglage, explosions tenues, retard
             try
             {
@@ -420,14 +420,22 @@ namespace NettoyagePC
                     {
                         string dem = "";
                         try { dem = File.ReadAllText(FichierReecoute).Trim(); File.Delete(FichierReecoute); } catch { }
+                        if (memoire == null && dem == "export") ThreadPool.QueueUserWorkItem(_ => EcrireResultatExport("vide"));
                         if (memoire != null)
                         {
                             if (dem == "stop") memoire.Arreter();
                             else if (dem == "go") memoire.Lancer();
                             else if (dem == "export")
                             {
-                                try { memoire.Exporter(PrefixeExport()); }
-                                catch (Exception ex) { JournalDemarrage.Erreur("enregistrement du son pour analyse", ex); }
+                                // copie en mémoire ici (quelques ms) ; les fichiers sont écrits par un autre fil : un disque lent ou
+                                // l'antivirus ne doivent pas couper le son du casque
+                                float[] sans, avec; int ce = memoire.Canaux, fx = memoire.Frequence;
+                                if (!memoire.Copier(out sans, out avec)) ThreadPool.QueueUserWorkItem(_ => EcrireResultatExport("vide"));
+                                else ThreadPool.QueueUserWorkItem(_ =>
+                                {
+                                    try { string pf = PrefixeExport(); MemoireReecoute.EcrireWav(pf + "-sans.wav", sans, ce, fx); MemoireReecoute.EcrireWav(pf + "-avec.wav", avec, ce, fx); EcrireResultatExport("ok|" + pf); }
+                                    catch (Exception ex) { JournalDemarrage.Erreur("enregistrement du son pour analyse", ex); EcrireResultatExport("erreur|" + ex.Message); }
+                                });
                             }
                         }
                     }
@@ -492,7 +500,18 @@ namespace NettoyagePC
                     if (t - dernierVolume >= 250 && cap.Volume != null && !sansCompensation)
                     {
                         dernierVolume = t;
-                        try { float db; if (cap.Volume.GetMasterVolumeLevel(out db) == 0) { volumeDb = db; CompensationVolume(db, out gainEntree, out gainSortie); } } catch { gainEntree = 1; gainSortie = 1; }
+                        try
+                        {
+                            float db;
+                            if (cap.Volume.GetMasterVolumeLevel(out db) == 0)
+                            {
+                                // volume qui vient de changer : le son déjà en route a été produit à l'ancien volume (un dépassement
+                                // passager est normal) ; le garde-fou ne compte que quand le volume est stable depuis 500 ms
+                                if (Math.Abs(db - volumeDb) > 0.5f) { derniereVariation = t; depassements = 0; }
+                                volumeDb = db; CompensationVolume(db, out gainEntree, out gainSortie);
+                            }
+                        }
+                        catch { gainEntree = 1; gainSortie = 1; }
                     }
                     evenement.WaitOne(100);
                     try
@@ -513,7 +532,7 @@ namespace NettoyagePC
                             {
                                 float crete = 0;
                                 for (int i = 0; i < n; i++) { tampon[i] *= gainEntree; float a = Math.Abs(tampon[i]); if (a > crete) crete = a; }   // le volume de Windows retiré
-                                if (crete > 2f && ++depassements >= 3)
+                                if (crete > 2f && montre.ElapsedMilliseconds - derniereVariation > 500 && ++depassements >= 3)
                                 {
                                     sansCompensation = true; JournalDemarrage.Noter("Moteur audio : le pilote du câble n'applique pas le volume de Windows, compensation coupée.");
                                     for (int i = 0; i < n; i++) tampon[i] /= gainEntree;
@@ -640,6 +659,11 @@ namespace NettoyagePC
             }
             catch { }
             return "";
+        }
+
+        private static void EcrireResultatExport(string texte)
+        {
+            try { string tmp = FichierExport + ".tmp"; File.WriteAllText(tmp, texte); File.Move(tmp, FichierExport, true); } catch { }
         }
 
         /// <summary>Début du nom des fichiers d'analyse (Bureau) : « Velox-son-AAAA-MM-JJ-HHmmss ».</summary>
