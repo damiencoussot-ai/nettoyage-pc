@@ -96,8 +96,9 @@ namespace NettoyagePC
         /// <summary>Fichier OneDrive « à la demande » (pas sur le disque) : jamais touché ni haché.</summary>
         public static bool EstCloud(FileAttributes a) { int v = (int)a; return (v & 0x1000) != 0 || (v & 0x40000) != 0 || (v & 0x400000) != 0; }
 
-        /// <summary>Taille réelle d'un dossier sur le disque (sans fichiers OneDrive en ligne, sans traverser de liens).</summary>
-        public static long Dossier(string chemin, Func<bool> arret = null)
+        /// <summary>Taille réelle d'un dossier sur le disque (sans fichiers OneDrive en ligne, sans traverser de liens).
+        /// « avant » : seulement les fichiers modifiés avant cette date (ce que le nettoyage supprimera vraiment).</summary>
+        public static long Dossier(string chemin, Func<bool> arret = null, DateTime? avant = null)
         {
             long total = 0;
             DirectoryInfo d0;
@@ -114,7 +115,7 @@ namespace NettoyagePC
                         FileAttributes a; try { a = e.Attributes; } catch { continue; }
                         if ((a & FileAttributes.ReparsePoint) != 0) continue;
                         if ((a & FileAttributes.Directory) != 0) pile.Push((DirectoryInfo)e);
-                        else if (!EstCloud(a)) { try { total += ((FileInfo)e).Length; } catch { } }
+                        else if (!EstCloud(a)) { try { if (!avant.HasValue || e.LastWriteTime < avant.Value) total += ((FileInfo)e).Length; } catch { } }
                     }
                 }
                 catch { }

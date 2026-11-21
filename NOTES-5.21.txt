@@ -1,6 +1,6 @@
 Velox 5.21 : le Studio son passe un cap
 
-La 5.20 n'a pas été publiée seule : tout ce qu'elle apporte est dans cette version.
+Cette version reprend et termine tout ce qu'avait commencé la 5.20.
 
 Nouveau
 - Guide pas à pas dans le Studio son : installer Equalizer APO et VB-Cable, brancher le casque, allumer
@@ -17,19 +17,32 @@ Nouveau
 - Niveau « Ultra » dans Pas boostés, et profil « Ultra » dans Profils (clair et plein).
 
 Amélioré
+- Nouveau renforceur de pas : les sons brefs et faibles dans la bande des pas (et le choc du talon) sont
+  remontés quelques dizaines de millisecondes, jusqu'à +8 dB en Fort et +12 dB en Ultra. Un son continu
+  (vent, moteur) ou fort (tir, explosion) n'est pas touché : les pas se détachent du fond.
 - Pas plus présents : les aigus des pas (vers 2,8 kHz) et leur choc (vers 300 Hz) sont mis en avant
   seulement quand la scène est calme ; dès qu'un tir ou une explosion arrive, ils reviennent à la
   normale en 2 ms. Les tirs ne deviennent pas criards.
-- Pas lointains face aux explosions : +14 dB en Léger, +22 dB en Fort, +26 dB en Extrême, +27 dB en
-  Ultra (mesuré sur une scène de test), sans saturation.
+- Pas lointains face aux explosions : +16 dB en Léger, +27 dB en Fort, +28 dB en Extrême et en Ultra
+  (mesuré sur une scène de test), sans saturation.
 - Dompteur de graves : les explosions sont baissées à part ; un pas pendant une explosion ressort de
-  +7 dB en Fort, +11 dB en Ultra.
+  +12 dB en Fort, +18 dB en Ultra.
 - Retard du son plus court avec Pas boostés : la réserve devant le casque part de 12 ms et ne grandit
   que si le son manque (20 à 40 ms de retard selon le PC, affiché en direct).
 - Profil adapté à chaque jeu : le profil que tu choisis est retenu pour le jeu et repris à chaque
   lancement (avant, Velox remettait le sien).
 
 Corrigé
+- Pas boostés : baisser le volume de Windows (touches de volume) affaiblissait le traitement, car ce volume
+  agit sur le câble, avant Velox. À 30 % de volume, presque rien n'était traité : les pas ne ressortaient
+  pas, et la réécoute « avec » sonnait comme « sans ». Velox compense maintenant ce volume : il traite le son
+  à pleine force, puis remet ton volume d'écoute.
+- Accueil : un point « fichiers temporaires récupérables » restait affiché après chaque nettoyage (le
+  bilan comptait aussi les fichiers récents, que le nettoyage garde exprès). Et le bilan se recalcule dès
+  le retour à l'accueil après un pilote, Sécurité Windows ou les programmes au démarrage.
+- Accueil : disque presque plein alors qu'un nettoyage vient d'être fait, le bouton mène maintenant aux
+  gros fichiers (un nouveau nettoyage ne changerait rien).
+- Rapport de problème : il contient maintenant l'état complet du son (Studio son, Pas boostés, câble).
 - La mise à jour restait bloquée sur « Velox est encore ouvert » quand Pas boostés tournait.
 - Le câble ne retrouvait pas le nom « Velox Studio » quand on rallumait Pas boostés.
 - Le gardien n'était pas relancé au démarrage de Velox après une mise à jour.

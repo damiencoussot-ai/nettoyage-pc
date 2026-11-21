@@ -50,7 +50,7 @@ namespace NettoyagePC.Nouveau
             {
                 F.BilanPret += Afficher;
                 if (F.Bilan != null) Afficher(F.Bilan);
-                if (F.Bilan == null || (DateTime.Now - F.Bilan.Date).TotalMinutes > 5) F.ActualiserBilan();
+                if (F.Bilan == null || F.BilanPerime || (DateTime.Now - F.Bilan.Date).TotalMinutes > 5) F.ActualiserBilan();
             };
             DetachedFromVisualTree += (s, e) => F.BilanPret -= Afficher;
         }

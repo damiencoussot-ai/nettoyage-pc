@@ -156,6 +156,39 @@ namespace NettoyagePC
         private double[] px1, px2, py1, py2;
         // « corps » des pas (le choc du talon, vers 300 Hz), mis en avant avec la présence, à moitié de son gain
         public readonly double GainCorps;
+
+        // ---- renforceur de pas : les sons BREFS et FAIBLES dans la bande des pas (700 à 5 000 Hz) et du choc du talon
+        // (150 à 350 Hz) sont remontés pendant quelques dizaines de ms. Un son continu (vent, moteur, ambiance) n'est pas
+        // bref ; un tir ou une explosion n'est pas faible : ni l'un ni l'autre n'est touché. C'est ce qui détache un pas
+        // du fond, là où le compresseur remonte tout le fond pareil.
+        public readonly double RenfortMax;                            // dB (bande des pas) ; moitié pour le choc
+        private readonly Biquad2[] bandePasHaut, bandePasBas, bandeChocHaut, bandeChocBas;
+        private readonly double rfMonte, rfDescendRapide, rfLent, rgMonte, rgDescend;
+        private double pRapidePas = 1e-12, pLentPas = 1e-12, pRapideChoc = 1e-12, pLentChoc = 1e-12, gainRenfortPas, gainRenfortChoc;
+        private double[] bufPas = new double[16], bufChoc = new double[16];
+        public double RenfortRelevéMax;                               // (relevé) plus forte remontée d'un pas, dB
+
+        /// <summary>Filtre du 2e ordre (un par canal), pour le renforceur.</summary>
+        private sealed class Biquad2
+        {
+            private readonly double b0, b1, b2, a1, a2; private double x1, x2, y1, y2;
+            public Biquad2(bool passeHaut, double f, double fe)
+            {
+                double w = 2 * Math.PI * Math.Min(f, 0.45 * fe) / fe, al = Math.Sin(w) / (2 * 0.7071), c = Math.Cos(w), a0 = 1 + al;
+                if (passeHaut) { b0 = (1 + c) / 2 / a0; b1 = -(1 + c) / a0; b2 = b0; }
+                else { b0 = (1 - c) / 2 / a0; b1 = (1 - c) / a0; b2 = b0; }
+                a1 = -2 * c / a0; a2 = (1 - al) / a0;
+            }
+            public double Passer(double x) { double y = b0 * x + b1 * x1 + b2 * x2 - a1 * y1 - a2 * y2; x2 = x1; x1 = x; y2 = y1; y1 = y; return y; }
+        }
+
+        /// <summary>(essais) Remontée du renforceur (dB) pour ces niveaux de bande, rapide et lent, au gain maximal donné.</summary>
+        internal static double CibleRenfort(double rapideDb, double lentDb, double maxDb)
+        {
+            double bref = Math.Max(0, Math.Min(1, (rapideDb - lentDb - 2) / 6));   // un pas : le rapide dépasse le lent de 3 à 8 dB
+            double faible = Math.Max(0, Math.Min(1, (-14 - rapideDb) / 10));      // plein sous −24 dB, rien au-dessus de −14 dB
+            return maxDb * bref * faible;
+        }
         private readonly double cb0, cb1, cb2, ca1, ca2;
         private double[] cx1, cx2, cy1, cy2;
         private double presence, pScene = 1e-12, pLfe = 1e-12;
@@ -163,7 +196,10 @@ namespace NettoyagePC
 
         public CompresseurPas(int force, int frequence) : this(force, frequence, 0) { }
 
-        public CompresseurPas(int force, int frequence, int arme)
+        public CompresseurPas(int force, int frequence, int arme) : this(force, frequence, arme, true) { }
+
+        /// <summary>« renfort » faux : sans renforceur de pas (essais de comparaison).</summary>
+        public CompresseurPas(int force, int frequence, int arme, bool renfort)
         {
             double f = Math.Max(0, Math.Min(130, force)) / 100.0;
             double ultra = Math.Max(0, f - 1) / 0.3;   // 0 jusqu'à Extrême, 1 en Ultra
@@ -204,6 +240,16 @@ namespace NettoyagePC
                 pb0 = (1 + al * A) / a0; pb1 = -2 * c / a0; pb2 = (1 - al * A) / a0; pa1 = -2 * c / a0; pa2 = (1 - al / A) / a0;
             }
             presMonte = Math.Exp(-1 / (0.06 * fe)); presDescend = Math.Exp(-1 / (0.002 * fe));
+            // renforceur : +3 dB (léger) à +8 dB (fort), +10 dB (extrême), +12 dB (ultra)
+            RenfortMax = !renfort || f <= 0 ? 0 : f <= 0.35 ? 3 * f / 0.35 : f <= 0.65 ? 3 + 5 * (f - 0.35) / 0.3 : f <= 1 ? 8 + 2 * (f - 0.65) / 0.35 : 10 + 2 * Math.Min(1, (f - 1) / 0.3);
+            rfMonte = Math.Exp(-1 / (0.0007 * fe)); rfDescendRapide = Math.Exp(-1 / (0.015 * fe)); rfLent = Math.Exp(-1 / (0.06 * fe));
+            rgMonte = Math.Exp(-1 / (0.002 * fe)); rgDescend = Math.Exp(-1 / (0.07 * fe));
+            bandePasHaut = new Biquad2[16]; bandePasBas = new Biquad2[16]; bandeChocHaut = new Biquad2[16]; bandeChocBas = new Biquad2[16];
+            for (int c = 0; c < 16; c++)
+            {
+                bandePasHaut[c] = new Biquad2(true, 700, fe); bandePasBas[c] = new Biquad2(false, 5000, fe);
+                bandeChocHaut[c] = new Biquad2(true, 150, fe); bandeChocBas[c] = new Biquad2(false, 350, fe);
+            }
         }
 
         private static double Borne01(double x) { return x < 0 ? 0 : x > 1 ? 1 : x; }
@@ -305,6 +351,32 @@ namespace NettoyagePC
                         if (canaux >= 6 && c == 3) continue;   // pas de présence sur le caisson de basses
                         t[b + c] = (float)(x + (y - x) * presence);
                     }
+                }
+                // 0 quater. renforceur de pas (bandes extraites, niveau rapide contre lent : un son bref et faible est remonté)
+                if (RenfortMax > 0)
+                {
+                    double pp = 0, pc = 0;
+                    for (int c = 0; c < canaux && c < 16; c++)
+                    {
+                        if (canaux >= 6 && c == 3) { bufPas[c] = 0; bufChoc[c] = 0; continue; }
+                        double x = t[b + c];
+                        double bp = bandePasBas[c].Passer(bandePasHaut[c].Passer(x)), bc = bandeChocBas[c].Passer(bandeChocHaut[c].Passer(x));
+                        bufPas[c] = bp; bufChoc[c] = bc;
+                        if (bp * bp > pp) pp = bp * bp; if (bc * bc > pc) pc = bc * bc;
+                    }
+                    pRapidePas = pp > pRapidePas ? rfMonte * pRapidePas + (1 - rfMonte) * pp : rfDescendRapide * pRapidePas + (1 - rfDescendRapide) * pp;
+                    pLentPas = rfLent * pLentPas + (1 - rfLent) * pp;
+                    pRapideChoc = pc > pRapideChoc ? rfMonte * pRapideChoc + (1 - rfMonte) * pc : rfDescendRapide * pRapideChoc + (1 - rfDescendRapide) * pc;
+                    pLentChoc = rfLent * pLentChoc + (1 - rfLent) * pc;
+                    double cp = CibleRenfort(10 * Math.Log10(pRapidePas + 1e-18), 10 * Math.Log10(pLentPas + 1e-18), RenfortMax);
+                    double cc = CibleRenfort(10 * Math.Log10(pRapideChoc + 1e-18), 10 * Math.Log10(pLentChoc + 1e-18), RenfortMax / 2);
+                    if (10 * Math.Log10(pRapidePas + 1e-18) < -70) cp = 0;   // souffle : rien
+                    if (10 * Math.Log10(pRapideChoc + 1e-18) < -70) cc = 0;
+                    gainRenfortPas = cp > gainRenfortPas ? rgMonte * gainRenfortPas + (1 - rgMonte) * cp : rgDescend * gainRenfortPas + (1 - rgDescend) * cp;
+                    gainRenfortChoc = cc > gainRenfortChoc ? rgMonte * gainRenfortChoc + (1 - rgMonte) * cc : rgDescend * gainRenfortChoc + (1 - rgDescend) * cc;
+                    if (gainRenfortPas > RenfortRelevéMax) RenfortRelevéMax = gainRenfortPas;
+                    double kp = Math.Pow(10, gainRenfortPas / 20) - 1, kc = Math.Pow(10, gainRenfortChoc / 20) - 1;
+                    for (int c = 0; c < canaux && c < 16; c++) t[b + c] = (float)(t[b + c] + bufPas[c] * kp + bufChoc[c] * kc);
                 }
                 // 1. niveau (moyenne sur 5 ms) et gain du compresseur
                 float p = 0;
@@ -583,6 +655,54 @@ namespace NettoyagePC
                 foreach (var v in y) crete = Math.Max(crete, Math.Abs(v));
             }
             partSans = res[0]; partAvec = res[1];
+        }
+
+        /// <summary>
+        /// (essais) Renforceur de pas : des pas faibles (−40 dB) sur une ambiance continue (vent, −32 dB). Part des pas dans
+        /// le son (dB), force donnée, traitement complet sans puis avec le renforceur ; et crête d'une rafale forte, sans puis
+        /// avec (le renforceur ne doit pas la toucher).
+        /// </summary>
+        public static void MesurerRenfort(int force, out double partSans, out double partAvec, out double creteSans, out double creteAvec)
+        {
+            int fe = DemoAudio.Frequence, n = 3 * fe;
+            var pas = new float[n * 2]; var fond = new float[n * 2];
+            var alea = new Random(17);
+            Func<double> bruit = () => alea.NextDouble() * 2 - 1;
+            // ambiance : grondement et vent, surtout dans les graves (comme dans un jeu), un peu de souffle dans les aigus
+            var lp = DemoAudio.Biquad.PasseBas(500, 0.7); var hp = DemoAudio.Biquad.PasseHaut(3000, 0.7);
+            for (int i = 0; i < n; i++) { float v = (float)(0.03 * lp.Passer(bruit()) * 3 + 0.002 * hp.Passer(bruit())); fond[2 * i] = v; fond[2 * i + 1] = v * 0.8f; }
+            foreach (double debut in new[] { 0.5, 1.0, 1.5, 2.0 })
+            {
+                var bp = DemoAudio.Biquad.PasseBande(2200, 1.0);
+                for (int i = 0; i < (int)(0.06 * fe); i++)
+                {
+                    double tt = i / (double)fe, v = 0.012 * Math.Min(1, tt / 0.002) * Math.Exp(-tt / 0.02) * bp.Passer(bruit()) * 3;
+                    int k = (int)(debut * fe) + i; pas[2 * k] += (float)v; pas[2 * k + 1] += (float)(0.6 * v);
+                }
+            }
+            Func<float[], double> part = y =>
+            {
+                double pr = 0, pp = 0, tot = 0;
+                for (int i = (int)(0.4 * fe) * 2; i < y.Length; i++) { pr += y[i] * (double)pas[i]; pp += pas[i] * (double)pas[i]; tot += y[i] * (double)y[i]; }
+                double k = pr / Math.Max(1e-20, pp), ep = k * k * pp;
+                return 10 * Math.Log10(ep / Math.Max(1e-20, tot) + 1e-20);
+            };
+            var res = new double[2]; var cretes = new double[2];
+            for (int essai = 0; essai < 2; essai++)
+            {
+                var y = new float[n * 2];
+                for (int i = 0; i < y.Length; i++) y[i] = pas[i] + fond[i];
+                var comp = new CompresseurPas(force, fe, 0, essai == 1);
+                comp.Traiter(y, n, 2);
+                int dec = comp.Retard; Array.Copy(y, 2 * dec, y, 0, y.Length - 2 * dec);
+                res[essai] = part(y);
+                // rafale forte seule (tir) : crête de sortie
+                var r = new float[fe * 2]; var hpTir = DemoAudio.Biquad.PasseHaut(800, 0.7);
+                for (int i = 0; i < (int)(0.05 * fe); i++) { float v = (float)(0.5 * Math.Exp(-i / (0.01 * fe)) * hpTir.Passer(bruit())); r[2 * (fe / 4 + i)] = v; r[2 * (fe / 4 + i) + 1] = v; }
+                var c2 = new CompresseurPas(force, fe, 0, essai == 1); c2.Traiter(r, fe, 2);
+                cretes[essai] = r.Max(x => Math.Abs((double)x));
+            }
+            partSans = res[0]; partAvec = res[1]; creteSans = cretes[0]; creteAvec = cretes[1];
         }
 
         public static void Mesurer(int force, out double ecartSans, out double ecartAvec, out double retourPas, out float creteAvec)

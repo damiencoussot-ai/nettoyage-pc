@@ -251,7 +251,7 @@ namespace NettoyagePC
             var g = Gains.Lire();
             int jours = Gains.JoursDepuisDernier(g);
             long recuperable = 0;
-            try { long n; recuperable = Natif.TailleCorbeille(out n) + TailleFichiers.Dossier(Path.GetTempPath()); } catch { }
+            try { long n; recuperable = Natif.TailleCorbeille(out n) + TailleFichiers.Dossier(Path.GetTempPath(), null, DateTime.Now.AddDays(-new OptionsMoteur().JoursTemp)); } catch { }
             if ((jours < 0 || jours >= 30) && recuperable >= 300L * 1048576)
                 raisons.Add(jours < 0 ? Langue.F("{0} récupérables", Format.Taille(recuperable)) : Langue.F("{0} récupérables, dernier nettoyage il y a {1} jours", Format.Taille(recuperable), jours));
             try

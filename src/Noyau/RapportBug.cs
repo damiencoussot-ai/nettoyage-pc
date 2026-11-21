@@ -15,7 +15,10 @@ namespace NettoyagePC
     {
         public const string Adresse = "nettoyagepcai@gmail.com";
 
-        public static string Creer(string description)
+        public static string Creer(string description) { return Creer(description, null); }
+
+        /// <summary>« son » : la partie Son déjà relevée (SectionSon), pour ne pas tout relire à chaque lettre tapée.</summary>
+        public static string Creer(string description, string son)
         {
             var sb = new StringBuilder();
             sb.AppendLine("Velox " + Appli.Version + " — rapport de problème");
@@ -33,10 +36,73 @@ namespace NettoyagePC
             catch { }
             sb.AppendLine("Premium : " + (Licence.Premium ? (Licence.EnEssai ? "essai" : "oui") : "non"));
             sb.AppendLine();
+            sb.Append(son ?? SectionSon());
+            sb.AppendLine();
             var erreurs = Erreurs(40);
             sb.AppendLine(erreurs.Count == 0 ? "Aucune erreur dans le journal ces 30 derniers jours." : "Dernières erreurs (" + erreurs.Count + ") :");
             foreach (var e in erreurs) sb.AppendLine(e);
             return Anonymiser(sb.ToString());
+        }
+
+        /// <summary>
+        /// État du son (Studio son), pour diagnostiquer à distance : sortie par défaut, Equalizer APO, égaliseur, autres
+        /// traitements, 7.1 virtuel, câble, Pas boostés et jeu détecté. Seulement des noms d'appareils et des réglages.
+        /// </summary>
+        public static string SectionSon()
+        {
+            var sb = new StringBuilder();
+            try { Son(sb); } catch (Exception ex) { sb.AppendLine("Son : illisible (" + ex.Message + ")"); }
+            return sb.ToString();
+        }
+
+        private static void Son(StringBuilder sb)
+        {
+            if (!Natif.EstWindows) { sb.AppendLine("Son : Windows uniquement."); return; }
+            sb.AppendLine("Son (Studio son) :");
+            var fen = AudioWindows.Lister();
+            string defaut = AudioWindows.ParDefaut();
+            var sd = fen.FirstOrDefault(w => w.Id == defaut);
+            sb.AppendLine("- Sortie par défaut : " + (sd != null ? sd.Nom : "aucune"));
+            sb.AppendLine("- Sorties actives : " + (fen.Count == 0 ? "aucune" : string.Join(" ; ", fen.Select(w => w.Nom))));
+            var e = AudioJeu.Etat();
+            var apo = e.Present ? AudioJeu.Sorties() : new List<SortieAudio>();
+            sb.AppendLine("- Equalizer APO : " + (e.Present ? "installé" + (e.Include ? ", relié" : ", PAS relié (ligne Include absente)") + " · sur : " + (apo.Count == 0 ? "aucune sortie" : string.Join(" ; ", apo.Select(x => x.Libelle))) : "non installé"));
+            if (e.Autres.Count > 0) sb.AppendLine("- Autres traitements dans Equalizer APO : " + string.Join(", ", e.Autres));
+            var r = AudioJeu.Lire();
+            sb.AppendLine("- Égaliseur : " + (r.Actif ? "actif" : "coupé") + " · profil " + AudioJeu.NomProfil(r) + " · force " + r.Intensite + " %"
+                + (r.AutoJeu ? " · Auto jeux" + (r.ProfilParJeu ? " + profil par jeu" : "") : "") + " · moteur " + r.Moteur + " · sortie visée " + r.Cible
+                + (r.CalibActive ? " · casque calibré : " + r.CalibNom : " · sans calibration") + (r.Oreilles ? " · compensation des oreilles" : "")
+                + (r.CoupeBas > 0 ? " · coupe-explosions " + r.CoupeBas + " Hz" : ""));
+            try
+            {
+                var h = HeSuVi.Etat();
+                if (h.Present) sb.AppendLine("- Son 7.1 virtuel (HeSuVi) : " + (h.Actif && h.Inclus ? "actif, " + h.Modele : "coupé"));
+            }
+            catch { }
+            var cables = MoteurSon.Cables(fen);
+            sb.AppendLine("- VB-Cable : " + (cables.Count == 0 ? "non installé" : string.Join(" ; ", cables.Select(c => c.Nom + " = « " + (fen.FirstOrDefault(w => w.Id == c.Sortie)?.Nom ?? "?") + " »"))));
+            var studio = fen.Where(w => w.Nom == NomStudio.Nom || w.Nom.StartsWith(NomStudio.Nom + " (", StringComparison.Ordinal)).ToList();
+            if (studio.Count > 0) sb.AppendLine("- Nom « Velox Studio » sur : " + string.Join(" ; ", studio.Select(w => w.Nom)) + (studio.Any(w => MoteurSon.EstCable(w.Nom)) ? " (le câble : bien)" : " (PAS le câble : le jeu contourne Pas boostés s'il sort dessus)"));
+            var m = MoteurSon.Lire();
+            var et = MoteurSon.LireEtat();
+            sb.AppendLine("- Pas boostés : " + (m.Actif ? "allumé" : "coupé") + " · force " + m.Force + " · ton arme " + m.Arme + (m.JeuxSeulement ? " · seulement en jeu" : "")
+                + (m.ParJeu.Count > 0 ? " · par jeu : " + string.Join(", ", m.ParJeu.Select(kv => kv.Key + "=" + kv.Value[0] + "/" + kv.Value[1])) : "")
+                + (m.Actif ? " · moteur " + (MoteurSon.EnMarche() ? "lancé" : "PAS lancé") + (et.Marche ? ", son en cours, " + et.Canaux + " canaux, retard " + et.LatenceMs + " ms" + (et.Jeu ? ", traite le son" : ", en attente d'un jeu (son non traité)") : "") + (et.Erreur != "" ? ", erreur : " + et.Erreur : "") : ""));
+            string jeu = null; try { jeu = AudioJeu.JeuDetecte(); } catch { }
+            sb.AppendLine("- Jeu reconnu en cours : " + (string.IsNullOrEmpty(jeu) ? "aucun" : jeu));
+            // programmes qui ressemblent à un jeu de tir mais que Velox ne reconnaît pas (pour ajouter leur nom)
+            var possibles = new List<string>();
+            try
+            {
+                foreach (var p in System.Diagnostics.Process.GetProcesses())
+                    using (p)
+                    {
+                        string n = p.ProcessName + ".exe";
+                        if (Regex.IsMatch(n, @"cod|warzone|blackops|modernwarfare|valorant|cs2|apex|fortnite|overwatch|battlefield|bf\d|tarkov|rainbow|pubg|deltaforce|finals", RegexOptions.IgnoreCase) && !AudioJeu.EstJeu(n) && !possibles.Contains(n)) possibles.Add(n);
+                    }
+            }
+            catch { }
+            if (possibles.Count > 0) sb.AppendLine("- Jeux possibles non reconnus : " + string.Join(", ", possibles.Take(10)));
         }
 
         /// <summary>Lignes « ERREUR » du journal de démarrage (30 derniers jours), les plus récentes à la fin.</summary>
