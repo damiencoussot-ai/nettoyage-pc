@@ -492,6 +492,35 @@ namespace NettoyagePC
 
         public void Arreter() { if (Phase != 0) { Phase = 0; plein = 0; } }
 
+        /// <summary>
+        /// Enregistre les secondes gardées en deux fichiers WAV (16 bits), sans puis avec Velox, tels quels (pas au même
+        /// volume) : pour analyser le vrai son d'un jeu. Noms : « prefixe-sans.wav » et « prefixe-avec.wav ». Faux s'il y a
+        /// moins de 2 s gardées.
+        /// </summary>
+        public bool Exporter(string prefixe)
+        {
+            if (Phase != 0 || plein < 2 * Frequence) return false;
+            long debut = (pos - plein + Capacite) % Capacite;
+            foreach (var x in new[] { Tuple.Create("-sans.wav", sec), Tuple.Create("-avec.wav", traite) })
+            {
+                int octets = plein * Canaux * 2;
+                using (var f = new FileStream(prefixe + x.Item1, FileMode.Create, FileAccess.Write))
+                using (var w = new BinaryWriter(f))
+                {
+                    w.Write(System.Text.Encoding.ASCII.GetBytes("RIFF")); w.Write(36 + octets); w.Write(System.Text.Encoding.ASCII.GetBytes("WAVE"));
+                    w.Write(System.Text.Encoding.ASCII.GetBytes("fmt ")); w.Write(16); w.Write((short)1); w.Write((short)Canaux); w.Write(Frequence);
+                    w.Write(Frequence * Canaux * 2); w.Write((short)(Canaux * 2)); w.Write((short)16);
+                    w.Write(System.Text.Encoding.ASCII.GetBytes("data")); w.Write(octets);
+                    for (long i = 0; i < plein; i++)
+                    {
+                        long j = ((debut + i) % Capacite) * Canaux;
+                        for (int c = 0; c < Canaux; c++) w.Write((short)Math.Round(Math.Max(-1, Math.Min(1, x.Item2[j + c])) * 32767));
+                    }
+                }
+            }
+            return true;
+        }
+
         /// <summary>Remplace ce paquet par la suite de la réécoute (silence une fois finie).</summary>
         public void Remplir(float[] t, int images)
         {
@@ -535,6 +564,13 @@ namespace NettoyagePC
         public static string DemanderReecoute(bool lancer)
         {
             try { Directory.CreateDirectory(Chemins.Local); File.WriteAllText(FichierReecoute, lancer ? "go" : "stop"); return ""; }
+            catch (Exception ex) { return ex.Message; }
+        }
+
+        /// <summary>Demande au moteur d'enregistrer les dernières secondes (sans et avec Velox) sur le Bureau.</summary>
+        public static string DemanderExport()
+        {
+            try { Directory.CreateDirectory(Chemins.Local); File.WriteAllText(FichierReecoute, "export"); return ""; }
             catch (Exception ex) { return ex.Message; }
         }
 

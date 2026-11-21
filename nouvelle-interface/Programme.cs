@@ -801,6 +801,22 @@ namespace NettoyagePC.Nouveau
                         for (int i = 3 * 48000 * 2; i < 4 * 48000 * 2; i++) silRe = Math.Max(silRe, Math.Abs(sortie[i]));
                         for (int i = 4 * 48000 * 2; i < 7 * 48000 * 2 && i < sortie.Count; i++) es2 += sortie[i] * (double)sortie[i];
                         double ecartRe = 10 * Math.Log10(es2 / Math.Max(1e-20, es1));
+                        {
+                            // export pour analyse : deux WAV lisibles (en-tête, taille), avant la réécoute
+                            var me = new MemoireReecoute(2, 48000, 10); var pe = new float[480 * 2];
+                            for (int k = 0; k < 300; k++) { for (int i = 0; i < pe.Length; i++) pe[i] = 0.1f; me.GarderSec(pe, 480); for (int i = 0; i < pe.Length; i++) pe[i] = 0.2f; me.GarderTraite(pe, 480); }
+                            string pref = Path.Combine(Path.GetTempPath(), "velox-essai-export-" + Guid.NewGuid().ToString("N").Substring(0, 6));
+                            bool okE = me.Exporter(pref);
+                            try
+                            {
+                                var bs = File.ReadAllBytes(pref + "-sans.wav"); var ba = File.ReadAllBytes(pref + "-avec.wav");
+                                okE &= bs.Length == 44 + 3 * 48000 * 4 && ba.Length == bs.Length && System.Text.Encoding.ASCII.GetString(bs, 0, 4) == "RIFF"
+                                    && BitConverter.ToInt16(bs, 44) == (short)Math.Round(0.1 * 32767) && BitConverter.ToInt16(ba, 44) == (short)Math.Round(0.2 * 32767);
+                            }
+                            catch { okE = false; }
+                            finally { try { File.Delete(pref + "-sans.wav"); File.Delete(pref + "-avec.wav"); } catch { } }
+                            verifier(okE && !new MemoireReecoute(2, 48000, 10).Exporter(pref), "enregistrement pour analyse : deux fichiers WAV corrects (sans et avec Velox)");
+                        }
                         verifier(!tropTot && lance && Math.Abs(mr.GainTraite - 0.25f) < 0.01 && mr.GainSec == 1 && sortie.Count == 7 * 48000 * 2 && silRe == 0 && Math.Abs(ecartRe) < 0.1
                             && restantDebut == 7 && mr.Phase == 0 && mr.Secondes == 0 && !mr.Lancer(),
                             "réécoute : 3 s rejouées sans puis avec Velox (écart de volume " + ecartRe.ToString("F2", ci) + " dB), une seconde de silence entre les deux, puis retour au direct");

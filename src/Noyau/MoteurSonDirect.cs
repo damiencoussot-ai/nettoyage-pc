@@ -419,7 +419,16 @@ namespace NettoyagePC
                     {
                         string dem = "";
                         try { dem = File.ReadAllText(FichierReecoute).Trim(); File.Delete(FichierReecoute); } catch { }
-                        if (memoire != null) { if (dem == "stop") memoire.Arreter(); else if (dem == "go") memoire.Lancer(); }
+                        if (memoire != null)
+                        {
+                            if (dem == "stop") memoire.Arreter();
+                            else if (dem == "go") memoire.Lancer();
+                            else if (dem == "export")
+                            {
+                                try { memoire.Exporter(PrefixeExport()); }
+                                catch (Exception ex) { JournalDemarrage.Erreur("enregistrement du son pour analyse", ex); }
+                            }
+                        }
                     }
                     if (t - dernierJeu >= 250)
                     {
@@ -627,6 +636,15 @@ namespace NettoyagePC
             }
             catch { }
             return "";
+        }
+
+        /// <summary>Début du nom des fichiers d'analyse (Bureau) : « Velox-son-AAAA-MM-JJ-HHmmss ».</summary>
+        internal static string PrefixeExport()
+        {
+            string bureau = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
+            if (string.IsNullOrEmpty(bureau) || !Directory.Exists(bureau)) bureau = Chemins.Donnees;
+            Directory.CreateDirectory(bureau);
+            return Path.Combine(bureau, "Velox-son-" + DateTime.Now.ToString("yyyy-MM-dd-HHmmss", CultureInfo.InvariantCulture));
         }
 
         /// <summary>Clé du jeu reconnu qui tourne (« cod », « valorant »…), "" si aucun.</summary>

@@ -1834,6 +1834,10 @@ namespace NettoyagePC.Nouveau
                     bReecoute = Studio.Bouton(Langue.T("Réécouter sans / avec Velox"), true, BasculerReecoute,
                         Langue.T("Rejoue les 10 dernières secondes du jeu : d'abord sans Velox, puis avec, au même volume. Le meilleur moyen d'entendre ce que Velox change."));
                     ligneRe.Children.Add(bReecoute);
+                    var bExport = Puce(Langue.T("Enregistrer pour analyse"), ExporterSon);
+                    Marquer(bExport, false);
+                    ToolTip.SetTip(bExport, Langue.T("Enregistre les 10 dernières secondes du jeu, sans et avec Velox, en deux fichiers sur ton Bureau. Envoie-les pour un réglage fait sur ton vrai son."));
+                    ligneRe.Children.Add(bExport);
                     tReecoute = Studio.T("", 12, Studio.Discret);
                     tReecoute.VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center;
                     tReecoute.Margin = new Thickness(10, 0, 0, 0);
@@ -1994,6 +1998,16 @@ namespace NettoyagePC.Nouveau
                 signaturePas = null; MajPas(Releve ?? new ReleveAudioJeu());
             }
             catch (Exception ex) { F.Statut(ex.Message, true); }
+        }
+
+        private void ExporterSon()
+        {
+            if (exemple) return;
+            var et = (Releve ?? new ReleveAudioJeu()).MoteurEtat ?? new MoteurSon.EtatMoteur();
+            if (!et.Marche || et.Memoire < 2) { F.Statut(Langue.T("Lance une partie avec Pas boostés allumé, joue quelques secondes, puis clique de nouveau."), true); return; }
+            string err = MoteurSon.DemanderExport();
+            if (err != "") { F.Statut(err, true); return; }
+            F.Statut(Langue.T("Enregistré sur ton Bureau : deux fichiers « Velox-son-… » (sans et avec Velox). Envoie-les pour l'analyse."));
         }
 
         private void BasculerReecoute()
