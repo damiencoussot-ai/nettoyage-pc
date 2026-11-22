@@ -229,6 +229,12 @@ namespace NettoyagePC
         /// <summary>« renfort » faux : sans renforceur de pas (essais de comparaison).</summary>
         public const int StyleNet = 0, StylePuissant = 1;
         public readonly int Style;
+        /// <summary>Puissant : seuil du compresseur principal relevé de 12 dB (et remontée baissée d'autant). Mesuré sur de
+        /// vrais enregistrements de Warzone : avec le seuil d'origine, sur un son à plein niveau (volume de Windows compensé),
+        /// la forte compression écrasait les pas (relief 16 → 8 dB, fond remonté de 18 dB). Seuil relevé de 12 dB : le fond
+        /// n'est remonté que de 7 à 10 dB, les pas gardent leur relief (13 à 15 dB) et pèsent toujours plus dans le son. Les
+        /// autres seuils (explosions, ton arme, renforceur, présence) ne bougent pas.</summary>
+        public const double DecalagePuissant = 12;
         private readonly double seuilArmeStereo, seuilArmeCentre;
 
         public CompresseurPas(int force, int frequence, int arme, bool renfort) : this(force, frequence, arme, renfort, StylePuissant) { }
@@ -253,7 +259,7 @@ namespace NettoyagePC
             // « Net » : seuil au-dessus des pas, remontée limitée. « Puissant » : forte compression, tout est remonté (le
             // style préféré à l'oreille par les testeurs : les pas sont plus forts dans l'absolu, le fond aussi).
             if (Style == StyleNet) { Seuil = -6 - 8 * f; Rapport = 1.5 + 3 * f; Remontee = -Seuil * (1 - 1 / Rapport) * 0.4; }
-            else { Seuil = -14 - 26 * f; Rapport = 1.5 + 4.5 * f; Remontee = -Seuil * (1 - 1 / Rapport) * 0.8; }
+            else { Seuil = -14 - 26 * f; Rapport = 1.5 + 4.5 * f; Remontee = -Seuil * (1 - 1 / Rapport) * 0.8; if (f > 0) { Seuil += DecalagePuissant; Remontee -= DecalagePuissant; } }
             seuilArmeStereo = Style == StyleNet ? 14 : 24; seuilArmeCentre = Style == StyleNet ? 26 : 36;
             double fe = Math.Max(8000, frequence);
             aNiveau = Math.Exp(-1 / (0.005 * fe));
