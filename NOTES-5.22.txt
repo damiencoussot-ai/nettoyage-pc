@@ -27,4 +27,6 @@ Le look d'avant reste disponible
 - À la première ouverture, une fenêtre présente le nouveau look, avec un bouton pour revenir au look d'avant.
 
 Corrigé
+- Pas boostés, style Puissant : le fond était remonté jusqu'à 18 dB et noyait les pas (relief divisé par deux). Il ne
+  monte plus que de 7 à 10 dB : les pas gardent leur relief et pèsent toujours plus dans le son.
 - Nouveautés de la 5.21 : la phrase sur Pas boostés décrit maintenant les deux styles, Puissant et Net.
