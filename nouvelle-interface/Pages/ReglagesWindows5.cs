@@ -54,7 +54,7 @@ namespace NettoyagePC.Nouveau
                 g.Children.Add(s);
                 var etat = new TextBlock { Text = Langue.T(ok ? "✔ déjà fait" : "à régler"), FontFamily = Habillage.Console, FontSize = 11.5, Foreground = Habillage.Pinceau(ok ? P.Vert : P.Orange), VerticalAlignment = VerticalAlignment.Top, Margin = new Thickness(14, 6, 0, 0) };
                 Grid.SetColumn(etat, 1); g.Children.Add(etat);
-                Children.Add(new Border { Child = g, Padding = new Thickness(14, 10), CornerRadius = new CornerRadius(3), Background = Habillage.Pinceau(P.Carte), BorderBrush = Habillage.Pinceau(P.Bordure), BorderThickness = new Thickness(1) });
+                Children.Add(new Border { Child = g, Padding = new Thickness(14, 10), CornerRadius = Habillage.Rayon(3), Background = Habillage.Pinceau(P.Carte), BorderBrush = Habillage.Pinceau(P.Bordure), BorderThickness = new Thickness(1) });
                 cases.Add(Tuple.Create(cb, d));
                 cb.IsCheckedChanged += (o, e) => bOk.IsEnabled = cases.Any(c => c.Item1.IsEnabled && c.Item1.IsChecked == true);
             }

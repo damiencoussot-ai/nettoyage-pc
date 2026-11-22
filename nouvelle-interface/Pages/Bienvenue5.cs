@@ -133,7 +133,7 @@ namespace NettoyagePC.Nouveau
             var s = new StackPanel { Spacing = 6 };
             s.Children.Add(new TextBlock { Text = Langue.T(titre), FontFamily = Habillage.Affichage, FontSize = 17, FontWeight = FontWeight.SemiBold, Foreground = Habillage.Pinceau(P.Texte) });
             s.Children.Add(new TextBlock { Text = Langue.T(texte), FontFamily = Habillage.Corps, FontSize = 13, Foreground = Habillage.Pinceau(P.Discret), TextWrapping = TextWrapping.Wrap });
-            var b = new Border { Child = s, Padding = new Thickness(18, 16), Margin = new Thickness(0, 0, 12, 0), CornerRadius = new CornerRadius(4), Background = Habillage.Pinceau(P.Carte), BorderThickness = new Thickness(1.5), Cursor = new Cursor(StandardCursorType.Hand) };
+            var b = new Border { Child = s, Padding = new Thickness(18, 16), Margin = new Thickness(0, 0, 12, 0), CornerRadius = Habillage.Rayon(4), Background = Habillage.Pinceau(P.Carte), BorderThickness = new Thickness(1.5), Cursor = new Cursor(StandardCursorType.Hand) };
             b.PointerReleased += (o, e) => clic();
             return b;
         }

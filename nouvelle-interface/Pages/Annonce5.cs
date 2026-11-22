@@ -1,6 +1,6 @@
-// Velox 5 - annonce du nouveau look (version 5.5) : montrée une fois, à la première ouverture après la mise à
-// jour, pour que personne ne soit perdu. Elle rappelle que rien n'a bougé ni disparu, et permet de revenir à
-// l'apparence d'avant en un clic (aussi dans Réglages, « Style de l'interface »).
+// Velox 5 - annonce du nouveau look (style arrondi, version 5.22) : montrée une fois, à la première ouverture après
+// la mise à jour, pour que personne ne soit perdu. Elle rappelle que rien n'a bougé ni disparu, et permet de revenir
+// au look d'avant (HUD) en un clic (aussi dans Réglages, « Style de l'interface »).
 using System;
 using Avalonia;
 using Avalonia.Controls;
@@ -18,8 +18,10 @@ namespace NettoyagePC.Nouveau
         {
             Parametres p;
             try { p = Parametres.Lire(); } catch { return false; }
-            if (p.AnnonceHudVue) return false;
-            p.AnnonceHudVue = true;
+            if (p.AnnonceArrondiVue) return false;
+            p.AnnonceArrondiVue = true; p.AnnonceHudVue = true;
+            // la personne avait choisi elle-même son style (HUD ou classique) : on ne lui impose rien, on ne l'annonce pas
+            if (!Habillage.Arrondi) { try { p.Ecrire(); } catch { } return false; }
             // nouvel utilisateur : il découvre directement le nouveau look, rien à annoncer
             if (!profilCree) { try { p.Ecrire(); } catch { } return false; }
             p.DerniereVersionLancee = Appli.Version;   // l'annonce remplace la fenêtre des nouveautés de cette version
@@ -36,7 +38,7 @@ namespace NettoyagePC.Nouveau
             try { tete.Children.Add(new Image { Source = new Bitmap(AssetLoader.Open(new Uri("avares://NettoyagePC/Assets/logo.png"))), Width = 52, Height = 52, VerticalAlignment = VerticalAlignment.Center }); } catch { }
             var titres = new StackPanel { VerticalAlignment = VerticalAlignment.Center, Spacing = 2 };
             titres.Children.Add(new TextBlock { Text = Langue.F("NOUVEAU · VERSION {0}", Appli.Version), FontFamily = Habillage.Console, FontSize = 11, Foreground = Habillage.Pinceau(P.Accent) });
-            titres.Children.Add(new TextBlock { Text = Langue.T("Nouveau look et nouveau logo"), FontFamily = Habillage.Affichage, FontSize = 20, FontWeight = FontWeight.Bold, Foreground = Habillage.Pinceau(P.Texte), TextWrapping = TextWrapping.Wrap });
+            titres.Children.Add(new TextBlock { Text = Langue.T("Un look plus clair et plus doux"), FontFamily = Habillage.Affichage, FontSize = 20, FontWeight = FontWeight.Bold, Foreground = Habillage.Pinceau(P.Texte), TextWrapping = TextWrapping.Wrap });
             tete.Children.Add(titres);
             s.Children.Add(tete);
             s.Children.Add(new TextBlock
@@ -46,7 +48,7 @@ namespace NettoyagePC.Nouveau
             });
             string[][] points =
             {
-                new[] { "Les rubriques n'ont pas bougé", "Nettoyer, Accélérer, Protéger, Outils et Premium sont toujours à gauche, dans le même ordre." },
+                new[] { "Les rubriques n'ont pas bougé", "Nettoyer, Accélérer, Protéger, Outils, Premium et Studio son sont toujours à gauche, dans le même ordre, avec une icône." },
                 new[] { "Tes favoris et tes réglages sont gardés", "Tes favoris sont sur l'accueil, avec leur bulle verte quand ils sont activés." },
                 new[] { "Tu ne trouves pas un outil ?", "Appuie sur Ctrl+K et tape son nom : il s'ouvre directement." },
             };
@@ -67,12 +69,12 @@ namespace NettoyagePC.Nouveau
             boutons.Children.Add(visite);
             var ok = new BoutonNoyau("C'est parti", false, 150, 44) { TaillePolice = 15, Margin = new Thickness(0, 0, 12, 8) };
             ok.Clic += () => { if (fen != null) fen.Fermer(); };
-            var ancien = new BoutonNoyau("Revenir à l'ancien look", false, 220, 44) { TaillePolice = 14, Margin = new Thickness(0, 0, 12, 8) };
+            var ancien = new BoutonNoyau("Revenir au look d'avant", false, 220, 44) { TaillePolice = 14, Margin = new Thickness(0, 0, 12, 8) };
             ancien.Clic += () =>
             {
                 if (fen != null) fen.Fermer();
-                f.ChangerStyle(false);
-                f.Statut("Apparence classique remise. Le nouveau look reste disponible dans Réglages, « Style de l'interface ».");
+                f.ChangerStyle("hud");
+                f.Statut("Look d'avant (HUD) remis. Le nouveau look reste disponible dans Réglages, « Style de l'interface ».");
             };
             boutons.Children.Add(ok); boutons.Children.Add(ancien);
             s.Children.Add(boutons);

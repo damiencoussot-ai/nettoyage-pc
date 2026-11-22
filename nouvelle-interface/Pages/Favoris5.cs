@@ -262,7 +262,7 @@ namespace NettoyagePC.Nouveau
         /// <summary>« Mes favoris » sur l'accueil : une tuile par favori (clic = ouvrir), et « Choisir mes favoris ».</summary>
         public static Control Bande(FenetrePrincipale f)
         {
-            var bloc = new StackPanel { Spacing = 10, Margin = new Thickness(12, 0, 0, 0) };
+            var bloc = new StackPanel { Spacing = 10, Margin = new Thickness(Habillage.Arrondi ? 0 : 12, 0, 0, 0) };
             Action remplir = null;
             remplir = () =>
             {
@@ -270,7 +270,8 @@ namespace NettoyagePC.Nouveau
                 bloc.Children.Clear();
                 var titre = new Grid { ColumnDefinitions = new ColumnDefinitions("Auto,*,Auto") };
                 // HUD : « ★ ACCÈS RAPIDE » et un trait qui s'efface ; classique : « ★ Mes favoris »
-                titre.Children.Add(new TextBlock
+                if (Habillage.Arrondi) { var et = PageAccueil.Etiquette("Accès rapide"); et.VerticalAlignment = VerticalAlignment.Center; titre.Children.Add(et); }
+                else titre.Children.Add(new TextBlock
                 {
                     Text = "★  " + (Habillage.Hud ? Langue.T("Accès rapide").ToUpper(Langue.Culture) : Langue.T("Mes favoris")), FontFamily = Habillage.Console, FontSize = Habillage.Hud ? 11 : 12,
                     LetterSpacing = Habillage.Hud ? 1.5 : 0, Foreground = Habillage.Hud ? Habillage.Pinceau(P.Accent, 200) : Habillage.Pinceau(P.Discret), VerticalAlignment = VerticalAlignment.Center,
@@ -289,12 +290,21 @@ namespace NettoyagePC.Nouveau
                 {
                     var vide = new Border
                     {
-                        Padding = new Thickness(16, 12), CornerRadius = new CornerRadius(3), BorderThickness = new Thickness(1), BorderBrush = Habillage.Pinceau(P.Bordure), Background = Habillage.Pinceau(P.Carte),
+                        Padding = new Thickness(16, 12), CornerRadius = Habillage.Rayon(3), BorderThickness = new Thickness(1), BorderBrush = Habillage.Pinceau(P.Bordure), Background = Habillage.Pinceau(P.Carte),
                         Cursor = new Cursor(StandardCursorType.Hand),
                         Child = new TextBlock { Text = Langue.T("Mets ici les outils que tu utilises le plus : clique sur l'étoile ☆ d'un outil, ou sur « Choisir mes favoris »."), FontFamily = Habillage.Corps, FontSize = 13, Foreground = Habillage.Pinceau(P.Discret), TextWrapping = TextWrapping.Wrap },
                     };
                     vide.PointerReleased += (s, e) => Choisir(f);
                     bloc.Children.Add(vide);
+                    return;
+                }
+                if (Habillage.Arrondi)
+                {
+                    // style arrondi : les tuiles se partagent la largeur (4 par ligne, 2 en étroit)
+                    var grille = new Avalonia.Controls.Primitives.UniformGrid { Columns = Math.Min(4, l.Count) };
+                    foreach (var o in l) grille.Children.Add(TuileArrondi(f, o));
+                    grille.SizeChanged += (s, e) => { int c = e.NewSize.Width < 640 ? Math.Min(2, l.Count) : Math.Min(4, l.Count); if (grille.Columns != c) grille.Columns = c; };
+                    bloc.Children.Add(grille);
                     return;
                 }
                 var tuiles = new WrapPanel { Orientation = Orientation.Horizontal };
@@ -310,13 +320,56 @@ namespace NettoyagePC.Nouveau
             return bloc;
         }
 
+        /// <summary>Style arrondi : icône de la rubrique dans une case, nom de l'outil, rubrique en dessous, bulle d'état.</summary>
+        private static Control TuileArrondi(FenetrePrincipale f, OutilFavori o)
+        {
+            var P = Habillage.P;
+            bool verrou = o.Premium && !Licence.Premium;
+            var b = new Cadre5
+            {
+                Coupe = 16, Height = 104, Margin = new Thickness(0, 0, 12, 12), Padding = new Thickness(16, 14, 14, 12),
+                Background = Habillage.Pinceau(P.Carte), BorderBrush = Habillage.Pinceau(P.Bordure), BorderThickness = new Thickness(1),
+                Cursor = new Cursor(StandardCursorType.Hand),
+            };
+            var g = new Grid { RowDefinitions = new RowDefinitions("Auto,*,Auto") };
+            var ligne = new Grid { ColumnDefinitions = new ColumnDefinitions("Auto,*,Auto") };
+            ligne.Children.Add(new Border
+            {
+                Width = 34, Height = 34, CornerRadius = new CornerRadius(10), Background = Habillage.Pinceau(P.Sombre ? Color.FromRgb(27, 29, 64) : Habillage.Melanger(P.Fond, P.Accent, 0.08)),
+                Child = new Icone5 { Cle = o.Rubrique, Width = 18, Height = 18, Couleur = o.Premium ? P.Orange : Habillage.Melanger(P.Accent, P.Texte, P.Sombre ? 0.55 : 0.1), Epaisseur = 1.8 },
+            });
+            string detail = "";
+            int etat = verrou ? 0 : Etat(o, out detail);
+            if (etat > 0 || verrou)
+            {
+                var c = verrou ? P.Discret : etat == 1 ? P.Vert : P.Orange;
+                var bulle = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 5, VerticalAlignment = VerticalAlignment.Top };
+                if (!verrou) bulle.Children.Add(new Border { Width = 8, Height = 8, CornerRadius = Habillage.Rayon(4), Background = Habillage.Pinceau(c), VerticalAlignment = VerticalAlignment.Center });
+                bulle.Children.Add(new TextBlock { Text = Langue.T(verrou ? "essai gratuit" : etat == 1 ? "activé" : "à vérifier"), FontFamily = Habillage.Corps, FontSize = 11, Foreground = Habillage.Pinceau(c), VerticalAlignment = VerticalAlignment.Center });
+                if (detail != "") ToolTip.SetTip(bulle, detail);
+                if (etat == 2) { bulle.Background = Brushes.Transparent; bulle.Cursor = new Cursor(StandardCursorType.Hand); bulle.PointerReleased += (s, a) => { a.Handled = true; Etat5.Ouvrir(f); }; }
+                Grid.SetColumn(bulle, 2); ligne.Children.Add(bulle);
+            }
+            g.Children.Add(ligne);
+            var nom = new TextBlock { Text = Langue.T(o.Titre), FontFamily = Habillage.Affichage, FontSize = 14.5, FontWeight = FontWeight.SemiBold, Foreground = Habillage.Pinceau(P.Texte), TextTrimming = TextTrimming.CharacterEllipsis, VerticalAlignment = VerticalAlignment.Bottom, Margin = new Thickness(0, 8, 0, 0) };
+            Grid.SetRow(nom, 1); g.Children.Add(nom);
+            var rub = new TextBlock { Text = NomRubrique(f, o.Rubrique), FontFamily = Habillage.Corps, FontSize = 12, Foreground = Habillage.Pinceau(P.Discret), TextTrimming = TextTrimming.CharacterEllipsis };
+            Grid.SetRow(rub, 2); g.Children.Add(rub);
+            b.Child = g;
+            ToolTip.SetTip(b, Langue.T(o.Texte));
+            b.PointerEntered += (s, e) => { b.BorderBrush = Habillage.Pinceau(Habillage.Alpha(P.Accent, 160)); b.Background = Habillage.Pinceau(P.CarteSurvol); };
+            b.PointerExited += (s, e) => { b.BorderBrush = Habillage.Pinceau(P.Bordure); b.Background = Habillage.Pinceau(P.Carte); };
+            b.PointerReleased += (s, e) => Lancer(f, o);
+            return b;
+        }
+
         private static Control Tuile(FenetrePrincipale f, OutilFavori o)
         {
             var P = Habillage.P;
             bool verrou = o.Premium && !Licence.Premium;
             var b = new Cadre5
             {
-                Coupe = 12, UnCoin = true, Width = 214, Height = 66, Margin = new Thickness(0, 0, 10, 10), Padding = new Thickness(14, 9, 10, 9), CornerRadius = new CornerRadius(3),
+                Coupe = 12, UnCoin = true, Width = 214, Height = 66, Margin = new Thickness(0, 0, 10, 10), Padding = new Thickness(14, 9, 10, 9), CornerRadius = Habillage.Rayon(3),
                 Background = Habillage.Pinceau(P.Carte), BorderBrush = Habillage.Pinceau(P.Bordure), BorderThickness = new Thickness(1),
                 Cursor = new Cursor(StandardCursorType.Hand),
             };
@@ -333,7 +386,7 @@ namespace NettoyagePC.Nouveau
             {
                 var c = etat == 1 ? P.Vert : P.Orange;
                 var bulle = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 5, VerticalAlignment = VerticalAlignment.Center };
-                bulle.Children.Add(new Border { Width = 8, Height = 8, CornerRadius = new CornerRadius(4), Background = Habillage.Pinceau(c), BoxShadow = BoxShadows.Parse("0 0 6 0 " + c.ToString()), VerticalAlignment = VerticalAlignment.Center });
+                bulle.Children.Add(new Border { Width = 8, Height = 8, CornerRadius = Habillage.Rayon(4), Background = Habillage.Pinceau(c), BoxShadow = BoxShadows.Parse("0 0 6 0 " + c.ToString()), VerticalAlignment = VerticalAlignment.Center });
                 bulle.Children.Add(new TextBlock { Text = Langue.T(etat == 1 ? "activé" : "à vérifier"), FontFamily = Habillage.Console, FontSize = 10, Foreground = Habillage.Pinceau(c), VerticalAlignment = VerticalAlignment.Center });
                 if (detail != "") ToolTip.SetTip(bulle, detail);
                 // orange : un clic sur la bulle ouvre le détail et la correction (et pas l'outil)
@@ -417,7 +470,7 @@ namespace NettoyagePC.Nouveau
             var P = Habillage.P;
             var b = new Border
             {
-                Margin = new Thickness(0, 0, 8, 8), Padding = new Thickness(12, 8), CornerRadius = new CornerRadius(3), Cursor = new Cursor(StandardCursorType.Hand),
+                Margin = new Thickness(0, 0, 8, 8), Padding = new Thickness(12, 8), CornerRadius = Habillage.Rayon(3), Cursor = new Cursor(StandardCursorType.Hand),
                 Background = Habillage.Pinceau(est ? Habillage.Alpha(P.Accent, 26) : P.Carte),
                 BorderBrush = Habillage.Pinceau(est ? Habillage.Alpha(P.Accent, 130) : P.Bordure), BorderThickness = new Thickness(1),
             };

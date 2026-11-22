@@ -55,7 +55,7 @@ namespace NettoyagePC.Nouveau
             var P = Habillage.P;
             var b = new Cadre5
             {
-                Margin = new Thickness(0, 0, 12, 12), Padding = new Thickness(20, 18, 20, 18), CornerRadius = new CornerRadius(3), Coupe = 16,
+                Margin = new Thickness(0, 0, 12, 12), Padding = new Thickness(20, 18, 20, 18), CornerRadius = Habillage.Rayon(3), Coupe = 16,
                 Background = Habillage.Pinceau(P.Carte, Habillage.Hud && P.Sombre ? 232 : 255),
                 BorderBrush = Habillage.Pinceau(c.Principal ? Habillage.Alpha(P.Accent, 110) : Habillage.Hud && P.Sombre ? Habillage.Alpha(P.Accent, 50) : P.Bordure), BorderThickness = new Thickness(1),
                 TraitHaut = Habillage.Hud && c.Principal ? P.Accent : (Color?)null,
@@ -87,7 +87,7 @@ namespace NettoyagePC.Nouveau
                 d.Children.Add(bouton);
             }
             var s = new StackPanel { Spacing = 6 };
-            if (c.Principal && !Habillage.Hud) s.Children.Add(new Border { Height = 2, Width = 36, HorizontalAlignment = HorizontalAlignment.Left, Background = Habillage.DegradeAccent(), Margin = new Thickness(0, 0, 0, 4) });
+            if (c.Principal && !Habillage.Hud && !Habillage.Arrondi) s.Children.Add(new Border { Height = 2, Width = 36, HorizontalAlignment = HorizontalAlignment.Left, Background = Habillage.DegradeAccent(), Margin = new Thickness(0, 0, 0, 4) });
             var titre = new TextBlock { Text = Langue.T(c.Titre), FontFamily = Habillage.Affichage, FontSize = 16.5, FontWeight = FontWeight.SemiBold, Foreground = Habillage.Pinceau(P.Texte), TextWrapping = TextWrapping.Wrap };
             // étoile des favoris (affichés sur l'accueil) pour les cartes d'outils
             var favori = Favoris5.ParTitre(c.Titre);
@@ -155,7 +155,19 @@ namespace NettoyagePC.Nouveau
             Margin = new Thickness(28, 6, 16, 24);
             LastChildFill = true;
             if (Habillage.Animations) contenu.PageTransition = new Avalonia.Animation.CrossFade(TimeSpan.FromMilliseconds(150));
-            var haut = new Border { BorderBrush = Habillage.Pinceau(Habillage.P.Bordure), BorderThickness = new Thickness(0, 0, 0, 1), Margin = new Thickness(0, 0, 12, 18), Child = barre };
+            Border haut;
+            if (!Habillage.Arrondi) haut = new Border { BorderBrush = Habillage.Pinceau(Habillage.P.Bordure), BorderThickness = new Thickness(0, 0, 0, 1), Margin = new Thickness(0, 0, 12, 18), Child = barre };
+            else
+            {
+                // style arrondi : onglets dans une pastille, l'actif plein au dégradé
+                var P = Habillage.P;
+                barre.Spacing = 4;
+                haut = new Border
+                {
+                    Child = barre, Padding = new Thickness(4), CornerRadius = new CornerRadius(14), HorizontalAlignment = HorizontalAlignment.Left, Margin = new Thickness(0, 0, 12, 16),
+                    Background = Habillage.Pinceau(P.Sombre ? Habillage.Melanger(P.Fond, P.Carte, 0.5) : P.Carte), BorderBrush = Habillage.Pinceau(P.Bordure), BorderThickness = new Thickness(1),
+                };
+            }
             SetDock(haut, Dock.Top);
             Children.Add(haut);
             Children.Add(contenu);
@@ -172,6 +184,7 @@ namespace NettoyagePC.Nouveau
             foreach (var o in pages)
             {
                 bool actif = o.Item1 == active;
+                if (Habillage.Arrondi) { barre.Children.Add(OngletArrondi(o.Item1, Langue.T(o.Item2), actif)); continue; }
                 // HUD : onglets en capitales, l'actif en cyan avec un trait lumineux
                 bool hud = Habillage.Hud;
                 string nomOnglet = Langue.T(o.Item2);
@@ -193,6 +206,23 @@ namespace NettoyagePC.Nouveau
                 barre.Children.Add(bloc);
             }
             contenu.Content = p.Item3();
+        }
+
+        private Control OngletArrondi(string cle, string nom, bool actif)
+        {
+            var P = Habillage.P;
+            var texte = new TextBlock { Text = nom, FontFamily = Habillage.Corps, FontSize = 13.5, FontWeight = actif ? FontWeight.SemiBold : FontWeight.Normal, Foreground = Habillage.Pinceau(actif ? P.SurAccent : P.Discret), VerticalAlignment = VerticalAlignment.Center };
+            var b = new Border
+            {
+                Child = texte, Padding = new Thickness(16, 8), CornerRadius = new CornerRadius(10), Cursor = new Avalonia.Input.Cursor(Avalonia.Input.StandardCursorType.Hand), Focusable = true,
+                Background = actif ? Habillage.DegradeAccent() : Brushes.Transparent,
+            };
+            Avalonia.Automation.AutomationProperties.SetName(b, nom);
+            b.PointerEntered += (s, e) => { if (!actif) { texte.Foreground = Habillage.Pinceau(P.Texte); b.Background = Habillage.Pinceau(P.CarteSurvol); } };
+            b.PointerExited += (s, e) => { if (!actif) { texte.Foreground = Habillage.Pinceau(P.Discret); b.Background = Brushes.Transparent; } };
+            b.PointerReleased += (s, e) => { if (cle != active) Choisir(cle); };
+            b.KeyDown += (s, e) => { if ((e.Key == Avalonia.Input.Key.Enter || e.Key == Avalonia.Input.Key.Space) && cle != active) { e.Handled = true; Choisir(cle); } };
+            return b;
         }
     }
 }

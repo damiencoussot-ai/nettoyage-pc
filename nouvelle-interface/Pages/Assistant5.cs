@@ -94,7 +94,7 @@ namespace NettoyagePC.Nouveau
 
             // conversation
             defilement = new ScrollViewer { Content = new Border { Child = fil, Padding = new Thickness(16, 12) }, Height = 340, HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled };
-            zoneConversation = new Border { Child = defilement, CornerRadius = new CornerRadius(3), Background = Habillage.Pinceau(P.Carte), BorderBrush = Habillage.Pinceau(P.Bordure), BorderThickness = new Thickness(1) };
+            zoneConversation = new Border { Child = defilement, CornerRadius = Habillage.Rayon(3), Background = Habillage.Pinceau(P.Carte), BorderBrush = Habillage.Pinceau(P.Bordure), BorderThickness = new Thickness(1) };
             Children.Add(zoneConversation);
             Children.Add(propositions);
             foreach (var q in new[] { "Pourquoi mon PC est lent ?", "Mon PC est-il bien protégé ?", "Comment libérer de la place ?", "Mon matériel est-il bien réglé pour jouer ?" })

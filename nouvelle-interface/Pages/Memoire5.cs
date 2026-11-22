@@ -46,11 +46,11 @@ namespace NettoyagePC.Nouveau
             bBios.Clic += RedemarrerBios;
             boutons.Children.Add(bGuide); boutons.Children.Add(bBios);
             Grid.SetColumn(boutons, 1); carte.Children.Add(boutons);
-            Children.Add(new Border { Child = carte, Padding = new Thickness(20, 16), CornerRadius = new CornerRadius(3), Background = Habillage.Pinceau(P.Carte), BorderBrush = Habillage.Pinceau(P.Accent, 90), BorderThickness = new Thickness(1) });
+            Children.Add(new Border { Child = carte, Padding = new Thickness(20, 16), CornerRadius = Habillage.Rayon(3), Background = Habillage.Pinceau(P.Carte), BorderBrush = Habillage.Pinceau(P.Accent, 90), BorderThickness = new Thickness(1) });
             tableau = new Tableau(false, false, new Colonne("Emplacement", "1.4*"), new Colonne("Capacité", "90", true, true, o => ((Barrette)o).Capacite), new Colonne("Type", "70"),
                 new Colonne("Vitesse actuelle", "120", true, true, o => ((Barrette)o).VitesseConfiguree), new Colonne("Fabricant", "1.1*"), new Colonne("Référence", "1.8*", false, true));
             tableau.HauteurListe = 150;
-            Children.Add(new Border { Child = tableau, BorderBrush = Habillage.Pinceau(P.Bordure), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(3), ClipToBounds = true });
+            Children.Add(new Border { Child = tableau, BorderBrush = Habillage.Pinceau(P.Bordure), BorderThickness = new Thickness(1), CornerRadius = Habillage.Rayon(3), ClipToBounds = true });
             Children.Add(new TextBlock { Text = Langue.T("La vitesse prévue est lue dans la référence des barrettes. Activer le profil du fabricant (EXPO chez AMD, XMP chez Intel) est un réglage prévu pour ça, sans risque pour le matériel."), FontFamily = Habillage.Corps, FontSize = 12.5, Foreground = Habillage.Pinceau(P.Discret), TextWrapping = TextWrapping.Wrap });
             AttachedToVisualTree += (o, e) => Charger();
         }

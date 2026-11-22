@@ -41,7 +41,7 @@ namespace NettoyagePC.Nouveau
                 s.Children.Add(new TextBlock { Text = Langue.T(titre).ToUpperInvariant(), FontFamily = Habillage.Console, FontSize = 10.5, Foreground = Habillage.Pinceau(P.Discret), TextTrimming = TextTrimming.CharacterEllipsis });
                 valeur = new TextBlock { Text = "—", FontFamily = Habillage.Affichage, FontSize = 26, FontWeight = FontWeight.SemiBold, Foreground = Habillage.Pinceau(P.Texte) };
                 s.Children.Add(valeur);
-                Child = s; Padding = new Thickness(14, 10); Margin = new Thickness(0, 0, 10, 10); Width = 218; CornerRadius = new CornerRadius(3);
+                Child = s; Padding = new Thickness(14, 10); Margin = new Thickness(0, 0, 10, 10); Width = 218; CornerRadius = Habillage.Rayon(3);
                 Background = Habillage.Pinceau(P.Carte); BorderBrush = Habillage.Pinceau(P.Bordure); BorderThickness = new Thickness(1);
             }
             public void Definir(string v, Color? c = null) { valeur.Text = v; valeur.Foreground = Habillage.Pinceau(c ?? Habillage.P.Texte); }
@@ -105,7 +105,7 @@ namespace NettoyagePC.Nouveau
                 new Colonne("0,1 % lents", "95", true, true, o => ((MesureFps)o).Bas01), new Colonne("Durée", "70", true, true, o => ((MesureFps)o).Secondes));
             tableau.HauteurListe = 200;
             tableau.SelectionChangee += () => { var m = tableau.Selection as MesureFps; bSupprimer.IsEnabled = m != null && !enCours; if (m != null) AfficherMesure(m); };
-            Children.Add(new Border { Child = tableau, BorderBrush = Habillage.Pinceau(P.Bordure), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(3), ClipToBounds = true });
+            Children.Add(new Border { Child = tableau, BorderBrush = Habillage.Pinceau(P.Bordure), BorderThickness = new Thickness(1), CornerRadius = Habillage.Rayon(3), ClipToBounds = true });
             bSupprimer = new BoutonNoyau("Supprimer la mesure", false, 0, 32) { TaillePolice = 13, IsEnabled = false, HorizontalAlignment = HorizontalAlignment.Left };
             bSupprimer.Clic += Supprimer;
             Children.Add(bSupprimer);

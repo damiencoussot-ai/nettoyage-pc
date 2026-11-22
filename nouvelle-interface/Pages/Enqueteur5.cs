@@ -64,7 +64,7 @@ namespace NettoyagePC.Nouveau
             tableau.HauteurListe = 240;
             tableau.SelectionChangee += () => { var c = tableau.Selection as Changement; bCorriger.IsEnabled = c != null && c.Cible != ""; };
             tableau.DoubleClic += o => Corriger();
-            Children.Add(new Border { Child = tableau, BorderBrush = Habillage.Pinceau(P.Bordure), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(3), ClipToBounds = true });
+            Children.Add(new Border { Child = tableau, BorderBrush = Habillage.Pinceau(P.Bordure), BorderThickness = new Thickness(1), CornerRadius = Habillage.Rayon(3), ClipToBounds = true });
             var bas = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 10 };
             bCorriger = new BoutonNoyau("Voir et corriger", true, 0, 34) { TaillePolice = 13.5, IsEnabled = false };
             bCorriger.Clic += Corriger;

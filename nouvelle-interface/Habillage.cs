@@ -48,9 +48,31 @@ namespace NettoyagePC.Nouveau
             Rouge = Color.FromRgb(194, 40, 59), Vert = Color.FromRgb(10, 122, 82), SurAccent = Color.FromRgb(255, 255, 255), TexteBarre = Color.FromRgb(169, 199, 211),
         };
 
-        /// <summary>Palette du style actuel (HUD ou classique).</summary>
+        /// <summary>Style arrondi (version 5.22) : bleu nuit violacé, accent violet vers rose, cartes très arrondies.</summary>
+        public static readonly Palette SombreArrondi = new Palette
+        {
+            Sombre = true,
+            Fond = Color.FromRgb(7, 8, 26), Carte = Color.FromRgb(13, 15, 38), CarteSurvol = Color.FromRgb(20, 22, 52), Barre = Color.FromRgb(10, 11, 32),
+            Bordure = Color.FromRgb(33, 36, 70), Texte = Color.FromRgb(236, 234, 255), Discret = Color.FromRgb(146, 141, 186),
+            Accent = Color.FromRgb(124, 92, 255), Accent2 = Color.FromRgb(255, 63, 164), Orange = Color.FromRgb(255, 193, 77),
+            Rouge = Color.FromRgb(255, 107, 138), Vert = Color.FromRgb(95, 242, 165), SurAccent = Color.FromRgb(255, 255, 255), TexteBarre = Color.FromRgb(198, 193, 238),
+            AccentBarre = Color.FromRgb(124, 92, 255),
+        };
+
+        public static readonly Palette ClairArrondi = new Palette
+        {
+            Sombre = false,
+            Fond = Color.FromRgb(243, 242, 251), Carte = Color.FromRgb(255, 255, 255), CarteSurvol = Color.FromRgb(248, 246, 255), Barre = Color.FromRgb(10, 11, 32),
+            Bordure = Color.FromRgb(223, 219, 242), Texte = Color.FromRgb(22, 19, 44), Discret = Color.FromRgb(92, 87, 128),
+            Accent = Color.FromRgb(98, 60, 230), Accent2 = Color.FromRgb(214, 30, 130), Orange = Color.FromRgb(168, 95, 0),
+            Rouge = Color.FromRgb(194, 40, 59), Vert = Color.FromRgb(10, 122, 82), SurAccent = Color.FromRgb(255, 255, 255), TexteBarre = Color.FromRgb(198, 193, 238),
+            AccentBarre = Color.FromRgb(124, 92, 255),
+        };
+
+        /// <summary>Palette du style actuel (arrondi, HUD ou classique).</summary>
         public static Palette Pour(bool sombre)
         {
+            if (Habillage.Arrondi) return sombre ? SombreArrondi : ClairArrondi;
             if (Habillage.Hud) return sombre ? SombreHud : ClairHud;
             return sombre ? SombreNoyau : ClairNoyau;
         }
@@ -70,7 +92,7 @@ namespace NettoyagePC.Nouveau
 
     public static class Habillage
     {
-        public static Palette P = Palette.SombreHud;
+        public static Palette P = Palette.SombreArrondi;   // le style par défaut (arrondi), avant la lecture des réglages
 
         private static Color C(int r, int g, int b) { return Color.FromRgb((byte)r, (byte)g, (byte)b); }
 
@@ -106,6 +128,15 @@ namespace NettoyagePC.Nouveau
                 l.SurAccent = Colors.White;
                 l.AccentBarre = l == Palette.ClairHud ? Palette.SombreHud.Accent : c.Sombre1;
             }
+            // style arrondi : la couleur d'origine (« Noyau ») y devient le violet-rose du style ; les autres couleurs restent
+            foreach (var a in new[] { Palette.SombreArrondi, Palette.ClairArrondi })
+            {
+                bool origine = c.Cle == "aurore";
+                if (a.Sombre) { a.Accent = origine ? C(124, 92, 255) : c.Sombre1; a.Accent2 = origine ? C(255, 63, 164) : c.Sombre2; }
+                else { a.Accent = origine ? C(98, 60, 230) : c.Clair1; a.Accent2 = origine ? C(214, 30, 130) : c.Clair2; }
+                a.SurAccent = a.Sombre ? TexteSur(Melanger(a.Accent, a.Accent2, 0.5)) : Colors.White;
+                a.AccentBarre = origine ? C(124, 92, 255) : c.Sombre1;
+            }
             if (Gamer) Neon();
         }
 
@@ -114,13 +145,13 @@ namespace NettoyagePC.Nouveau
 
         private static void Neon()
         {
-            foreach (var s in new[] { Palette.SombreNoyau, Palette.SombreHud })
+            foreach (var s in new[] { Palette.SombreNoyau, Palette.SombreHud, Palette.SombreArrondi })
             {
                 s.Accent = C(255, 43, 214); s.Accent2 = C(124, 92, 255);
                 s.SurAccent = C(18, 4, 22);
                 s.AccentBarre = s.Accent;
             }
-            foreach (var l in new[] { Palette.ClairNoyau, Palette.ClairHud })
+            foreach (var l in new[] { Palette.ClairNoyau, Palette.ClairHud, Palette.ClairArrondi })
             {
                 l.Accent = C(176, 0, 140); l.Accent2 = C(98, 52, 210);
                 l.SurAccent = Colors.White;
@@ -141,8 +172,31 @@ namespace NettoyagePC.Nouveau
         /// <summary>Animations autorisées (coupées pour les captures automatiques, ou si l'utilisateur le demande).</summary>
         public static bool Animations = true;
 
-        /// <summary>Style HUD (par défaut depuis la 5.5) ; faux = l'apparence classique d'avant.</summary>
-        public static bool Hud = true;
+        /// <summary>Style HUD (par défaut de la 5.5 à la 5.21) : coins coupés, capitales, grille de fond.</summary>
+        public static bool Hud = false;
+
+        /// <summary>Style arrondi (par défaut depuis la 5.22) : cartes et boutons très arrondis, barre de menu avec icônes,
+        /// accent violet vers rose. Il suit les tracés du style classique, avec ses propres rayons, couleurs et menu.</summary>
+        public static bool Arrondi = true;
+
+        /// <summary>Rayon des cartes (style arrondi : 16 ; classique : 3 ; HUD : coins coupés).</summary>
+        public static double RayonCarte { get { return Arrondi ? 16 : 3; } }
+        /// <summary>Rayon d'un coin prévu « presque carré » (2 à 4 px) pour le style classique : bien arrondi en style
+        /// arrondi (8 pour les petites étiquettes, 12 pour les cadres et les lignes).</summary>
+        public static Avalonia.CornerRadius Rayon(double classique) { return new Avalonia.CornerRadius(!Arrondi ? classique : classique <= 2 ? 8 : 12); }
+
+        /// <summary>Rayon des boutons et des champs.</summary>
+        public static double RayonBouton { get { return Arrondi ? 12 : 10; } }
+
+        /// <summary>Nom du style enregistré dans les réglages : « arrondi », « hud » ou « classique ».</summary>
+        public static string NomStyle { get { return Arrondi ? "arrondi" : Hud ? "hud" : "classique"; } }
+
+        /// <summary>Choisit le style (« arrondi », « hud » ou « classique » ; tout autre nom : arrondi).</summary>
+        public static void ChoisirStyle(string nom)
+        {
+            Hud = nom == "hud";
+            Arrondi = !Hud && nom != "classique";
+        }
 
         private const string Polices = "avares://NettoyagePC/Assets/Polices#";
         private static readonly FontFamily affichageClassique = new FontFamily("Bahnschrift, Segoe UI, DejaVu Sans, sans-serif");
@@ -154,9 +208,10 @@ namespace NettoyagePC.Nouveau
         private static readonly FontFamily corpsHud = new FontFamily(Polices + "IBM Plex Sans, Segoe UI, DejaVu Sans, sans-serif");
         private static readonly FontFamily consoleHud = new FontFamily(Polices + "JetBrains Mono, Cascadia Mono, Consolas, DejaVu Sans Mono, monospace");
 
-        public static FontFamily Affichage { get { return Hud ? affichageHud : affichageClassique; } }
-        public static FontFamily Corps { get { return Hud ? corpsHud : corpsClassique; } }
-        public static FontFamily Console { get { return Hud ? consoleHud : consoleClassique; } }
+        // style arrondi : une seule famille, sobre et lisible (IBM Plex Sans, intégrée), y compris pour les titres
+        public static FontFamily Affichage { get { return Hud ? affichageHud : Arrondi ? corpsHud : affichageClassique; } }
+        public static FontFamily Corps { get { return Hud || Arrondi ? corpsHud : corpsClassique; } }
+        public static FontFamily Console { get { return Hud || Arrondi ? consoleHud : consoleClassique; } }
 
         /// <summary>Contour à coins coupés du HUD (haut droit et bas gauche) ; c = taille de la coupe.</summary>
         public static Geometry Chanfrein(Rect r, double c, bool basGauche = true)

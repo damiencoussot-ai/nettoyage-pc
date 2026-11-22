@@ -36,7 +36,7 @@ namespace NettoyagePC.Nouveau
             tableau = new Tableau(false, true, new Colonne("Date", "140", false, true, o => ((Modif)o).Date), new Colonne("Modification", "*"), new Colonne("État", "110"));
             tableau.HauteurListe = 360;
             tableau.SelectionChangee += () => bAnnuler.IsEnabled = tableau.Selections.Cast<Modif>().Any(m => !m.Annule);
-            Children.Add(new Border { Child = tableau, BorderBrush = Habillage.Pinceau(P.Bordure), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(3), ClipToBounds = true });
+            Children.Add(new Border { Child = tableau, BorderBrush = Habillage.Pinceau(P.Bordure), BorderThickness = new Thickness(1), CornerRadius = Habillage.Rayon(3), ClipToBounds = true });
             var boutons = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 10 };
             bAnnuler = new BoutonNoyau("Annuler la sélection", true, 180, 32) { TaillePolice = 13.5, IsEnabled = false };
             bAnnuler.Clic += () => Annuler(tableau.Selections.Cast<Modif>().Where(m => !m.Annule).Select(m => m.Id).ToList(), false);

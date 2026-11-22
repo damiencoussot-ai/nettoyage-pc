@@ -188,7 +188,7 @@ namespace NettoyagePC.Nouveau
                         bloc.Children.Add(b);
                     }
                     else if (ou != "") bloc.Children.Add(new BoutonNoyau(bouton, false, 0, 34) { TaillePolice = 12.5, HorizontalAlignment = HorizontalAlignment.Left });
-                    s.Children.Add(new Border { Child = bloc, Padding = new Thickness(14, 12), CornerRadius = new CornerRadius(4), BorderThickness = new Thickness(1), BorderBrush = Habillage.Pinceau(P.Bordure), Background = Habillage.Pinceau(P.Accent, P.Sombre ? 8 : 6) });
+                    s.Children.Add(new Border { Child = bloc, Padding = new Thickness(14, 12), CornerRadius = Habillage.Rayon(4), BorderThickness = new Thickness(1), BorderBrush = Habillage.Pinceau(P.Bordure), Background = Habillage.Pinceau(P.Accent, P.Sombre ? 8 : 6) });
                 }
 
                 s.Children.Add(Premium5.Titre("Le film de la partie"));
@@ -272,7 +272,7 @@ namespace NettoyagePC.Nouveau
         private readonly FenetrePrincipale F;
         private readonly TextBlock verdict;
         private readonly StackPanel resultats = new StackPanel { Spacing = 10 };
-        private readonly Border jauge = new Border { Height = 8, CornerRadius = new CornerRadius(4), HorizontalAlignment = HorizontalAlignment.Left, Width = 0 };
+        private readonly Border jauge = new Border { Height = 8, CornerRadius = Habillage.Rayon(4), HorizontalAlignment = HorizontalAlignment.Left, Width = 0 };
         private readonly Grid piste = new Grid { Height = 8 };
         private bool ferme, enCours;
         private double avancement;
@@ -285,7 +285,7 @@ namespace NettoyagePC.Nouveau
             Children.Add(Premium5.Intro("Ton PC rame maintenant ? Velox l'observe 12 secondes et te dit quel programme occupe le processeur, la mémoire ou le disque en ce moment. Lecture seule : rien n'est fermé ni modifié."));
             verdict = new TextBlock { Text = Langue.T("Observation du PC…"), FontFamily = Habillage.Affichage, FontSize = 19, FontWeight = FontWeight.SemiBold, Foreground = Habillage.Pinceau(P.Texte), TextWrapping = TextWrapping.Wrap };
             Children.Add(verdict);
-            piste.Children.Add(new Border { Height = 8, CornerRadius = new CornerRadius(4), Background = Habillage.Pinceau(P.Bordure) });
+            piste.Children.Add(new Border { Height = 8, CornerRadius = Habillage.Rayon(4), Background = Habillage.Pinceau(P.Bordure) });
             jauge.Background = Habillage.Pinceau(P.Accent);
             piste.Children.Add(jauge);
             piste.SizeChanged += (s, e) => jauge.Width = Math.Max(0, piste.Bounds.Width * avancement);

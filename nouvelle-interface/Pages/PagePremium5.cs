@@ -153,7 +153,7 @@ namespace NettoyagePC.Nouveau
             s.Children.Add(new Border
             {
                 Child = new TextBlock { Text = Langue.T(pastille), FontFamily = Habillage.Console, FontSize = 11, FontWeight = FontWeight.Bold, Foreground = Habillage.Pinceau(P.SurAccent) },
-                Background = Habillage.DegradeAccent(), CornerRadius = new CornerRadius(2), Padding = new Thickness(10, 4), HorizontalAlignment = HorizontalAlignment.Left,
+                Background = Habillage.DegradeAccent(), CornerRadius = Habillage.Rayon(2), Padding = new Thickness(10, 4), HorizontalAlignment = HorizontalAlignment.Left,
             });
             s.Children.Add(new TextBlock { Text = Langue.T(titre), FontFamily = Habillage.Affichage, FontSize = 26, FontWeight = FontWeight.SemiBold, Foreground = Habillage.Pinceau(P.Texte) });
             s.Children.Add(new TextBlock { Text = Langue.T(texte), FontFamily = Habillage.Corps, FontSize = 14, LineHeight = 21, Foreground = Habillage.Pinceau(P.Discret), TextWrapping = TextWrapping.Wrap, MaxWidth = 640, HorizontalAlignment = HorizontalAlignment.Left });
@@ -171,7 +171,7 @@ namespace NettoyagePC.Nouveau
             }
             return new Border
             {
-                Child = g2, Padding = new Thickness(28, 24), CornerRadius = new CornerRadius(4),
+                Child = g2, Padding = new Thickness(28, 24), CornerRadius = Habillage.Rayon(4),
                 Background = new LinearGradientBrush
                 {
                     StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative), EndPoint = new RelativePoint(1, 1, RelativeUnit.Relative),
@@ -189,7 +189,7 @@ namespace NettoyagePC.Nouveau
                 w.Children.Add(new Border
                 {
                     Child = new TextBlock { Text = "✔  " + Langue.T(t), FontFamily = Habillage.Corps, FontSize = 12.5, Foreground = Habillage.Pinceau(P.Texte) },
-                    Padding = new Thickness(12, 7), Margin = new Thickness(0, 0, 8, 8), CornerRadius = new CornerRadius(3),
+                    Padding = new Thickness(12, 7), Margin = new Thickness(0, 0, 8, 8), CornerRadius = Habillage.Rayon(3),
                     Background = Habillage.Pinceau(P.Carte), BorderBrush = Habillage.Pinceau(P.Bordure), BorderThickness = new Thickness(1),
                 });
             return w;
@@ -211,14 +211,14 @@ namespace NettoyagePC.Nouveau
             var g = new Grid { ColumnDefinitions = new ColumnDefinitions("*,110,110") };
             for (int i = 0; i <= lignes.Length; i++) g.RowDefinitions.Add(new RowDefinition(GridLength.Auto));
             // colonne Premium mise en valeur
-            var fond = new Border { Background = Habillage.Pinceau(P.Accent, P.Sombre ? 22 : 16), CornerRadius = new CornerRadius(3) };
+            var fond = new Border { Background = Habillage.Pinceau(P.Accent, P.Sombre ? 22 : 16), CornerRadius = Habillage.Rayon(3) };
             Grid.SetColumn(fond, 2); Grid.SetRowSpan(fond, lignes.Length + 1); g.Children.Add(fond);
             var tg = new TextBlock { Text = Langue.T("Gratuit"), FontFamily = Habillage.Console, FontSize = 11, Foreground = Habillage.Pinceau(P.Discret), HorizontalAlignment = HorizontalAlignment.Center, Margin = new Thickness(0, 12) };
             Grid.SetColumn(tg, 1); g.Children.Add(tg);
             var tp = new Border
             {
                 Child = new TextBlock { Text = "Premium", FontFamily = Habillage.Console, FontSize = 11, FontWeight = FontWeight.Bold, Foreground = Habillage.Pinceau(P.SurAccent) },
-                Background = Habillage.DegradeAccent(), CornerRadius = new CornerRadius(2), Padding = new Thickness(10, 3), HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center,
+                Background = Habillage.DegradeAccent(), CornerRadius = Habillage.Rayon(2), Padding = new Thickness(10, 3), HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center,
             };
             Grid.SetColumn(tp, 2); g.Children.Add(tp);
             for (int i = 0; i < lignes.Length; i++)
@@ -234,7 +234,7 @@ namespace NettoyagePC.Nouveau
                     Grid.SetRow(m, i + 1); Grid.SetColumn(m, c); g.Children.Add(m);
                 }
             }
-            return new Border { Child = g, MaxWidth = 820, HorizontalAlignment = HorizontalAlignment.Left, Padding = new Thickness(20, 4, 12, 8), CornerRadius = new CornerRadius(3), Background = Habillage.Pinceau(P.Carte), BorderBrush = Habillage.Pinceau(P.Bordure), BorderThickness = new Thickness(1) };
+            return new Border { Child = g, MaxWidth = 820, HorizontalAlignment = HorizontalAlignment.Left, Padding = new Thickness(20, 4, 12, 8), CornerRadius = Habillage.Rayon(3), Background = Habillage.Pinceau(P.Carte), BorderBrush = Habillage.Pinceau(P.Bordure), BorderThickness = new Thickness(1) };
         }
 
         private void GererLicence()

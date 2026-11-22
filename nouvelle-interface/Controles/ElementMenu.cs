@@ -48,6 +48,7 @@ namespace NettoyagePC.Nouveau
 
         public override void Render(DrawingContext ctx)
         {
+            if (Habillage.Arrondi) { RenderArrondi(ctx); return; }
             var A = Habillage.P.AccentBarre;           // la barre reste sombre : accent lumineux dans les deux thèmes
             Color discret = Color.FromRgb(120, 142, 162), texte = Habillage.Melanger(Color.FromRgb(200, 216, 230), Colors.White, Math.Max(vActif, survol));
             var r = new Rect(12, 3, Bounds.Width - 24, Bounds.Height - 6);
@@ -98,6 +99,60 @@ namespace NettoyagePC.Nouveau
                 ctx.DrawText(p, new Point(rp.X + (lp - p.Width) / 2, rp.Y + (20 - p.Height) / 2));
             }
             if (IsFocused) ctx.DrawRectangle(null, new Pen(Habillage.Pinceau(A, 150), 1, new DashStyle(new double[] { 2, 2 }, 0)), new RoundedRect(r.Deflate(2), 2));
+        }
+
+        /// <summary>Style arrondi : icône dans une petite case, nom en minuscules ; la rubrique active est une pastille au
+        /// dégradé violet-rose, avec un léger halo. Le groupe du bas (Mises à jour, Historique, Réglages) est plus discret.</summary>
+        private void RenderArrondi(DrawingContext ctx)
+        {
+            var P = Habillage.P;
+            Color a1 = P.AccentBarre, a2 = P.Sombre ? P.Accent2 : Habillage.Melanger(P.Accent2, Colors.White, 0.15);
+            bool principal = Numero > 0;
+            var r = new Rect(10, principal ? 3 : 2, Bounds.Width - 20, Bounds.Height - (principal ? 6 : 4));
+            double rayon = principal ? 13 : 10;
+            if (survol > 0.01 && vActif < 0.99) ctx.DrawRectangle(Habillage.Pinceau(Colors.White, (int)(14 * survol * (1 - vActif))), null, new RoundedRect(r, rayon));
+            if (vActif > 0.01)
+            {
+                // halo : deux contours translucides, puis la pastille en dégradé
+                ctx.DrawRectangle(Habillage.Pinceau(a1, (int)(22 * vActif)), null, new RoundedRect(r.Inflate(4), rayon + 4));
+                ctx.DrawRectangle(Habillage.Pinceau(a1, (int)(34 * vActif)), null, new RoundedRect(r.Inflate(2), rayon + 2));
+                var fond = new LinearGradientBrush
+                {
+                    StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative), EndPoint = new RelativePoint(1, 0, RelativeUnit.Relative),
+                    GradientStops = { new GradientStop(Habillage.Alpha(a1, (int)(255 * vActif)), 0), new GradientStop(Habillage.Alpha(a2, (int)(255 * vActif)), 1) },
+                };
+                ctx.DrawRectangle(fond, null, new RoundedRect(r, rayon));
+            }
+            Color texte = Habillage.Melanger(Habillage.Melanger(Color.FromRgb(198, 193, 238), Colors.White, survol * 0.6), Colors.White, vActif);
+            double x = r.X + 12;
+            if (principal)
+            {
+                var caseIcone = new Rect(x, r.Y + (r.Height - 30) / 2, 30, 30);
+                ctx.DrawRectangle(Habillage.Pinceau(Habillage.Melanger(Color.FromRgb(19, 21, 48), Colors.White, 0.13 * vActif)),
+                    vActif > 0.5 ? null : new Pen(Habillage.Pinceau(Color.FromRgb(40, 43, 78)), 1), new RoundedRect(caseIcone.Deflate(0.5), 9));
+                Icones5.Dessiner(ctx, Cle, caseIcone.Deflate(7), texte, 1.8);
+                x = caseIcone.Right + 12;
+            }
+            else
+            {
+                Icones5.Dessiner(ctx, Cle, new Rect(x + 1, (Bounds.Height - 17) / 2, 17, 17), Habillage.Melanger(Color.FromRgb(150, 145, 196), texte, Math.Max(vActif, survol)), 1.7);
+                x += 28;
+            }
+            var nom = new FormattedText(Nom, CultureInfo.CurrentCulture, FlowDirection.LeftToRight,
+                new Typeface(Habillage.Corps, FontStyle.Normal, actif ? FontWeight.SemiBold : FontWeight.Normal), principal ? 14.5 : 13,
+                Habillage.Pinceau(principal ? texte : Habillage.Melanger(Color.FromRgb(160, 155, 205), Colors.White, Math.Max(vActif, survol * 0.6))))
+            { MaxTextWidth = Math.Max(10, r.Right - x - (Pastille != "" ? 46 : 6)), Trimming = TextTrimming.CharacterEllipsis, MaxLineCount = 1 };
+            ctx.DrawText(nom, new Point(x, (Bounds.Height - nom.Height) / 2));
+            if (Pastille != "")
+            {
+                var p = new FormattedText(Pastille, CultureInfo.CurrentCulture, FlowDirection.LeftToRight, new Typeface(Habillage.Corps, FontStyle.Normal, FontWeight.Bold), 10,
+                    Habillage.Pinceau(actif ? Colors.White : Color.FromRgb(201, 184, 255)));
+                double lp = Math.Max(30, p.Width + 14);
+                var rp = new Rect(r.Right - 10 - lp, (Bounds.Height - 19) / 2, lp, 19);
+                ctx.DrawRectangle(actif ? Habillage.Pinceau(Colors.White, 55) : Habillage.Pinceau(Color.FromRgb(42, 31, 85)), null, new RoundedRect(rp, 7));
+                ctx.DrawText(p, new Point(rp.X + (lp - p.Width) / 2, rp.Y + (19 - p.Height) / 2));
+            }
+            if (IsFocused) ctx.DrawRectangle(null, new Pen(Habillage.Pinceau(Colors.White, 150), 1, new DashStyle(new double[] { 2, 2 }, 0)), new RoundedRect(r.Deflate(2), rayon - 2));
         }
     }
 }

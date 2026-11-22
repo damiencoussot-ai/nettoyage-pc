@@ -93,7 +93,7 @@ namespace NettoyagePC.Nouveau
                 Grid.SetColumn(boutons, 1); g.Children.Add(boutons);
                 liste.Children.Add(new Border
                 {
-                    Child = g, Padding = new Thickness(16, 12), CornerRadius = new CornerRadius(3),
+                    Child = g, Padding = new Thickness(16, 12), CornerRadius = Habillage.Rayon(3),
                     Background = Habillage.Pinceau(P.Carte), BorderBrush = Habillage.Pinceau(conf ? P.Bordure : Habillage.Alpha(P.Orange, 120)), BorderThickness = new Thickness(1),
                 });
             }

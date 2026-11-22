@@ -68,7 +68,7 @@ namespace NettoyagePC.Nouveau
             tableau = new Tableau(false, false, new Colonne("Date", "145", false, true), new Colonne("Note", "1.4*"), new Colonne("Processeur 1 cœur", "118", true, true), new Colonne("Tous les cœurs", "108", true, true),
                 new Colonne("Mémoire", "90", true, true), new Colonne("Disque lecture", "102", true, true), new Colonne("Disque écriture", "108", true, true), new Colonne("Accès 4 Ko", "86", true, true));
             tableau.HauteurListe = 260;
-            Children.Add(new Border { Child = tableau, BorderBrush = Habillage.Pinceau(P.Bordure), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(3), ClipToBounds = true });
+            Children.Add(new Border { Child = tableau, BorderBrush = Habillage.Pinceau(P.Bordure), BorderThickness = new Thickness(1), CornerRadius = Habillage.Rayon(3), ClipToBounds = true });
             tComparaison = new TextBlock { FontFamily = Habillage.Corps, FontSize = 13, LineHeight = 20, Foreground = Habillage.Pinceau(P.Texte), TextWrapping = TextWrapping.Wrap };
             Children.Add(tComparaison);
             AttachedToVisualTree += (o, e) => Afficher();

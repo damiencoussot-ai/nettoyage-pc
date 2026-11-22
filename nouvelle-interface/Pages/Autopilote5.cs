@@ -155,7 +155,7 @@ namespace NettoyagePC.Nouveau
                     });
                 }
                 bloc.Children.Add(refaire);
-                s.Children.Add(new Border { Child = bloc, Padding = new Thickness(14, 12), CornerRadius = new CornerRadius(4), BorderThickness = new Thickness(1), BorderBrush = Habillage.Pinceau(P.Bordure), Background = Habillage.Pinceau(P.Accent, P.Sombre ? 8 : 6) });
+                s.Children.Add(new Border { Child = bloc, Padding = new Thickness(14, 12), CornerRadius = Habillage.Rayon(4), BorderThickness = new Thickness(1), BorderBrush = Habillage.Pinceau(P.Bordure), Background = Habillage.Pinceau(P.Accent, P.Sombre ? 8 : 6) });
             }
         }
 

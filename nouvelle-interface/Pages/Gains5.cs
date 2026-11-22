@@ -79,7 +79,7 @@ namespace NettoyagePC.Nouveau
             {
                 var suite = new Border
                 {
-                    Padding = new Thickness(14, 10), CornerRadius = new CornerRadius(3), Background = Habillage.Pinceau(P.Carte), BorderBrush = Habillage.Pinceau(P.Accent, 90), BorderThickness = new Thickness(1),
+                    Padding = new Thickness(14, 10), CornerRadius = Habillage.Rayon(3), Background = Habillage.Pinceau(P.Carte), BorderBrush = Habillage.Pinceau(P.Accent, 90), BorderThickness = new Thickness(1),
                     Child = new TextBlock
                     {
                         Text = Langue.F("Pour aller plus loin : {0} programme(s) au démarrage peuvent attendre que tu les ouvres. Les désactiver accélère le démarrage de Windows.", attendre),

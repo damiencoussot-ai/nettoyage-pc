@@ -106,7 +106,7 @@ namespace NettoyagePC.Nouveau
         }
 
         private static TextBlock Etiquette(string t) { return new TextBlock { Text = Langue.T(t), FontFamily = Habillage.Corps, FontSize = 13.5, Foreground = Habillage.Pinceau(Habillage.P.Texte), VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 8, 6) }; }
-        private static Control Cadre(Control c) { return new Border { Child = c, BorderBrush = Habillage.Pinceau(Habillage.P.Bordure), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(3), ClipToBounds = true }; }
+        private static Control Cadre(Control c) { return new Border { Child = c, BorderBrush = Habillage.Pinceau(Habillage.P.Bordure), BorderThickness = new Thickness(1), CornerRadius = Habillage.Rayon(3), ClipToBounds = true }; }
         private void Info(string t, Color? c = null) { info.Text = t; info.Foreground = Habillage.Pinceau(c ?? Habillage.P.Discret); }
 
         private void Rechercher()
@@ -256,7 +256,7 @@ namespace NettoyagePC.Nouveau
                 foreach (var c in l.Supprimer) liste.Children.Add(new TextBlock { Text = "      →  " + Langue.T("corbeille :") + " " + c, FontFamily = Habillage.Corps, FontSize = 12.5, Foreground = Habillage.Pinceau(P.Rouge), TextWrapping = TextWrapping.Wrap });
                 liste.Children.Add(new TextBlock { Text = "      (" + Langue.F("{0} chacun", Format.Taille(l.Taille)) + ")", FontFamily = Habillage.Corps, FontSize = 11.5, Foreground = Habillage.Pinceau(P.Discret), Margin = new Thickness(0, 0, 0, 6) });
             }
-            s.Children.Add(new Border { Child = new ScrollViewer { Content = new Border { Child = liste, Padding = new Thickness(12, 10) }, MaxHeight = 340 }, Background = Habillage.Pinceau(P.Carte), BorderBrush = Habillage.Pinceau(P.Bordure), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(3) });
+            s.Children.Add(new Border { Child = new ScrollViewer { Content = new Border { Child = liste, Padding = new Thickness(12, 10) }, MaxHeight = 340 }, Background = Habillage.Pinceau(P.Carte), BorderBrush = Habillage.Pinceau(P.Bordure), BorderThickness = new Thickness(1), CornerRadius = Habillage.Rayon(3) });
             var verifie = new CheckBox { Content = new TextBlock { Text = Langue.T("J'ai vérifié la liste"), FontFamily = Habillage.Corps, FontSize = 13.5 } };
             s.Children.Add(verifie);
             var bOk = new BoutonNoyau(Langue.F("Mettre {0} fichier(s) à la corbeille", nb), true, 0, 38) { TaillePolice = 14, IsEnabled = false, HorizontalAlignment = HorizontalAlignment.Left };

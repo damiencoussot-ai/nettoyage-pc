@@ -117,7 +117,7 @@ namespace NettoyagePC.Nouveau
             var P = Habillage.P;
             var c = Couleur(e);
             var s = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
-            s.Children.Add(new Border { Width = 8, Height = 8, CornerRadius = new CornerRadius(4), Background = Habillage.Pinceau(c), VerticalAlignment = VerticalAlignment.Center });
+            s.Children.Add(new Border { Width = 8, Height = 8, CornerRadius = Habillage.Rayon(4), Background = Habillage.Pinceau(c), VerticalAlignment = VerticalAlignment.Center });
             s.Children.Add(new TextBlock { Text = Langue.T(e.Nom), FontFamily = Habillage.Corps, FontSize = 12.5, Foreground = Habillage.Pinceau(e.Actif || !e.Ok ? P.Texte : P.Discret), VerticalAlignment = VerticalAlignment.Center });
             s.Children.Add(new TextBlock { Text = TexteEtat(e), FontFamily = Habillage.Console, FontSize = 10.5, Foreground = Habillage.Pinceau(c), VerticalAlignment = VerticalAlignment.Center });
             var b = new Border
@@ -189,7 +189,7 @@ namespace NettoyagePC.Nouveau
             Grid.SetColumn(s, 1); g.Children.Add(s);
             var action = Bouton(f, e, fermer);
             if (action != null) { Grid.SetColumn(action, 2); g.Children.Add(action); }
-            return new Border { Child = g, Padding = new Thickness(14, 11), CornerRadius = new CornerRadius(3), Background = Habillage.Pinceau(P.Carte), BorderBrush = Habillage.Pinceau(e.Ok ? P.Bordure : Habillage.Alpha(P.Orange, 120)), BorderThickness = new Thickness(1) };
+            return new Border { Child = g, Padding = new Thickness(14, 11), CornerRadius = Habillage.Rayon(3), Background = Habillage.Pinceau(P.Carte), BorderBrush = Habillage.Pinceau(e.Ok ? P.Bordure : Habillage.Alpha(P.Orange, 120)), BorderThickness = new Thickness(1) };
         }
 
         /// <summary>Bouton à droite : la correction s'il y a un problème, sinon « Régler » vers l'endroit qui gère la fonction.</summary>

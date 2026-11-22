@@ -35,7 +35,7 @@ namespace NettoyagePC.Nouveau
             tableau = new Tableau(true, false, new Colonne("Application", "1.6*"), new Colonne("Pourquoi", "3*"), new Colonne("Conseil", "110"));
             tableau.HauteurListe = 360;
             tableau.CaseChangee = (o, v) => { if (travail) return false; var x = (Tuple<Paquet, AppInutile>)o; if (v) coches.Add(x); else coches.Remove(x); Compter(); return true; };
-            Children.Add(new Border { Child = tableau, BorderBrush = Habillage.Pinceau(P.Bordure), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(3), ClipToBounds = true });
+            Children.Add(new Border { Child = tableau, BorderBrush = Habillage.Pinceau(P.Bordure), BorderThickness = new Thickness(1), CornerRadius = Habillage.Rayon(3), ClipToBounds = true });
             info = new TextBlock { Text = Langue.T("Recherche des applications installées…"), FontFamily = Habillage.Corps, FontSize = 13, Foreground = Habillage.Pinceau(P.Accent), TextWrapping = TextWrapping.Wrap };
             Children.Add(info);
             bRetirer = new BoutonNoyau("Retirer les applications cochées", true, 0, 38) { TaillePolice = 14, IsEnabled = false, HorizontalAlignment = HorizontalAlignment.Left };

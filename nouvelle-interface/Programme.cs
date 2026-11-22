@@ -137,7 +137,7 @@ namespace NettoyagePC.Nouveau
                 App.Pseudo = reglages.Pseudo ?? "";
                 App.ModeSimple = reglages.ModeSimple;
                 App.ProfilCree = reglages.ProfilCree || !string.IsNullOrEmpty(reglages.Pseudo);
-                Habillage.Hud = reglages.Style != "classique";
+                Habillage.ChoisirStyle(reglages.Style);
                 Habillage.Gamer = reglages.ProfilUsage == "gamer";
                 Sons5.Actifs = reglages.SonsGamer;   // profil Gamer : néon, ligne RGB, QG GAMER
                 Habillage.P = Palette.Pour(!(reglages.Theme == "Clair" || (reglages.Theme == "Auto" && WindowsEnClair())));
@@ -835,6 +835,22 @@ namespace NettoyagePC.Nouveau
                             "réécoute : 3 s rejouées sans puis avec Velox (écart de volume " + ecartRe.ToString("F2", ci) + " dB), une seconde de silence entre les deux, puis retour au direct");
                     }
                     {
+                        // 5.22 : style arrondi par défaut ; le HUD écrit par défaut jusqu'à la 5.21 passe à l'arrondi, un choix explicite reste
+                        Func<string, Parametres> lireP = j => Parametres.Depuis(NettoyagePC.Json.Lire(j) as System.Collections.Generic.Dictionary<string, object>);
+                        bool migration = lireP("{}").Style == "arrondi" && lireP("{\"Style\":\"hud\"}").Style == "arrondi"
+                            && lireP("{\"Style\":\"hud\",\"StyleChoisi\":true}").Style == "hud" && lireP("{\"Style\":\"classique\"}").Style == "classique"
+                            && lireP("{\"Style\":\"n'importe quoi\"}").Style == "arrondi" && lireP("{\"Style\":\"arrondi\",\"StyleChoisi\":true}").StyleChoisi;
+                        bool h0 = Habillage.Hud, a0 = Habillage.Arrondi;
+                        Habillage.ChoisirStyle("hud"); bool sHud = Habillage.Hud && !Habillage.Arrondi && Habillage.NomStyle == "hud" && Habillage.Rayon(3).TopLeft == 3;
+                        Habillage.ChoisirStyle("classique"); bool sCla = !Habillage.Hud && !Habillage.Arrondi && Habillage.NomStyle == "classique";
+                        Habillage.ChoisirStyle("autre"); bool sArr = !Habillage.Hud && Habillage.Arrondi && Habillage.NomStyle == "arrondi" && Habillage.Rayon(3).TopLeft == 12 && Habillage.Rayon(2).TopLeft == 8
+                            && Palette.Pour(true) == Palette.SombreArrondi && Palette.Pour(false) == Palette.ClairArrondi;
+                        Habillage.Hud = h0; Habillage.Arrondi = a0;
+                        verifier(migration && sHud && sCla && sArr, "style de l'interface : arrondi par défaut, ancien HUD par défaut migré, choix explicite gardé, rayons et palettes");
+                        verifier(new[] { "Accueil", "Nettoyer", "Accelerer", "Proteger", "Outils", "Premium", "Audio", "MisesAJour", "Historique", "Reglages" }.All(Icones5.Existe),
+                            "icônes du menu arrondi : une par rubrique");
+                    }
+                    {
                         // « Dernières parties » : suivi dans le moteur, ligne du journal, lignes abîmées refusées
                         var suiviP = new SuiviPartie(); var t0 = new DateTime(2026, 11, 21, 20, 0, 0);
                         bool rien = suiviP.Relever(t0, "", 1, 65, 0, 0) == null && suiviP.Relever(t0.AddSeconds(1), "cod", 1, 65, 10, 20) == null
@@ -1311,12 +1327,15 @@ namespace NettoyagePC.Nouveau
             // style classique (l'apparence d'avant la 5.5), pour comparer
             try
             {
-                Habillage.Hud = false; f.ChangerTheme(true); f.Afficher("Accueil", false);
-                for (int k = 0; k < 6; k++) { Dispatcher.UIThread.RunJobs(); AvaloniaHeadlessPlatform.ForceRenderTimerTick(); }
-                Capturer(f, dossier, "classique-Accueil.png", rapport, ref erreurs);
+                foreach (var st in new[] { "classique", "hud" })
+                {
+                    Habillage.ChoisirStyle(st); f.ChangerTheme(true); f.Afficher("Accueil", false);
+                    for (int k = 0; k < 6; k++) { Dispatcher.UIThread.RunJobs(); AvaloniaHeadlessPlatform.ForceRenderTimerTick(); }
+                    Capturer(f, dossier, st + "-Accueil.png", rapport, ref erreurs);
+                }
             }
-            catch (Exception ex) { erreurs++; rapport.AppendLine("ERREUR : style classique : " + ex); }
-            finally { Habillage.Hud = true; }
+            catch (Exception ex) { erreurs++; rapport.AppendLine("ERREUR : styles classique et HUD : " + ex); }
+            finally { Habillage.ChoisirStyle("arrondi"); f.ChangerTheme(true); }
             foreach (var sombre in new[] { true, false })
             {
                 f.ChangerTheme(sombre);
@@ -1938,7 +1957,8 @@ namespace NettoyagePC.Nouveau
                 for (int k = 0; k < 3; k++) Dispatcher.UIThread.RunJobs();
                 foreach (var tb in f.GetVisualDescendants().OfType<TextBox>()) tb.Text = "audio";
                 for (int k = 0; k < 3; k++) Dispatcher.UIThread.RunJobs();
-                bool recherche = f.GetVisualDescendants().OfType<TextBlock>().Any(t => t.Text == "Audio jeu") && f.GetVisualDescendants().OfType<TextBlock>().Any(t => t.Text == "Audio");
+                var dansPalette = f.GetVisualDescendants().OfType<PaletteCommandes>().SelectMany(x => x.GetVisualDescendants().OfType<TextBlock>()).ToList();
+                bool recherche = dansPalette.Any(t => t.Text == "Audio jeu") && dansPalette.Any(t => t.Text == "Studio son");
                 foreach (var tb in f.GetVisualDescendants().OfType<TextBox>()) tb.Text = "entends pas les pas";
                 for (int k = 0; k < 3; k++) Dispatcher.UIThread.RunJobs();
                 bool probleme = f.GetVisualDescendants().OfType<TextBlock>().Any(t => t.Text == "Je n'entends pas les pas");

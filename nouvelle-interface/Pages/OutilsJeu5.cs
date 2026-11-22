@@ -77,7 +77,7 @@ namespace NettoyagePC.Nouveau
                 Color c = !ok ? P.Discret : r.Min <= 30 ? P.Vert : r.Min <= 100 ? P.Accent : P.Orange;
                 var ms = new TextBlock { Text = r == null ? (enMesure == reg[2] ? "…" : "—") : ok ? Math.Round(r.Min) + " ms" : "—", FontFamily = Habillage.Console, FontSize = 13.5, FontWeight = FontWeight.SemiBold, Foreground = Habillage.Pinceau(ok ? c : P.Discret), VerticalAlignment = VerticalAlignment.Center, HorizontalAlignment = HorizontalAlignment.Right, Margin = new Thickness(0, 0, 14, 0) };
                 Grid.SetColumn(ms, 1); g.Children.Add(ms);
-                var fond = new Border { Height = 8, CornerRadius = new CornerRadius(4), Background = Habillage.Pinceau(P.Bordure), VerticalAlignment = VerticalAlignment.Center };
+                var fond = new Border { Height = 8, CornerRadius = Habillage.Rayon(4), Background = Habillage.Pinceau(P.Bordure), VerticalAlignment = VerticalAlignment.Center };
                 var piste = new Grid(); piste.Children.Add(fond);
                 if (ok)
                 {
@@ -85,7 +85,7 @@ namespace NettoyagePC.Nouveau
                     var jauge = new Grid();
                     jauge.ColumnDefinitions.Add(new ColumnDefinition(part, GridUnitType.Star));
                     jauge.ColumnDefinitions.Add(new ColumnDefinition(1 - part, GridUnitType.Star));
-                    jauge.Children.Add(new Border { Height = 8, CornerRadius = new CornerRadius(4), Background = Habillage.Pinceau(c), VerticalAlignment = VerticalAlignment.Center });
+                    jauge.Children.Add(new Border { Height = 8, CornerRadius = Habillage.Rayon(4), Background = Habillage.Pinceau(c), VerticalAlignment = VerticalAlignment.Center });
                     piste.Children.Add(jauge);
                 }
                 Grid.SetColumn(piste, 2); g.Children.Add(piste);
@@ -163,7 +163,7 @@ namespace NettoyagePC.Nouveau
             tableau = new Tableau(false, false, new Colonne("Jeu", "2.4*"), new Colonne("Plateforme", "1.1*"),
                 new Colonne("Place", "110", true, true, o => -((Jeu)o).Taille), new Colonne("Disque", "70", false, true));
             tableau.HauteurListe = 380;
-            Children.Add(new Border { Child = tableau, BorderBrush = Habillage.Pinceau(P.Bordure), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(3), ClipToBounds = true });
+            Children.Add(new Border { Child = tableau, BorderBrush = Habillage.Pinceau(P.Bordure), BorderThickness = new Thickness(1), CornerRadius = Habillage.Rayon(3), ClipToBounds = true });
             var boutons = new WrapPanel { Orientation = Orientation.Horizontal };
             bLancer = new BoutonNoyau("Lancer le jeu", true, 0, 36) { TaillePolice = 13.5, IsEnabled = false, Margin = new Thickness(0, 0, 10, 6) };
             bDossier = new BoutonNoyau("Ouvrir son dossier", false, 0, 36) { TaillePolice = 13.5, IsEnabled = false, Margin = new Thickness(0, 0, 10, 6) };
@@ -300,7 +300,7 @@ namespace NettoyagePC.Nouveau
             var b = new Border
             {
                 Child = new TextBlock { Text = texte, FontFamily = Habillage.Affichage, FontSize = 15, FontWeight = FontWeight.SemiBold, Foreground = Habillage.Pinceau(P.Texte) },
-                Padding = new Thickness(18, 9), Margin = new Thickness(0, 0, 10, 8), CornerRadius = new CornerRadius(4), BorderThickness = new Thickness(1.5), Background = Habillage.Pinceau(P.Carte),
+                Padding = new Thickness(18, 9), Margin = new Thickness(0, 0, 10, 8), CornerRadius = Habillage.Rayon(4), BorderThickness = new Thickness(1.5), Background = Habillage.Pinceau(P.Carte),
                 Cursor = new Avalonia.Input.Cursor(Avalonia.Input.StandardCursorType.Hand),
             };
             b.PointerReleased += (o, e) => clic();

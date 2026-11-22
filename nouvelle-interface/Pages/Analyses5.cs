@@ -27,7 +27,7 @@ namespace NettoyagePC.Nouveau
             libelle = new TextBlock { Text = Langue.T(titre), FontFamily = Habillage.Corps, FontSize = 12, Foreground = Habillage.Pinceau(P.Discret), TextWrapping = TextWrapping.Wrap };
             s.Children.Add(valeur); s.Children.Add(libelle);
             Grid.SetColumn(s, 1); g.Children.Add(s);
-            Child = g; Padding = new Thickness(10, 10, 14, 10); CornerRadius = new CornerRadius(3); Margin = new Thickness(0, 0, 10, 0);
+            Child = g; Padding = new Thickness(10, 10, 14, 10); CornerRadius = Habillage.Rayon(3); Margin = new Thickness(0, 0, 10, 0);
             Background = Habillage.Pinceau(P.Carte); BorderBrush = Habillage.Pinceau(P.Bordure); BorderThickness = new Thickness(1);
         }
         /// <summary>niveau : 0 normal, 1 orange, 2 rouge, 3 vert.</summary>
@@ -166,7 +166,7 @@ namespace NettoyagePC.Nouveau
             tableau = new Tableau(false, false, new Colonne("Quoi", "2.6*"), new Colonne("Type", "1.3*"), new Colonne("Fois", "60", true, true, o => ((LigneAnalyse)o).Nombre), new Colonne("Dernière fois", "150", false, true));
             tableau.HauteurListe = 220;
             tableau.SelectionChangee += () => { var l = tableau.Selection as LigneAnalyse; if (l != null) tDetail.Text = l.Detail; };
-            Children.Add(new Border { Child = tableau, BorderBrush = Habillage.Pinceau(P.Bordure), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(3), ClipToBounds = true });
+            Children.Add(new Border { Child = tableau, BorderBrush = Habillage.Pinceau(P.Bordure), BorderThickness = new Thickness(1), CornerRadius = Habillage.Rayon(3), ClipToBounds = true });
             tDetail = new TextBlock { Text = Langue.T("Clique sur une ligne pour voir l'explication."), FontFamily = Habillage.Corps, FontSize = 13, Foreground = Habillage.Pinceau(P.Discret), TextWrapping = TextWrapping.Wrap };
             Children.Add(tDetail);
             tTitreConseils = Premium5.Titre("Que faire ?"); tTitreConseils.IsVisible = false;
@@ -254,7 +254,7 @@ namespace NettoyagePC.Nouveau
             tableau = new Tableau(false, false, new Colonne("Ce qui ralentit le démarrage", "2.6*"), new Colonne("Type", "1.1*"), new Colonne("Retard moyen", "110", true, true, o => ((LigneAnalyse)o).Valeur),
                 new Colonne("Fois", "60", true, true, o => ((LigneAnalyse)o).Nombre), new Colonne("Dernière fois", "120", false, true));
             tableau.HauteurListe = 220;
-            Children.Add(new Border { Child = tableau, BorderBrush = Habillage.Pinceau(P.Bordure), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(3), ClipToBounds = true });
+            Children.Add(new Border { Child = tableau, BorderBrush = Habillage.Pinceau(P.Bordure), BorderThickness = new Thickness(1), CornerRadius = Habillage.Rayon(3), ClipToBounds = true });
             var bas = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 10 };
             var bDemarrage = new BoutonNoyau("Gérer les programmes au démarrage", false, 0, 34) { TaillePolice = 13 };
             bDemarrage.Clic += () => { if (fenetre != null) fenetre.Fermer(); F.Executer("page:Demarrage", "Démarrage"); };

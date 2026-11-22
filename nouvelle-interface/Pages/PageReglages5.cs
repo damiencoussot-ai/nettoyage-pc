@@ -39,8 +39,9 @@ namespace NettoyagePC.Nouveau
             {
                 CarteAction.Code("Profil d'utilisation", Langue.T("Gamer, Bureautique ou PC familial : règle d'un coup tes favoris et ce que le gardien surveille.") + (Profils5.Actuel() != "" ? " " + Langue.F("Actuellement : {0}.", Profils5.Actuel()) : ""),
                     "Choisir un profil", () => Profils5.Ouvrir(f), true),
-                CarteAction.Code("Style de l'interface", Langue.T("HUD : le look futuriste, depuis la version 5.5. Classique : l'apparence d'avant. Tes outils, tes favoris et tes réglages restent les mêmes.") + " " + Langue.F("Actuellement : {0}.", Langue.T(Habillage.Hud ? "HUD" : "Classique")),
-                    Habillage.Hud ? "Passer au style classique" : "Passer au style HUD", () => { f.ChangerStyle(!Habillage.Hud); f.Afficher("Reglages", false); }, true),
+                CarteAction.Code("Style de l'interface", Langue.T("Arrondi : le look clair et doux, depuis la version 5.22. HUD : le look futuriste de la 5.5. Classique : l'apparence d'avant. Tes outils, tes favoris et tes réglages restent les mêmes.") + " " + Langue.F("Actuellement : {0}.", Langue.T(Habillage.Arrondi ? "Arrondi" : Habillage.Hud ? "HUD" : "Classique")),
+                    Habillage.Arrondi ? "Passer au style HUD" : Habillage.Hud ? "Passer au style classique" : "Passer au style arrondi",
+                    () => { f.ChangerStyle(Habillage.Arrondi ? "hud" : Habillage.Hud ? "classique" : "arrondi"); f.Afficher("Reglages", false); }, true),
                 CarteAction.Code("Corbeille pendant le nettoyage", Langue.T("Par défaut, le nettoyage ne touche pas à la Corbeille : ce que tu y as mis reste récupérable. Tu peux demander à Velox de la vider à chaque nettoyage pour libérer plus d'espace.") + " " + Langue.T(r.ViderCorbeille ? "Actuellement : la Corbeille est vidée à chaque nettoyage." : "Actuellement : la Corbeille n'est jamais vidée par Velox."),
                     r.ViderCorbeille ? "Ne plus la vider" : "Vider la Corbeille", () =>
                     {
@@ -109,7 +110,7 @@ namespace NettoyagePC.Nouveau
                 });
             };
             s.Children.Add(cb);
-            return new Border { Child = s, Padding = new Thickness(20, 18), CornerRadius = new CornerRadius(3), Background = Habillage.Pinceau(P.Carte), BorderBrush = Habillage.Pinceau(P.Bordure), BorderThickness = new Thickness(1), Margin = new Thickness(0, 0, 12, 0) };
+            return new Border { Child = s, Padding = new Thickness(20, 18), CornerRadius = Habillage.Rayon(3), Background = Habillage.Pinceau(P.Carte), BorderBrush = Habillage.Pinceau(P.Bordure), BorderThickness = new Thickness(1), Margin = new Thickness(0, 0, 12, 0) };
         }
 
         /// <summary>Couleur de l'interface : « Noyau » pour tous, les cinq autres avec Premium (mêmes couleurs que la version 4).</summary>
@@ -118,7 +119,7 @@ namespace NettoyagePC.Nouveau
             var P = Habillage.P;
             var s = new StackPanel { Spacing = 8 };
             s.Children.Add(new TextBlock { Text = Langue.T("Couleur de l'interface"), FontFamily = Habillage.Affichage, FontSize = 16.5, FontWeight = FontWeight.SemiBold, Foreground = Habillage.Pinceau(P.Texte) });
-            s.Children.Add(new TextBlock { Text = Langue.T("Noyau (cyan) est la couleur d'origine. Océan, Émeraude, Améthyste, Coucher de soleil et Rubis font partie de Premium."), FontFamily = Habillage.Corps, FontSize = 13, Foreground = Habillage.Pinceau(P.Discret), TextWrapping = TextWrapping.Wrap });
+            s.Children.Add(new TextBlock { Text = Langue.T(Habillage.Arrondi ? "Noyau (violet et rose) est la couleur d'origine. Océan, Émeraude, Améthyste, Coucher de soleil et Rubis font partie de Premium." : "Noyau (cyan) est la couleur d'origine. Océan, Émeraude, Améthyste, Coucher de soleil et Rubis font partie de Premium."), FontFamily = Habillage.Corps, FontSize = 13, Foreground = Habillage.Pinceau(P.Discret), TextWrapping = TextWrapping.Wrap });
             var rangee = new WrapPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 8, 0, 0) };
             foreach (var c in Habillage.Couleurs)
             {
@@ -130,7 +131,10 @@ namespace NettoyagePC.Nouveau
                     Background = new LinearGradientBrush
                     {
                         StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative), EndPoint = new RelativePoint(1, 1, RelativeUnit.Relative),
-                        GradientStops = { new GradientStop(P.Sombre ? c.Sombre1 : c.Clair1, 0), new GradientStop(P.Sombre ? c.Sombre2 : c.Clair2, 1) },
+                        // style arrondi : « Noyau » y est violet vers rose
+                        GradientStops = Habillage.Arrondi && c.Cle == "aurore"
+                            ? new GradientStops { new GradientStop(P.Sombre ? Color.FromRgb(124, 92, 255) : Color.FromRgb(98, 60, 230), 0), new GradientStop(P.Sombre ? Color.FromRgb(255, 63, 164) : Color.FromRgb(214, 30, 130), 1) }
+                            : new GradientStops { new GradientStop(P.Sombre ? c.Sombre1 : c.Clair1, 0), new GradientStop(P.Sombre ? c.Sombre2 : c.Clair2, 1) },
                     },
                     Opacity = verrou ? 0.55 : 1,
                 };
@@ -154,7 +158,7 @@ namespace NettoyagePC.Nouveau
                 rangee.Children.Add(element);
             }
             s.Children.Add(rangee);
-            return new Border { Child = s, Padding = new Thickness(20, 18), CornerRadius = new CornerRadius(3), Background = Habillage.Pinceau(P.Carte), BorderBrush = Habillage.Pinceau(P.Bordure), BorderThickness = new Thickness(1), Margin = new Thickness(0, 0, 12, 0) };
+            return new Border { Child = s, Padding = new Thickness(20, 18), CornerRadius = Habillage.Rayon(3), Background = Habillage.Pinceau(P.Carte), BorderBrush = Habillage.Pinceau(P.Bordure), BorderThickness = new Thickness(1), Margin = new Thickness(0, 0, 12, 0) };
         }
 
         /// <summary>Profil : le pseudo (24 caractères au plus), enregistré sur ce PC.</summary>

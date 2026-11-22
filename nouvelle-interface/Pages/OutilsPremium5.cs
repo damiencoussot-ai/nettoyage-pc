@@ -18,7 +18,7 @@ namespace NettoyagePC.Nouveau
     {
         public static TextBlock Intro(string t) { return new TextBlock { Text = Langue.T(t), FontFamily = Habillage.Corps, FontSize = 13.5, Foreground = Habillage.Pinceau(Habillage.P.Discret), TextWrapping = TextWrapping.Wrap }; }
         public static TextBlock Titre(string t) { return new TextBlock { Text = Langue.T(t), FontFamily = Habillage.Affichage, FontSize = 16, FontWeight = FontWeight.SemiBold, Foreground = Habillage.Pinceau(Habillage.P.Texte), TextWrapping = TextWrapping.Wrap }; }
-        public static Border Carte(Control c, Color? bord = null) { var P = Habillage.P; return new Border { Child = c, Padding = new Thickness(18, 14), CornerRadius = new CornerRadius(3), Background = Habillage.Pinceau(P.Carte), BorderBrush = Habillage.Pinceau(bord ?? P.Bordure), BorderThickness = new Thickness(1) }; }
+        public static Border Carte(Control c, Color? bord = null) { var P = Habillage.P; return new Border { Child = c, Padding = new Thickness(18, 14), CornerRadius = Habillage.Rayon(3), Background = Habillage.Pinceau(P.Carte), BorderBrush = Habillage.Pinceau(bord ?? P.Bordure), BorderThickness = new Thickness(1) }; }
 
         /// <summary>Cible d'un bouton d'outil : « action:cle », « page:Cle », « uri:... » (la fenêtre se ferme pour une rubrique).</summary>
         public static void Agir(FenetrePrincipale f, FenetreInterieure fenetre, string cible, string libelle)
@@ -208,7 +208,7 @@ namespace NettoyagePC.Nouveau
                 valeur = new TextBlock { Text = "—", FontFamily = Habillage.Affichage, FontSize = 24, FontWeight = FontWeight.SemiBold, Foreground = Habillage.Pinceau(P.Texte) };
                 libelle = new TextBlock { FontFamily = Habillage.Corps, FontSize = 12, Foreground = Habillage.Pinceau(P.Discret), TextWrapping = TextWrapping.Wrap };
                 s.Children.Add(valeur); s.Children.Add(libelle);
-                Child = s; Padding = new Thickness(14, 10); CornerRadius = new CornerRadius(3); Margin = new Thickness(0, 0, 10, 0);
+                Child = s; Padding = new Thickness(14, 10); CornerRadius = Habillage.Rayon(3); Margin = new Thickness(0, 0, 10, 0);
                 Background = Habillage.Pinceau(P.Carte); BorderBrush = Habillage.Pinceau(P.Bordure); BorderThickness = new Thickness(1);
             }
             public void Definir(double wh, string titre, string suite = "")

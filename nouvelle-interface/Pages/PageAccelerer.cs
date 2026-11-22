@@ -69,7 +69,7 @@ namespace NettoyagePC.Nouveau
                 CarteAction.Code("Réglages des jeux", "Mode jeu de Windows, planification matérielle du GPU, optimisations pour le jeu en fenêtré : l'état de chacun et un conseil.", "Voir les réglages", () => ReglagesWindows5.Jeux(f)),
                 CarteAction.Code("Boîte noire du jeu", "Ton jeu saccade ? Pendant les FPS en direct (Premium), Velox enregistre ta partie et t'explique chaque saccade : un programme en arrière-plan, la chaleur, la mémoire, le disque… avec le FPS minimum et une note de fluidité.", "Voir le rapport", () => BoiteNoire5.Ouvrir(f)),
                 CarteAction.Code("Autopilote du mode jeu", "Les optimiseurs promettent des FPS sans le vérifier. L'Autopilote (Premium) essaie chaque réglage sur tes vraies parties, avec et sans, et garde seulement ce qui marche sur ton PC, preuve à l'appui. Rien n'est jamais fermé.", "Ouvrir", () => Autopilote5.Ouvrir(f)),
-                CarteAction.Code("Audio jeu", "Entends mieux les pas et les recharges dans Call of Duty / Warzone (Premium) : le Studio son, dans la rubrique Audio. Profils d'égaliseur, spectre en direct, sorties audio et Voicemeeter. Le jeu n'est jamais touché, et tout s'annule dans l'Historique.", "Ouvrir le studio", () => AudioJeu5.Ouvrir(f)),
+                CarteAction.Code("Audio jeu", "Entends mieux les pas et les recharges dans Call of Duty / Warzone (Premium) : rubrique Studio son. Profils d'égaliseur, spectre en direct, sorties audio et Voicemeeter. Le jeu n'est jamais touché, et tout s'annule dans l'Historique.", "Ouvrir le studio", () => AudioJeu5.Ouvrir(f)),
                 CarteAction.Code("Ping des serveurs de jeu", "Le temps de réponse entre ton PC et les grandes régions de serveurs (Paris, Francfort, Londres, États-Unis…) : choisis la région la plus rapide dans tes jeux.", "Mesurer le ping", () => PingJeu5.Ouvrir(f)),
                 CarteAction.Code("Mes jeux", "Tous tes jeux installés (Steam, Epic, Xbox, Battle.net…) et la place qu'ils prennent : repère les plus gros quand le disque est plein, lance-les d'ici.", "Voir mes jeux", () => MesJeux5.Ouvrir(f)),
             }, "Jeux");
@@ -105,7 +105,7 @@ namespace NettoyagePC.Nouveau
             bAttendre = new BoutonNoyau("Désactiver ceux qui peuvent attendre", true, 300, 38) { TaillePolice = 14, IsVisible = false, Margin = new Thickness(18, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center };
             bAttendre.Clic += DesactiverCeuxQuiPeuventAttendre;
             Grid.SetColumn(bAttendre, 1); carte.Children.Add(bAttendre);
-            Children.Add(new Border { Child = carte, Padding = new Thickness(18, 14), CornerRadius = new CornerRadius(3), Background = Habillage.Pinceau(P.Carte), BorderBrush = Habillage.Pinceau(P.Accent, 90), BorderThickness = new Thickness(1) });
+            Children.Add(new Border { Child = carte, Padding = new Thickness(18, 14), CornerRadius = Habillage.Rayon(3), Background = Habillage.Pinceau(P.Carte), BorderBrush = Habillage.Pinceau(P.Accent, 90), BorderThickness = new Thickness(1) });
             Children.Add(new TextBlock { Text = "Décoche un programme pour l'empêcher de se lancer avec Windows. Rien n'est supprimé : recoche-le pour le réactiver. Effet au prochain démarrage.", FontFamily = Habillage.Corps, FontSize = 13.5, Foreground = Habillage.Pinceau(P.Discret), TextWrapping = TextWrapping.Wrap });
             tableau = new Tableau(true, false,
                 new Colonne("Programme", "1.5*"), new Colonne("État", "95"),
@@ -124,7 +124,7 @@ namespace NettoyagePC.Nouveau
                 detail.Text = el.Nom + " · " + Langue.T(c.TexteChoix) + " · " + Langue.T("impact") + " " + Langue.T(c.TexteImpact).ToLower(Langue.Culture) + " — " + Langue.T(c.Conseil);
                 detail.Foreground = Habillage.Pinceau(c.Choix == ChoixDemarrage.PeutAttendre ? Habillage.P.Accent : Habillage.P.Texte);
             };
-            Children.Add(new Border { Child = tableau, BorderBrush = Habillage.Pinceau(P.Bordure), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(3), ClipToBounds = true });
+            Children.Add(new Border { Child = tableau, BorderBrush = Habillage.Pinceau(P.Bordure), BorderThickness = new Thickness(1), CornerRadius = Habillage.Rayon(3), ClipToBounds = true });
             Children.Add(detail);
             info = new TextBlock { Text = "", FontFamily = Habillage.Corps, FontSize = 12.5, Foreground = Habillage.Pinceau(P.Discret), TextWrapping = TextWrapping.Wrap };
             var boutons = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 10 };
@@ -257,7 +257,7 @@ namespace NettoyagePC.Nouveau
                 new Colonne("Version", "1.2*"));
             tableau.HauteurListe = 440;
             tableau.DoubleClic += o => Desinstaller();
-            Children.Add(new Border { Child = tableau, BorderBrush = Habillage.Pinceau(P.Bordure), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(3), ClipToBounds = true });
+            Children.Add(new Border { Child = tableau, BorderBrush = Habillage.Pinceau(P.Bordure), BorderThickness = new Thickness(1), CornerRadius = Habillage.Rayon(3), ClipToBounds = true });
             var boutons = new WrapPanel { Orientation = Orientation.Horizontal };
             var bDes = new BoutonNoyau("Désinstaller", true, 140, 32) { TaillePolice = 13.5, Margin = new Thickness(0, 0, 10, 6) };
             bDes.Clic += Desinstaller;
