@@ -68,6 +68,8 @@ namespace NettoyagePC
         public bool AssistantFait;
         /// <summary>Studio son en mode Expert (tous les réglages) ; par défaut, mode Simple (l'essentiel seulement).</summary>
         public bool ModeExpert;
+        /// <summary>5.22 : le Studio son s'ouvre une fois sur l'écran simple (nouvel écran), même si Expert était resté choisi.</summary>
+        public bool SimpleVu;
         /// <summary>Moteur de l'égaliseur : « apo » (Equalizer APO) ou « vm » (égaliseur des bus de Voicemeeter Banana / Potato).</summary>
         public string Moteur = "apo";
         /// <summary>Bus de Voicemeeter égalisé (0 = A1), et bus dont Velox a allumé l'égaliseur (−1 : aucun).</summary>
@@ -145,7 +147,7 @@ namespace NettoyagePC
                 { "Actif", Actif }, { "Gains", Gains.Select(x => (object)x).ToArray() }, { "Intensite", Intensite }, { "Niveau", Niveau }, { "Balance", Balance },
                 { "Largeur", Largeur }, { "CoupeBas", CoupeBas }, { "Inversion", Inversion }, { "AutoJeu", AutoJeu }, { "Cible", Cible }, { "CibleEcrite", CibleEcrite },
                 { "Raccourcis", Raccourcis }, { "Moteur", Moteur }, { "BusVm", BusVm }, { "VmEcrit", VmEcrit }, { "AppareilVm", AppareilVm ?? "" },
-                { "SansEtiquetteVm", SansEtiquetteVm }, { "AssistantFait", AssistantFait }, { "ModeExpert", ModeExpert },
+                { "SansEtiquetteVm", SansEtiquetteVm }, { "AssistantFait", AssistantFait }, { "ModeExpert", ModeExpert }, { "SimpleVu", SimpleVu },
                 { "ProfilParJeu", ProfilParJeu }, { "JeuEnCours", JeuEnCours ?? "" },
                 { "GainsParJeu", (GainsParJeu ?? new Dictionary<string, double[]>()).ToDictionary(kv => kv.Key, kv => (object)kv.Value.Select(x => (object)x).ToArray()) },
                 { "OreilleG", OreilleG.Select(x => (object)x).ToArray() }, { "OreilleD", OreilleD.Select(x => (object)x).ToArray() },
@@ -175,6 +177,8 @@ namespace NettoyagePC
             r.SansEtiquetteVm = Json.Bool(d, "SansEtiquetteVm");
             r.AssistantFait = Json.Bool(d, "AssistantFait");
             r.ModeExpert = Json.Bool(d, "ModeExpert");
+            r.SimpleVu = Json.Bool(d, "SimpleVu");
+            if (!r.SimpleVu) { r.ModeExpert = false; r.SimpleVu = true; }   // à la mise à jour : le nouvel écran simple d'abord
             r.ProfilParJeu = Json.Bool(d, "ProfilParJeu");
             string je = Json.Texte(d, "JeuEnCours"); r.JeuEnCours = AudioJeu.Jeux.Any(j => j.Cle == je) ? je : "";
             if (Json.Valeur(d, "GainsParJeu") is Dictionary<string, object> gpj)

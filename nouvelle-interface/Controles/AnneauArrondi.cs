@@ -37,8 +37,10 @@ namespace NettoyagePC.Nouveau
             etat = Langue.T(probleme ? "À SOIGNER" : attention ? "À AMÉLIORER" : "EN FORME");
             if (!Habillage.Animations) { affiche = cible; InvalidateVisual(); return; }
             departValeur = affiche; departAnim = Horloge.Maintenant;
+            int numero = ++animation;   // un nouveau bilan arrête l'animation du précédent (une seule boucle à la fois)
             Horloge.Lancer(t =>
             {
+                if (numero != animation) return false;
                 double p = Math.Min(1, (t - departAnim) / 900.0);
                 affiche = departValeur + (cible - departValeur) * Habillage.Douce(p);
                 InvalidateVisual();
@@ -47,6 +49,7 @@ namespace NettoyagePC.Nouveau
         }
 
         private bool rotationLancee;
+        private int animation;
 
         private void Tourner()
         {

@@ -60,7 +60,7 @@ namespace NettoyagePC.Nouveau
 
         private static TextBlock Etiquette(string texte, double taille = 11)
         {
-            return new TextBlock { Text = Langue.T(texte).ToUpper(Langue.Culture), FontFamily = Studio.Chiffres, FontSize = taille, LetterSpacing = 1.6, Foreground = Studio.P(Studio.Discret), TextWrapping = TextWrapping.Wrap };
+            return new TextBlock { Text = Langue.T(texte).ToUpper(Langue.Culture), FontFamily = Studio.Corps, FontWeight = FontWeight.SemiBold, FontSize = taille, LetterSpacing = 1.4, Foreground = Studio.P(Studio.Discret), TextWrapping = TextWrapping.Wrap };
         }
 
         /// <summary>Pastille arrondie (point lumineux + texte), cliquable si une action est donnée.</summary>
@@ -223,6 +223,8 @@ namespace NettoyagePC.Nouveau
                 Child = new TextBlock { Text = "🎧", FontSize = 20, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center },
                 VerticalAlignment = VerticalAlignment.Top,
             };
+            // le titre « Studio son » est déjà en haut de la page : ici, seulement le jeu détecté et l'égaliseur
+            badge.IsVisible = false;
             g.Children.Add(badge);
             var titre = new TextBlock { FontFamily = Studio.Titre, FontSize = 24, FontWeight = FontWeight.Bold, TextWrapping = TextWrapping.Wrap };
             string nomStudio = Langue.T("Studio son"); int coupe = nomStudio.LastIndexOf(' ');   // le dernier mot en violet
@@ -231,7 +233,7 @@ namespace NettoyagePC.Nouveau
                 new Avalonia.Controls.Documents.Run(coupe > 0 ? nomStudio.Substring(0, coupe + 1) : "") { Foreground = Studio.P(Studio.Texte) },
                 new Avalonia.Controls.Documents.Run(coupe > 0 ? nomStudio.Substring(coupe + 1) : nomStudio) { Foreground = Studio.P(Studio.Violet) },
             };
-            var gauche = new StackPanel { Spacing = 2, VerticalAlignment = VerticalAlignment.Center, Children = { titre, Studio.T(Langue.T("Entends les ennemis avant qu'ils te voient"), 12.5, Studio.Discret) } };
+            var gauche = new StackPanel { Spacing = 2, VerticalAlignment = VerticalAlignment.Center, IsVisible = false, Children = { titre, Studio.T(Langue.T("Entends les ennemis avant qu'ils te voient"), 12.5, Studio.Discret) } };
             Grid.SetColumn(gauche, 1); g.Children.Add(gauche);
             var droite = new WrapPanel { HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Center };
             droite.Children.Add(Pastille(jeu != "" ? Langue.F("{0} détecté", jeu) : Langue.T("Aucun jeu détecté"), Studio.Vert, jeu != ""));

@@ -9,7 +9,8 @@ namespace NettoyagePC
         {
             N("5.22", "Nouveau look arrondi, plus clair et plus doux : cartes et boutons arrondis, menu avec une icône par rubrique, accent violet et rose. Le look d'avant reste à un clic (Réglages, « Style de l'interface »).",
                 "Accueil repensé : le score dans un anneau, l'état de ton PC, tes mesures avec leur jauge, l'accès rapide en grandes tuiles et une seule liste « À faire ».",
-                "Onglets en pastilles, en-tête avec l'icône de la rubrique, et « Audio » s'appelle maintenant « Studio son » dans le menu."),
+                "Onglets en pastilles, en-tête avec l'icône de la rubrique, et « Audio » s'appelle maintenant « Studio son » dans le menu.",
+                "Studio son simplifié : il s'ouvre sur un seul écran (gros bouton, force des pas, Puissant ou Net, réécoute, tes chiffres et tes dernières parties). Tous les réglages restent dans « Expert »."),
             N("5.21", "Guide pas à pas dans le Studio son : de l'installation aux réglages dans Warzone, chaque étape cochée quand elle est faite, avec son bouton.",
                 "Pas boostés réglé sur de vrais enregistrements de Warzone : deux styles, Puissant (tout plus fort) ou Net (les pas gardent leur relief), et un renforceur qui détache les pas faibles.",
                 "Retard du son plus court avec Pas boostés (réserve adaptative), profil choisi retenu pour chaque jeu, et nom « Velox Studio » retrouvé au rallumage.",
