@@ -39,6 +39,8 @@ namespace NettoyagePC.Nouveau
         public List<CableVirtuel> Cables = new List<CableVirtuel>();
         public ReglagesMoteurSon Moteur = new ReglagesMoteurSon();
         public MoteurSon.EtatMoteur MoteurEtat = new MoteurSon.EtatMoteur();
+        /// <summary>Dernières parties jouées avec « Pas boostés » (de la plus ancienne à la plus récente).</summary>
+        public List<PartieJouee> Parties = new List<PartieJouee>();
 
         public static ReleveAudioJeu Lire()
         {
@@ -53,6 +55,7 @@ namespace NettoyagePC.Nouveau
                 r.Cables = MoteurSon.Cables(r.Windows);
                 r.Moteur = MoteurSon.Lire();
                 r.MoteurEtat = MoteurSon.LireEtat();
+                r.Parties = MoteurSon.Parties();
                 // allumé mais moteur arrêté (PC redémarré sans gardien…) : relancé
                 if (r.Moteur.Actif && r.Cables.Count > 0 && !MoteurSon.EnMarche()) MoteurSon.Surveiller();   // relancé, ou coupé (casque remis) s'il ne démarre pas
                 if (r.Etat.Present)
@@ -559,6 +562,11 @@ namespace NettoyagePC.Nouveau
         private void AppliquerMode()
         {
             foreach (var c in modulesExpert) c.IsVisible = r.ModeExpert;
+            foreach (var c in modulesSimple) c.IsVisible = !r.ModeExpert;
+            if (r.ModeExpert) ouverts.Clear();
+            foreach (var c in modulesSurDemande) c.IsVisible = r.ModeExpert || ouverts.Contains(c);
+            AppliquerVisibiliteGuide();
+            if (corps != null) { deuxColonnes = null; Disposer(corps.Bounds.Width > 0 ? corps.Bounds.Width : 1000); }
             if (bSimple != null) { Marquer(bSimple, !r.ModeExpert, Studio.Cyan); Marquer(bExpert, r.ModeExpert, Studio.Magenta); }
         }
 
@@ -748,7 +756,7 @@ namespace NettoyagePC.Nouveau
         private Control Construire()
         {
             var pile = new StackPanel();
-            pile.Children.Add(EnTete(true));
+            pile.Children.Add(Expert(EnTete(true)));   // mode Simple : l'en-tête du panneau « Ton son » le remplace
             avis = new StackPanel { Spacing = 8, Margin = new Thickness(0, 0, 0, 8) };
             pile.Children.Add(avis);
 
@@ -757,7 +765,9 @@ namespace NettoyagePC.Nouveau
             zoneDemarrage = new StackPanel { Spacing = 10 };
             moduleDemarrage = Studio.Module("Démarrage rapide", zoneDemarrage);
             g.Children.Add(moduleDemarrage);
-            g.Children.Add(Studio.Module("Guide pas à pas", ConstruireGuide()));
+            g.Children.Add(SimpleSeul(ConstruireSimple()));
+            moduleGuide = Studio.Module("Guide pas à pas", ConstruireGuide());
+            g.Children.Add(moduleGuide);
             courbe = new CourbeEq5 { Reglages = r, Allume = r.Actif };
             AutomationProperties.SetName(courbe, Langue.T("Courbe de l'égaliseur"));
             courbe.GainChange += (k, db) =>
@@ -771,11 +781,11 @@ namespace NettoyagePC.Nouveau
             legende.Children.Add(Legende(Studio.Cyan, "Spectre en direct"));
             legende.Children.Add(Legende(Studio.Magenta, "Égaliseur"));
             var bloc = new StackPanel { Spacing = 8, Children = { courbe, Studio.T(Langue.T("Glisse un point pour régler sa bande (ou flèches du clavier). En fond, ce que joue ta sortie en ce moment."), 12, Studio.Faible) } };
-            g.Children.Add(Studio.Module("Réponse en fréquence", bloc, legende));
+            g.Children.Add(Expert(Studio.Module("Réponse en fréquence", bloc, legende)));
             zoneVerif = new StackPanel { Spacing = 8 };
-            g.Children.Add(Studio.Module("Vérification du son", zoneVerif));
-            g.Children.Add(Studio.Module("Avant / après", ConstruireDemo()));
-            g.Children.Add(Studio.Module("Tests d'écoute", ConstruireTests()));
+            moduleVerif = Studio.Module("Vérification du son", zoneVerif);
+            g.Children.Add(Expert(Studio.Module("Avant / après", ConstruireDemo())));
+            g.Children.Add(Expert(Studio.Module("Tests d'écoute", ConstruireTests())));
 
             // profils
             var grille = new UniformGrid { Columns = 4 };
@@ -801,13 +811,16 @@ namespace NettoyagePC.Nouveau
             tProfil = Studio.T("", 12.5, Studio.Discret);
             tDansLeJeu = Studio.T("", 12, Studio.Faible);
             tDansLeJeu.Margin = new Thickness(0, 6, 0, 0);
-            g.Children.Add(Studio.Module("Profils", new StackPanel { Children = { grille, autres, tProfil, tDansLeJeu } }));
+            moduleProfils = SurDemande(Studio.Module("Profils", new StackPanel { Children = { grille, autres, tProfil, tDansLeJeu } }));
+            g.Children.Add(moduleProfils);
             zoneNom = new StackPanel { Spacing = 8 };
-            g.Children.Add(Studio.Module("Velox Studio dans tes jeux", zoneNom));
+            g.Children.Add(Expert(Studio.Module("Velox Studio dans tes jeux", zoneNom)));
             zonePas = new StackPanel { Spacing = 10 };
-            g.Children.Add(Studio.Module("Pas boostés (bêta)", zonePas));
+            g.Children.Add(Expert(Studio.Module("Pas boostés (bêta)", zonePas)));
             zoneCasque = new StackPanel { Spacing = 10 };
-            g.Children.Add(Studio.Module("Calibration du casque", zoneCasque));
+            moduleCasque = SurDemande(Studio.Module("Calibration du casque", zoneCasque));
+            g.Children.Add(moduleCasque);
+            g.Children.Add(SurDemande(moduleVerif));   // vérification : en bas, pour dépanner
             zoneSurround = new StackPanel { Spacing = 10 };
             g.Children.Add(Expert(Studio.Module("Son 7.1 virtuel", zoneSurround)));
 
@@ -873,7 +886,7 @@ namespace NettoyagePC.Nouveau
             zoneVm = new StackPanel { Spacing = 8 };
             d.Children.Add(Expert(Studio.Module("Voicemeeter", zoneVm)));
             zoneAuto = new StackPanel { Spacing = 12 };
-            d.Children.Add(Studio.Module("Automatismes", zoneAuto));
+            d.Children.Add(Expert(Studio.Module("Automatismes", zoneAuto)));
             zoneFichier = new StackPanel { Spacing = 8 };
             tChemin = new TextBlock { FontFamily = Studio.Chiffres, FontSize = 11, Foreground = Studio.P(Studio.Faible), TextWrapping = TextWrapping.Wrap };
             tFichier = new TextBlock { FontFamily = Studio.Chiffres, FontSize = 11, Foreground = Studio.P(Studio.Discret), TextWrapping = TextWrapping.NoWrap };
@@ -907,7 +920,7 @@ namespace NettoyagePC.Nouveau
         /// <summary>Deux colonnes en grand, une seule (la droite passe dessous) en étroit.</summary>
         private void Disposer(double largeur)
         {
-            bool deux = largeur >= 920;
+            bool deux = largeur >= 920 && r.ModeExpert;   // mode Simple : une seule colonne, plus lisible
             if (deuxColonnes == deux) return;
             deuxColonnes = deux;
             corps.ColumnDefinitions = new ColumnDefinitions(deux ? "*,16,330" : "*");
@@ -1178,6 +1191,7 @@ namespace NettoyagePC.Nouveau
             MajNom(v);
             MajVerif(v);
             MajPas(v);
+            MajSimple(v);
             MajSurround(v);
             MajSorties(v);
             MajVoicemeeter();
@@ -1764,7 +1778,7 @@ namespace NettoyagePC.Nouveau
             var et = v.MoteurEtat ?? new MoteurSon.EtatMoteur();
             bool cable = v.Cables.Count > 0;
             int forceVue, armeVue; m.Effectifs(et.JeuCle, out forceVue, out armeVue);
-            string sig = cable + "|" + m.Actif + "|" + forceVue + "|" + armeVue + "|" + m.ParJeuActif + "|" + et.JeuCle + "|" + m.JeuxSeulement + "|" + pasOccupe + "|" + (et.Erreur != "");
+            string sig = cable + "|" + m.Actif + "|" + forceVue + "|" + armeVue + "|" + m.ParJeuActif + "|" + m.Style + "|" + et.JeuCle + "|" + m.JeuxSeulement + "|" + pasOccupe + "|" + (et.Erreur != "");
             if (sig != signaturePas)
             {
                 signaturePas = sig;
@@ -1806,6 +1820,18 @@ namespace NettoyagePC.Nouveau
                     }
                     ToolTip.SetTip(ligneArme, Langue.T("Tes tirs sont joués au centre du son, ceux des ennemis viennent d'une direction. Velox baisse seulement tes rafales : un ennemi qui marche sur le côté pendant que tu tires reste audible. Un son faible devant toi n'est pas touché."));
                     zonePas.Children.Add(ligneArme);
+                    // style : Puissant (tout plus fort) ou Net (relief gardé)
+                    var ligneStyle = new WrapPanel();
+                    ligneStyle.Children.Add(Studio.T(Langue.T("Style :"), 12.5, Studio.Texte));
+                    foreach (var st in new[] { Tuple.Create(1, "Puissant"), Tuple.Create(0, "Net") })
+                    {
+                        var sst = st;
+                        var b = Puce(Langue.T(st.Item2), () => ReglerStyle(sst.Item1));
+                        Marquer(b, m.Style == st.Item1, Studio.Magenta);
+                        ligneStyle.Children.Add(b);
+                    }
+                    ToolTip.SetTip(ligneStyle, Langue.T("Puissant : tout est plus fort, les pas très en avant (le fond monte aussi). Net : les pas gardent leur relief, le fond monte peu. Change en pleine partie et garde celui où tu entends le mieux les ennemis."));
+                    zonePas.Children.Add(ligneStyle);
                     // un réglage par jeu
                     var ligneJeu = new WrapPanel();
                     var bParJeu = Puce(Langue.T("Un réglage par jeu"), () => ReglerParJeu(!m.ParJeuActif));
@@ -1834,6 +1860,10 @@ namespace NettoyagePC.Nouveau
                     bReecoute = Studio.Bouton(Langue.T("Réécouter sans / avec Velox"), true, BasculerReecoute,
                         Langue.T("Rejoue les 10 dernières secondes du jeu : d'abord sans Velox, puis avec, au même volume. Le meilleur moyen d'entendre ce que Velox change."));
                     ligneRe.Children.Add(bReecoute);
+                    var bExport = Puce(Langue.T("Enregistrer pour analyse"), ExporterSon);
+                    Marquer(bExport, false);
+                    ToolTip.SetTip(bExport, Langue.T("Enregistre les 10 dernières secondes du jeu, sans et avec Velox, en deux fichiers sur ton Bureau. Envoie-les pour un réglage fait sur ton vrai son."));
+                    ligneRe.Children.Add(bExport);
                     tReecoute = Studio.T("", 12, Studio.Discret);
                     tReecoute.VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center;
                     tReecoute.Margin = new Thickness(10, 0, 0, 0);
@@ -1841,7 +1871,7 @@ namespace NettoyagePC.Nouveau
                     zonePas.Children.Add(ligneRe);
                     tPasDirect = Studio.T("", 12, Studio.Texte);
                     zonePas.Children.Add(tPasDirect);
-                    zonePas.Children.Add(Studio.T(Langue.T("Léger : +14 dB sur les pas lointains face aux explosions. Fort : +22 dB. Extrême : +26 dB. Ultra : +27 dB, et un pas pendant une explosion ressort de +11 dB (le plus fort, moins naturel). Mesuré sur une scène de jeu. Les aigus des pas sont mis en avant seulement quand c'est calme : les tirs ne deviennent pas criards. Le son passe par VB-Cable, puis Velox le joue sur ton casque : de 20 à 40 ms de retard en plus selon le PC (affiché en direct). Dans le jeu, laisse la sortie audio sur « Par défaut »."), 11.5, Studio.Faible));
+                    zonePas.Children.Add(Studio.T(Langue.T("Style Puissant : tout est remonté fort, les pas lointains gagnent jusqu'à +25 dB face aux explosions (Fort). Style Net : les pas proches gardent leur relief et le fond monte peu. Dans les deux, le renforceur remonte les pas brefs qui viennent d'un côté (les ennemis) plutôt que tes propres sons au centre, sans remonter les tirs. Le son passe par VB-Cable, puis Velox le joue sur ton casque : de 20 à 40 ms de retard en plus selon le PC (affiché en direct). Dans le jeu, laisse la sortie audio sur « Par défaut »."), 11.5, Studio.Faible));
                     zonePas.Children.Add(Studio.T(Langue.T("Encore mieux en 7.1 : Panneau de configuration > Son > CABLE Input > Configurer > 7.1. Tes tirs arrivent alors sur leur propre voie (le centre) : Velox les baisse sans toucher aux ennemis autour de toi."), 11.5, Studio.Faible));
                 }
             }
@@ -1885,6 +1915,7 @@ namespace NettoyagePC.Nouveau
             var m = (Releve ?? new ReleveAudioJeu()).Moteur ?? new ReglagesMoteurSon();
             int force = m.Force; bool jeux = m.JeuxSeulement;
             pasOccupe = true; signaturePas = null; MajPas(Releve ?? new ReleveAudioJeu());
+            signatureSimple = null; MajSimple(Releve ?? new ReleveAudioJeu());   // gros bouton : « BRANCHEMENT… », désactivé
             var f = F;
             var cables = (Releve ?? new ReleveAudioJeu()).Cables.Select(c => c.Sortie).ToList();
             bool renomme = false;
@@ -1913,7 +1944,7 @@ namespace NettoyagePC.Nouveau
                 return e;
             }).ContinueWith(t => Dispatcher.UIThread.Post(() =>
             {
-                pasOccupe = false; signaturePas = null;
+                pasOccupe = false; signaturePas = null; signatureSimple = null;
                 string err = t.IsFaulted ? (t.Exception.InnerException ?? t.Exception).Message : t.Result;
                 if (err != "") { f.Statut(Langue.T(err), true); Relever(); return; }
                 Confirmer(f, Langue.T(allumer ? "Pas boostés allumé" : "Pas boostés coupé"), allumer ? Langue.T("VB-Cable → Velox → ton casque") : Langue.T("le son va directement au casque"), allumer);
@@ -1936,6 +1967,7 @@ namespace NettoyagePC.Nouveau
                 if (Releve != null) Releve.Moteur = m;
                 if (force.HasValue) Confirmer(F, Langue.T("Pas boostés"), Langue.T(MoteurSon.Niveaux.First(x => x.Item2 == force.Value).Item1), true);
                 signaturePas = null; MajPas(Releve ?? new ReleveAudioJeu());
+                signatureSimple = null; MajSimple(Releve ?? new ReleveAudioJeu());
             }
             catch (Exception ex) { F.Statut(ex.Message, true); }
         }
@@ -1996,6 +2028,33 @@ namespace NettoyagePC.Nouveau
             catch (Exception ex) { F.Statut(ex.Message, true); }
         }
 
+        private void ExporterSon()
+        {
+            if (exemple) return;
+            var et = (Releve ?? new ReleveAudioJeu()).MoteurEtat ?? new MoteurSon.EtatMoteur();
+            if (!et.Marche || et.Memoire < 2) { F.Statut(Langue.T("Lance une partie avec Pas boostés allumé, joue quelques secondes, puis clique de nouveau."), true); return; }
+            if (et.Reecoute != 0) { F.Statut(Langue.T("Attends la fin de la réécoute, puis clique de nouveau."), true); return; }
+            if (exportEnCours) return;
+            string err = MoteurSon.DemanderExport();
+            if (err != "") { F.Statut(err, true); return; }
+            exportEnCours = true;
+            F.Statut(Langue.T("Enregistrement en cours…"));
+            var f = F;
+            // le moteur répond par un fichier : succès annoncé seulement quand les deux WAV sont vraiment écrits
+            System.Threading.Tasks.Task.Run(() => MoteurSon.AttendreExport(6000)).ContinueWith(t => Dispatcher.UIThread.Post(() =>
+            {
+                exportEnCours = false;
+                string res = t.IsFaulted ? null : t.Result;
+                if (res != null && res.StartsWith("ok|", StringComparison.Ordinal))
+                    f.Statut(Langue.T("Enregistré sur ton Bureau : deux fichiers « Velox-son-… » (sans et avec Velox). Envoie-les pour l'analyse."));
+                else if (res == "vide") f.Statut(Langue.T("Lance une partie avec Pas boostés allumé, joue quelques secondes, puis clique de nouveau."), true);
+                else if (res != null && res.StartsWith("erreur|", StringComparison.Ordinal)) f.Statut(Langue.F("Enregistrement impossible : {0}", res.Substring(7)), true);
+                else f.Statut(Langue.T("Le moteur du son n'a pas répondu : vérifie que Pas boostés est allumé, puis réessaie."), true);
+            }));
+        }
+
+        private bool exportEnCours;
+
         private void BasculerReecoute()
         {
             if (exemple) return;
@@ -2004,6 +2063,21 @@ namespace NettoyagePC.Nouveau
             string err = MoteurSon.DemanderReecoute(et.Reecoute == 0);
             if (err != "") { F.Statut(err, true); return; }
             F.Statut(Langue.T(et.Reecoute == 0 ? "Réécoute : d'abord sans Velox, puis avec Velox, au même volume." : "Réécoute arrêtée."));
+        }
+
+        private void ReglerStyle(int style)
+        {
+            if (exemple) return;
+            if (simulation) { F.Statut(Langue.T("Simulation : rien n'est modifié."), true); return; }
+            try
+            {
+                var m = MoteurSon.Lire(); m.Style = style; MoteurSon.Ecrire(m);   // le moteur l'applique dans la demi-seconde
+                if (Releve != null) Releve.Moteur = m;
+                Confirmer(F, Langue.T("Style"), Langue.T(style == 1 ? "Puissant" : "Net"), true);
+                signaturePas = null; MajPas(Releve ?? new ReleveAudioJeu());
+                signatureSimple = null; MajSimple(Releve ?? new ReleveAudioJeu());
+            }
+            catch (Exception ex) { F.Statut(ex.Message, true); }
         }
 
         private void ReglerArme(int arme)

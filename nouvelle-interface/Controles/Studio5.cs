@@ -371,6 +371,8 @@ namespace NettoyagePC.Nouveau
         public event Action<bool> Demande;
         public Marche5(bool actif) { this.actif = actif; Width = 72; Height = 72; Focusable = true; Cursor = new Cursor(StandardCursorType.Hand); }
         public bool Actif { get { return actif; } set { if (value != actif) { actif = value; InvalidateVisual(); } } }
+        /// <summary>Couleurs violet-rose (mode Simple du Studio son) au lieu d'ambre-rose.</summary>
+        public bool Violet { get; set; }
         protected override AutomationPeer OnCreateAutomationPeer() { return new PeerMarche5(this, () => actif, Demander); }
         private void Demander() { if (!IsEffectivelyEnabled) return; var d = Demande; if (d != null) d(!actif); }
         protected override void OnPointerPressed(PointerPressedEventArgs e) { base.OnPointerPressed(e); e.Handled = true; }
@@ -385,16 +387,120 @@ namespace NettoyagePC.Nouveau
             double r = Math.Min(Bounds.Width, Bounds.Height) / 2 - 4;
             if (actif)
             {
-                ctx.DrawEllipse(null, new Pen(Studio.P(Studio.Magenta, 50), 9), c, r, r);
-                ctx.DrawEllipse(new RadialGradientBrush { GradientStops = { new GradientStop(Color.FromRgb(70, 24, 66), 0), new GradientStop(Color.FromRgb(28, 10, 34), 1) } }, new Pen(Studio.Degrade(1, Studio.Ambre, Studio.Magenta), 3), c, r, r);
+                ctx.DrawEllipse(null, new Pen(Studio.P(Violet ? Studio.Violet : Studio.Magenta, 50), 9), c, r, r);
+                var fond = Violet ? new RadialGradientBrush { GradientStops = { new GradientStop(Color.FromRgb(40, 30, 84), 0), new GradientStop(Color.FromRgb(16, 12, 36), 1) } }
+                    : new RadialGradientBrush { GradientStops = { new GradientStop(Color.FromRgb(70, 24, 66), 0), new GradientStop(Color.FromRgb(28, 10, 34), 1) } };
+                ctx.DrawEllipse(fond, new Pen(Violet ? Studio.Degrade(1, Studio.Violet, Studio.Magenta) : Studio.Degrade(1, Studio.Ambre, Studio.Magenta), Violet ? 3.5 : 3), c, r, r);
             }
             else ctx.DrawEllipse(Studio.P(Color.FromRgb(20, 13, 34)), new Pen(Studio.P(Studio.Bord), 2), c, r, r);
+            if (!IsEffectivelyEnabled) { ctx.DrawEllipse(Studio.P(Studio.Fond1, 120), null, c, r, r); }
             // pictogramme « marche » : arc ouvert en haut et trait vertical
-            var couleur = actif ? Studio.Ambre : Studio.Faible;
-            var crayon = new Pen(Studio.P(couleur), 3.2, lineCap: PenLineCap.Round);
+            var couleur = actif ? (Violet ? Studio.Texte : Studio.Ambre) : Studio.Faible;
+            var crayon = new Pen(Studio.P(couleur), Violet ? Math.Max(3.2, r / 18) : 3.2, lineCap: PenLineCap.Round);
             ctx.DrawGeometry(null, crayon, Habillage.Arc(c, r * 0.42, -60, 300));
             ctx.DrawLine(crayon, new Point(c.X, c.Y - r * 0.58), new Point(c.X, c.Y - r * 0.08));
             if (IsFocused) Studio.Focus(ctx, new Rect(Bounds.Size).Deflate(0.5), Bounds.Width / 2);
+        }
+    }
+
+    // ================================================================ curseur à crans (force des pas, mode Simple)
+
+    /// <summary>Barre à crans : un cran par niveau (Léger, Fort, Extrême, Ultra), le bouton glisse et s'arrête sur le cran
+    /// le plus proche. Clavier : flèches gauche / droite, Début, Fin. Une valeur hors crans est placée entre deux.</summary>
+    internal sealed class Crans5 : Control
+    {
+        private readonly string[] noms; private readonly int[] valeurs;
+        private int valeur; private double? glisse;
+        public event Action<int> Change;
+
+        public Crans5(string[] noms, int[] valeurs, int valeur)
+        {
+            this.noms = noms; this.valeurs = valeurs; this.valeur = valeur;
+            Height = 54; MinWidth = 220; Focusable = true; Cursor = new Cursor(StandardCursorType.Hand);
+        }
+
+        public int Valeur { get { return valeur; } set { if (value != valeur) { valeur = value; InvalidateVisual(); } } }
+        private const double Bord = 12;
+        private double X(int i) { return Bord + (Bounds.Width - 2 * Bord) * i / Math.Max(1, valeurs.Length - 1); }
+
+        /// <summary>Position (0 à n−1, fractionnaire) d'une valeur sur les crans.</summary>
+        internal static double Position(int[] valeurs, int v)
+        {
+            if (valeurs.Length == 0) return 0;
+            if (v <= valeurs[0]) return 0;
+            for (int i = 1; i < valeurs.Length; i++)
+                if (v <= valeurs[i]) return i - 1 + (double)(v - valeurs[i - 1]) / Math.Max(1, valeurs[i] - valeurs[i - 1]);
+            return valeurs.Length - 1;
+        }
+
+        private int CranProche(double x)
+        {
+            int best = 0; double d = double.MaxValue;
+            for (int i = 0; i < valeurs.Length; i++) { double e = Math.Abs(X(i) - x); if (e < d) { d = e; best = i; } }
+            return best;
+        }
+
+        private void Choisir(int i)
+        {
+            i = Math.Max(0, Math.Min(valeurs.Length - 1, i));
+            if (valeurs[i] == valeur) { InvalidateVisual(); return; }
+            valeur = valeurs[i]; InvalidateVisual();
+            var c = Change; if (c != null) c(valeur);
+        }
+
+        protected override void OnPointerPressed(PointerPressedEventArgs e)
+        {
+            base.OnPointerPressed(e);
+            if (!IsEffectivelyEnabled) return;
+            e.Pointer.Capture(this); glisse = e.GetPosition(this).X; Focus(); InvalidateVisual(); e.Handled = true;
+        }
+        protected override void OnPointerMoved(PointerEventArgs e)
+        {
+            base.OnPointerMoved(e);
+            if (glisse == null) return;
+            glisse = Math.Max(Bord, Math.Min(Bounds.Width - Bord, e.GetPosition(this).X)); InvalidateVisual();
+        }
+        protected override void OnPointerReleased(PointerReleasedEventArgs e)
+        {
+            base.OnPointerReleased(e);
+            if (glisse == null) return;
+            double x = glisse.Value; glisse = null; e.Pointer.Capture(null);
+            Choisir(CranProche(x)); e.Handled = true;
+        }
+        protected override void OnPointerCaptureLost(PointerCaptureLostEventArgs e) { base.OnPointerCaptureLost(e); if (glisse != null) { glisse = null; InvalidateVisual(); } }
+        protected override void OnKeyDown(KeyEventArgs e)
+        {
+            base.OnKeyDown(e);
+            double pos = Position(valeurs, valeur);
+            if (e.Key == Key.Right || e.Key == Key.Up) { e.Handled = true; Choisir((int)Math.Floor(pos + 1e-9) + 1); }
+            else if (e.Key == Key.Left || e.Key == Key.Down) { e.Handled = true; Choisir((int)Math.Ceiling(pos - 1e-9) - 1); }
+            else if (e.Key == Key.Home) { e.Handled = true; Choisir(0); }
+            else if (e.Key == Key.End) { e.Handled = true; Choisir(valeurs.Length - 1); }
+        }
+        protected override void OnGotFocus(GotFocusEventArgs e) { base.OnGotFocus(e); InvalidateVisual(); }
+        protected override void OnLostFocus(Avalonia.Interactivity.RoutedEventArgs e) { base.OnLostFocus(e); InvalidateVisual(); }
+
+        public override void Render(DrawingContext ctx)
+        {
+            if (valeurs.Length == 0 || Bounds.Width < 2 * Bord + 10) return;
+            double y = 12, x0 = X(0), x1 = X(valeurs.Length - 1);
+            double pos = Position(valeurs, valeur);
+            double xb = glisse ?? (x0 + (x1 - x0) * pos / Math.Max(1, valeurs.Length - 1));
+            bool actif = IsEffectivelyEnabled;
+            ctx.DrawRectangle(Studio.P(Studio.Bord), null, new RoundedRect(new Rect(x0, y - 4, x1 - x0, 8), 4));
+            if (xb > x0) ctx.DrawRectangle(Studio.Degrade(0, Studio.Violet, Studio.Magenta), null, new RoundedRect(new Rect(x0, y - 4, xb - x0, 8), 4));
+            for (int i = 0; i < valeurs.Length; i++)
+            {
+                double x = X(i);
+                ctx.DrawEllipse(Studio.P(x <= xb + 0.5 ? Colors.White : Studio.Faible, x <= xb + 0.5 ? 200 : 255), null, new Point(x, y), 2.5, 2.5);
+                bool choisi = glisse == null ? valeurs[i] == valeur : CranProche(xb) == i;
+                var t = Studio.Mesure(noms[i], 12.5, choisi ? Studio.Texte : Studio.Discret, Studio.Corps, choisi);
+                double tx = i == 0 ? x - Bord : i == valeurs.Length - 1 ? x + Bord - t.Width : x - t.Width / 2;
+                ctx.DrawText(t, new Point(tx, y + 16));
+            }
+            if (actif) ctx.DrawEllipse(null, new Pen(Studio.P(Studio.Magenta, 70), 6), new Point(xb, y), 11, 11);
+            ctx.DrawEllipse(Studio.P(actif ? Colors.White : Studio.Discret), null, new Point(xb, y), 10, 10);
+            if (IsFocused) Studio.Focus(ctx, new Rect(Bounds.Size).Deflate(0.5), 8);
         }
     }
 

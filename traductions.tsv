@@ -2598,7 +2598,7 @@ Impossible d'enregistrer le rapport :	Can't save the report:	No se puede guardar
 La puce graphique intégrée suffit pour la vidéo et la bureautique ; pour jouer, une carte graphique dédiée change tout.	Integrated graphics are fine for video and office work; for gaming, a dedicated graphics card changes everything.	Los gráficos integrados bastan para vídeo y ofimática; para jugar, una tarjeta gráfica dedicada lo cambia todo.
 La recherche a échoué.	The search failed.	La búsqueda ha fallado.
 Le matériel n'a pas pu être lu sur ce PC.	The hardware could not be read on this PC.	No se ha podido leer el hardware de este PC.
-Le rapport contient la version de Velox, celle de Windows et les dernières erreurs du journal. Ton nom, celui du PC, tes adresses e-mail et tes dossiers personnels sont masqués. Tu le vois en entier avant de l'envoyer.	The report contains the Velox version, the Windows version and the latest errors from the log. Your name, the PC's name, your e-mail addresses and your personal folders are hidden. You see all of it before sending.	El informe contiene la versión de Velox, la de Windows y los últimos errores del registro. Tu nombre, el del PC, tus direcciones de correo y tus carpetas personales se ocultan. Lo ves entero antes de enviarlo.
+Le rapport contient la version de Velox, celle de Windows, l'état du son (Studio son) et les dernières erreurs du journal. Ton nom, celui du PC, tes adresses e-mail et tes dossiers personnels sont masqués. Tu le vois en entier avant de l'envoyer.	The report contains the Velox version, the Windows version, the sound status (Sound studio) and the latest errors from the log. Your name, the PC's name, your e-mail addresses and your personal folders are hidden. You see all of it before sending.	El informe contiene la versión de Velox, la de Windows, el estado del sonido (Estudio de sonido) y los últimos errores del registro. Tu nombre, el del PC, tus direcciones de correo y tus carpetas personales se ocultan. Lo ves entero antes de enviarlo.
 Le rapport qui sera envoyé :	The report that will be sent:	El informe que se enviará:
 Lecture du matériel…	Reading the hardware…	Leyendo el hardware…
 Libère de la place sur le disque de Windows	Free up space on the Windows drive	Libera espacio en el disco de Windows
@@ -3915,7 +3915,6 @@ Les pas devant tout : graves et explosions coupés au maximum	Footsteps above ev
 Audio jeu : égaliseur actif (Pas ultra)	Game audio: equalizer on (Ultra footsteps)	Audio de juego: ecualizador activo (Pasos ultra)
 Audio jeu : Auto jeux (Pas ultra)	Game audio: Auto games (Ultra footsteps)	Audio de juego: Auto juegos (Pasos ultra)
 Les pas très en avant, son clair et plein	Footsteps far forward, clear and full sound	Los pasos muy por delante, sonido claro y lleno
-Léger : +14 dB sur les pas lointains face aux explosions. Fort : +22 dB. Extrême : +26 dB. Ultra : +27 dB, et un pas pendant une explosion ressort de +11 dB (le plus fort, moins naturel). Mesuré sur une scène de jeu. Les aigus des pas sont mis en avant seulement quand c'est calme : les tirs ne deviennent pas criards. Le son passe par VB-Cable, puis Velox le joue sur ton casque : de 20 à 40 ms de retard en plus selon le PC (affiché en direct). Dans le jeu, laisse la sortie audio sur « Par défaut ».	Light: +14 dB on distant footsteps against explosions. Strong: +22 dB. Extreme: +26 dB. Ultra: +27 dB, and a footstep during an explosion stands out by +11 dB (the strongest, less natural). Measured on a game scene. Footstep treble is brought forward only when things are calm: gunfire never turns harsh. Sound goes through VB-Cable, then Velox plays it on your headset: 20 to 40 ms of extra delay depending on the PC (shown live). In the game, leave the audio output on "Default".	Ligero: +14 dB en los pasos lejanos frente a las explosiones. Fuerte: +22 dB. Extremo: +26 dB. Ultra: +27 dB, y un paso durante una explosión resalta +11 dB (el más fuerte, menos natural). Medido en una escena de juego. Los agudos de los pasos se realzan solo cuando hay calma: los disparos nunca se vuelven estridentes. El sonido pasa por VB-Cable y luego Velox lo reproduce en tus auriculares: de 20 a 40 ms de retraso extra según el PC (mostrado en directo). En el juego, deja la salida de audio en «Predeterminado».
 Ton arme :	Your weapon:	Tu arma:
 Ton arme	Your weapon	Tu arma
 Normale	Normal	Normal
@@ -4023,9 +4022,73 @@ Vérifier à l'oreille	Check by ear	Comprobar de oído
 Windows : Velox Studio en 7.1 (facultatif, pour aller plus loin)	Windows: Velox Studio in 7.1 (optional, to go further)	Windows: Velox Studio en 7.1 (opcional, para ir más lejos)
 HRTF	HRTF	HRTF
 Guide pas à pas dans le Studio son : de l'installation aux réglages dans Warzone, chaque étape cochée quand elle est faite, avec son bouton.	Step-by-step guide in the Sound studio: from installation to Warzone settings, each step ticked when done, with its button.	Guía paso a paso en el Estudio de sonido: de la instalación a los ajustes de Warzone, cada paso marcado al hacerse, con su botón.
-Pas encore plus présents : les aigus et le choc des pas (vers 300 Hz) sont mis en avant quand c'est calme. Pas lointains : +22 dB face aux explosions en Fort.	Footsteps even more present: footstep treble and impact (around 300 Hz) are brought forward when it's calm. Distant footsteps: +22 dB against explosions on Strong.	Pasos aún más presentes: los agudos y el golpe de los pasos (hacia 300 Hz) se realzan cuando hay calma. Pasos lejanos: +22 dB frente a las explosiones en Fuerte.
 Retard du son plus court avec Pas boostés (réserve adaptative), profil choisi retenu pour chaque jeu, et nom « Velox Studio » retrouvé au rallumage.	Shorter sound delay with Boosted footsteps (adaptive buffer), chosen profile kept for each game, and “Velox Studio” name restored when turned back on.	Menor retraso de sonido con Pasos potenciados (reserva adaptativa), perfil elegido guardado para cada juego y nombre «Velox Studio» recuperado al reactivar.
 La mise à jour n'est plus bloquée par « Velox est encore ouvert » quand Pas boostés tourne.	Updating is no longer blocked by “Velox is still open” when Boosted footsteps is running.	La actualización ya no se bloquea con «Velox sigue abierto» cuando Pasos potenciados está activo.
 En ce moment, « Velox Studio » est une autre sortie (souvent ton casque, nommé quand Pas boostés était coupé) : le bouton donne ce nom au câble et rend à l'autre son nom d'origine.	Right now, “Velox Studio” is another output (often your headset, named while Boosted footsteps was off): the button gives this name to the cable and gives the other one back its original name.	Ahora mismo, «Velox Studio» es otra salida (a menudo tus auriculares, nombrados con Pasos potenciados desactivado): el botón da este nombre al cable y devuelve a la otra su nombre original.
 Windows : le câble en 7.1 (facultatif, pour aller plus loin)	Windows: the cable in 7.1 (optional, to go further)	Windows: el cable en 7.1 (opcional, para ir más lejos)
 Panneau de configuration > Son > onglet Lecture > « {0} » (c'est le câble, sous-titré VB-Audio Virtual Cable) > Configurer > 7.1 Surround > Suivant jusqu'à Terminer. Tes tirs arrivent alors sur leur propre voie : « Ton arme » les isole mieux. Dans ce cas, coupe le mode casque du jeu (étape 8) et allume « Son 7.1 virtuel » (mode Expert).	Control Panel > Sound > Playback tab > “{0}” (that's the cable, subtitled VB-Audio Virtual Cable) > Configure > 7.1 Surround > Next until Finish. Your shots then arrive on their own channel: “Your weapon” isolates them better. In that case, turn off the game's headphone mode (step 8) and turn on “Virtual 7.1 sound” (Expert mode).	Panel de control > Sonido > pestaña Reproducción > «{0}» (es el cable, con el subtítulo VB-Audio Virtual Cable) > Configurar > 7.1 Surround > Siguiente hasta Finalizar. Tus disparos llegan entonces por su propio canal: «Tu arma» los aísla mejor. En ese caso, desactiva el modo auriculares del juego (paso 8) y activa «Sonido 7.1 virtual» (modo Experto).
+Voir les gros fichiers	See large files	Ver archivos grandes
+Enregistrer pour analyse	Save for analysis	Guardar para análisis
+Enregistre les 10 dernières secondes du jeu, sans et avec Velox, en deux fichiers sur ton Bureau. Envoie-les pour un réglage fait sur ton vrai son.	Saves the game's last 10 seconds, without and with Velox, as two files on your Desktop. Send them for tuning based on your real sound.	Guarda los últimos 10 segundos del juego, sin y con Velox, en dos archivos en tu Escritorio. Envíalos para un ajuste hecho sobre tu sonido real.
+Lance une partie avec Pas boostés allumé, joue quelques secondes, puis clique de nouveau.	Start a match with Boosted footsteps on, play a few seconds, then click again.	Inicia una partida con Pasos potenciados activado, juega unos segundos y vuelve a pulsar.
+Enregistré sur ton Bureau : deux fichiers « Velox-son-… » (sans et avec Velox). Envoie-les pour l'analyse.	Saved on your Desktop: two “Velox-son-…” files (without and with Velox). Send them for analysis.	Guardado en tu Escritorio: dos archivos «Velox-son-…» (sin y con Velox). Envíalos para el análisis.
+Pas boostés réglé sur de vrais enregistrements de Warzone : les pas proches gardent tout leur relief, le fond n'est presque plus remonté, et un renforceur détache les pas faibles.	Boosted footsteps tuned on real Warzone recordings: close footsteps keep all their relief, the background is barely raised, and an enhancer lifts quiet footsteps.	Pasos potenciados ajustado con grabaciones reales de Warzone: los pasos cercanos conservan su relieve, el fondo apenas sube y un refuerzo separa los pasos débiles.
+Style :	Style:	Estilo:
+Style	Style	Estilo
+Puissant	Powerful	Potente
+Net	Clear	Nítido
+Puissant : tout est plus fort, les pas très en avant (le fond monte aussi). Net : les pas gardent leur relief, le fond monte peu. Change en pleine partie et garde celui où tu entends le mieux les ennemis.	Powerful: everything is louder, footsteps well forward (the background rises too). Clear: footsteps keep their relief, the background rises little. Switch during a match and keep the one where you hear enemies best.	Potente: todo suena más fuerte, los pasos muy adelante (el fondo también sube). Nítido: los pasos conservan su relieve, el fondo sube poco. Cambia en plena partida y quédate con el que mejor te deje oír a los enemigos.
+Style Puissant : tout est remonté fort, les pas lointains gagnent jusqu'à +25 dB face aux explosions (Fort). Style Net : les pas proches gardent leur relief et le fond monte peu. Dans les deux, le renforceur remonte les pas brefs qui viennent d'un côté (les ennemis) plutôt que tes propres sons au centre, sans remonter les tirs. Le son passe par VB-Cable, puis Velox le joue sur ton casque : de 20 à 40 ms de retard en plus selon le PC (affiché en direct). Dans le jeu, laisse la sortie audio sur « Par défaut ».	Powerful style: everything is raised strongly, distant footsteps gain up to +25 dB against explosions (Strong). Clear style: close footsteps keep their relief and the background rises little. In both, the enhancer raises brief footsteps coming from a side (enemies) rather than your own sounds in the center, without raising gunfire. Sound goes through VB-Cable, then Velox plays it on your headset: 20 to 40 ms of extra delay depending on the PC (shown live). In the game, leave the audio output on "Default".	Estilo Potente: todo sube con fuerza, los pasos lejanos ganan hasta +25 dB frente a las explosiones (Fuerte). Estilo Nítido: los pasos cercanos conservan su relieve y el fondo sube poco. En ambos, el refuerzo sube los pasos breves que vienen de un lado (los enemigos) en lugar de tus propios sonidos en el centro, sin subir los disparos. El sonido pasa por VB-Cable y luego Velox lo reproduce en tus auriculares: de 20 a 40 ms de retraso extra según el PC (mostrado en directo). En el juego, deja la salida de audio en «Predeterminado».
+Ton son	Your sound	Tu sonido
+Pas boostés n'est pas encore installé : suis le guide ci-dessous (2 minutes).	Boosted footsteps isn't installed yet: follow the guide below (2 minutes).	Pasos potenciados aún no está instalado: sigue la guía de abajo (2 minutos).
+Pas boostés est coupé : allume-le pour entendre les pas.	Boosted footsteps is off: turn it on to hear footsteps.	Pasos potenciados está desactivado: actívalo para oír los pasos.
+Pas boostés allumé · {0} · {1}	Boosted footsteps on · {0} · {1}	Pasos potenciados activado · {0} · {1}
+Couper Pas boostés	Turn off Boosted footsteps	Desactivar Pasos potenciados
+Conseil : Puissant et Fort. Monte à Extrême si tu veux encore plus de pas.	Tip: Powerful and Strong. Go up to Extreme for even more footsteps.	Consejo: Potente y Fuerte. Sube a Extremo si quieres aún más pasos.
+Rejoue les 10 dernières secondes du jeu : d'abord sans Velox, puis avec, au même volume.	Replays the last 10 seconds of the game: first without Velox, then with it, at the same volume.	Reproduce los últimos 10 segundos del juego: primero sin Velox y luego con él, al mismo volumen.
+Lance une partie, puis reviens ici.	Start a match, then come back here.	Inicia una partida y vuelve aquí.
+Vérifier mon son	Check my sound	Comprobar mi sonido
+Revoir le guide	See the guide again	Ver la guía otra vez
+Tous les réglages (Expert)	All settings (Expert)	Todos los ajustes (Experto)
+Allume ou coupe l'égaliseur (profil et calibration du casque).	Turn the equalizer on or off (profile and headset calibration).	Activa o desactiva el ecualizador (perfil y calibración de los auriculares).
+Allume ou coupe « Pas boostés » : Velox remonte les pas et calme les explosions.	Turn "Boosted footsteps" on or off: Velox raises footsteps and tames explosions.	Activa o desactiva «Pasos potenciados»: Velox sube los pasos y calma las explosiones.
+Aucun jeu détecté	No game detected	Ningún juego detectado
+BRANCHEMENT…	CONNECTING…	CONECTANDO…
+Calibré	Calibrated	Calibrado
+Calibré · mesures {0}	Calibrated · {0} measurements	Calibrado · mediciones de {0}
+Changer	Change	Cambiar
+Choisis ton modèle : Velox corrige ses défauts.	Pick your model: Velox corrects its flaws.	Elige tu modelo: Velox corrige sus defectos.
+ERREUR	ERROR	ERROR
+En direct, pendant que Pas boostés tourne : retard ajouté, baisse des explosions et de tes tirs, nombre de voies reçues du jeu.	Live, while Boosted footsteps is running: added delay, reduction of explosions and of your own shots, number of channels received from the game.	En directo, mientras Pasos potenciados funciona: retraso añadido, reducción de las explosiones y de tus disparos, número de canales recibidos del juego.
+Entends les ennemis avant qu'ils te voient	Hear enemies before they see you	Oye a los enemigos antes de que te vean
+Explosions tenues	Explosions tamed	Explosiones contenidas
+Force des pas	Footstep strength	Fuerza de los pasos
+Heure	Time	Hora
+Installe d'abord VB-Cable (guide ci-dessous).	Install VB-Cable first (guide below).	Instala primero VB-Cable (guía abajo).
+Les pas gardent leur relief, le fond monte peu.	Footsteps keep their relief, the background rises little.	Los pasos conservan su relieve, el fondo sube poco.
+Mon casque	My headset	Mis auriculares
+Pas encore choisi	Not chosen yet	Aún no elegido
+Profil	Profile	Perfil
+Retard	Delay	Retraso
+Réglage personnalisé	Custom setting	Ajuste personalizado
+Réécouter sans / avec	Replay without / with	Volver a escuchar sin / con
+Stéréo	Stereo	Estéreo
+Suivre le guide	Follow the guide	Seguir la guía
+Tes parties apparaîtront ici après ta première partie avec Pas boostés (une minute au moins).	Your matches will appear here after your first match with Boosted footsteps (at least one minute).	Tus partidas aparecerán aquí después de tu primera partida con Pasos potenciados (al menos un minuto).
+Tout est plus fort, les pas très en avant.	Everything is louder, footsteps well forward.	Todo suena más fuerte, los pasos muy adelante.
+Tout fonctionne	Everything works	Todo funciona
+Vérification	Check	Comprobación
+hier {0}	yesterday {0}	ayer {0}
+jusqu'à −{0} dB	up to −{0} dB	hasta −{0} dB
+{0} détecté	{0} detected	{0} detectado
+{0} min de jeu	{0} min of play	{0} min de juego
+À INSTALLER	TO INSTALL	POR INSTALAR
+À vérifier	Needs checking	Por comprobar
+Égaliseur : actif	Equalizer: on	Ecualizador: activado
+Égaliseur : coupé	Equalizer: off	Ecualizador: desactivado
+Égaliseur, câble, casque	Equalizer, cable, headset	Ecualizador, cable, auriculares
+Son : relevé en cours…	Sound: reading…	Sonido: leyendo…
+Attends la fin de la réécoute, puis clique de nouveau.	Wait for the replay to finish, then click again.	Espera a que termine la reproducción y vuelve a hacer clic.
+Enregistrement en cours…	Saving…	Guardando…
+Enregistrement impossible : {0}	Could not save: {0}	No se pudo guardar: {0}
+Le moteur du son n'a pas répondu : vérifie que Pas boostés est allumé, puis réessaie.	The sound engine didn't respond: check that Boosted footsteps is on, then try again.	El motor de sonido no respondió: comprueba que Pasos potenciados está activado y vuelve a intentarlo.

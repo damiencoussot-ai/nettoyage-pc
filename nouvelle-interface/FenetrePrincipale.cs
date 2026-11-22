@@ -69,12 +69,18 @@ namespace NettoyagePC.Nouveau
         // ---- bilan de l'accueil : calculé en arrière-plan, gardé entre deux visites de l'accueil
         public Bilan Bilan { get; private set; }
         public bool BilanEnCours { get; private set; }
+        /// <summary>Un bouton du bilan a ouvert une page ou un réglage de Windows (pilote, antivirus, démarrage…) : le bilan
+        /// est recalculé au retour à l'accueil, pas 5 minutes plus tard.</summary>
+        public bool BilanPerime;
+        private bool bilanARelancer;
         /// <summary>Le bilan vient d'être (re)calculé (appelé sur le fil de l'interface).</summary>
         public event Action<Bilan> BilanPret;
 
         public void ActualiserBilan()
         {
-            if (BilanEnCours) return;
+            // un calcul est déjà en cours : il sera refait juste après (sinon une action finie pendant ce calcul serait ignorée)
+            if (BilanEnCours) { bilanARelancer = true; return; }
+            BilanPerime = false; bilanARelancer = false;
             if (Source.Immediat) { Bilan = Source.Calculer(); var h = BilanPret; if (h != null) h(Bilan); return; }
             BilanEnCours = true;
             System.Threading.Tasks.Task.Run(() =>
@@ -88,6 +94,7 @@ namespace NettoyagePC.Nouveau
                     if (b == null) { Statut("Le bilan n'a pas pu être calculé. Détails : journal de démarrage.", true); return; }
                     Bilan = b;
                     var h = BilanPret; if (h != null) h(b);
+                    if (bilanARelancer) ActualiserBilan();
                 });
             });
         }
@@ -452,6 +459,7 @@ namespace NettoyagePC.Nouveau
         public void Executer(string cible, string libelle)
         {
             if (string.IsNullOrEmpty(cible)) return;
+            if (!cible.StartsWith("action:", StringComparison.Ordinal)) BilanPerime = true;   // les actions le recalculent elles-mêmes
             int i = cible.IndexOf(':');
             string type = i < 0 ? cible : cible.Substring(0, i), cle = i < 0 ? "" : cible.Substring(i + 1);
             if (type == "action" && Actions.ContainsKey(cle)) { LancerAction(cle); return; }
@@ -498,6 +506,8 @@ namespace NettoyagePC.Nouveau
             // Audio jeu : veille de l'Auto Warzone et de la sortie par défaut (rien n'est lu tant que l'outil ne sert pas)
             Opened += (s, e) => { try { AudioJeu5.Demarrer(this); } catch (Exception ex) { JournalDemarrage.Erreur("audio jeu", ex); } };
             Activated += (s, e) => Horloge.Pause(false);
+            // retour dans Velox après Sécurité Windows, une page de pilote… : bilan recalculé si on est à l'accueil
+            Activated += (s, e) => { if (BilanPerime && PageActive == "Accueil" && !Simulation) ActualiserBilan(); };
             Deactivated += (s, e) => Horloge.Pause(true);
             PropertyChanged += (s, e) => { if (e.Property == WindowStateProperty) Horloge.Pause(WindowState == WindowState.Minimized); };
             // comme la version 4 : les durées de démarrage et la santé des disques lues par le moteur sont gardées

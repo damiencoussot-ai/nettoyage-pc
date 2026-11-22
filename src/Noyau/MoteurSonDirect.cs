@@ -298,10 +298,28 @@ namespace NettoyagePC
         private static readonly Guid IID_IAudioCaptureClient = new Guid("C8ADBD64-E71E-48a0-A4DE-185C395CD317");
         private static readonly Guid IID_IAudioRenderClient = new Guid("F294ACFC-3146-4483-A7BF-ADDCA7C260E2");
         private static readonly Guid FormatFlottant = new Guid("00000003-0000-0010-8000-00aa00389b71");
+        private static readonly Guid IID_IAudioEndpointVolume = new Guid("5CDF2C82-841E-4546-9722-0CF74078229A");
+
+        /// <summary>
+        /// Volume de Windows sur le câble (touches de volume, curseur de la barre des tâches : le câble est la sortie par
+        /// défaut) : il baisse le son AVANT Velox. Sans correction, à 30 % de volume le jeu arrive ~20 dB trop bas, rien ne
+        /// dépasse le seuil du compresseur, tout est remonté pareil et les pas ne ressortent pas. Velox remonte donc l'entrée
+        /// de ce que le volume a retiré (au plus 40 dB), traite au niveau plein, puis remet le volume à la sortie : le
+        /// volume de Windows reste le volume d'écoute, sans affaiblir le traitement. Gains (entrée, sortie) pour ce volume.
+        /// </summary>
+        internal static void CompensationVolume(float db, out float entree, out float sortie)
+        {
+            if (float.IsNaN(db) || db >= 0) { entree = 1; sortie = 1; return; }
+            float d = Math.Max(-40f, db);
+            entree = (float)Math.Pow(10, -d / 20.0);
+            sortie = (float)Math.Pow(10, db / 20.0);
+        }
 
         private sealed class Flux
         {
             public IMMDevice Appareil; public IAudioClient Client; public IAudioCaptureClient Capture; public IAudioRenderClient Rendu;
+            /// <summary>(capture) volume de Windows sur la sortie du câble, et l'appareil qui le porte.</summary>
+            public IMMDevice SortieCable; public IAudioEndpointVolume Volume;
             public int Images;
             /// <summary>Réserve visée dans le tampon du casque (images) : petite au départ, agrandie seulement si le son
             /// manque (le tampon s'est vidé). -1 : pas encore fixée.</summary>
@@ -311,7 +329,8 @@ namespace NettoyagePC
             {
                 try { if (Client != null) Client.Stop(); } catch { }
                 AudioWindows.Liberer(Capture); AudioWindows.Liberer(Rendu); AudioWindows.Liberer(Client); AudioWindows.Liberer(Appareil);
-                Capture = null; Rendu = null; Client = null; Appareil = null;
+                AudioWindows.Liberer(Volume); AudioWindows.Liberer(SortieCable);
+                Capture = null; Rendu = null; Client = null; Appareil = null; Volume = null; SortieCable = null;
             }
         }
 
@@ -367,8 +386,13 @@ namespace NettoyagePC
             int canaux = 2, fe = 48000; bool flottant = true; int bits = 32;
             bool jeu = false; string erreur = "", jeuCle = "";
             float[] tampon = new float[0];
-            int forceEnCours = -1, armeEnCours = -1;
+            int forceEnCours = -1, armeEnCours = -1, styleEnCours = -1;
             MemoireReecoute memoire = null;
+            long dernierVolume = -10000; float gainEntree = 1, gainSortie = 1, volumeDb = 0;
+            // garde-fou : si le pilote du câble n'appliquait pas le volume de Windows, la compensation dépasserait le niveau
+            // plein (un son de jeu ne dépasse pas ~1) : au 3e dépassement net (×2), elle est coupée pour la session
+            int depassements = 0; bool sansCompensation = false; long derniereVariation = -10000;
+            var suivi = new SuiviPartie();   // « Dernières parties » : jeu, durée, réglage, explosions tenues, retard
             try
             {
                 while (true)
@@ -396,7 +420,24 @@ namespace NettoyagePC
                     {
                         string dem = "";
                         try { dem = File.ReadAllText(FichierReecoute).Trim(); File.Delete(FichierReecoute); } catch { }
-                        if (memoire != null) { if (dem == "stop") memoire.Arreter(); else if (dem == "go") memoire.Lancer(); }
+                        if (memoire == null && dem == "export") ThreadPool.QueueUserWorkItem(_ => EcrireResultatExport("vide"));
+                        if (memoire != null)
+                        {
+                            if (dem == "stop") memoire.Arreter();
+                            else if (dem == "go") memoire.Lancer();
+                            else if (dem == "export")
+                            {
+                                // copie en mémoire ici (quelques ms) ; les fichiers sont écrits par un autre fil : un disque lent ou
+                                // l'antivirus ne doivent pas couper le son du casque
+                                float[] sans, avec; int ce = memoire.Canaux, fx = memoire.Frequence;
+                                if (!memoire.Copier(out sans, out avec)) ThreadPool.QueueUserWorkItem(_ => EcrireResultatExport("vide"));
+                                else ThreadPool.QueueUserWorkItem(_ =>
+                                {
+                                    try { string pf = PrefixeExport(); MemoireReecoute.EcrireWav(pf + "-sans.wav", sans, ce, fx); MemoireReecoute.EcrireWav(pf + "-avec.wav", avec, ce, fx); EcrireResultatExport("ok|" + pf); }
+                                    catch (Exception ex) { JournalDemarrage.Erreur("enregistrement du son pour analyse", ex); EcrireResultatExport("erreur|" + ex.Message); }
+                                });
+                            }
+                        }
                     }
                     if (t - dernierJeu >= 250)
                     {
@@ -408,7 +449,7 @@ namespace NettoyagePC
                     if (cap != null && ren != null)
                     {
                         int fv, av; r.Effectifs(jeuCle, out fv, out av);
-                        if (comp == null || fv != forceEnCours || av != armeEnCours) { comp = new CompresseurPas(fv, fe, av); forceEnCours = fv; armeEnCours = av; }
+                        if (comp == null || fv != forceEnCours || av != armeEnCours || r.Style != styleEnCours) { comp = new CompresseurPas(fv, fe, av, true, r.Style); forceEnCours = fv; armeEnCours = av; styleEnCours = r.Style; }
                     }
                     if (comp != null) comp.MelangeCible = !r.JeuxSeulement || jeu ? 1 : 0;
                     // ouverture (ou réouverture après une erreur, une seconde plus tard)
@@ -421,7 +462,7 @@ namespace NettoyagePC
                         else
                         {
                             int fv, av; r.Effectifs(jeuCle, out fv, out av);
-                            comp = new CompresseurPas(fv, fe, av); forceEnCours = fv; armeEnCours = av;
+                            comp = new CompresseurPas(fv, fe, av, true, r.Style); forceEnCours = fv; armeEnCours = av; styleEnCours = r.Style;
                             if (memoire == null || memoire.Canaux != canaux || memoire.Frequence != fe) memoire = new MemoireReecoute(canaux, fe, 10);
                         }
                     }
@@ -432,6 +473,8 @@ namespace NettoyagePC
                         try { int pad; if (ren != null && ren.Client.GetCurrentPadding(out pad) == 0) lat = (int)(1000.0 * pad / fe) + 10 + (comp != null ? 2 : 0); } catch { }
                         double red = comp != null ? comp.ReductionMax : 0; if (comp != null) comp.ReductionMax = 0;
                         double redA = comp != null ? comp.ReductionArmeMax : 0; if (comp != null) comp.ReductionArmeMax = 0;
+                        var finie = suivi.Relever(DateTime.Now, jeuCle, styleEnCours, forceEnCours, red, lat);
+                        if (finie != null) ThreadPool.QueueUserWorkItem(_ => NoterPartie(finie));   // fichier : jamais dans le fil du son
                         // écrit par un fil à part (un fichier peut être retenu quelques ms par l'antivirus : pas dans le fil du son)
                         string ligne = LigneEtat(cap != null && ren != null, lat, red, !r.JeuxSeulement || jeu, erreur, cap != null ? canaux : 0, redA,
                             memoire != null ? memoire.Phase : 0, memoire != null ? memoire.SecondesRestantes : 0, memoire != null ? memoire.Secondes : 0, jeuCle);
@@ -454,6 +497,22 @@ namespace NettoyagePC
                         }
                     }
                     if (cap == null || ren == null) { Thread.Sleep(100); continue; }
+                    if (t - dernierVolume >= 250 && cap.Volume != null && !sansCompensation)
+                    {
+                        dernierVolume = t;
+                        try
+                        {
+                            float db;
+                            if (cap.Volume.GetMasterVolumeLevel(out db) == 0)
+                            {
+                                // volume qui vient de changer : le son déjà en route a été produit à l'ancien volume (un dépassement
+                                // passager est normal) ; le garde-fou ne compte que quand le volume est stable depuis 500 ms
+                                if (Math.Abs(db - volumeDb) > 0.5f) { derniereVariation = t; depassements = 0; }
+                                volumeDb = db; CompensationVolume(db, out gainEntree, out gainSortie);
+                            }
+                        }
+                        catch { gainEntree = 1; gainSortie = 1; }
+                    }
                     evenement.WaitOne(100);
                     try
                     {
@@ -469,6 +528,17 @@ namespace NettoyagePC
                             else if (flottant) Marshal.Copy(donnees, tampon, 0, n);
                             else for (int i = 0; i < n; i++) tampon[i] = Marshal.ReadInt16(donnees, i * 2) / 32768f;
                             cap.Capture.ReleaseBuffer(images);
+                            if (gainEntree != 1)
+                            {
+                                float crete = 0;
+                                for (int i = 0; i < n; i++) { tampon[i] *= gainEntree; float a = Math.Abs(tampon[i]); if (a > crete) crete = a; }   // le volume de Windows retiré
+                                if (crete > 2f && montre.ElapsedMilliseconds - derniereVariation > 500 && ++depassements >= 3)
+                                {
+                                    sansCompensation = true; JournalDemarrage.Noter("Moteur audio : le pilote du câble n'applique pas le volume de Windows, compensation coupée.");
+                                    for (int i = 0; i < n; i++) tampon[i] /= gainEntree;
+                                    gainEntree = 1; gainSortie = 1;
+                                }
+                            }
                             if (memoire == null || memoire.Phase == 0)
                             {
                                 if (memoire != null) memoire.GarderSec(tampon, images);
@@ -476,6 +546,7 @@ namespace NettoyagePC
                                 if (memoire != null) memoire.GarderTraite(tampon, images);
                             }
                             else memoire.Remplir(tampon, images);   // réécoute : le son du jeu est remplacé par l'enregistrement
+                            if (gainSortie != 1) for (int i = 0; i < n; i++) tampon[i] *= gainSortie;   // et remis : c'est le volume d'écoute
                             Jouer(ren, tampon, images, canaux, fe, flottant);
                         }
                     }
@@ -490,6 +561,7 @@ namespace NettoyagePC
             finally
             {
                 fini.Set();
+                try { NoterPartie(suivi.Finir(DateTime.Now)); } catch { }   // moteur arrêté en pleine partie
                 if (cap != null) cap.Fermer(); if (ren != null) ren.Fermer();
                 if (format != IntPtr.Zero) Marshal.FreeCoTaskMem(format);
                 AudioWindows.Liberer(e);
@@ -575,7 +647,32 @@ namespace NettoyagePC
             if (ren.Client.GetService(ref iid, out o) != 0 || !(o is IAudioRenderClient)) return "Lecture sur le casque impossible.";
             ren.Rendu = (IAudioRenderClient)o;
             if (ren.Client.Start() != 0 || cap.Client.Start() != 0) return "Le son n'a pas pu démarrer.";
+            // volume de Windows sur la sortie du câble (compensé par le moteur) ; sans lui, le traitement se fait tel quel
+            try
+            {
+                var c = Cables().FirstOrDefault(x => x.Entree == r.Source);
+                if (c != null && e.GetDevice(c.Sortie, out cap.SortieCable) == 0 && cap.SortieCable != null)
+                {
+                    iid = IID_IAudioEndpointVolume;
+                    if (cap.SortieCable.Activate(ref iid, CLSCTX_ALL, IntPtr.Zero, out o) == 0 && o is IAudioEndpointVolume v) cap.Volume = v;
+                }
+            }
+            catch { }
             return "";
+        }
+
+        private static void EcrireResultatExport(string texte)
+        {
+            try { string tmp = FichierExport + ".tmp"; File.WriteAllText(tmp, texte); File.Move(tmp, FichierExport, true); } catch { }
+        }
+
+        /// <summary>Début du nom des fichiers d'analyse (Bureau) : « Velox-son-AAAA-MM-JJ-HHmmss ».</summary>
+        internal static string PrefixeExport()
+        {
+            string bureau = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
+            if (string.IsNullOrEmpty(bureau) || !Directory.Exists(bureau)) bureau = Chemins.Donnees;
+            Directory.CreateDirectory(bureau);
+            return Path.Combine(bureau, "Velox-son-" + DateTime.Now.ToString("yyyy-MM-dd-HHmmss", CultureInfo.InvariantCulture));
         }
 
         /// <summary>Clé du jeu reconnu qui tourne (« cod », « valorant »…), "" si aucun.</summary>
@@ -594,6 +691,18 @@ namespace NettoyagePC
             catch { }
             return cle;
         }
+    }
+
+    [ComImport, Guid("5CDF2C82-841E-4546-9722-0CF74078229A"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+    internal interface IAudioEndpointVolume
+    {
+        [PreserveSig] int RegisterControlChangeNotify(IntPtr notif);
+        [PreserveSig] int UnregisterControlChangeNotify(IntPtr notif);
+        [PreserveSig] int GetChannelCount(out int nombre);
+        [PreserveSig] int SetMasterVolumeLevel(float db, ref Guid contexte);
+        [PreserveSig] int SetMasterVolumeLevelScalar(float niveau, ref Guid contexte);
+        [PreserveSig] int GetMasterVolumeLevel(out float db);
+        [PreserveSig] int GetMasterVolumeLevelScalar(out float niveau);
     }
 
     [ComImport, Guid("F294ACFC-3146-4483-A7BF-ADDCA7C260E2"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]

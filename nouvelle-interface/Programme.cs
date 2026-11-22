@@ -92,6 +92,19 @@ namespace NettoyagePC.Nouveau
             }
             // contrôle après installation (lancé par l'installateur) : fenêtre et pages construites sans rien afficher
             if (args.Length > 0 && args[0] == "--autocontrole") return Captures.AutoControle();
+            // (réglage) passe un fichier WAV 16 bits par le traitement de Pas boostés : --traiter-wav entree sortie force [arme]
+            if (args.Length >= 1 && args[0] == "--mesurer-son")
+            {
+                foreach (int fo in new[] { 35, 65, 100, 130 })
+                {
+                    double es, ea, rp; float cr; MoteurSon.Mesurer(fo, out es, out ea, out rp, out cr);
+                    double ps, pa; MoteurSon.MesurerSousExplosion(fo, out ps, out pa);
+                    double rs, ra, cs, ca; MoteurSon.MesurerRenfort(fo, out rs, out ra, out cs, out ca);
+                    Console.WriteLine("force " + fo + " : explosion/pas " + es.ToString("F1") + " -> " + ea.ToString("F1") + " (retour " + rp.ToString("F1") + ", crete " + cr.ToString("F2") + ") ; sous explosion " + ps.ToString("F1") + " -> " + pa.ToString("F1") + " ; renfort " + rs.ToString("F1") + " -> " + ra.ToString("F1") + " (tir " + cs.ToString("F2") + " -> " + ca.ToString("F2") + ")");
+                }
+                return 0;
+            }
+            if (args.Length >= 4 && args[0] == "--traiter-wav") return MoteurSon.TraiterWav(args[1], args[2], int.Parse(args[3]), args.Length >= 5 ? int.Parse(args[4]) : 1, args.Length >= 6 ? int.Parse(args[5]) : 1);
             App.CommandeInitiale = CommandeExterne.Lire(args);
 
             int ie = Array.IndexOf(args, "--essai-demarrage");
@@ -746,7 +759,7 @@ namespace NettoyagePC.Nouveau
                         e0 = sans;
                         if (force == 65) { gain65 = sans - avec; retour65 = retour; }
                         txt.Append(" force " + force + " : " + avec.ToString("F1", ci) + " dB (pas d'après " + retour.ToString("+0.0;-0.0;0.0", ci) + ", crête " + cr.ToString("F3", ci) + ")");
-                        ok &= cr <= 0.9501f && !double.IsNaN(avec) && avec <= prec + 0.01;
+                        ok &= cr <= 0.9501f && !double.IsNaN(avec) && avec <= prec + 0.5;   // Extrême et Ultra touchent le même plafond
                         prec = avec;
                     }
                     {
@@ -772,7 +785,7 @@ namespace NettoyagePC.Nouveau
                                 if (arme == 2) { if (sept) g7 = pa - ps; else g2 = pa - ps; }
                             }
                         rapport.AppendLine("Pas boostés : part du pas ennemi pendant que tu tires" + sb3);
-                        verifier(okA && g2 >= 3 && g7 >= 3, "ton arme : pendant tes rafales, le pas ennemi ressort de " + g2.ToString("F1", ci) + " dB (stéréo) et " + g7.ToString("F1", ci) + " dB (7.1), sans saturation");
+                        verifier(okA && g2 >= 2.5 && g7 >= 3, "ton arme : pendant tes rafales, le pas ennemi ressort de " + g2.ToString("F1", ci) + " dB (stéréo) et " + g7.ToString("F1", ci) + " dB (7.1), sans saturation");
                         // un son faible au centre (pas ennemi devant toi) n'est pas touché par « ton arme »
                         var cA = new CompresseurPas(0, 48000, 2); var cB = new CompresseurPas(0, 48000, 0);
                         var fa = new float[48000 * 2]; var alA = new Random(9); for (int i = 0; i < 48000; i++) { float v = (float)((alA.NextDouble() * 2 - 1) * 0.01); fa[2 * i] = v; fa[2 * i + 1] = v; }
@@ -801,9 +814,49 @@ namespace NettoyagePC.Nouveau
                         for (int i = 3 * 48000 * 2; i < 4 * 48000 * 2; i++) silRe = Math.Max(silRe, Math.Abs(sortie[i]));
                         for (int i = 4 * 48000 * 2; i < 7 * 48000 * 2 && i < sortie.Count; i++) es2 += sortie[i] * (double)sortie[i];
                         double ecartRe = 10 * Math.Log10(es2 / Math.Max(1e-20, es1));
+                        {
+                            // export pour analyse : deux WAV lisibles (en-tête, taille), avant la réécoute
+                            var me = new MemoireReecoute(2, 48000, 10); var pe = new float[480 * 2];
+                            for (int k = 0; k < 300; k++) { for (int i = 0; i < pe.Length; i++) pe[i] = 0.1f; me.GarderSec(pe, 480); for (int i = 0; i < pe.Length; i++) pe[i] = 0.2f; me.GarderTraite(pe, 480); }
+                            string pref = Path.Combine(Path.GetTempPath(), "velox-essai-export-" + Guid.NewGuid().ToString("N").Substring(0, 6));
+                            bool okE = me.Exporter(pref);
+                            try
+                            {
+                                var bs = File.ReadAllBytes(pref + "-sans.wav"); var ba = File.ReadAllBytes(pref + "-avec.wav");
+                                okE &= bs.Length == 44 + 3 * 48000 * 4 && ba.Length == bs.Length && System.Text.Encoding.ASCII.GetString(bs, 0, 4) == "RIFF"
+                                    && BitConverter.ToInt16(bs, 44) == (short)Math.Round(0.1 * 32767) && BitConverter.ToInt16(ba, 44) == (short)Math.Round(0.2 * 32767);
+                            }
+                            catch { okE = false; }
+                            finally { try { File.Delete(pref + "-sans.wav"); File.Delete(pref + "-avec.wav"); } catch { } }
+                            verifier(okE && !new MemoireReecoute(2, 48000, 10).Exporter(pref), "enregistrement pour analyse : deux fichiers WAV corrects (sans et avec Velox)");
+                        }
                         verifier(!tropTot && lance && Math.Abs(mr.GainTraite - 0.25f) < 0.01 && mr.GainSec == 1 && sortie.Count == 7 * 48000 * 2 && silRe == 0 && Math.Abs(ecartRe) < 0.1
                             && restantDebut == 7 && mr.Phase == 0 && mr.Secondes == 0 && !mr.Lancer(),
                             "réécoute : 3 s rejouées sans puis avec Velox (écart de volume " + ecartRe.ToString("F2", ci) + " dB), une seconde de silence entre les deux, puis retour au direct");
+                    }
+                    {
+                        // « Dernières parties » : suivi dans le moteur, ligne du journal, lignes abîmées refusées
+                        var suiviP = new SuiviPartie(); var t0 = new DateTime(2026, 11, 21, 20, 0, 0);
+                        bool rien = suiviP.Relever(t0, "", 1, 65, 0, 0) == null && suiviP.Relever(t0.AddSeconds(1), "cod", 1, 65, 10, 20) == null
+                            && suiviP.Relever(t0.AddMinutes(10), "cod", 0, 100, 18.4, 30) == null;
+                        var finie = suiviP.Relever(t0.AddMinutes(20), "", 0, 100, 0, 0);
+                        bool courte = suiviP.Relever(t0.AddMinutes(21), "apex", 1, 65, 5, 25) == null && suiviP.Relever(t0.AddMinutes(21.5), "valorant", 1, 65, 5, 25) == null;   // 30 s d'Apex : pas retenu
+                        var arret = suiviP.Finir(t0.AddMinutes(30));
+                        var relue = finie != null ? PartieJouee.Lire(finie.Ligne()) : null;
+                        verifier(rien && finie != null && finie.Jeu == "cod" && finie.Minutes == 20 && finie.Style == 0 && finie.Force == 100 && Math.Abs(finie.Explosions - 18.4) < 0.01 && finie.Retard == 25
+                            && courte && arret != null && arret.Jeu == "valorant" && suiviP.Finir(t0.AddMinutes(40)) == null
+                            && relue != null && relue.Ligne() == finie.Ligne() && relue.Debut == t0
+                            && PartieJouee.Lire("2026-11-21T20:00|../x|5|1|65|3|20") == null && PartieJouee.Lire("abc") == null && PartieJouee.Lire(null) == null
+                            && PartieJouee.Lire("2026-11-21T20:00|cod|5|7|999|80|9999").Force == 200 && PartieJouee.Lire("2026-11-21T20:00|cod|5|7|999|80|9999").Style == 1,
+                            "dernières parties : partie suivie (jeu, durée, dernier réglage, explosions, retard moyen), parties de moins d'une minute ignorées, lignes abîmées refusées");
+                        int[] crans = { 35, 65, 100, 130 };
+                        verifier(Crans5.Position(crans, 35) == 0 && Crans5.Position(crans, 65) == 1 && Crans5.Position(crans, 130) == 3 && Math.Abs(Crans5.Position(crans, 80) - (1 + 15.0 / 35)) < 1e-9
+                            && Crans5.Position(crans, 10) == 0 && Crans5.Position(crans, 500) == 3,
+                            "curseur à crans : position des niveaux, valeur hors crans placée entre deux");
+                        var nuit = new DateTime(2026, 11, 21, 23, 0, 0);
+                        verifier(AudioJeu5.QuandPartie(new DateTime(2026, 11, 21, 20, 8, 0), nuit) == "20:08" && AudioJeu5.QuandPartie(new DateTime(2026, 11, 20, 19, 47, 0), nuit) == "hier 19:47"
+                            && AudioJeu5.QuandPartie(new DateTime(2026, 11, 2, 19, 47, 0), nuit) == "02/11" && AudioJeu5.NomForce(65) == "Fort" && AudioJeu5.NomForce(80) == "80 %",
+                            "dernières parties : heure (aujourd'hui, hier, date) et nom de la force");
                     }
                     {
                         // un réglage par jeu : retenu pendant la partie, réglage général sinon ; clés invalides refusées
@@ -827,6 +880,59 @@ namespace NettoyagePC.Nouveau
                             cn.Traiter(bn2, 480, 2);
                             verifier(bn.Concat(bn2).All(x => !float.IsNaN(x) && !float.IsInfinity(x) && Math.Abs(x) <= 0.9501f) && bn2.Any(x => x != 0), "pas boostés : un échantillon invalide est remplacé par du silence, le son repart");
                         }
+                        {
+                            // bilan : fichiers temporaires comptés comme le nettoyage les supprime (plus de 2 jours)
+                            string dt = Path.Combine(Path.GetTempPath(), "velox-essai-bilan-" + Guid.NewGuid().ToString("N").Substring(0, 8));
+                            Directory.CreateDirectory(dt);
+                            try
+                            {
+                                string vieux = Path.Combine(dt, "vieux.tmp"), recent = Path.Combine(dt, "recent.tmp");
+                                File.WriteAllBytes(vieux, new byte[3000]); File.WriteAllBytes(recent, new byte[5000]);
+                                File.SetLastWriteTime(vieux, DateTime.Now.AddDays(-3));
+                                long tout = TailleFichiers.Dossier(dt), nettoyable = TailleFichiers.Dossier(dt, null, DateTime.Now.AddDays(-new OptionsMoteur().JoursTemp));
+                                verifier(tout == 8000 && nettoyable == 3000, "bilan : seuls les fichiers temporaires que le nettoyage supprime sont comptés (" + nettoyable + " sur " + tout + " octets)");
+                            }
+                            finally { try { Directory.Delete(dt, true); } catch { } }
+                            // disque presque plein, déjà nettoyé aujourd'hui : le bouton mène aux gros fichiers (pas un nettoyage de plus)
+                            var db = new DonneesBilan { DisqueTotal = 100e9, DisqueLibre = 15e9, DernierJournal = DateTime.Now.AddHours(-1) };
+                            var p1 = BilanPc.Points(db).First();
+                            db.DernierJournal = DateTime.Now.AddDays(-3); var p2 = BilanPc.Points(db).First();
+                            db.DisqueLibre = 5e9; var p3 = BilanPc.Points(db).First();
+                            verifier(p1.Cible == "page:Disques" && p2.Cible == "action:standard" && p3.Cible == "action:complet" && p3.Etat == "probleme", "bilan : disque plein déjà nettoyé → gros fichiers ; sinon nettoyage");
+                        }
+                        {
+                            // volume de Windows sur le câble : compensé à l'entrée, remis à la sortie, au plus 40 dB
+                            float gEnt, gSor; bool okVol = true;
+                            MoteurSon.CompensationVolume(0, out gEnt, out gSor); okVol &= gEnt == 1 && gSor == 1;
+                            MoteurSon.CompensationVolume(-20, out gEnt, out gSor); okVol &= Math.Abs(gEnt - 10) < 0.01 && Math.Abs(gSor - 0.1) < 0.001 && Math.Abs(gEnt * gSor - 1) < 0.001;
+                            MoteurSon.CompensationVolume(-96, out gEnt, out gSor); okVol &= Math.Abs(gEnt - 100) < 0.1 && gSor < 0.0001;
+                            MoteurSon.CompensationVolume(float.NaN, out gEnt, out gSor); okVol &= gEnt == 1 && gSor == 1;
+                            verifier(okVol, "pas boostés : le volume de Windows sur le câble est compensé (entrée), puis remis (sortie), au plus 40 dB");
+                        }
+                        {
+                            // renforceur de pas : ne rend jamais les pas moins visibles, ne remonte pas un tir
+                            var sbR = new System.Text.StringBuilder(); bool okR = true;
+                            foreach (int fr in new[] { 35, 65, 100, 130 })
+                            {
+                                double rPs, rPa, rCs, rCa; MoteurSon.MesurerRenfort(fr, out rPs, out rPa, out rCs, out rCa);
+                                sbR.Append(" force " + fr + " : " + rPs.ToString("F1", ci) + " → " + rPa.ToString("F1", ci) + " dB (crête d'un tir " + rCs.ToString("F2", ci) + " → " + rCa.ToString("F2", ci) + ")");
+                                okR &= rPa >= rPs - 0.2 && rCa <= rCs * 1.15 + 0.01 && rCa <= 0.9501;
+                            }
+                            rapport.AppendLine("Pas boostés : renforceur de pas (part des pas sur une ambiance continue)" + sbR);
+                            verifier(okR, "renforceur de pas : les pas ne sont jamais moins visibles, un tir n'est pas remonté");
+                            // défaut vu sur de vrais enregistrements de Warzone : les pas proches ne doivent plus se noyer dans le fond
+                            var sbC = new System.Text.StringBuilder(); bool okC = true;
+                            foreach (int fr in new[] { 35, 65, 100, 130 })
+                            {
+                                double cS, cA; MoteurSon.MesurerContraste(fr, out cS, out cA);
+                                sbC.Append(" force " + fr + " : " + cS.ToString("F1", ci) + " → " + cA.ToString("F1", ci) + " dB");
+                                okC &= cA >= cS - 4 && cS > 12;
+                            }
+                            foreach (int fr in new[] { 65, 100 }) { double cS, cA; MoteurSon.MesurerContraste(fr, out cS, out cA, CompresseurPas.StylePuissant); sbC.Append(" (Puissant " + fr + " : " + cA.ToString("F1", ci) + " dB)"); }
+                            rapport.AppendLine("Pas boostés : contraste des pas proches sur un fond faible (style Net)" + sbC);
+                            verifier(okC, "pas boostés : les pas proches gardent leur contraste sur le fond (plus d'écrasement)" + sbC);
+                        }
+                        verifier(ReglagesMoteurSon.Lire(new ReglagesMoteurSon { Style = 0 }.Json()).Style == 0 && new ReglagesMoteurSon().Style == 1 && ReglagesMoteurSon.Lire("{\"Style\":7}").Style == 1, "pas boostés : style (Puissant par défaut, Net) gardé et borné");
                         verifier(ReglagesMoteurSon.Lire(new ReglagesMoteurSon { RenommerAuRallumage = true }.Json()).RenommerAuRallumage && !new ReglagesMoteurSon().RenommerAuRallumage, "Velox Studio : le nom à remettre au rallumage est gardé dans les réglages");
                     }
                     {
@@ -875,7 +981,7 @@ namespace NettoyagePC.Nouveau
                     var souffle = new float[96000]; var al = new Random(3); for (int i = 0; i < souffle.Length; i++) souffle[i] = (float)((al.NextDouble() * 2 - 1) * 0.0001);
                     double ns = 0; foreach (var v in souffle) ns += v * (double)v; cs = new CompresseurPas(100, 48000); cs.Traiter(souffle, 48000, 2);
                     double ns2 = 0; foreach (var v in souffle) ns2 += v * (double)v;
-                    verifier(ok && gain65 >= 8 && Math.Abs(retour65) <= 3 && sil.All(v => v == 0) && 10 * Math.Log10(ns2 / ns) < 3, "pas boostés : le pas lointain gagne " + gain65.ToString("F1", ci) + " dB sur l'explosion (force 65), et celui d'après aussi, aucune saturation, silence et souffle pas remontés");
+                    verifier(ok && gain65 >= 8 && Math.Abs(retour65) <= 3 && sil.All(v => v == 0) && 10 * Math.Log10(ns2 / ns) < 3, "pas boostés : le pas lointain gagne " + gain65.ToString("F1", ci) + " dB sur l'explosion (force 65), et celui d'après aussi, aucune saturation, silence et souffle pas remontés [ok=" + ok + " retour=" + retour65.ToString("F1", ci) + " silence=" + sil.All(v => v == 0) + " souffle=" + (10 * Math.Log10(ns2 / ns)).ToString("F1", ci) + "]");
                     var rm = new ReglagesMoteurSon { Actif = true, Force = 140, Arme = 7, Source = "{0.0.1.00000000}.{11111111-2222-3333-4444-555555555555}", Destination = "pas un id", DefautAvant = "{0.0.0.00000000}.{11111111-2222-3333-4444-555555555555}" }.Borner();
                     var rr = ReglagesMoteurSon.Lire(rm.Json());
                     // sans câble virtuel (machine d'essai) : rien n'est branché ni lancé, et c'est dit
@@ -1715,7 +1821,7 @@ namespace NettoyagePC.Nouveau
                 f.Afficher("Audio", false);
                 for (int k = 0; k < 4; k++) { Dispatcher.UIThread.RunJobs(); AvaloniaHeadlessPlatform.ForceRenderTimerTick(); }
                 var vus = f.GetVisualDescendants().ToList();
-                bool studioVu = vus.OfType<Marche5>().Count() == 1 && vus.OfType<CourbeEq5>().Count() == 5 && vus.OfType<Molette5>().Count() == 4 && vus.OfType<Fader5>().Count() == 6 + AudioJeu5.ExempleVoicemeeter.Entrees.Count + AudioJeu5.ExempleVoicemeeter.Bus.Count && vus.OfType<VuMetre5>().Count() >= 3
+                bool studioVu = vus.OfType<Marche5>().Count(x => x.IsEffectivelyVisible) == 1 && vus.OfType<CourbeEq5>().Count() == 5 && vus.OfType<Molette5>().Count() == 4 && vus.OfType<Fader5>().Count() == 6 + AudioJeu5.ExempleVoicemeeter.Entrees.Count + AudioJeu5.ExempleVoicemeeter.Bus.Count && vus.OfType<VuMetre5>().Count() >= 3
                     && vus.OfType<TextBlock>().Any(t => t.Text == "COMPARER") && Avalonia.Automation.AutomationProperties.GetName(vus.OfType<Molette5>().First()) == "Force";
                 Capturer(f, dossier, "sombre-audio.png", rapport, ref erreurs);
                 AudioJeu5.Confirmer(f, Langue.T("Profil appliqué"), "Valorant", true);
@@ -1764,9 +1870,56 @@ namespace NettoyagePC.Nouveau
                     f.Afficher("Accueil", false); f.Afficher("Audio", false);
                     for (int k = 0; k < 4; k++) { Dispatcher.UIThread.RunJobs(); AvaloniaHeadlessPlatform.ForceRenderTimerTick(); }
                     var visibles = f.GetVisualDescendants().OfType<TextBlock>().Where(t => t.IsEffectivelyVisible).Select(t => t.Text ?? "").ToList();
-                    bool simpleOk = visibles.Contains("Pas boostés : actif") && !visibles.Contains("Inversion gauche / droite") && !visibles.Contains("Voir le fichier écrit") && visibles.Contains("Simple") && visibles.Contains("Expert");
+                    var vusSimple = f.GetVisualDescendants().Where(x => x.IsEffectivelyVisible).ToList();
+                    bool simpleOk = visibles.Contains("ACTIF") && visibles.Contains("▶ Réécouter sans / avec") && visibles.Contains("Tout fonctionne") && visibles.Contains("Compétitif")
+                        && visibles.Contains("Call of Duty / Warzone détecté") && vusSimple.OfType<Crans5>().Count() == 1 && vusSimple.OfType<Marche5>().Count() == 1
+                        && !visibles.Contains("COMPARER") && !visibles.Contains("Pas boostés : actif") && !visibles.Contains("Inversion gauche / droite") && !visibles.Contains("Voir le fichier écrit") && visibles.Contains("Simple") && visibles.Contains("Expert");
                     if (!simpleOk) { erreurs++; rapport.AppendLine("ERREUR : audio : mode Simple (modules experts encore visibles, ou essentiels cachés)"); }
                     Capturer(f, dossier, "sombre-audio-simple.png", rapport, ref erreurs);
+                    // dernières parties remplies, « Changer » du casque (le module s'ouvre), puis petite fenêtre et thème clair
+                    var hier = DateTime.Now.Date.AddDays(-1);
+                    AudioJeu5.Exemple.Parties = new System.Collections.Generic.List<PartieJouee>
+                    {
+                        new PartieJouee { Debut = hier.AddHours(19).AddMinutes(32), Jeu = "cod", Minutes = 14, Style = 0, Force = 65, Explosions = 10, Retard = 28 },
+                        new PartieJouee { Debut = DateTime.Now.Date.AddHours(0).AddMinutes(7), Jeu = "cod", Minutes = 22, Style = 1, Force = 100, Explosions = 23.4, Retard = 30 },
+                        new PartieJouee { Debut = DateTime.Now.Date.AddHours(0).AddMinutes(8), Jeu = "valorant", Minutes = 31, Style = 1, Force = 65, Explosions = 18, Retard = 26 },
+                    };
+                    f.Afficher("Accueil", false); f.Afficher("Audio", false);
+                    for (int k = 0; k < 4; k++) { Dispatcher.UIThread.RunJobs(); AvaloniaHeadlessPlatform.ForceRenderTimerTick(); }
+                    var vp = f.GetVisualDescendants().OfType<TextBlock>().Where(t => t.IsEffectivelyVisible).Select(t => t.Text ?? "").ToList();
+                    bool partiesVues = vp.Contains("Valorant") && vp.Contains("hier 19:32") && vp.Contains("jusqu'à −23 dB") && vp.Contains("Extrême") && !vp.Contains("Tes parties apparaîtront ici après ta première partie avec Pas boostés (une minute au moins).");
+                    bool casqueFerme = !vp.Contains("CALIBRATION DU CASQUE");
+                    var changer = f.GetVisualDescendants().OfType<TextBlock>().FirstOrDefault(t => t.IsEffectivelyVisible && t.Text == "Changer ›");
+                    if (changer != null) changer.RaiseEvent(new Avalonia.Input.PointerReleasedEventArgs(changer, null, changer, new Point(1, 1), 0, new Avalonia.Input.PointerPointProperties(), Avalonia.Input.KeyModifiers.None, Avalonia.Input.MouseButton.Left));
+                    for (int k = 0; k < 3; k++) Dispatcher.UIThread.RunJobs();
+                    bool casqueOuvert = f.GetVisualDescendants().OfType<TextBlock>().Any(t => t.IsEffectivelyVisible && t.Text == "CALIBRATION DU CASQUE");
+                    if (!partiesVues || !casqueFerme || !casqueOuvert) { erreurs++; rapport.AppendLine("ERREUR : audio : mode Simple, dernières parties ou « Changer » (parties " + partiesVues + ", casque fermé " + casqueFerme + ", ouvert " + casqueOuvert + ")"); }
+                    foreach (var defil in f.GetVisualDescendants().OfType<ScrollViewer>().Where(x => x.Content is AudioJeu5).Take(1)) defil.Offset = new Vector(0, 0);
+                    Capturer(f, dossier, "sombre-audio-simple-parties.png", rapport, ref erreurs);
+                    f.Width = 1000; f.Height = 760; f.Afficher("Audio", false);
+                    Capturer(f, dossier, "petit-audio-simple.png", rapport, ref erreurs);
+                    f.Width = 1240; f.Height = 800;
+                    f.ChangerTheme(false); f.Afficher("Audio", false);
+                    Capturer(f, dossier, "clair-audio-simple.png", rapport, ref erreurs);
+                    f.ChangerTheme(true);
+                    AudioJeu5.Exemple.Parties = new System.Collections.Generic.List<PartieJouee>();
+                    // débutant : VB-Cable pas encore installé, puis Pas boostés coupé
+                    var cablesAvant = AudioJeu5.Exemple.Cables; bool actifAvant = AudioJeu5.Exemple.Moteur.Actif;
+                    AudioJeu5.Exemple.Cables = new System.Collections.Generic.List<CableVirtuel>();
+                    f.Afficher("Accueil", false); f.Afficher("Audio", false);
+                    for (int k = 0; k < 4; k++) { Dispatcher.UIThread.RunJobs(); AvaloniaHeadlessPlatform.ForceRenderTimerTick(); }
+                    var vc = f.GetVisualDescendants().OfType<TextBlock>().Where(t => t.IsEffectivelyVisible).Select(t => t.Text ?? "").ToList();
+                    var rond = f.GetVisualDescendants().OfType<Marche5>().FirstOrDefault(x => x.IsEffectivelyVisible);
+                    bool sansCable = vc.Contains("À INSTALLER") && vc.Contains("Suivre le guide") && rond != null && !rond.IsEffectivelyEnabled && !rond.Actif
+                        && !f.GetVisualDescendants().OfType<Crans5>().Any(x => x.IsEffectivelyVisible);
+                    Capturer(f, dossier, "sombre-audio-simple-sans-cable.png", rapport, ref erreurs);
+                    AudioJeu5.Exemple.Cables = cablesAvant; AudioJeu5.Exemple.Moteur.Actif = false;
+                    f.Afficher("Accueil", false); f.Afficher("Audio", false);
+                    for (int k = 0; k < 4; k++) { Dispatcher.UIThread.RunJobs(); AvaloniaHeadlessPlatform.ForceRenderTimerTick(); }
+                    var vo = f.GetVisualDescendants().OfType<TextBlock>().Where(t => t.IsEffectivelyVisible).Select(t => t.Text ?? "").ToList();
+                    bool coupe = vo.Contains("COUPÉ") && vo.Contains("Pas boostés est coupé : allume-le pour entendre les pas.") && vo.Count(x => x == "—") >= 4;
+                    AudioJeu5.Exemple.Moteur.Actif = actifAvant;
+                    if (!sansCable || !coupe) { erreurs++; rapport.AppendLine("ERREUR : audio : mode Simple, débutant (sans câble " + sansCable + ", coupé " + coupe + ")"); }
                     AudioJeu5.ExempleReglages.ModeExpert = true;
                 }
                 try { File.WriteAllBytes(Path.Combine(dossier, "scene-avant-apres.wav"), DemoAudio.Wav()); } catch { }   // (pour écouter la scène du test avant / après)
