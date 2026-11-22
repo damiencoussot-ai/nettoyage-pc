@@ -14,6 +14,11 @@ Nouveau
   - quatre mesures avec leur jauge ;
   - l'accès rapide en grandes tuiles avec une icône ;
   - une seule liste « À faire ».
+- Studio son simplifié : il s'ouvre sur un seul écran, sans cadre ni bandeau.
+  On y trouve le gros bouton Pas boostés, la force des pas, Puissant ou Net, la réécoute, tes chiffres en direct,
+  ton casque, ton profil, la vérification et tes dernières parties.
+  Tous les réglages restent dans « Tous les réglages (Expert) ».
+  À la mise à jour, le Studio son s'ouvre sur cet écran, même si tu étais en Expert.
 - Thème clair et thème sombre, en français, en anglais et en espagnol.
 
 Le look d'avant reste disponible

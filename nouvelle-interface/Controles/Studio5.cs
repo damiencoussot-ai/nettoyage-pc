@@ -20,15 +20,28 @@ namespace NettoyagePC.Nouveau
     /// <summary>Couleurs, polices et briques du Studio.</summary>
     internal static class Studio
     {
-        public static readonly Color Fond1 = Color.FromRgb(11, 7, 22), Fond2 = Color.FromRgb(27, 13, 44), Panneau = Color.FromRgb(21, 13, 37), PanneauHaut = Color.FromRgb(30, 19, 52),
-            Bord = Color.FromRgb(52, 36, 86), Texte = Color.FromRgb(245, 239, 255), Discret = Color.FromRgb(170, 155, 205), Faible = Color.FromRgb(112, 98, 148),
-            Ambre = Color.FromRgb(255, 181, 71), Magenta = Color.FromRgb(255, 79, 163), Violet = Color.FromRgb(157, 107, 255), Cyan = Color.FromRgb(60, 230, 224),
+        // Couleurs de la console. Style arrondi (5.22) : les fonds et bordures suivent la palette sombre arrondie de Velox
+        // (bleu nuit violacé), pour que le Studio son ressemble au reste du logiciel ; ailleurs, le violet nuit d'origine.
+        public static Color Fond1 { get { return Habillage.Arrondi ? Color.FromRgb(7, 8, 26) : Color.FromRgb(11, 7, 22); } }
+        public static Color Fond2 { get { return Habillage.Arrondi ? Color.FromRgb(13, 15, 38) : Color.FromRgb(27, 13, 44); } }
+        public static Color Panneau { get { return Habillage.Arrondi ? Color.FromRgb(13, 15, 38) : Color.FromRgb(21, 13, 37); } }
+        public static Color PanneauHaut { get { return Habillage.Arrondi ? Color.FromRgb(16, 18, 44) : Color.FromRgb(30, 19, 52); } }
+        public static Color Bord { get { return Habillage.Arrondi ? Color.FromRgb(33, 36, 70) : Color.FromRgb(52, 36, 86); } }
+        public static Color Discret { get { return Habillage.Arrondi ? Color.FromRgb(146, 141, 186) : Color.FromRgb(170, 155, 205); } }
+        public static Color Faible { get { return Habillage.Arrondi ? Color.FromRgb(110, 106, 150) : Color.FromRgb(112, 98, 148); } }
+        public static Color Violet { get { return Habillage.Arrondi ? Color.FromRgb(124, 92, 255) : Color.FromRgb(157, 107, 255); } }
+        public static readonly Color Texte = Color.FromRgb(245, 239, 255),
+            Ambre = Color.FromRgb(255, 181, 71), Magenta = Color.FromRgb(255, 79, 163), Cyan = Color.FromRgb(60, 230, 224),
             Vert = Color.FromRgb(71, 240, 160), Rouge = Color.FromRgb(255, 92, 122);
 
         private const string Polices = "avares://NettoyagePC/Assets/Polices#";
-        public static readonly FontFamily Titre = new FontFamily(Polices + "Chakra Petch, Bahnschrift, Segoe UI, DejaVu Sans, sans-serif");
+        private static readonly FontFamily titreConsole = new FontFamily(Polices + "Chakra Petch, Bahnschrift, Segoe UI, DejaVu Sans, sans-serif");
         public static readonly FontFamily Corps = new FontFamily(Polices + "IBM Plex Sans, Segoe UI, DejaVu Sans, sans-serif");
-        public static readonly FontFamily Chiffres = new FontFamily(Polices + "JetBrains Mono, Cascadia Mono, Consolas, DejaVu Sans Mono, monospace");
+        private static readonly FontFamily chiffresConsole = new FontFamily(Polices + "JetBrains Mono, Cascadia Mono, Consolas, DejaVu Sans Mono, monospace");
+        /// <summary>Titres : Chakra Petch (console) ; IBM Plex Sans en style arrondi, comme le reste de Velox.</summary>
+        public static FontFamily Titre { get { return Habillage.Arrondi ? Corps : titreConsole; } }
+        /// <summary>Chiffres et étiquettes : JetBrains Mono (toujours pour les valeurs alignées).</summary>
+        public static FontFamily Chiffres { get { return chiffresConsole; } }
 
         // ---- pinceaux, dégradés et textes gardés : la page Audio se redessine jusqu'à 30 fois par seconde (spectre,
         // VU-mètres) ; en créer de nouveaux à chaque image chargeait la mémoire et faisait saccader l'affichage.
@@ -69,6 +82,17 @@ namespace NettoyagePC.Nouveau
         /// <summary>Le fond de la console (dégradé violet nuit, bord lumineux en haut).</summary>
         public static Border Console(Control contenu)
         {
+            if (Habillage.Arrondi)
+            {
+                // style arrondi : pas de grand cadre lumineux ; en thème sombre, les modules sont posés sur le fond de la page
+                // comme partout ailleurs ; en thème clair, un panneau sombre arrondi les porte (le Studio reste sombre)
+                bool sombre = Habillage.P.Sombre;
+                return new Border
+                {
+                    Child = contenu, CornerRadius = new CornerRadius(20), Padding = sombre ? new Thickness(0, 4, 0, 0) : new Thickness(22, 20, 22, 22),
+                    Background = sombre ? Brushes.Transparent : P(Color.FromRgb(10, 11, 32)), ClipToBounds = false,
+                };
+            }
             return new Border
             {
                 Child = contenu, CornerRadius = new CornerRadius(24), Padding = new Thickness(26, 22, 26, 26), ClipToBounds = false,
@@ -86,7 +110,15 @@ namespace NettoyagePC.Nouveau
         public static Border Module(string titre, Control contenu, Control aDroite = null)
         {
             var s = new StackPanel { Spacing = 12 };
-            if (titre != null)
+            if (titre != null && Habillage.Arrondi)
+            {
+                // style arrondi : petit titre en capitales espacées, gris, sans trait
+                var g = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto") };
+                g.Children.Add(new TextBlock { Text = Langue.T(titre).ToUpper(Langue.Culture), FontFamily = Corps, FontSize = 11, FontWeight = FontWeight.Bold, LetterSpacing = 1.4, Foreground = P(Discret), VerticalAlignment = VerticalAlignment.Center });
+                if (aDroite != null) { Grid.SetColumn(aDroite, 1); g.Children.Add(aDroite); }
+                s.Children.Add(g);
+            }
+            else if (titre != null)
             {
                 var g = new Grid { ColumnDefinitions = new ColumnDefinitions("Auto,*,Auto") };
                 g.Children.Add(new TextBlock { Text = Langue.T(titre).ToUpper(Langue.Culture), FontFamily = Chiffres, FontSize = 11, LetterSpacing = 2, Foreground = P(Ambre, 220), VerticalAlignment = VerticalAlignment.Center });
@@ -96,6 +128,12 @@ namespace NettoyagePC.Nouveau
                 s.Children.Add(g);
             }
             s.Children.Add(contenu);
+            if (Habillage.Arrondi)
+                return new Border
+                {
+                    Child = s, CornerRadius = new CornerRadius(16), Padding = new Thickness(20, 18), Margin = new Thickness(0, 0, 0, 14),
+                    Background = P(Panneau), BorderBrush = P(Bord), BorderThickness = new Thickness(1),
+                };
             return new Border
             {
                 Child = s, CornerRadius = new CornerRadius(18), Padding = new Thickness(18, 16), Margin = new Thickness(0, 0, 0, 16),
@@ -128,11 +166,14 @@ namespace NettoyagePC.Nouveau
         /// <summary>Bouton du Studio (pilule) : plein (ambre → magenta) ou contour.</summary>
         public static Border Bouton(string texte, bool plein, Action clic, string bulle = null)
         {
-            var t = new TextBlock { Text = texte, FontFamily = Titre, FontSize = 13, FontWeight = FontWeight.SemiBold, Foreground = P(plein ? Color.FromRgb(24, 8, 22) : Texte), HorizontalAlignment = HorizontalAlignment.Center };
+            bool arrondi = Habillage.Arrondi;
+            var t = new TextBlock { Text = texte, FontFamily = Titre, FontSize = 13, FontWeight = FontWeight.SemiBold, Foreground = P(plein ? (arrondi ? Colors.White : Color.FromRgb(24, 8, 22)) : Texte), HorizontalAlignment = HorizontalAlignment.Center };
             var b = new Border
             {
-                Child = t, Padding = new Thickness(16, 8), CornerRadius = new CornerRadius(18), Margin = new Thickness(0, 0, 8, 8), Cursor = new Cursor(StandardCursorType.Hand), Focusable = true,
-                Background = plein ? (IBrush)Degrade(0, Ambre, Magenta) : P(Violet, 22), BorderBrush = P(plein ? Ambre : Violet, plein ? 0 : 140), BorderThickness = new Thickness(1),
+                Child = t, Padding = new Thickness(16, 8), CornerRadius = new CornerRadius(arrondi ? 12 : 18), Margin = new Thickness(0, 0, 8, 8), Cursor = new Cursor(StandardCursorType.Hand), Focusable = true,
+                // style arrondi : plein violet → rose (comme les boutons de Velox), contour sobre
+                Background = plein ? (IBrush)(arrondi ? Degrade(0, Violet, Magenta) : Degrade(0, Ambre, Magenta)) : arrondi ? P(Color.FromRgb(21, 23, 53)) : P(Violet, 22),
+                BorderBrush = plein ? P(Ambre, 0) : arrondi ? P(Color.FromRgb(46, 49, 96)) : P(Violet, 140), BorderThickness = new Thickness(1),
             };
             if (bulle != null) ToolTip.SetTip(b, bulle);
             b.PointerEntered += (s, e) => b.Opacity = 0.86;
@@ -143,7 +184,7 @@ namespace NettoyagePC.Nouveau
         }
 
         /// <summary>Contour de focus clavier, commun aux contrôles du Studio.</summary>
-        public static void Focus(DrawingContext ctx, Rect r, double rayon) { ctx.DrawRectangle(null, new Pen(P(Ambre, 200), 1, new DashStyle(new double[] { 2, 2 }, 0)), new RoundedRect(r, rayon)); }
+        public static void Focus(DrawingContext ctx, Rect r, double rayon) { ctx.DrawRectangle(null, new Pen(P(Habillage.Arrondi ? Texte : Ambre, 200), 1, new DashStyle(new double[] { 2, 2 }, 0)), new RoundedRect(r, rayon)); }
 
         /// <summary>Texte mis en forme pour le dessin (gardé : les graduations de la courbe sont redessinées à chaque image).</summary>
         public static FormattedText Mesure(string t, double taille, Color c, FontFamily police = null, bool gras = false)

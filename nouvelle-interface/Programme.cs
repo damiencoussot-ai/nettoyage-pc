@@ -1892,7 +1892,8 @@ namespace NettoyagePC.Nouveau
                     var vusSimple = f.GetVisualDescendants().Where(x => x.IsEffectivelyVisible).ToList();
                     bool simpleOk = visibles.Contains("ACTIF") && visibles.Contains("▶ Réécouter sans / avec") && visibles.Contains("Tout fonctionne") && visibles.Contains("Compétitif")
                         && visibles.Contains("Call of Duty / Warzone détecté") && vusSimple.OfType<Crans5>().Count() == 1 && vusSimple.OfType<Marche5>().Count() == 1
-                        && !visibles.Contains("COMPARER") && !visibles.Contains("Pas boostés : actif") && !visibles.Contains("Inversion gauche / droite") && !visibles.Contains("Voir le fichier écrit") && visibles.Contains("Simple") && visibles.Contains("Expert");
+                        && !visibles.Contains("COMPARER") && !visibles.Contains("Pas boostés : actif") && !visibles.Contains("Inversion gauche / droite") && !visibles.Contains("Voir le fichier écrit") && visibles.Contains("Tous les réglages (Expert) ›")
+                        && !visibles.Contains("Affichage :") && !visibles.Any(t => t.StartsWith("D'autres traitements sont actifs", StringComparison.Ordinal));
                     if (!simpleOk) { erreurs++; rapport.AppendLine("ERREUR : audio : mode Simple (modules experts encore visibles, ou essentiels cachés)"); }
                     Capturer(f, dossier, "sombre-audio-simple.png", rapport, ref erreurs);
                     // dernières parties remplies, « Changer » du casque (le module s'ouvre), puis petite fenêtre et thème clair

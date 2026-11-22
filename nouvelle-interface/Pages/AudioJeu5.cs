@@ -758,7 +758,7 @@ namespace NettoyagePC.Nouveau
             var pile = new StackPanel();
             pile.Children.Add(Expert(EnTete(true)));   // mode Simple : l'en-tête du panneau « Ton son » le remplace
             avis = new StackPanel { Spacing = 8, Margin = new Thickness(0, 0, 0, 8) };
-            pile.Children.Add(avis);
+            pile.Children.Add(Expert(avis));   // mode Simple : les avis passent par la carte « Vérification »
 
             // ---------------- colonne principale
             var g = new StackPanel();
@@ -904,7 +904,7 @@ namespace NettoyagePC.Nouveau
             bExpert = Puce(Langue.T("Expert"), () => ChoisirMode(true));
             ToolTip.SetTip(bExpert, Langue.T("Tous les réglages : console, bandes, sorties, Voicemeeter, 7.1 virtuel, table de mixage, fichier."));
             choixMode.Children.Add(bSimple); choixMode.Children.Add(bExpert);
-            pile.Children.Add(choixMode);
+            pile.Children.Add(Expert(choixMode));   // mode Simple : « Tous les réglages (Expert) » est dans le panneau
             corps = new Grid();
             corps.Children.Add(gauche); corps.Children.Add(droite);
             Disposer(1000);
