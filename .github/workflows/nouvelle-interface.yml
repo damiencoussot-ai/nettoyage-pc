@@ -232,6 +232,16 @@ jobs:
           Noter ("fenêtre du programme installé : code {0} ; {1}" -f $p.ExitCode, ((Get-Content essais-windows\demarrage-installe.txt -ErrorAction SilentlyContinue) -join ' / '))
 
           # 4. désinstallation
+          # mise à jour pendant que Velox est ouvert (fenêtre lancée) : l'installateur doit le fermer, installer et réussir
+          $fen = Start-Process $exe -PassThru
+          Start-Sleep 8
+          $chrono = [Diagnostics.Stopwatch]::StartNew()
+          $p = Start-Process $setup5 -ArgumentList '/S' -Wait -PassThru
+          Start-Sleep 3
+          $relance = @(Get-Process NettoyagePC -ErrorAction SilentlyContinue).Count
+          Noter ("mise à jour avec Velox ouvert : installateur code {0} en {1} s, Velox relancé : {2}" -f $p.ExitCode, [int]$chrono.Elapsed.TotalSeconds, $(if ($relance -gt 0) { 'oui' } else { 'non' }))
+          if ($p.ExitCode -ne 0) { throw "mise à jour avec Velox ouvert : échec" }
+          Fermer
           $p = Start-Process (Join-Path $dossier 'Desinstaller.exe') -ArgumentList '/S', "_?=$dossier" -Wait -PassThru   # _?= : le désinstalleur ne se relance pas depuis TEMP, donc -Wait attend vraiment la fin
           Start-Sleep 5
           $reste = Test-Path $exe
