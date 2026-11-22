@@ -109,8 +109,8 @@ Function .onInstSuccess
     ${If} ${Silent}
         Exec '"$WINDIR\explorer.exe" "$INSTDIR\NettoyagePC.exe"'
     ${ElseIf} $MoteurArrete == 1
-        ; « Pas boostés » était allumé : sans son moteur, le son n'arrive plus au casque. Velox est relancé tout de suite
-        ; (il relance le moteur), même si la case « Lancer » de la dernière page est décochée.
+        ; « Pas boostés » était allumé (sans son moteur, le son n'arrive plus au casque), ou Velox était ouvert et
+        ; l'installation l'a fermé : Velox est relancé tout de suite, même si la case « Lancer » est décochée.
         Exec '"$WINDIR\explorer.exe" "$INSTDIR\NettoyagePC.exe"'
     ${EndIf}
 FunctionEnd
@@ -152,6 +152,7 @@ Function AttendreFermeture
         ${EndIf}
     ${EndIf}
     StrCpy $1 0
+    StrCpy $4 0
     boucle:
         IfFileExists "$INSTDIR\NettoyagePC.exe" 0 fini
         ClearErrors
@@ -160,6 +161,22 @@ Function AttendreFermeture
         FileClose $0
         Goto fini
     occupe:
+        ; installation lancée à la main alors que Velox est ouvert (fenêtre, icône près de l'horloge, outil en cours) :
+        ; plutôt que d'attendre ou de demander de le fermer, l'installateur le ferme lui-même (une seule fois, après avoir
+        ; prévenu), installe, puis le relance à la fin. Ses réglages sont déjà enregistrés : rien n'est perdu.
+        ${IfNot} ${Silent}
+        ${AndIf} $4 == 0
+            StrCpy $4 1
+            MessageBox MB_OKCANCEL|MB_ICONINFORMATION "${NOM} est ouvert.$\r$\n$\r$\nClique sur OK : l'installation le ferme, installe la mise à jour, puis le relance à la fin." IDOK fermer
+            Abort
+        fermer:
+            nsExec::Exec '"$SYSDIR\taskkill.exe" /F /T /IM NettoyagePC.exe'
+            Pop $0
+            StrCpy $MoteurArrete 1
+            Sleep 1500
+            StrCpy $1 0
+            Goto boucle
+        ${EndIf}
         IntOp $1 $1 + 1
         IntCmp $1 40 trop 0 trop
         Sleep 500
@@ -171,7 +188,10 @@ Function AttendreFermeture
             Sleep 1500
             Goto fini
         ${EndIf}
-        MessageBox MB_RETRYCANCEL|MB_ICONEXCLAMATION "${NOM} est encore ouvert.$\r$\n$\r$\nFerme-le, puis clique sur Réessayer." IDRETRY recommencer
+        ; toujours bloqué après la fermeture (rare : antivirus qui analyse le fichier, autre session Windows) : nouvel essai
+        nsExec::Exec '"$SYSDIR\taskkill.exe" /F /T /IM NettoyagePC.exe'
+        Pop $0
+        MessageBox MB_RETRYCANCEL|MB_ICONEXCLAMATION "${NOM} n'a pas pu être fermé (un antivirus analyse peut-être le fichier, ou Velox est ouvert dans une autre session Windows).$\r$\n$\r$\nAttends quelques secondes, puis clique sur Réessayer." IDRETRY recommencer
         Abort
     recommencer:
         StrCpy $1 0

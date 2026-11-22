@@ -181,7 +181,7 @@ jobs:
           $mk = 'C:\Program Files (x86)\NSIS\makensis.exe'
           if (-not (Test-Path $mk)) { choco install nsis -y --no-progress | Out-Null }
           Copy-Item publie\NettoyagePC.exe . -Force
-          & $mk /V2 /DV5 "/DVERSION=5.22" "/DVERSION4=5.22.0.0" installateur.nsi
+          & $mk /V2 /DV5 "/DVERSION=5.23" "/DVERSION4=5.23.0.0" installateur.nsi
           if ($LASTEXITCODE -ne 0) { throw "makensis a échoué" }
           # nom tiré de la version réellement fabriquée (avant : un nom figé « 5.2 » faisait échouer cet essai en silence)
           $setup5 = (Get-ChildItem 'NettoyagePC-Setup-5*.exe' | Sort-Object LastWriteTime -Descending | Select-Object -First 1).FullName
@@ -193,12 +193,15 @@ jobs:
           # 1. version 4 publiée
           # dernière version 4 publiée (pas « latest » : une publication sans fichier ou une version 5 peut l'être)
           $rel = Invoke-RestMethod "https://api.github.com/repos/$env:GITHUB_REPOSITORY/releases?per_page=30" -Headers @{ Authorization = "Bearer $env:GH_TOKEN" }
+          # la version 4 n'est plus parmi les 30 dernières publications : sans elle, l'essai part de la dernière version 5
+          # publiée (le vrai passage que font les utilisateurs). Avant, il s'arrêtait là en silence (étape « à ignorer »).
           $a = $rel | Where-Object { -not $_.draft -and -not $_.prerelease } | ForEach-Object { $_.assets } | Where-Object { $_.name -match '^NettoyagePC-Setup-4[\d.]*\.exe$' } | Select-Object -First 1
-          if (-not $a) { throw 'Aucun installateur de la version 4 publié' }
+          if (-not $a) { $a = $rel | Where-Object { -not $_.draft -and -not $_.prerelease } | ForEach-Object { $_.assets } | Where-Object { $_.name -match '^Velox-Setup-5[\d.]*\.exe$' } | Select-Object -First 1 }
+          if (-not $a) { throw 'Aucun installateur publié (version 4 ou 5)' }
           Invoke-WebRequest $a.browser_download_url -OutFile setup4.exe
           $p = Start-Process .\setup4.exe -ArgumentList '/S' -Wait -PassThru
           Fermer
-          Noter ("version 4 : installateur code {0}, programme {1}" -f $p.ExitCode, (Get-Item $exe).VersionInfo.ProductVersion)
+          Noter ("version publiée de départ ({0}) : installateur code {1}, programme {2}" -f $a.name, $p.ExitCode, (Get-Item $exe).VersionInfo.ProductVersion)
           $p = Start-Process $exe -ArgumentList '--moteur --planifier' -Wait -PassThru -WindowStyle Hidden
           $tache = Get-ScheduledTask -TaskName 'Velox - *','Nettoyage PC*' -ErrorAction SilentlyContinue | Select-Object -First 1
           Noter ("entretien automatique (version 4) : code {0}, tâche {1}" -f $p.ExitCode, $(if ($tache) { $tache.TaskName } else { 'absente' }))
@@ -232,6 +235,16 @@ jobs:
           Noter ("fenêtre du programme installé : code {0} ; {1}" -f $p.ExitCode, ((Get-Content essais-windows\demarrage-installe.txt -ErrorAction SilentlyContinue) -join ' / '))
 
           # 4. désinstallation
+          # mise à jour pendant que Velox est ouvert (fenêtre lancée) : l'installateur doit le fermer, installer et réussir
+          $fen = Start-Process $exe -PassThru
+          Start-Sleep 8
+          $chrono = [Diagnostics.Stopwatch]::StartNew()
+          $p = Start-Process $setup5 -ArgumentList '/S' -Wait -PassThru
+          Start-Sleep 3
+          $relance = @(Get-Process NettoyagePC -ErrorAction SilentlyContinue).Count
+          Noter ("mise à jour avec Velox ouvert : installateur code {0} en {1} s, Velox relancé : {2}" -f $p.ExitCode, [int]$chrono.Elapsed.TotalSeconds, $(if ($relance -gt 0) { 'oui' } else { 'non' }))
+          if ($p.ExitCode -ne 0) { throw "mise à jour avec Velox ouvert : échec" }
+          Fermer
           $p = Start-Process (Join-Path $dossier 'Desinstaller.exe') -ArgumentList '/S', "_?=$dossier" -Wait -PassThru   # _?= : le désinstalleur ne se relance pas depuis TEMP, donc -Wait attend vraiment la fin
           Start-Sleep 5
           $reste = Test-Path $exe
