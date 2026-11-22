@@ -1,0 +1,9 @@
+Velox 5.23
+
+Amélioré
+- Pas boostés, style Puissant : les pas brefs ressortent encore un peu plus (renforceur plus fort), sans remonter le
+  fond ni les tirs. Réglé sur de vrais enregistrements de Warzone.
+
+Corrigé
+- Mise à jour : si Velox est ouvert pendant l'installation (fenêtre, icône près de l'horloge), l'installateur ne bloque
+  plus sur « Velox est encore ouvert ». Il prévient, ferme Velox, installe la mise à jour, puis le relance.

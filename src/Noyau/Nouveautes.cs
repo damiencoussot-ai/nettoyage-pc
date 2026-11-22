@@ -7,6 +7,8 @@ namespace NettoyagePC
     {
         public static readonly List<KeyValuePair<string, string[]>> Liste = new List<KeyValuePair<string, string[]>>
         {
+            N("5.23", "Pas boostés, style Puissant : les pas brefs ressortent encore un peu plus, sans remonter le fond ni les tirs.",
+                "Mise à jour : si Velox est ouvert, l'installation le ferme toute seule (après t'avoir prévenu), installe, puis le relance."),
             N("5.22", "Nouveau look arrondi, plus clair et plus doux : cartes et boutons arrondis, menu avec une icône par rubrique, accent violet et rose. Le look d'avant reste à un clic (Réglages, « Style de l'interface »).",
                 "Accueil repensé : le score dans un anneau, l'état de ton PC, tes mesures avec leur jauge, l'accès rapide en grandes tuiles et une seule liste « À faire ».",
                 "Onglets en pastilles, en-tête avec l'icône de la rubrique, et « Audio » s'appelle maintenant « Studio son » dans le menu.",

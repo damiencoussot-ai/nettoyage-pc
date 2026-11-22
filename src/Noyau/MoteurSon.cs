@@ -293,12 +293,12 @@ namespace NettoyagePC
             }
             presMonte = Math.Exp(-1 / (0.06 * fe)); presDescend = Math.Exp(-1 / (0.002 * fe));
             // renforceur : +4,5 dB (léger) à +12 dB (fort), +15 dB (extrême), +18 dB (ultra)
-            // Puissant : un peu plus fort (×1,3), plus net (relâché en 40 ms : le « clac » du pas plutôt que sa traîne), bande
+            // Puissant : plus fort (×1,8, réglé sur de vrais enregistrements de Warzone), plus net (relâché en 40 ms : le « clac » du pas plutôt que sa traîne), bande
             // jusqu'à 8 kHz (là où l'oreille situe gauche/droite) et « boum » du talon moins remonté (les graves brouillent la direction)
             accentCotes = Style == StyleNet ? 4 : 6;
             poidsCentre = Style == StyleNet ? 0 : 0.5;
             facteurChoc = Style == StyleNet ? 0.5 : 0.25;
-            RenfortMax = (Style == StyleNet ? 1.5 : 1.95) * (!renfort || f <= 0 ? 0 : f <= 0.35 ? 3 * f / 0.35 : f <= 0.65 ? 3 + 5 * (f - 0.35) / 0.3 : f <= 1 ? 8 + 2 * (f - 0.65) / 0.35 : 10 + 2 * Math.Min(1, (f - 1) / 0.3));
+            RenfortMax = (Style == StyleNet ? 1.5 : 2.7) * (!renfort || f <= 0 ? 0 : f <= 0.35 ? 3 * f / 0.35 : f <= 0.65 ? 3 + 5 * (f - 0.35) / 0.3 : f <= 1 ? 8 + 2 * (f - 0.65) / 0.35 : 10 + 2 * Math.Min(1, (f - 1) / 0.3));
             rfMonte = Math.Exp(-1 / (0.002 * fe)); rfDescendRapide = Math.Exp(-1 / (0.015 * fe)); rfLent = Math.Exp(-1 / (0.06 * fe));
             rgMonte = Math.Exp(-1 / (0.002 * fe)); rgDescend = Math.Exp(-1 / ((Style == StyleNet ? 0.07 : 0.04) * fe));
             rfCrete = Math.Exp(-1 / (0.01 * fe));
