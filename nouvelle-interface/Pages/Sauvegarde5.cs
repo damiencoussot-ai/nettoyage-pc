@@ -74,7 +74,7 @@ namespace NettoyagePC.Nouveau
             tDerniere = Petit("");
             carte.Children.Add(tDerniere);
             carte.Children.Add(Petit(Langue.T("Les fichiers sont copiés : rien n'est supprimé de ton PC. Chaque sauvegarde va dans un dossier daté. Les fichiers OneDrive restés « en ligne » ne sont pas copiés (ils sont déjà sauvegardés dans le cloud).")));
-            Children.Add(new Border { Child = carte, Padding = new Thickness(22, 20), CornerRadius = new CornerRadius(3), Background = Habillage.Pinceau(P.Carte), BorderBrush = Habillage.Pinceau(P.Accent, 90), BorderThickness = new Thickness(1) });
+            Children.Add(new Border { Child = carte, Padding = new Thickness(22, 20), CornerRadius = Habillage.Rayon(3), Background = Habillage.Pinceau(P.Carte), BorderBrush = Habillage.Pinceau(P.Accent, 90), BorderThickness = new Thickness(1) });
             AttachedToVisualTree += (s, e) => { ActualiserDestinations(); CalculerTailles(); AfficherDerniere(); };
         }
 

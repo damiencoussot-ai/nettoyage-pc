@@ -43,6 +43,7 @@ namespace NettoyagePC.Nouveau
             Spacing = 18;
 
             if (Habillage.Hud) { ConstruireHud(f); }
+            else if (Habillage.Arrondi) { ConstruireArrondi(f); }
             else
             {
             // ---- haut : anneau + texte
@@ -195,6 +196,131 @@ namespace NettoyagePC.Nouveau
             ZoneAlertes = liste;
         }
 
+        private AnneauArrondi anneauArrondi;
+        private TextBlock tSalutSous;
+
+        /// <summary>Style arrondi : une grande carte (anneau en dégradé, état, deux boutons, quatre tuiles à jauge), l'accès
+        /// rapide, puis « À faire » dans une seule carte, une ligne par point.</summary>
+        private void ConstruireArrondi(FenetrePrincipale f)
+        {
+            var P = Habillage.P;
+            Margin = new Thickness(18, 6, 28, 22);
+            Spacing = 14;
+            if (Habillage.Gamer) { banniere = Gamer5.Banniere(f); Children.Add(banniere); }
+            // salut
+            var tete = new StackPanel { Spacing = 2, Margin = new Thickness(4, 0, 0, 0) };
+            tete.Children.Add(new TextBlock { Text = Habillage.Gamer ? (string.IsNullOrEmpty(f.Pseudo) ? Langue.T("Prêt à jouer ?") : Langue.F("Prêt à jouer, {0} ?", f.Pseudo)) : Textes.Salut(f.Pseudo, DateTime.Now), FontFamily = Habillage.Affichage, FontSize = 26, FontWeight = FontWeight.SemiBold, Foreground = Habillage.Pinceau(P.Texte) });
+            tSalutSous = new TextBlock { Text = Langue.T("Analyse de ton PC…"), FontFamily = Habillage.Corps, FontSize = 13, Foreground = Habillage.Pinceau(P.Discret) };
+            tAnalyse = tSalutSous;
+            tete.Children.Add(tSalutSous);
+            Children.Add(tete);
+            // grande carte
+            var g = new Grid { ColumnDefinitions = new ColumnDefinitions("Auto,*,Auto") };
+            anneauArrondi = new AnneauArrondi(184) { Margin = new Thickness(4, 0, 26, 0), VerticalAlignment = VerticalAlignment.Center };
+            ZoneAnneau = anneauArrondi;
+            g.Children.Add(anneauArrondi);
+            var texte = new StackPanel { Spacing = 6, VerticalAlignment = VerticalAlignment.Center };
+            texte.Children.Add(Etiquette("ÉTAT DE TON PC"));
+            tEtat = new TextBlock { Text = Langue.T("Analyse de ton PC…"), FontFamily = Habillage.Affichage, FontSize = 21, FontWeight = FontWeight.SemiBold, Foreground = Habillage.Pinceau(P.Texte), TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 2, 0, 0) };
+            tDetail = new TextBlock { Text = Langue.T("Quelques secondes : rien n'est modifié pendant l'analyse."), FontFamily = Habillage.Corps, FontSize = 13, Foreground = Habillage.Pinceau(P.Discret), TextWrapping = TextWrapping.Wrap };
+            texte.Children.Add(tEtat); texte.Children.Add(tDetail);
+            var boutons = new WrapPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 10, 0, 0) };
+            var unClic = new BoutonNoyau(f.Simulation ? "Simuler en 1 clic" : "Optimiser en 1 clic", true, 0, 44) { TaillePolice = 15, Margin = new Thickness(0, 0, 10, 8) };
+            unClic.Clic += () => F.LancerAction("complet");
+            BoutonOptimiser = unClic;
+            var analyser = new BoutonNoyau("Analyser sans rien modifier", false, 0, 44) { TaillePolice = 14, Margin = new Thickness(0, 0, 10, 8) };
+            analyser.Clic += () => F.LancerAction("analyse");
+            boutons.Children.Add(unClic); boutons.Children.Add(analyser);
+            texte.Children.Add(boutons);
+            Grid.SetColumn(texte, 1); g.Children.Add(texte);
+            mesures = new UniformGrid { Columns = 2, Width = 300, Margin = new Thickness(20, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center };
+            mesures.Children.Add(TuileArrondi("PROCESSEUR", 0, P.Accent, out _));
+            mesures.Children.Add(TuileArrondi("MÉMOIRE VIVE", 1, P.Accent, out _));
+            mesures.Children.Add(TuileArrondi(Langue.F("LIBRE SUR {0}", Environment.GetEnvironmentVariable("SystemDrive") ?? "C:"), 2, P.Orange, out _));
+            tuileTemperature = TuileArrondi("TEMPÉRATURE", 3, P.Vert, out tTitreTemperature);
+            mesures.Children.Add(tuileTemperature);
+            Grid.SetColumn(mesures, 2); g.Children.Add(mesures);
+            var carte = new Cadre5 { Child = g, Coupe = 16, Padding = new Thickness(22, 20), Background = Habillage.Pinceau(P.Carte), BorderBrush = Habillage.Pinceau(P.Bordure), BorderThickness = new Thickness(1) };
+            // étroit : les tuiles passent sous l'état, sur une ligne
+            carte.SizeChanged += (o, a) =>
+            {
+                // étroit : les tuiles occupent toute la largeur de la carte, sous l'anneau et l'état
+                bool etroit = a.NewSize.Width < 900;
+                Grid.SetColumn(mesures, etroit ? 0 : 2); Grid.SetColumnSpan(mesures, etroit ? 3 : 1); Grid.SetRow(mesures, etroit ? 1 : 0);
+                g.RowDefinitions = new RowDefinitions(etroit ? "Auto,Auto" : "Auto");
+                mesures.Width = etroit ? double.NaN : 300; mesures.Margin = etroit ? new Thickness(0, 14, 0, 0) : new Thickness(20, 0, 0, 0);
+                Colonnes(etroit ? a.NewSize.Width - 44 : 300);
+            };
+            Children.Add(carte);
+            if (Habillage.Gamer) { qg = new QgGamer5(f); Children.Add(qg); }
+            ZoneFavoris = Favoris5.Bande(f);
+            Children.Add(ZoneFavoris);
+            // « À faire » : une seule carte
+            var titre = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto"), Margin = new Thickness(0, 0, 0, 4) };
+            tTitreListe = Etiquette("À FAIRE");
+            tTitreListe.VerticalAlignment = VerticalAlignment.Center;
+            titre.Children.Add(tTitreListe);
+            bActualiser = new BoutonNoyau("Actualiser", false, 0, 30) { TaillePolice = 12.5, IsEnabled = false };
+            bActualiser.Clic += () => { bActualiser.IsEnabled = false; F.ActualiserBilan(); };
+            Grid.SetColumn(bActualiser, 1); titre.Children.Add(bActualiser);
+            liste.Spacing = 0;
+            Children.Add(new Cadre5 { Coupe = 16, Padding = new Thickness(22, 16, 22, 10), Background = Habillage.Pinceau(P.Carte), BorderBrush = Habillage.Pinceau(P.Bordure), BorderThickness = new Thickness(1), Child = new StackPanel { Children = { titre, liste } } });
+            ZoneAlertes = liste;
+        }
+
+        /// <summary>Petit titre en capitales espacées (style arrondi).</summary>
+        internal static TextBlock Etiquette(string texte)
+        {
+            return new TextBlock { Text = Langue.T(texte).ToUpper(Langue.Culture), FontFamily = Habillage.Corps, FontSize = 11, FontWeight = FontWeight.Bold, LetterSpacing = 1.4, Foreground = Habillage.Pinceau(Habillage.P.Discret), TextWrapping = TextWrapping.Wrap };
+        }
+
+        private Cadre5 TuileArrondi(string titre, int index, Color couleur, out TextBlock tTitre)
+        {
+            var P = Habillage.P;
+            var b = new Cadre5
+            {
+                Coupe = 10, Height = 82, Margin = new Thickness(5), Padding = new Thickness(13, 11, 13, 11),
+                Background = Habillage.Pinceau(P.Sombre ? Habillage.Melanger(P.Fond, P.Carte, 0.4) : P.Fond), BorderBrush = Habillage.Pinceau(P.Bordure), BorderThickness = new Thickness(1),
+            };
+            var g = new Grid { RowDefinitions = new RowDefinitions("Auto,*,Auto") };
+            tTitre = Etiquette(titre); tTitre.FontSize = 10; tTitre.TextWrapping = TextWrapping.NoWrap; tTitre.TextTrimming = TextTrimming.CharacterEllipsis;
+            g.Children.Add(tTitre);
+            valeurs[index] = new TextBlock { Text = "…", FontFamily = Habillage.Affichage, FontSize = 22, FontWeight = FontWeight.Bold, Foreground = Habillage.Pinceau(index == 2 ? P.Orange : index == 3 ? P.Vert : Habillage.Melanger(P.Accent, P.Texte, P.Sombre ? 0.45 : 0.1)), VerticalAlignment = VerticalAlignment.Center, TextTrimming = TextTrimming.CharacterEllipsis };
+            Grid.SetRow(valeurs[index], 1); g.Children.Add(valeurs[index]);
+            var piste = new Border { Height = 6, CornerRadius = Habillage.Rayon(3), Background = Habillage.Pinceau(P.Sombre ? Color.FromRgb(28, 31, 61) : Color.FromRgb(232, 229, 246)), ClipToBounds = true };
+            var plein = new Panel();
+            barres[index] = new Border { Height = 6, Width = 0, CornerRadius = Habillage.Rayon(3), HorizontalAlignment = HorizontalAlignment.Left,
+                Background = index < 2 ? (IBrush)new LinearGradientBrush { StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative), EndPoint = new RelativePoint(1, 0, RelativeUnit.Relative), GradientStops = { new GradientStop(P.Accent, 0), new GradientStop(P.Accent2, 1) } } : Habillage.Pinceau(couleur) };
+            plein.Children.Add(barres[index]);
+            piste.Child = plein;
+            plein.SizeChanged += (o, a) => { var t = barres[index].Tag as double?; if (t.HasValue) barres[index].Width = a.NewSize.Width * t.Value; };
+            Grid.SetRow(piste, 2); g.Children.Add(piste);
+            b.Child = g;
+            return b;
+        }
+
+        /// <summary>Style arrondi : point de couleur, texte, bouton ; lignes séparées par un trait fin.</summary>
+        private Control LigneArrondi(PointBilan p, Action clic)
+        {
+            var P = Habillage.P;
+            Color c = p.Etat == EtatPoint.Probleme ? P.Rouge : p.Etat == EtatPoint.Attention ? P.Orange : P.Vert;
+            var g = new Grid { ColumnDefinitions = new ColumnDefinitions("26,*,Auto"), MinHeight = 50 };
+            var point = new Border { Width = 10, Height = 10, CornerRadius = new CornerRadius(5), Background = Habillage.Pinceau(c), VerticalAlignment = VerticalAlignment.Center, HorizontalAlignment = HorizontalAlignment.Left };
+            if (P.Sombre) point.BoxShadow = BoxShadows.Parse("0 0 8 0 " + c.ToString());
+            g.Children.Add(point);
+            var t = new TextBlock { Text = p.Texte, FontFamily = Habillage.Corps, FontSize = 13.5, Foreground = Habillage.Pinceau(P.Texte), VerticalAlignment = VerticalAlignment.Center, TextTrimming = TextTrimming.CharacterEllipsis };
+            ToolTip.SetTip(t, p.Texte);
+            Grid.SetColumn(t, 1); g.Children.Add(t);
+            if (p.Bouton != null)
+            {
+                var b = new BoutonNoyau(p.Bouton, false, 0, 32) { TaillePolice = 13, Margin = new Thickness(12, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center };
+                if (clic != null) b.Clic += clic;
+                else if (p.Cible != null) b.Clic += () => F.Executer(p.Cible, p.Bouton);
+                Grid.SetColumn(b, 2); g.Children.Add(b);
+            }
+            return new Border { Child = g, BorderBrush = Habillage.Pinceau(P.Bordure, 150), BorderThickness = new Thickness(0, 1, 0, 0) };
+        }
+
         /// <summary>Trait fin qui s'efface vers la droite (titres de section du HUD).</summary>
         public static IBrush Trait(Color c)
         {
@@ -272,6 +398,16 @@ namespace NettoyagePC.Nouveau
             tDetail.Text = Textes.EtatDetail(b);
             string[] noms = { "STOCKAGE", "MÉMOIRE", "SÉCURITÉ", "MATÉRIEL" };
             int aFaire = b.Points.Count(p => p.Etat != EtatPoint.Ok);
+            if (Habillage.Arrondi)
+            {
+                tEtat.Foreground = Habillage.Pinceau(P.Texte);
+                tSalutSous.Text = Langue.F("Analyse terminée à {0}", b.Date.ToString("HH:mm")) + (aFaire > 0 ? " · " + Langue.F(aFaire == 1 ? "{0} point à améliorer" : "{0} points à améliorer", aFaire) : "");
+                AfficherMesures(new Mesures { Processeur = b.Processeur, Memoire = b.Memoire, Temperature = b.Temperature, DisqueLibre = b.DisqueLibre, DisquePourcentLibre = b.DisquePourcentLibre });
+                tTitreListe.Text = (aFaire == 0 ? Langue.T("POINTS VÉRIFIÉS") : Langue.T("À FAIRE") + " · " + aFaire).ToUpper(Langue.Culture);
+                RemplirListe();
+                anneauArrondi.Montrer(b);
+                return;
+            }
             if (Habillage.Hud)
             {
                 // HUD : « STOCKAGE 44 % » sur une ligne dans trois coins (le quatrième garde « INTÉGRITÉ.SYS »)
@@ -311,7 +447,7 @@ namespace NettoyagePC.Nouveau
             var b = new Cadre5
             {
                 Coupe = 10, TraitHaut = Habillage.Hud ? (index == 2 ? P.Rouge : index == 3 ? P.Vert : P.Accent) : (Color?)null,
-                MinWidth = 120, Height = 64, Margin = new Thickness(0, 0, 8, 8), Padding = new Thickness(12, 8), CornerRadius = new CornerRadius(3),
+                MinWidth = 120, Height = 64, Margin = new Thickness(0, 0, 8, 8), Padding = new Thickness(12, 8), CornerRadius = Habillage.Rayon(3),
                 Background = Habillage.Pinceau(P.Carte), BorderBrush = Habillage.Pinceau(P.Bordure), BorderThickness = new Thickness(1),
             };
             var s = new StackPanel { Spacing = 4 };
@@ -327,7 +463,7 @@ namespace NettoyagePC.Nouveau
         {
             if (m == null) return;
             if (qg != null) qg.MajMesures(m);
-            if (Habillage.Hud)
+            if (Habillage.Hud || Habillage.Arrondi)
             {
                 if (m.Processeur >= 0) ValeurHud(0, Math.Round(m.Processeur).ToString(), "%", m.Processeur / 100);
                 if (m.Memoire >= 0) ValeurHud(1, Math.Round(m.Memoire).ToString(), "%", m.Memoire / 100);
@@ -341,7 +477,7 @@ namespace NettoyagePC.Nouveau
                 if (m.Temperature > 0)
                 {
                     ValeurHud(3, Math.Round(m.Temperature).ToString(), "°C", m.Temperature / 100);
-                    valeurs[3].Foreground = Habillage.Pinceau(m.Temperature >= 90 ? Habillage.P.Rouge : m.Temperature >= 80 ? Habillage.P.Orange : Habillage.P.Texte);
+                    valeurs[3].Foreground = Habillage.Pinceau(m.Temperature >= 90 ? Habillage.P.Rouge : m.Temperature >= 80 ? Habillage.P.Orange : Habillage.Arrondi ? Habillage.P.Vert : Habillage.P.Texte);
                     if (!string.IsNullOrEmpty(m.TitreTemperature)) tTitreTemperature.Text = Langue.T(m.TitreTemperature);
                 }
                 bool t2 = m.Temperature > 0 || valeurs[3].Inlines != null && valeurs[3].Inlines.Count > 0;
@@ -396,6 +532,7 @@ namespace NettoyagePC.Nouveau
         {
             var P = Habillage.P;
             if (Habillage.Hud) return LigneHud(p, clic, numero);
+            if (Habillage.Arrondi) return LigneArrondi(p, clic);
             var g = new Grid { ColumnDefinitions = new ColumnDefinitions("34,*,Auto"), Height = 46 };
             Color c = p.Etat == EtatPoint.Probleme ? P.Rouge : p.Etat == EtatPoint.Attention ? P.Orange : P.Vert;
             string sym = p.Etat == EtatPoint.Probleme ? "✖" : p.Etat == EtatPoint.Attention ? "!" : "✔";
@@ -410,7 +547,7 @@ namespace NettoyagePC.Nouveau
                 else if (p.Cible != null) b.Clic += () => F.Executer(p.Cible, p.Bouton);
                 Grid.SetColumn(b, 2); g.Children.Add(b);
             }
-            return new Cadre5 { Coupe = 10, Background = Habillage.Pinceau(P.Carte), BorderBrush = Habillage.Pinceau(Habillage.Hud && p.Etat != EtatPoint.Ok ? Habillage.Alpha(c, 70) : P.Bordure), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(3), Child = g };
+            return new Cadre5 { Coupe = 10, Background = Habillage.Pinceau(P.Carte), BorderBrush = Habillage.Pinceau(Habillage.Hud && p.Etat != EtatPoint.Ok ? Habillage.Alpha(c, 70) : P.Bordure), BorderThickness = new Thickness(1), CornerRadius = Habillage.Rayon(3), Child = g };
         }
 
         /// <summary>HUD : barre de couleur à gauche, code « A-01 », texte, bouton en capitales.</summary>

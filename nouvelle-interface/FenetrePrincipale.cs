@@ -168,7 +168,8 @@ namespace NettoyagePC.Nouveau
             foreach (var r in Rubriques)
             {
                 var rr = r;
-                l.Add(new EntreeCommande { Titre = r.Nom, Detail = r.Sous, Type = "Rubrique", Faire = () => Afficher(rr.Cle, true) });
+                // « Studio son » s'appelait « Audio » jusqu'à la 5.21 : on le trouve encore en tapant « audio »
+                l.Add(new EntreeCommande { Titre = r.Nom, Detail = r.Sous, Type = "Rubrique", Alias = rr.Cle == "Audio" ? "audio " + Langue.T("Audio") : "", Faire = () => Afficher(rr.Cle, true) });
             }
             foreach (var o in Onglets5)
             {
@@ -228,7 +229,7 @@ namespace NettoyagePC.Nouveau
             l.Add(new EntreeCommande { Titre = Langue.T("Choisir mes favoris"), Detail = Langue.T("Les outils affichés sur l'accueil"), Type = "Action", Faire = () => Favoris5.Choisir(this) });
             l.Add(new EntreeCommande { Titre = Langue.T("Bouclier anti-arnaque"), Detail = Langue.T("Faux technicien ? Logiciels de prise en main à distance"), Type = "Action", Faire = () => Bouclier5.Ouvrir(this) });
             l.Add(new EntreeCommande { Titre = Langue.T(Habillage.P.Sombre ? "Thème clair" : "Thème sombre"), Detail = Langue.T("Apparence"), Type = "Action", Faire = () => { ChangerTheme(!Habillage.P.Sombre); EnregistrerReglage(r => r.Theme = Habillage.P.Sombre ? "Sombre" : "Clair"); } });
-            foreach (var e in l) e.Cle = PaletteCommandes.Normaliser(e.Titre + " " + e.Detail);
+            foreach (var e in l) e.Cle = PaletteCommandes.Normaliser(e.Titre + " " + e.Detail + " " + e.Alias);
             Superposer(new PaletteCommandes(this, l));
         }
 
@@ -527,7 +528,7 @@ namespace NettoyagePC.Nouveau
             Rubriques.Add(new Rubrique { Cle = "Proteger", Nom = Langue.T("Protéger"), Sous = Langue.T("Antivirus, bouclier anti-arnaque, sauvegarde et confidentialité."), Page = () => PageProteger.Creer(this) });
             Rubriques.Add(new Rubrique { Cle = "Outils", Nom = Langue.T("Outils"), Sous = Langue.T("Matériel, plein potentiel, réseau et aide à distance."), Page = () => PageOutils.Creer(this) });
             Rubriques.Add(new Rubrique { Cle = "Premium", Nom = Langue.T("Premium"), Sous = Langue.T("Les outils des pros, débloqués d'un coup."), Page = () => new PagePremium5(this) });
-            Rubriques.Add(new Rubrique { Cle = "Audio", Nom = Langue.T("Audio"), Sous = Langue.T("Studio son : entends chaque pas dans tes jeux."), Page = () => AudioJeu5.Creer(this) });
+            Rubriques.Add(new Rubrique { Cle = "Audio", Nom = Langue.T("Studio son"), Sous = Langue.T("Studio son : entends chaque pas dans tes jeux."), Page = () => AudioJeu5.Creer(this) });
             Rubriques.Add(new Rubrique { Cle = "MisesAJour", Nom = Langue.T("Mises à jour"), Sous = Langue.T("Version installée et nouveautés."), EnBas = true, Page = () => RubriqueMisesAJour.Creer(this) });
             Rubriques.Add(new Rubrique { Cle = "Historique", Nom = Langue.T("Historique"), Sous = Langue.T("Tout ce que Velox a fait, et l'annulation."), EnBas = true, Page = () => new PageHistorique5(this) });
             Rubriques.Add(new Rubrique { Cle = "Reglages", Nom = Langue.T("Réglages"), Sous = Langue.T("Apparence, langue, profil et informations."), EnBas = true, Page = () => PageReglages5.Creer(this) });
@@ -573,9 +574,10 @@ namespace NettoyagePC.Nouveau
             var tete = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(20, 22, 0, 18), Spacing = 10 };
             try { tete.Children.Add(new Image { Source = new Bitmap(AssetLoader.Open(new Uri("avares://NettoyagePC/Assets/logo.png"))), Width = 32, Height = 32, VerticalAlignment = VerticalAlignment.Center }); } catch { }
             var noms = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
-            noms.Children.Add(new TextBlock { Text = Habillage.Hud ? "VELOX" : "Velox", FontFamily = Habillage.Affichage, FontSize = 17, FontWeight = Habillage.Hud ? FontWeight.Bold : FontWeight.SemiBold, Foreground = Brushes.White });
+            noms.Children.Add(new TextBlock { Text = Habillage.Hud || Habillage.Arrondi ? "VELOX" : "Velox", FontFamily = Habillage.Affichage, FontSize = 17, FontWeight = Habillage.Hud ? FontWeight.Bold : FontWeight.SemiBold, Foreground = Brushes.White });
             string version = Installation5.Apercu ? Langue.T("Version 5.0 · aperçu") : Langue.T("Version") + " " + Appli.Version;
             if (Habillage.Hud && !Installation5.Apercu) version = "v" + Appli.Version + " · " + Langue.T(Habillage.Gamer ? "MODE GAMER" : "EN LIGNE");
+            if (Habillage.Arrondi && !Installation5.Apercu) version = "v" + Appli.Version + " · " + Langue.T(Habillage.Gamer ? "mode gamer" : "en ligne");
             noms.Children.Add(new TextBlock { Text = Habillage.Hud ? version.ToUpper(Langue.Culture) : version, FontFamily = Habillage.Hud ? Habillage.Console : Habillage.Corps, FontSize = Habillage.Hud ? 10.5 : 11, TextTrimming = TextTrimming.CharacterEllipsis, MaxWidth = 150, Foreground = Habillage.Pinceau(Habillage.Hud ? Color.FromRgb(111, 168, 188) : Color.FromRgb(138, 160, 180)) });
             tete.Children.Add(noms);
             grille.Children.Add(tete);
@@ -589,7 +591,7 @@ namespace NettoyagePC.Nouveau
             int n = 0;
             foreach (var r in Rubriques)
             {
-                var e = new ElementMenu(r.Cle, r.Nom, r.EnBas ? 0 : ++n, r.EnBas ? 36 : 42) { Margin = new Thickness(5, 0, 0, 0) };
+                var e = new ElementMenu(r.Cle, r.Nom, r.EnBas ? 0 : ++n, Habillage.Arrondi ? (r.EnBas ? 36 : 50) : r.EnBas ? 36 : 42) { Margin = new Thickness(Habillage.Arrondi ? 2 : 5, 0, 0, 0) };
                 if (r.Cle == "Premium" || r.Cle == "Audio") e.Pastille = "PRO";
                 e.Clic += x => Afficher(x.Cle, true);
                 menu[r.Cle] = e;
@@ -600,7 +602,7 @@ namespace NettoyagePC.Nouveau
             // indicateur lumineux de la rubrique active (bande de gauche), qui glisse
             calqueIndicateur = new Canvas { IsHitTestVisible = false };
             Grid.SetRowSpan(calqueIndicateur, 3);
-            indicateur = new Border { Width = 6, Height = 34, RenderTransform = positionIndicateur, Opacity = 0, Background = Habillage.Pinceau(A, 45), IsVisible = !Habillage.Hud };
+            indicateur = new Border { Width = 6, Height = 34, RenderTransform = positionIndicateur, Opacity = 0, Background = Habillage.Pinceau(A, 45), IsVisible = !Habillage.Hud && !Habillage.Arrondi };
             indicateur.Child = new Border { Width = 3, Height = 28, CornerRadius = new CornerRadius(1.5), Background = Habillage.Pinceau(A), HorizontalAlignment = HorizontalAlignment.Left, VerticalAlignment = VerticalAlignment.Center };
             calqueIndicateur.Children.Add(indicateur);
             grille.Children.Add(calqueIndicateur);
@@ -609,8 +611,11 @@ namespace NettoyagePC.Nouveau
             return barre;
         }
 
+        private Icone5 iconeEntete;
+
         private Control EnTete()
         {
+            iconeEntete = null;
             var P = Habillage.P;
             var cadre = new Grid { Height = 78, RowDefinitions = new RowDefinitions("*,Auto") };
             var g = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto"), Margin = new Thickness(28, 10, 24, 0) };
@@ -630,11 +635,24 @@ namespace NettoyagePC.Nouveau
                 textes.Children.Add(sousTitre);
             }
             else { textes.Children.Add(titre); textes.Children.Add(sousTitre); }
-            g.Children.Add(textes);
+            if (Habillage.Arrondi)
+            {
+                // style arrondi : icône de la rubrique dans une case, à gauche du titre
+                titre.FontSize = 23; titre.FontWeight = FontWeight.SemiBold;
+                iconeEntete = new Icone5 { Width = 22, Height = 22, Couleur = P.Texte, Epaisseur = 1.8 };
+                var caseIcone = new Border
+                {
+                    Width = 44, Height = 44, CornerRadius = new CornerRadius(12), Background = Habillage.Pinceau(P.Carte), BorderBrush = Habillage.Pinceau(P.Bordure), BorderThickness = new Thickness(1),
+                    Child = iconeEntete, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 14, 0),
+                };
+                textes.VerticalAlignment = VerticalAlignment.Center;
+                g.Children.Add(new StackPanel { Orientation = Orientation.Horizontal, Children = { caseIcone, textes } });
+            }
+            else g.Children.Add(textes);
             var droite = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 12, VerticalAlignment = VerticalAlignment.Center };
             var recherche = new Cadre5
             {
-                Width = 250, Height = 38, Coupe = 10, CornerRadius = new CornerRadius(3), Background = Habillage.Pinceau(Habillage.Hud && P.Sombre ? Habillage.Alpha(P.Accent, 14) : P.Carte),
+                Width = 250, Height = 38, Coupe = 10, CornerRadius = new CornerRadius(Habillage.Arrondi ? 14 : 3), Background = Habillage.Pinceau(Habillage.Hud && P.Sombre ? Habillage.Alpha(P.Accent, 14) : P.Carte),
                 BorderBrush = Habillage.Pinceau(Habillage.Hud && P.Sombre ? Habillage.Alpha(P.Accent, 75) : P.Bordure), BorderThickness = new Thickness(1),
                 Child = new Grid
                 {
@@ -660,7 +678,7 @@ namespace NettoyagePC.Nouveau
             g.Children.Add(droite);
             cadre.Children.Add(g);
             // trait du bas et lumière qui le parcourt au changement de rubrique
-            ligneEntete = new Panel { Height = 2, ClipToBounds = true };
+            ligneEntete = new Panel { Height = 2, ClipToBounds = true, IsVisible = !Habillage.Arrondi || Habillage.Gamer };
             ligneEntete.Children.Add(new Border { Height = 1, VerticalAlignment = VerticalAlignment.Bottom, Background = Habillage.Pinceau(P.Accent, P.Sombre ? 40 : 60) });
             if (ambianceRgb != null) { Horloge.RetirerAmbiance(ambianceRgb); ambianceRgb = null; }
             if (Habillage.Gamer)
@@ -700,7 +718,7 @@ namespace NettoyagePC.Nouveau
             var P = Habillage.P;
             var b = new Border
             {
-                Padding = new Thickness(8, 2), CornerRadius = new CornerRadius(2), Background = Habillage.Pinceau(P.Bordure, 160), VerticalAlignment = VerticalAlignment.Center,
+                Padding = new Thickness(8, 2), CornerRadius = new CornerRadius(Habillage.Arrondi ? 7 : 2), Background = Habillage.Pinceau(P.Bordure, 160), VerticalAlignment = VerticalAlignment.Center,
                 Child = new TextBlock { Text = texte, FontFamily = Habillage.Console, FontSize = 11, Foreground = Habillage.Pinceau(P.Discret) },
             };
             Grid.SetColumn(b, colonne);
@@ -710,15 +728,16 @@ namespace NettoyagePC.Nouveau
         private Control PastilleSimulation()
         {
             var P = Habillage.P;
-            var point = new Border { Width = 8, Height = 8, CornerRadius = new CornerRadius(4), Background = Habillage.Pinceau(Simulation ? P.Orange : P.Vert), VerticalAlignment = VerticalAlignment.Center };
+            var point = new Border { Width = 8, Height = 8, CornerRadius = Habillage.Rayon(4), Background = Habillage.Pinceau(Simulation ? P.Orange : P.Vert), VerticalAlignment = VerticalAlignment.Center };
             bool hud = Habillage.Hud;
             string libelle = Langue.T(Simulation ? "Simulation : rien n'est modifié" : "Mode réel");
             var texte = new TextBlock { Text = hud ? libelle.ToUpper(Langue.Culture) : libelle, FontFamily = hud ? Habillage.Console : Habillage.Corps, FontSize = hud ? 11.5 : 13, Foreground = Habillage.Pinceau(hud ? (Simulation ? P.Orange : P.Vert) : P.Texte), VerticalAlignment = VerticalAlignment.Center };
             if (hud) point.BoxShadow = BoxShadows.Parse("0 0 8 0 " + (Simulation ? P.Orange : P.Vert).ToString());
             var b = new Border
             {
-                Height = 38, Padding = new Thickness(12, 0), CornerRadius = new CornerRadius(hud ? 0 : 19), BorderThickness = new Thickness(1),
-                BorderBrush = Habillage.Pinceau(Simulation ? P.Orange : hud ? P.Vert : P.Bordure, Simulation ? 150 : hud ? 120 : 255), Background = Habillage.Pinceau(Simulation ? P.Orange : hud ? P.Vert : P.Carte, Simulation ? 22 : hud ? 14 : 255),
+                Height = 38, Padding = new Thickness(14, 0), CornerRadius = new CornerRadius(hud ? 0 : 19), BorderThickness = new Thickness(1),
+                BorderBrush = Habillage.Pinceau(Simulation ? P.Orange : hud || Habillage.Arrondi ? P.Vert : P.Bordure, Simulation ? 150 : hud ? 120 : Habillage.Arrondi ? 110 : 255),
+                Background = Habillage.Pinceau(Simulation ? P.Orange : hud || Habillage.Arrondi ? P.Vert : P.Carte, Simulation ? 22 : hud ? 14 : Habillage.Arrondi ? 22 : 255),
                 Child = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, Children = { point, texte } },
                 Cursor = new Avalonia.Input.Cursor(Avalonia.Input.StandardCursorType.Hand),
             };
@@ -745,7 +764,7 @@ namespace NettoyagePC.Nouveau
                 });
             };
             Grid.SetColumn(b, 1); g.Children.Add(b);
-            return new Border { Background = Habillage.Pinceau(P.Sombre ? (Habillage.Hud ? Color.FromRgb(4, 9, 14) : Color.FromRgb(8, 13, 24)) : Color.FromRgb(246, 249, 251)), BorderBrush = Habillage.Pinceau(Habillage.Hud && P.Sombre ? Habillage.Alpha(P.Accent, 36) : P.Bordure), BorderThickness = new Thickness(0, 1, 0, 0), Child = g };
+            return new Border { Background = Habillage.Pinceau(Habillage.Arrondi ? P.Fond : P.Sombre ? (Habillage.Hud ? Color.FromRgb(4, 9, 14) : Color.FromRgb(8, 13, 24)) : Color.FromRgb(246, 249, 251)), BorderBrush = Habillage.Pinceau(Habillage.Hud && P.Sombre ? Habillage.Alpha(P.Accent, 36) : P.Bordure), BorderThickness = new Thickness(0, 1, 0, 0), Child = g };
         }
 
         /// <summary>HUD : « ● PRÊT », le matériel du PC, et « DÉTAILS ▸ », en petites capitales.</summary>
@@ -753,7 +772,7 @@ namespace NettoyagePC.Nouveau
         {
             var P = Habillage.P;
             var g = new Grid { ColumnDefinitions = new ColumnDefinitions("Auto,*,Auto,Auto"), Height = 36, Margin = new Thickness(24, 0, 14, 0) };
-            var point = new Border { Width = 7, Height = 7, CornerRadius = new CornerRadius(4), Background = Habillage.Pinceau(Simulation ? P.Orange : P.Vert), VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 10, 0) };
+            var point = new Border { Width = 7, Height = 7, CornerRadius = Habillage.Rayon(4), Background = Habillage.Pinceau(Simulation ? P.Orange : P.Vert), VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 10, 0) };
             g.Children.Add(point);
             statut = new TextBlock { FontFamily = Habillage.Console, FontSize = 11, LetterSpacing = 1, Foreground = Habillage.Pinceau(Simulation ? P.Orange : P.Discret), VerticalAlignment = VerticalAlignment.Center, TextTrimming = TextTrimming.CharacterEllipsis };
             Grid.SetColumn(statut, 1); g.Children.Add(statut);
@@ -814,6 +833,7 @@ namespace NettoyagePC.Nouveau
             {
                 PageActive = "Accueil";
                 titre.Text = Langue.T("Accueil"); sousTitre.Text = Langue.T("Tout ce qu'il faut, en trois boutons.");
+                if (iconeEntete != null) { iconeEntete.Cle = "Accueil"; iconeEntete.InvalidateVisual(); }
                 contenu.Content = new ScrollViewer { Content = new PageSimple5(this), HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled, VerticalScrollBarVisibility = ScrollBarVisibility.Auto };
                 return;
             }
@@ -825,7 +845,8 @@ namespace NettoyagePC.Nouveau
             string nom = Habillage.Hud ? r.Nom.ToUpper(Langue.Culture) : r.Nom;
             int rang = Rubriques.Where(x => !x.EnBas).ToList().IndexOf(r);
             if (numeroRubrique != null) numeroRubrique.Text = Langue.T("MODULE") + " " + (rang >= 0 ? (rang + 1).ToString("00") : "00") + " // " + Langue.T(Habillage.Gamer && r.Cle == "Accueil" ? "QG GAMER" : Module(r.Cle)).ToUpper(Langue.Culture);
-            if (anime && change && Habillage.Animations) { Decoder(nom); Balayer(); if (balayage != null) balayage.Lancer(); } else titre.Text = nom;
+            if (iconeEntete != null) { iconeEntete.Cle = r.Cle; iconeEntete.InvalidateVisual(); }
+            if (anime && change && Habillage.Animations && !Habillage.Arrondi) { Decoder(nom); Balayer(); if (balayage != null) balayage.Lancer(); } else titre.Text = nom;
             contenu.Content = new ScrollViewer { Content = r.Page(), HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled, VerticalScrollBarVisibility = ScrollBarVisibility.Auto };
             PlacerIndicateur(anime);
         }
@@ -901,11 +922,13 @@ namespace NettoyagePC.Nouveau
             Construire();
         }
 
-        /// <summary>Style de l'interface : HUD (depuis la 5.5) ou classique (l'apparence d'avant). Enregistré dans les réglages.</summary>
-        public void ChangerStyle(bool hud)
+        /// <summary>Style de l'interface : « arrondi » (depuis la 5.22), « hud » (5.5 à 5.21) ou « classique ». Enregistré
+        /// dans les réglages comme un choix de la personne.</summary>
+        public void ChangerStyle(string nom)
         {
-            Habillage.Hud = hud;
-            EnregistrerReglage(r => r.Style = hud ? "hud" : "classique");
+            Habillage.ChoisirStyle(nom);
+            string n = Habillage.NomStyle;
+            EnregistrerReglage(r => { r.Style = n; r.StyleChoisi = true; });
             ChangerTheme(Habillage.P.Sombre);
         }
 

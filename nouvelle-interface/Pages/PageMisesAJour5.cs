@@ -60,9 +60,9 @@ namespace NettoyagePC.Nouveau
             bInstaller.Clic += Installer;
             boutons.Children.Add(bInstaller); boutons.Children.Add(bVerifier); boutons.Children.Add(bGithub);
             Grid.SetColumn(boutons, 1); carte.Children.Add(boutons);
-            Children.Add(new Border { Child = carte, Padding = new Thickness(22, 20), CornerRadius = new CornerRadius(3), Background = Habillage.Pinceau(P.Carte), BorderBrush = Habillage.Pinceau(P.Accent, 90), BorderThickness = new Thickness(1) });
+            Children.Add(new Border { Child = carte, Padding = new Thickness(22, 20), CornerRadius = Habillage.Rayon(3), Background = Habillage.Pinceau(P.Carte), BorderBrush = Habillage.Pinceau(P.Accent, 90), BorderThickness = new Thickness(1) });
             Children.Add(new TextBlock { Text = Langue.T("Nouveautés et historique des versions"), FontFamily = Habillage.Affichage, FontSize = 17, FontWeight = FontWeight.SemiBold, Foreground = Habillage.Pinceau(P.Texte), Margin = new Thickness(0, 6, 0, 0) });
-            Children.Add(new Border { Child = notes, Padding = new Thickness(22, 18), CornerRadius = new CornerRadius(3), Background = Habillage.Pinceau(P.Carte), BorderBrush = Habillage.Pinceau(P.Bordure), BorderThickness = new Thickness(1) });
+            Children.Add(new Border { Child = notes, Padding = new Thickness(22, 18), CornerRadius = Habillage.Rayon(3), Background = Habillage.Pinceau(P.Carte), BorderBrush = Habillage.Pinceau(P.Bordure), BorderThickness = new Thickness(1) });
             Afficher();
             // recherche dès l'ouverture de la page (une fois par session), sauf dans les captures
             if (etat == "inconnu" && !F.Source.Immediat) AttachedToVisualTree += (o, e) => { if (etat == "inconnu") Verifier(false); };
@@ -156,7 +156,7 @@ namespace NettoyagePC.Nouveau
                 t.Children.Add(new Border
                 {
                     Child = new TextBlock { Text = pastille.ToUpperInvariant(), FontFamily = Habillage.Console, FontSize = 10, Foreground = Habillage.Pinceau(P.SurAccent) },
-                    Background = Habillage.Pinceau(P.Accent), CornerRadius = new CornerRadius(2), Padding = new Thickness(6, 2), VerticalAlignment = VerticalAlignment.Center,
+                    Background = Habillage.Pinceau(P.Accent), CornerRadius = Habillage.Rayon(2), Padding = new Thickness(6, 2), VerticalAlignment = VerticalAlignment.Center,
                 });
             s.Children.Add(t);
             if (lignes.Count == 0) lignes.Add(Langue.T("(pas de description)"));

@@ -76,7 +76,7 @@ namespace NettoyagePC.Nouveau
             bRevoir = new BoutonNoyau("Revérifier", false, 130, 34) { TaillePolice = 13, VerticalAlignment = VerticalAlignment.Top, Margin = new Thickness(16, 0, 0, 0) };
             bRevoir.Clic += Charger;
             Grid.SetColumn(bRevoir, 1); entete.Children.Add(bRevoir);
-            Children.Add(new Border { Child = entete, Padding = new Thickness(20, 18), CornerRadius = new CornerRadius(3), Background = Habillage.Pinceau(P.Carte), BorderBrush = Habillage.Pinceau(P.Accent, 90), BorderThickness = new Thickness(1) });
+            Children.Add(new Border { Child = entete, Padding = new Thickness(20, 18), CornerRadius = Habillage.Rayon(3), Background = Habillage.Pinceau(P.Carte), BorderBrush = Habillage.Pinceau(P.Accent, 90), BorderThickness = new Thickness(1) });
             Children.Add(liste);
             AttachedToVisualTree += (o, e) => Charger();
         }
@@ -127,7 +127,7 @@ namespace NettoyagePC.Nouveau
                     b.Clic += () => { if (uri != "") Programmes.Ouvrir(uri); else if (cle == "expo") Memoire5.Ouvrir(F); else F.Executer("page:Materiel", "Matériel"); };
                     Grid.SetColumn(b, 2); g.Children.Add(b);
                 }
-                liste.Children.Add(new Border { Child = g, Padding = new Thickness(16, p.Ok ? 11 : 14), CornerRadius = new CornerRadius(3), Background = Habillage.Pinceau(P.Carte), BorderBrush = Habillage.Pinceau(p.Ok ? P.Bordure : Habillage.Alpha(P.Orange, 110)), BorderThickness = new Thickness(1) });
+                liste.Children.Add(new Border { Child = g, Padding = new Thickness(16, p.Ok ? 11 : 14), CornerRadius = Habillage.Rayon(3), Background = Habillage.Pinceau(P.Carte), BorderBrush = Habillage.Pinceau(p.Ok ? P.Bordure : Habillage.Alpha(P.Orange, 110)), BorderThickness = new Thickness(1) });
             }
         }
     }
@@ -158,7 +158,7 @@ namespace NettoyagePC.Nouveau
             b.Clic += OuvrirAssistance;
             c.Children.Add(b);
             c.Children.Add(new TextBlock { Text = Langue.T("⚠  N'accepte jamais une demande que tu n'as pas faite toi-même : Microsoft, ta banque ou un « technicien » ne t'appellent jamais pour prendre la main sur ton PC. Si on t'appelle pour ça, raccroche."), FontFamily = Habillage.Corps, FontSize = 13, FontWeight = FontWeight.SemiBold, Foreground = Habillage.Pinceau(P.Orange), TextWrapping = TextWrapping.Wrap });
-            Children.Add(new Border { Child = c, Padding = new Thickness(20, 18), CornerRadius = new CornerRadius(3), Background = Habillage.Pinceau(P.Carte), BorderBrush = Habillage.Pinceau(P.Accent, 90), BorderThickness = new Thickness(1), Margin = new Thickness(0, 0, 12, 0) });
+            Children.Add(new Border { Child = c, Padding = new Thickness(20, 18), CornerRadius = Habillage.Rayon(3), Background = Habillage.Pinceau(P.Carte), BorderBrush = Habillage.Pinceau(P.Accent, 90), BorderThickness = new Thickness(1), Margin = new Thickness(0, 0, 12, 0) });
             Children.Add(Cartes.Page(f, null, new[]
             {
                 CarteAction.Code("Résumé de ce PC", "Windows, processeur, mémoire, disques, carte graphique et problèmes détectés : copié en un clic, à coller dans un message pour la personne qui t'aide.", "Copier le résumé", CopierResume, true),

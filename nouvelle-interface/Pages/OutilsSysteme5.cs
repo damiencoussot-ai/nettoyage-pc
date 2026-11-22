@@ -220,7 +220,7 @@ namespace NettoyagePC.Nouveau
                 var rr = r;
                 voir.Clic += () => { if (!Exemple) { try { Programmes.MontrerDansExplorateur(rr.Chemin); } catch { } } };
                 Grid.SetColumn(voir, 3); g.Children.Add(voir);
-                Children.Add(new Border { Child = g, Padding = new Thickness(12, 8), CornerRadius = new CornerRadius(4), Background = Habillage.Pinceau(P.Carte), BorderBrush = Habillage.Pinceau(P.Bordure), BorderThickness = new Thickness(1) });
+                Children.Add(new Border { Child = g, Padding = new Thickness(12, 8), CornerRadius = Habillage.Rayon(4), Background = Habillage.Pinceau(P.Carte), BorderBrush = Habillage.Pinceau(P.Bordure), BorderThickness = new Thickness(1) });
                 if (!r.Protege) cases.Add(Tuple.Create(c, r));
             }
             Children.Add(Premium5.Intro("Les dossiers de réglages peuvent contenir tes sauvegardes ou tes préférences : ne les coche que si tu ne comptes pas réinstaller ce programme."));

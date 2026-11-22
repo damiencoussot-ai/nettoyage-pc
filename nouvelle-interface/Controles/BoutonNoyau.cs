@@ -118,7 +118,7 @@ namespace NettoyagePC.Nouveau
         {
             var P = Habillage.P;
             var r = new Rect(Bounds.Size).Deflate(0.5);
-            double rayon = Math.Min(10, Bounds.Height / 2 - 1);
+            double rayon = Math.Min(Habillage.RayonBouton, Bounds.Height / 2 - 1);
             // HUD : coins coupés ; classique : coins arrondis
             bool hud = Habillage.Hud;
             var arrondi = new RoundedRect(r, rayon);

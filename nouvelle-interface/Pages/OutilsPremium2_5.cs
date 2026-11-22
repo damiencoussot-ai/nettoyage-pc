@@ -43,7 +43,7 @@ namespace NettoyagePC.Nouveau
             return Premium5.Carte(g, Habillage.Alpha(Habillage.P.Orange, 120));
         }
 
-        public static Border Cadre(Control c) { return new Border { Child = c, BorderBrush = Habillage.Pinceau(Habillage.P.Bordure), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(3), ClipToBounds = true }; }
+        public static Border Cadre(Control c) { return new Border { Child = c, BorderBrush = Habillage.Pinceau(Habillage.P.Bordure), BorderThickness = new Thickness(1), CornerRadius = Habillage.Rayon(3), ClipToBounds = true }; }
     }
 
     // ================================================================== Mode jeu automatique
@@ -88,7 +88,7 @@ namespace NettoyagePC.Nouveau
                 cPerf.IsEnabled = cPrio.IsEnabled = cOd.IsEnabled = p.Auto;
                 cases.Children.Add(cAuto); cases.Children.Add(cPerf); cases.Children.Add(cPrio); cases.Children.Add(cOd);
                 Grid.SetColumn(cases, 1); g.Children.Add(cases);
-                zone.Children.Add(new Border { Child = g, Padding = new Thickness(14, 10), CornerRadius = new CornerRadius(4), Background = Habillage.Pinceau(P.Carte), BorderBrush = Habillage.Pinceau(P.Bordure), BorderThickness = new Thickness(1) });
+                zone.Children.Add(new Border { Child = g, Padding = new Thickness(14, 10), CornerRadius = Habillage.Rayon(4), Background = Habillage.Pinceau(P.Carte), BorderBrush = Habillage.Pinceau(P.Bordure), BorderThickness = new Thickness(1) });
             }
         }
 
@@ -341,7 +341,7 @@ namespace NettoyagePC.Nouveau
             }, o => ((PhotoSimilaire)o).Supprimer);
             foreach (var p in g.Photos.Take(6))
             {
-                var cadre = new Border { Width = 150, Height = 112, Margin = new Thickness(0, 0, 8, 4), CornerRadius = new CornerRadius(3), ClipToBounds = true, BorderThickness = new Thickness(2), BorderBrush = Habillage.Pinceau(p.Supprimer ? Habillage.P.Bordure : Habillage.P.Vert), Background = Habillage.Pinceau(Habillage.P.Carte) };
+                var cadre = new Border { Width = 150, Height = 112, Margin = new Thickness(0, 0, 8, 4), CornerRadius = Habillage.Rayon(3), ClipToBounds = true, BorderThickness = new Thickness(2), BorderBrush = Habillage.Pinceau(p.Supprimer ? Habillage.P.Bordure : Habillage.P.Vert), Background = Habillage.Pinceau(Habillage.P.Carte) };
                 vignettes.Children.Add(cadre);
                 string chemin = p.Chemin;
                 Task.Run(() => { try { using (var fs = File.OpenRead(chemin)) return Avalonia.Media.Imaging.Bitmap.DecodeToWidth(fs, 300); } catch { return null; } })

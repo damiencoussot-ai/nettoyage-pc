@@ -17,7 +17,7 @@ namespace NettoyagePC
 #if !NET5_0_OR_GREATER
         public static readonly string Version = "4.6";   // version 4 (lu par la fabrication : .github/workflows/fabrication.yml)
 #else
-        public static readonly string Version = "5.21";   // version 5
+        public static readonly string Version = "5.22";   // version 5
 #endif
         public const string Depot = "damiencoussot-ai/nettoyage-pc";
 
@@ -566,8 +566,10 @@ namespace NettoyagePC
         public bool ModeSimple;
         public string Accent = "aurore";   // couleur de l'interface (les autres qu'« aurore » font partie de Premium)
         public string OptionsOuvertes = "";   // pages dont « Plus d'options » est ouvert (clés séparées par des virgules)
-        public string Style = "hud";   // version 5 : « hud » (depuis la 5.5) ou « classique » (l'apparence d'avant)
+        public string Style = "arrondi";   // version 5 : « arrondi » (depuis la 5.22), « hud » (5.5 à 5.21) ou « classique »
+        public bool StyleChoisi;   // 5.22 : style choisi par la personne dans Réglages (sinon le HUD enregistré par défaut passe à l'arrondi)
         public bool AnnonceHudVue;     // version 5 : annonce du nouveau look déjà montrée
+        public bool AnnonceArrondiVue; // 5.22 : annonce du style arrondi déjà montrée
         public bool AnnonceVeloxVue;   // 5.7 : annonce du nouveau nom (Nettoyage PC devient Velox) déjà montrée
         public string ProfilUsage = "";     // version 5 : profil d'utilisation choisi (gamer, bureautique, famille)
         public bool SonsGamer;     // profil Gamer : petits sons (BOOST, succès) ; coupés par défaut
@@ -586,10 +588,12 @@ namespace NettoyagePC
 
         public static string Fichier { get { return Chemins.Fichier("parametres.json"); } }
 
-        public static Parametres Lire()
+        public static Parametres Lire() { return Depuis(Json.LireFichier(Fichier) as Dictionary<string, object>); }
+
+        /// <summary>Réglages lus depuis leur contenu JSON déjà décodé (null : réglages par défaut).</summary>
+        internal static Parametres Depuis(Dictionary<string, object> d)
         {
             var p = new Parametres();
-            var d = Json.LireFichier(Fichier) as Dictionary<string, object>;
             if (d != null)
             {
                 p.VerifAuto = Json.Bool(d, "VerifAuto", true);
@@ -602,8 +606,12 @@ namespace NettoyagePC
                 p.ModeSimple = Json.Bool(d, "ModeSimple");
                 string a = Json.Texte(d, "Accent"); if (System.Text.RegularExpressions.Regex.IsMatch(a, "^[a-z]{2,20}$")) p.Accent = a;
                 string o = Json.Texte(d, "OptionsOuvertes"); if (System.Text.RegularExpressions.Regex.IsMatch(o, "^[A-Za-z,]{0,300}$")) p.OptionsOuvertes = o;
-                string st = Json.Texte(d, "Style"); if (st == "hud" || st == "classique") p.Style = st;
-                p.AnnonceHudVue = Json.Bool(d, "AnnonceHudVue"); p.AnnonceVeloxVue = Json.Bool(d, "AnnonceVeloxVue");
+                p.StyleChoisi = Json.Bool(d, "StyleChoisi");
+                string st = Json.Texte(d, "Style"); if (st == "arrondi" || st == "hud" || st == "classique") p.Style = st;
+                // jusqu'à la 5.21, « hud » était écrit par défaut : sans choix explicite, la 5.22 passe au style arrondi
+                // (le classique, lui, avait forcément été choisi ; le HUD reste à un clic dans Réglages)
+                if (p.Style == "hud" && !p.StyleChoisi) p.Style = "arrondi";
+                p.AnnonceHudVue = Json.Bool(d, "AnnonceHudVue"); p.AnnonceArrondiVue = Json.Bool(d, "AnnonceArrondiVue"); p.AnnonceVeloxVue = Json.Bool(d, "AnnonceVeloxVue");
                 string pr = Json.Texte(d, "Profil"); if (pr == "gamer" || pr == "bureautique" || pr == "famille") p.ProfilUsage = pr;
                 p.ResumeSemaine = Json.Texte(d, "ResumeSemaine");
                 p.SonsGamer = Json.Bool(d, "SonsGamer"); p.OverlayJeu = Json.Bool(d, "OverlayJeu");
@@ -628,7 +636,7 @@ namespace NettoyagePC
                 var d = new Dictionary<string, object> { { "VerifAuto", VerifAuto }, { "DerniereVersionLancee", DerniereVersionLancee }, { "Theme", Theme }, { "Langue", Langue }, { "NouveautesVues", NouveautesVues }, { "ModeSimple", ModeSimple }, { "Accent", Accent }, { "OptionsOuvertes", OptionsOuvertes },
                     { "Pseudo", Pseudo }, { "ProfilCree", ProfilCree } };
                 if (Favoris != null) d["Favoris"] = Favoris;
-                d["Style"] = Style; d["AnnonceHudVue"] = AnnonceHudVue; d["AnnonceVeloxVue"] = AnnonceVeloxVue; d["Profil"] = ProfilUsage; d["ResumeSemaine"] = ResumeSemaine;
+                d["Style"] = Style; d["StyleChoisi"] = StyleChoisi; d["AnnonceHudVue"] = AnnonceHudVue; d["AnnonceArrondiVue"] = AnnonceArrondiVue; d["AnnonceVeloxVue"] = AnnonceVeloxVue; d["Profil"] = ProfilUsage; d["ResumeSemaine"] = ResumeSemaine;
                 d["SonsGamer"] = SonsGamer; d["OverlayJeu"] = OverlayJeu;
                 if (SuccesVus != null) d["SuccesVus"] = SuccesVus;
                 d["ViderCorbeille"] = ViderCorbeille; d["Autopilote"] = Autopilote; d["OverlayCoin"] = OverlayCoin; d["AvisDemande"] = AvisDemande; d["PremiereUtilisation"] = PremiereUtilisation ?? "";

@@ -64,7 +64,7 @@ namespace NettoyagePC.Nouveau
                 var texte = new TextBlock { Text = Langue.T(n[1]).ToUpper(Langue.Culture), FontFamily = Habillage.Console, FontSize = 10, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center, TextTrimming = TextTrimming.CharacterEllipsis, Foreground = est ? Habillage.Pinceau(Habillage.TexteSur(A)) : Habillage.Pinceau(Color.FromRgb(169, 199, 211)) };
                 var b = new Border
                 {
-                    Height = 28, Margin = new Thickness(0, 0, 4, 0), Child = texte, BorderThickness = new Thickness(1),
+                    Height = 28, Margin = new Thickness(0, 0, 4, 0), Child = texte, BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(Habillage.Arrondi ? 9 : 0),
                     Background = est ? Habillage.Pinceau(A) : Habillage.Pinceau(A, 12), BorderBrush = Habillage.Pinceau(A, est ? 255 : 70),
                     Cursor = new Avalonia.Input.Cursor(Avalonia.Input.StandardCursorType.Hand),
                 };

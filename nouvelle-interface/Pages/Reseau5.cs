@@ -33,7 +33,7 @@ namespace NettoyagePC.Nouveau
                 valeur = new TextBlock { Text = "—", FontFamily = Habillage.Affichage, FontSize = 21, FontWeight = FontWeight.SemiBold, Foreground = Habillage.Pinceau(P.Texte) };
                 commentaire = new TextBlock { FontFamily = Habillage.Corps, FontSize = 12, Foreground = Habillage.Pinceau(P.Discret), TextTrimming = TextTrimming.CharacterEllipsis };
                 s.Children.Add(valeur); s.Children.Add(commentaire);
-                Child = s; Padding = new Thickness(14, 10); Margin = new Thickness(0, 0, 10, 10); MinWidth = 150; CornerRadius = new CornerRadius(3);
+                Child = s; Padding = new Thickness(14, 10); Margin = new Thickness(0, 0, 10, 10); MinWidth = 150; CornerRadius = Habillage.Rayon(3);
                 Background = Habillage.Pinceau(P.Carte); BorderBrush = Habillage.Pinceau(P.Bordure); BorderThickness = new Thickness(1);
             }
             public void Definir(string v, string c = "", Color? couleur = null) { valeur.Text = v; commentaire.Text = Langue.T(c); commentaire.Foreground = Habillage.Pinceau(couleur ?? Habillage.P.Discret); }
@@ -55,7 +55,7 @@ namespace NettoyagePC.Nouveau
             ToolTip.SetTip(bTester, Langue.T("Mesure le ping vers ta box et vers Internet, puis le débit (environ 10 secondes ; télécharge jusqu'à 200 Mo depuis Cloudflare : évite avec une connexion limitée)."));
             bTester.Clic += Tester;
             Grid.SetColumn(bTester, 1); carte.Children.Add(bTester);
-            Children.Add(new Border { Child = carte, Padding = new Thickness(20, 16), CornerRadius = new CornerRadius(3), Background = Habillage.Pinceau(P.Carte), BorderBrush = Habillage.Pinceau(P.Accent, 90), BorderThickness = new Thickness(1) });
+            Children.Add(new Border { Child = carte, Padding = new Thickness(20, 16), CornerRadius = Habillage.Rayon(3), Background = Habillage.Pinceau(P.Carte), BorderBrush = Habillage.Pinceau(P.Accent, 90), BorderThickness = new Thickness(1) });
             var tuiles = new WrapPanel { Orientation = Orientation.Horizontal };
             tBox = new Tuile("Ping vers la box"); tPing = new Tuile("Ping Internet"); tGigue = new Tuile("Stabilité (gigue)"); tDesc = new Tuile("Téléchargement"); tMont = new Tuile("Envoi");
             foreach (var t in new[] { tBox, tPing, tGigue, tDesc, tMont }) tuiles.Children.Add(t);
@@ -67,7 +67,7 @@ namespace NettoyagePC.Nouveau
                 new Colonne("Temps de réponse", "130", true, true, o => ((ServeurDns)o).Temps < 0 ? double.MaxValue : ((ServeurDns)o).Temps), new Colonne("Particularité", "2.5*"));
             tableau.HauteurListe = 260;
             tableau.SelectionChangee += () => { var x = tableau.Selection as ServeurDns; bUtiliser.IsEnabled = x != null && x.Ip1 != ""; };
-            Children.Add(new Border { Child = tableau, BorderBrush = Habillage.Pinceau(P.Bordure), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(3), ClipToBounds = true });
+            Children.Add(new Border { Child = tableau, BorderBrush = Habillage.Pinceau(P.Bordure), BorderThickness = new Thickness(1), CornerRadius = Habillage.Rayon(3), ClipToBounds = true });
             var boutons = new WrapPanel { Orientation = Orientation.Horizontal };
             bComparer = new BoutonNoyau("Comparer les serveurs", false, 0, 34) { TaillePolice = 13.5, Margin = new Thickness(0, 0, 10, 6) };
             bComparer.Clic += Comparer;

@@ -84,7 +84,7 @@ namespace NettoyagePC.Nouveau
                     bt.Clic += () => F.Executer(cible, nom);
                     Grid.SetColumn(bt, 2); g.Children.Add(bt);
                 }
-                problemes.Children.Add(new Border { Child = g, CornerRadius = new CornerRadius(3), Background = Habillage.Pinceau(P.Carte), BorderBrush = Habillage.Pinceau(Habillage.Alpha(c, 110)), BorderThickness = new Thickness(1) });
+                problemes.Children.Add(new Border { Child = g, CornerRadius = Habillage.Rayon(3), Background = Habillage.Pinceau(P.Carte), BorderBrush = Habillage.Pinceau(Habillage.Alpha(c, 110)), BorderThickness = new Thickness(1) });
             }
         }
     }

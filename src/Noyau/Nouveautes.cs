@@ -7,8 +7,11 @@ namespace NettoyagePC
     {
         public static readonly List<KeyValuePair<string, string[]>> Liste = new List<KeyValuePair<string, string[]>>
         {
+            N("5.22", "Nouveau look arrondi, plus clair et plus doux : cartes et boutons arrondis, menu avec une icône par rubrique, accent violet et rose. Le look d'avant reste à un clic (Réglages, « Style de l'interface »).",
+                "Accueil repensé : le score dans un anneau, l'état de ton PC, tes mesures avec leur jauge, l'accès rapide en grandes tuiles et une seule liste « À faire ».",
+                "Onglets en pastilles, en-tête avec l'icône de la rubrique, et « Audio » s'appelle maintenant « Studio son » dans le menu."),
             N("5.21", "Guide pas à pas dans le Studio son : de l'installation aux réglages dans Warzone, chaque étape cochée quand elle est faite, avec son bouton.",
-                "Pas boostés réglé sur de vrais enregistrements de Warzone : les pas proches gardent tout leur relief, le fond n'est presque plus remonté, et un renforceur détache les pas faibles.",
+                "Pas boostés réglé sur de vrais enregistrements de Warzone : deux styles, Puissant (tout plus fort) ou Net (les pas gardent leur relief), et un renforceur qui détache les pas faibles.",
                 "Retard du son plus court avec Pas boostés (réserve adaptative), profil choisi retenu pour chaque jeu, et nom « Velox Studio » retrouvé au rallumage.",
                 "La mise à jour n'est plus bloquée par « Velox est encore ouvert » quand Pas boostés tourne."),
             N("5.20", "Pas boostés : les explosions sont baissées à part, sans toucher aux pas. Un pas pendant une explosion ressort de +7 dB, les pas lointains encore plus présents.",

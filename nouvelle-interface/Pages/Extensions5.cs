@@ -30,7 +30,7 @@ namespace NettoyagePC.Nouveau
             tableau = new Tableau(false, false, new Colonne("Extension", "2*"), new Colonne("Navigateur", "1.2*"), new Colonne("Version", "90", false, true), new Colonne("Avis", "3*"));
             tableau.HauteurListe = 400;
             tableau.DoubleClic += o => Gerer(o as Extension);
-            Children.Add(new Border { Child = tableau, BorderBrush = Habillage.Pinceau(P.Bordure), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(3), ClipToBounds = true });
+            Children.Add(new Border { Child = tableau, BorderBrush = Habillage.Pinceau(P.Bordure), BorderThickness = new Thickness(1), CornerRadius = Habillage.Rayon(3), ClipToBounds = true });
             info = new TextBlock { Text = Langue.T("Recherche des extensions…"), FontFamily = Habillage.Corps, FontSize = 13, Foreground = Habillage.Pinceau(P.Accent), TextWrapping = TextWrapping.Wrap };
             Children.Add(info);
             var boutons = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 10 };

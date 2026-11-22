@@ -87,7 +87,7 @@ namespace NettoyagePC.Nouveau
             tChemin = new TextBlock { Text = Langue.T("Choisis un disque puis clique sur « Analyser ». Clique sur un rectangle pour entrer dans le dossier."), FontFamily = Habillage.Affichage, FontSize = 14.5, FontWeight = FontWeight.SemiBold, Foreground = Habillage.Pinceau(P.Texte), TextTrimming = TextTrimming.CharacterEllipsis };
             Children.Add(tChemin);
             zone.Fichiers = () => Interlocked.Read(ref fichiers);
-            Children.Add(new Border { Child = zone, CornerRadius = new CornerRadius(3), ClipToBounds = true, BorderBrush = Habillage.Pinceau(P.Bordure), BorderThickness = new Thickness(1) });
+            Children.Add(new Border { Child = zone, CornerRadius = Habillage.Rayon(3), ClipToBounds = true, BorderBrush = Habillage.Pinceau(P.Bordure), BorderThickness = new Thickness(1) });
             tInfo = new TextBlock { FontFamily = Habillage.Corps, FontSize = 12.5, Foreground = Habillage.Pinceau(P.Discret), TextTrimming = TextTrimming.CharacterEllipsis };
             Children.Add(tInfo);
             zone.SurvolChange += p => tInfo.Text = p == null ? "" : p.Libelle + "   —   " + Format.Taille(p.Taille) + "  (" + (totalCourant > 0 ? 100 * p.Taille / totalCourant : 0).ToString("N1", Appli.Fr) + " %)" + (p.Dossier ? "   ·   " + Langue.T("clic pour entrer") : "");

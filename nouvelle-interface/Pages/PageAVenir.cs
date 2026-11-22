@@ -48,7 +48,7 @@ namespace NettoyagePC.Nouveau
             var note = new Border
             {
                 BorderBrush = Habillage.Pinceau(P.Accent, 120), BorderThickness = new Thickness(0, 0, 0, 0), Background = Habillage.Pinceau(P.Accent, P.Sombre ? 18 : 14),
-                CornerRadius = new CornerRadius(3), Padding = new Thickness(16, 12),
+                CornerRadius = Habillage.Rayon(3), Padding = new Thickness(16, 12),
                 Child = new TextBlock
                 {
                     Text = "Cette rubrique arrive bientôt dans la nouvelle interface. Tout ce qu'elle contient existe déjà dans la version 4.",
@@ -61,7 +61,7 @@ namespace NettoyagePC.Nouveau
             {
                 var carte = new Border
                 {
-                    Width = 300, Margin = new Thickness(0, 0, 16, 16), Padding = new Thickness(20, 18), CornerRadius = new CornerRadius(3),
+                    Width = 300, Margin = new Thickness(0, 0, 16, 16), Padding = new Thickness(20, 18), CornerRadius = Habillage.Rayon(3),
                     Background = Habillage.Pinceau(P.Carte), BorderBrush = Habillage.Pinceau(P.Bordure), BorderThickness = new Thickness(1),
                 };
                 var t = new StackPanel { Spacing = 8 };

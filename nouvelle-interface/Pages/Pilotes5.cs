@@ -47,7 +47,7 @@ namespace NettoyagePC.Nouveau
             bSite.Clic += () => { if (outil.Site != "") Programmes.Ouvrir(outil.Site); };
             boutons.Children.Add(bOutil); boutons.Children.Add(bSite);
             Grid.SetColumn(boutons, 1); carte.Children.Add(boutons);
-            Children.Add(new Border { Child = carte, Padding = new Thickness(20, 16), CornerRadius = new CornerRadius(3), Background = Habillage.Pinceau(P.Carte), BorderBrush = Habillage.Pinceau(P.Accent, 90), BorderThickness = new Thickness(1) });
+            Children.Add(new Border { Child = carte, Padding = new Thickness(20, 16), CornerRadius = Habillage.Rayon(3), Background = Habillage.Pinceau(P.Carte), BorderBrush = Habillage.Pinceau(P.Accent, 90), BorderThickness = new Thickness(1) });
 
             Children.Add(new TextBlock { Text = Langue.T("Mises à jour Windows et pilotes"), FontFamily = Habillage.Affichage, FontSize = 17, FontWeight = FontWeight.SemiBold, Foreground = Habillage.Pinceau(P.Texte), Margin = new Thickness(0, 8, 0, 0) });
             var rangee = new WrapPanel { Orientation = Orientation.Horizontal };
@@ -65,7 +65,7 @@ namespace NettoyagePC.Nouveau
             tableau = new Tableau(true, false, new Colonne("Mise à jour", "3*"), new Colonne("Type", "130"), new Colonne("Taille", "90", true, true, o => ((MajWindows)o).Taille), new Colonne("Conseil", "2.4*"));
             tableau.HauteurListe = 300;
             tableau.CaseChangee = (o, v) => { var m = (MajWindows)o; if (v) coches.Add(m); else coches.Remove(m); Resume(); return true; };
-            Children.Add(new Border { Child = tableau, BorderBrush = Habillage.Pinceau(P.Bordure), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(3), ClipToBounds = true });
+            Children.Add(new Border { Child = tableau, BorderBrush = Habillage.Pinceau(P.Bordure), BorderThickness = new Thickness(1), CornerRadius = Habillage.Rayon(3), ClipToBounds = true });
             tInfo = new TextBlock { Text = Langue.T("Clique sur « Rechercher » : Velox demande à Windows Update la liste des mises à jour et pilotes disponibles, et coche ce qui est recommandé."), FontFamily = Habillage.Corps, FontSize = 12.5, Foreground = Habillage.Pinceau(P.Discret), TextWrapping = TextWrapping.Wrap };
             Children.Add(tInfo);
             AttachedToVisualTree += (o, e) => { AfficherGpu(); Rechercher(); };

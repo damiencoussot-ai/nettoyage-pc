@@ -66,7 +66,7 @@ namespace NettoyagePC.Nouveau
                 Content = new Border { Child = tDetail, Padding = new Thickness(10, 8) }, MaxHeight = 220, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled, VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
                 Background = Habillage.Pinceau(P.Sombre ? Color.FromRgb(5, 9, 17) : Color.FromRgb(244, 247, 250)),
             };
-            cadreDetail = new Border { Child = defilement, BorderBrush = Habillage.Pinceau(P.Bordure), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(3) };
+            cadreDetail = new Border { Child = defilement, BorderBrush = Habillage.Pinceau(P.Bordure), BorderThickness = new Thickness(1), CornerRadius = Habillage.Rayon(3) };
             pile.Children.Add(cadreDetail);
             Child = pile;
 

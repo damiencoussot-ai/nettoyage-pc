@@ -40,7 +40,14 @@ namespace NettoyagePC.Nouveau
             }
             else
             {
-                var forme = new RoundedRect(r.Deflate(e / 2), rayon.TopLeft, rayon.TopRight, rayon.BottomRight, rayon.BottomLeft);
+                var cr = rayon;
+                // style arrondi : coins bien ronds (le rayon suit la taille de la coupe prévue pour le HUD), sans dépasser la moitié
+                if (Habillage.Arrondi && Coupe > 0)
+                {
+                    double ra = Math.Min(Math.Min(r.Width, r.Height) / 2, Math.Max(cr.TopLeft, Coupe >= 14 ? 16 : Coupe >= 10 ? 13 : 10));
+                    cr = new CornerRadius(ra);
+                }
+                var forme = new RoundedRect(r.Deflate(e / 2), cr.TopLeft, cr.TopRight, cr.BottomRight, cr.BottomLeft);
                 ctx.DrawRectangle(fond, crayon, forme);
             }
         }

@@ -19,6 +19,7 @@ namespace NettoyagePC.Nouveau
         public string Titre, Detail, Type;   // Type : « Rubrique », « Action »
         public Action Faire;
         public string Cle;   // texte de recherche (sans accents, en minuscules)
+        public string Alias = "";   // mots cherchés en plus, non affichés (ancien nom d'une rubrique…)
     }
 
     internal sealed class PaletteCommandes : Panel
@@ -39,7 +40,7 @@ namespace NettoyagePC.Nouveau
             var carte = new Border
             {
                 Width = 620, Margin = new Thickness(0, 90, 0, 0), HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Top,
-                CornerRadius = new CornerRadius(4), Background = Habillage.Pinceau(P.Sombre ? Color.FromRgb(9, 17, 31) : Colors.White),
+                CornerRadius = Habillage.Rayon(4), Background = Habillage.Pinceau(P.Sombre ? Color.FromRgb(9, 17, 31) : Colors.White),
                 BorderBrush = Habillage.Pinceau(P.Accent, 140), BorderThickness = new Thickness(1), Padding = new Thickness(10),
                 BoxShadow = new BoxShadows(new BoxShadow { Blur = 40, OffsetY = 12, Color = Habillage.Alpha(Colors.Black, P.Sombre ? 170 : 60) }),
             };
@@ -120,7 +121,7 @@ namespace NettoyagePC.Nouveau
                 Grid.SetColumn(type, 1); g.Children.Add(type);
                 var ligne = new Border
                 {
-                    Child = g, Padding = new Thickness(12, 8), CornerRadius = new CornerRadius(3), Cursor = new Cursor(StandardCursorType.Hand),
+                    Child = g, Padding = new Thickness(12, 8), CornerRadius = Habillage.Rayon(3), Cursor = new Cursor(StandardCursorType.Hand),
                     Background = actif ? Habillage.Pinceau(P.Accent, P.Sombre ? 34 : 26) : Brushes.Transparent,
                     BorderBrush = actif ? Habillage.Pinceau(P.Accent, 110) : Brushes.Transparent, BorderThickness = new Thickness(1),
                 };
