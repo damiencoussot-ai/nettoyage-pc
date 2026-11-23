@@ -235,6 +235,11 @@ namespace NettoyagePC
         /// n'est remonté que de 7 à 10 dB, les pas gardent leur relief (13 à 15 dB) et pèsent toujours plus dans le son. Les
         /// autres seuils (explosions, ton arme, renforceur, présence) ne bougent pas.</summary>
         public const double DecalagePuissant = 12;
+        /// <summary>Puissant : force au-delà de laquelle la compression du fond n'augmente plus (Fort = 0,65).</summary>
+        public const double ForceCompressionMax = 0.65;
+        /// <summary>Puissant : plafond du renforceur de pas (dB). Au-delà, l'attaque d'un tir serait rehaussée (mesuré : crête
+        /// d'un tir ×1,12 à 24 dB, ×1,19 sans plafond en Ultra).</summary>
+        public const double PlafondRenfort = 24;
         private readonly double seuilArmeStereo, seuilArmeCentre;
 
         public CompresseurPas(int force, int frequence, int arme, bool renfort) : this(force, frequence, arme, renfort, StylePuissant) { }
@@ -259,7 +264,15 @@ namespace NettoyagePC
             // « Net » : seuil au-dessus des pas, remontée limitée. « Puissant » : forte compression, tout est remonté (le
             // style préféré à l'oreille par les testeurs : les pas sont plus forts dans l'absolu, le fond aussi).
             if (Style == StyleNet) { Seuil = -6 - 8 * f; Rapport = 1.5 + 3 * f; Remontee = -Seuil * (1 - 1 / Rapport) * 0.4; }
-            else { Seuil = -14 - 26 * f; Rapport = 1.5 + 4.5 * f; Remontee = -Seuil * (1 - 1 / Rapport) * 0.8; if (f > 0) { Seuil += DecalagePuissant; Remontee -= DecalagePuissant; } }
+            else
+            {
+                // Puissant : la compression du fond s'arrête à Fort ; au-delà (Extrême, Ultra), la force agit sur les pas
+                // eux-mêmes (renforceur, présence), pas sur le fond. Mesuré sur de vrais enregistrements : en comprimant
+                // plus fort, Extrême remontait le fond de 18 dB et les pas y perdaient la moitié de leur relief.
+                double fc = Math.Min(f, ForceCompressionMax);
+                Seuil = -14 - 26 * fc; Rapport = 1.5 + 4.5 * fc; Remontee = -Seuil * (1 - 1 / Rapport) * 0.8;
+                if (f > 0) { Seuil += DecalagePuissant; Remontee -= DecalagePuissant; }
+            }
             seuilArmeStereo = Style == StyleNet ? 14 : 24; seuilArmeCentre = Style == StyleNet ? 26 : 36;
             double fe = Math.Max(8000, frequence);
             aNiveau = Math.Exp(-1 / (0.005 * fe));
@@ -298,7 +311,7 @@ namespace NettoyagePC
             accentCotes = Style == StyleNet ? 4 : 6;
             poidsCentre = Style == StyleNet ? 0 : 0.5;
             facteurChoc = Style == StyleNet ? 0.5 : 0.25;
-            RenfortMax = (Style == StyleNet ? 1.5 : 2.7) * (!renfort || f <= 0 ? 0 : f <= 0.35 ? 3 * f / 0.35 : f <= 0.65 ? 3 + 5 * (f - 0.35) / 0.3 : f <= 1 ? 8 + 2 * (f - 0.65) / 0.35 : 10 + 2 * Math.Min(1, (f - 1) / 0.3));
+            RenfortMax = Math.Min(Style == StyleNet ? 99 : PlafondRenfort, (Style == StyleNet ? 1.5 : 2.7) * (!renfort || f <= 0 ? 0 : f <= 0.35 ? 3 * f / 0.35 : f <= 0.65 ? 3 + 5 * (f - 0.35) / 0.3 : f <= 1 ? 8 + 2 * (f - 0.65) / 0.35 : 10 + 2 * Math.Min(1, (f - 1) / 0.3)));
             rfMonte = Math.Exp(-1 / (0.002 * fe)); rfDescendRapide = Math.Exp(-1 / (0.015 * fe)); rfLent = Math.Exp(-1 / (0.06 * fe));
             rgMonte = Math.Exp(-1 / (0.002 * fe)); rgDescend = Math.Exp(-1 / ((Style == StyleNet ? 0.07 : 0.04) * fe));
             rfCrete = Math.Exp(-1 / (0.01 * fe));

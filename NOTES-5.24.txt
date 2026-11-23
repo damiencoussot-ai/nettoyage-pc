@@ -1,0 +1,11 @@
+Velox 5.24
+
+Amélioré
+- Pas boostés, style Puissant : en Extrême et en Ultra, monter la force comprimait surtout le fond. Il remontait de
+  18 dB et les pas perdaient la moitié de leur relief. Désormais, au-delà de Fort, la force renforce les pas
+  eux-mêmes :
+  - les pas gardent leur relief (13 dB au lieu de 8 en Extrême, mesuré sur de vrais enregistrements de Warzone) ;
+  - ils pèsent davantage dans le son ;
+  - le fond monte de 6 dB de moins ;
+  - les tirs ne sont pas remontés.
+  Ultra calme toujours plus les explosions qu'Extrême.
