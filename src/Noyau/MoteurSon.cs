@@ -181,8 +181,8 @@ namespace NettoyagePC
         // ou mouvements), un son nettement d'un côté l'est pleinement, et la différence gauche/droite des sons de la bande des
         // pas est accentuée de 4 dB (en Extrême) : +2 à +3 dB d'écart en faveur de ce qui vient d'un côté.
         internal const double EcartPlein = 8;
-        /// <summary>Remontée d'un son bref au centre : 0 en Net ; 0,5 en Puissant (un ennemi juste derrière ou devant arrive
-        /// aussi au centre, en stéréo : il ne doit pas être oublié).</summary>
+        /// <summary>Remontée d'un son bref au centre : 0 en Net ; 1 en Puissant (un ennemi juste derrière ou devant arrive
+        /// aussi au centre, en stéréo : il est remonté pleinement ; la traîne des tirs est écartée autrement).</summary>
         private readonly double poidsCentre;
         /// <summary>Accent des côtés (dB, en Extrême) : 4 en Net, 6 en Puissant (direction plus nette).</summary>
         private readonly double accentCotes;
@@ -237,9 +237,10 @@ namespace NettoyagePC
         public const double DecalagePuissant = 12;
         /// <summary>Puissant : force au-delà de laquelle la compression du fond n'augmente plus (Fort = 0,65).</summary>
         public const double ForceCompressionMax = 0.65;
-        /// <summary>Puissant : plafond du renforceur de pas (dB). Au-delà, l'attaque d'un tir serait rehaussée (mesuré : crête
-        /// d'un tir ×1,12 à 24 dB, ×1,19 sans plafond en Ultra).</summary>
-        public const double PlafondRenfort = 24;
+        /// <summary>Puissant : plafond du renforceur de pas (dB). Les pas faibles sont remontés pleinement, au centre aussi (un
+        /// ennemi en face arrive au centre, comme tes propres sons) ; la traîne d'un tir ne l'est pas : un son qui suit de
+        /// moins de 60 ms un son fort n'est jamais remonté. Mesuré (23/11, ennemi en face) : pas faibles +5 à +7 dB.</summary>
+        public const double PlafondRenfort = 30;
         private readonly double seuilArmeStereo, seuilArmeCentre;
 
         public CompresseurPas(int force, int frequence, int arme, bool renfort) : this(force, frequence, arme, renfort, StylePuissant) { }
@@ -309,12 +310,12 @@ namespace NettoyagePC
             // Puissant : plus fort (×1,8, réglé sur de vrais enregistrements de Warzone), plus net (relâché en 40 ms : le « clac » du pas plutôt que sa traîne), bande
             // jusqu'à 8 kHz (là où l'oreille situe gauche/droite) et « boum » du talon moins remonté (les graves brouillent la direction)
             accentCotes = Style == StyleNet ? 4 : 6;
-            poidsCentre = Style == StyleNet ? 0 : 0.5;
+            poidsCentre = Style == StyleNet ? 0 : 1;
             facteurChoc = Style == StyleNet ? 0.5 : 0.25;
-            RenfortMax = Math.Min(Style == StyleNet ? 99 : PlafondRenfort, (Style == StyleNet ? 1.5 : 2.7) * (!renfort || f <= 0 ? 0 : f <= 0.35 ? 3 * f / 0.35 : f <= 0.65 ? 3 + 5 * (f - 0.35) / 0.3 : f <= 1 ? 8 + 2 * (f - 0.65) / 0.35 : 10 + 2 * Math.Min(1, (f - 1) / 0.3)));
+            RenfortMax = Math.Min(Style == StyleNet ? 99 : PlafondRenfort, (Style == StyleNet ? 1.5 : 4.0) * (!renfort || f <= 0 ? 0 : f <= 0.35 ? 3 * f / 0.35 : f <= 0.65 ? 3 + 5 * (f - 0.35) / 0.3 : f <= 1 ? 8 + 2 * (f - 0.65) / 0.35 : 10 + 2 * Math.Min(1, (f - 1) / 0.3)));
             rfMonte = Math.Exp(-1 / (0.002 * fe)); rfDescendRapide = Math.Exp(-1 / (0.015 * fe)); rfLent = Math.Exp(-1 / (0.06 * fe));
             rgMonte = Math.Exp(-1 / (0.002 * fe)); rgDescend = Math.Exp(-1 / ((Style == StyleNet ? 0.07 : 0.04) * fe));
-            rfCrete = Math.Exp(-1 / (0.01 * fe));
+            rfCrete = Math.Exp(-1 / ((Style == StyleNet ? 0.01 : 0.06) * fe));   // Puissant : la traîne d'un son fort (tir) n'est pas un pas
             bandePasHaut = new Biquad2[16]; bandePasBas = new Biquad2[16]; bandeChocHaut = new Biquad2[16]; bandeChocBas = new Biquad2[16];
             for (int c = 0; c < 16; c++)
             {
