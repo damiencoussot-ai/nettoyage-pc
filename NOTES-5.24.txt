@@ -1,14 +1,12 @@
-Velox 5.24
+Velox 5.24 : les pas, réglés sur de vrais enregistrements
 
-Amélioré
-- Pas boostés, style Puissant : les pas faibles ressortent nettement plus, y compris ceux d'un ennemi en face ou derrière
-  toi, qui arrivent au centre du son. Mesuré sur de vrais enregistrements de Warzone : +4 à +8 dB sur les pas faibles.
-  La traîne des tirs n'est pas remontée : un son qui suit de près un son fort n'est jamais pris pour un pas.
-- Pas boostés, style Puissant : en Extrême et en Ultra, monter la force comprimait surtout le fond. Il remontait de
-  18 dB et les pas perdaient la moitié de leur relief. Désormais, au-delà de Fort, la force renforce les pas
-  eux-mêmes :
-  - les pas gardent leur relief (13 dB au lieu de 8 en Extrême, mesuré sur de vrais enregistrements de Warzone) ;
-  - ils pèsent davantage dans le son ;
-  - le fond monte de 6 dB de moins ;
-  - les tirs ne sont pas remontés.
-  Ultra calme toujours plus les explosions qu'Extrême.
+Pas boostés, style Puissant, réglé sur 5 enregistrements de Warzone : ennemi devant, en face, derrière (deux fois) et
+tout autour. Chaque pas a été mesuré, sans Velox, avec la 5.23 et avec la 5.24.
+
+- Les pas ressortent nettement plus : relief moyen de 15,7 à 17,5 dB en 5.23, 21 dB en Fort, 22 dB en Extrême,
+  22,6 dB en Ultra. Les pas faibles, ceux d'un ennemi plus loin, gagnent le plus.
+- Un ennemi en face ou derrière toi (son au centre) est remonté autant qu'un ennemi sur le côté.
+- Monter la force donne vraiment plus de pas : au-delà de Fort, la force renforce les pas au lieu de remonter le fond.
+- Le fond est beaucoup moins remonté. Le son global est un peu moins fort qu'en 5.23 (environ 2 dB) : monte le volume
+  de Windows si besoin, les pas ressortent, eux, bien plus.
+- Les tirs ne sont pas remontés : la traîne d'un tir n'est jamais prise pour un pas.
