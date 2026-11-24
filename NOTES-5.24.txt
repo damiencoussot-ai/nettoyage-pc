@@ -1,12 +1,10 @@
-Velox 5.24 : les pas, réglés sur de vrais enregistrements
+Velox 5.24
 
-Pas boostés, style Puissant, réglé sur 5 enregistrements de Warzone : ennemi devant, en face, derrière (deux fois) et
-tout autour. Chaque pas a été mesuré, sans Velox, avec la 5.23 et avec la 5.24.
-
-- Les pas ressortent nettement plus : relief moyen de 15,7 à 17,5 dB en 5.23, 21 dB en Fort, 22 dB en Extrême,
-  22,6 dB en Ultra. Les pas faibles, ceux d'un ennemi plus loin, gagnent le plus.
+Pas boostés, style Puissant
 - Un ennemi en face ou derrière toi (son au centre) est remonté autant qu'un ennemi sur le côté.
-- Monter la force donne vraiment plus de pas : au-delà de Fort, la force renforce les pas au lieu de remonter le fond.
-- Le fond est beaucoup moins remonté. Le son global est un peu moins fort qu'en 5.23 (environ 2 dB) : monte le volume
-  de Windows si besoin, les pas ressortent, eux, bien plus.
-- Les tirs ne sont pas remontés : la traîne d'un tir n'est jamais prise pour un pas.
+- La traîne des tirs n'est plus prise pour un pas : un son qui suit de près un son fort n'est jamais remonté.
+- Le son reste naturel : réglé et vérifié sur 15 enregistrements réels de Warzone, sans son « criard » ni « pompage ».
+- Conseil : style Puissant, force Fort.
+
+Mise à jour
+- Si Velox est ouvert pendant l'installation, l'installateur le ferme, installe, puis le relance (déjà en 5.23).
