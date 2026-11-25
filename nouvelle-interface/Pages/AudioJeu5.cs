@@ -623,7 +623,9 @@ namespace NettoyagePC.Nouveau
             r = exemple ? (ExempleReglages ?? new ReglagesAudioJeu()) : simulation ? Reglages.Copie() : Reglages;
             delai.Tick += (s, e) => Appliquer();
             Margin = new Thickness(24, 6, 24, 24);
-            Children.Add(Studio.Console(deverrouille ? (Control)Construire() : Verrou()));
+            // bandeau « en travaux » en tête de la console (fond sombre, quel que soit le thème) : les testeurs savent que le
+            // Studio son n'est pas fini
+            Children.Add(Studio.Console(new StackPanel { Children = { Travaux(), deverrouille ? (Control)Construire() : Verrou() } }));
             AttachedToVisualTree += (s, e) =>
             {
                 page = this;
@@ -751,6 +753,32 @@ namespace NettoyagePC.Nouveau
                 Grid.SetColumn(droiteEq, 1); g.Children.Add(droiteEq);
             }
             return g;
+        }
+
+        /// <summary>Bandeau « Studio son en travaux » : l'outil reste utilisable, mais on prévient qu'il n'est pas fini et
+        /// qu'il peut mal marcher (Pas boostés surtout), pour que les testeurs ne le jugent pas comme une version finie.</summary>
+        private static Control Travaux()
+        {
+            var icone = new Border
+            {
+                Width = 34, Height = 34, CornerRadius = new CornerRadius(17), Background = Studio.P(Studio.Ambre, 230), VerticalAlignment = VerticalAlignment.Center,
+                Child = new TextBlock { Text = "!", FontFamily = Studio.Titre, FontSize = 20, FontWeight = FontWeight.Bold, Foreground = Studio.P(Studio.Fond1), HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center },
+            };
+            var titre = Langue.T("Studio son : en cours de travaux");
+            var detail = Langue.T("Cet outil n'est pas terminé : il peut mal marcher, surtout « Pas boostés ». Tu peux l'essayer, mais ne le juge pas encore comme une version finie. Un souci ? Dis-le avec « Signaler un problème ».");
+            var textes = new StackPanel { Spacing = 3, VerticalAlignment = VerticalAlignment.Center };
+            textes.Children.Add(new TextBlock { Text = titre.ToUpper(Langue.Culture), FontFamily = Studio.Titre, FontSize = 15, FontWeight = FontWeight.Bold, LetterSpacing = 1, Foreground = Studio.P(Studio.Ambre), TextWrapping = TextWrapping.Wrap });
+            textes.Children.Add(new TextBlock { Text = detail, FontFamily = Studio.Corps, FontSize = 12.5, Foreground = Studio.P(Studio.Texte), TextWrapping = TextWrapping.Wrap });
+            var g = new Grid { ColumnDefinitions = new ColumnDefinitions("Auto,*") };
+            g.Children.Add(icone);
+            Grid.SetColumn(textes, 1); textes.Margin = new Thickness(14, 0, 0, 0); g.Children.Add(textes);
+            var cadre = new Border
+            {
+                Child = g, Padding = new Thickness(18, 12, 20, 12), Margin = new Thickness(0, 0, 0, 14), CornerRadius = new CornerRadius(14),
+                Background = Studio.P(Studio.Ambre, 34), BorderBrush = Studio.P(Studio.Ambre, 200), BorderThickness = new Thickness(1.5),
+            };
+            AutomationProperties.SetName(cadre, titre + ". " + detail);
+            return cadre;
         }
 
         private Control Construire()
