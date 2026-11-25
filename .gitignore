@@ -10,3 +10,4 @@ bin/
 obj/
 *.exe
 *.zip
+TestResults/

@@ -1,0 +1,26 @@
+Essais automatiques de Velox
+============================
+
+Velox.Tests vérifie le moteur son « Pas boostés » (src/Noyau/MoteurSon.cs) sans Windows, sur des scènes de jeu
+fabriquées (pas, tirs, explosions, fond continu). Ils tournent tout seuls sur GitHub (Actions > Essais) à chaque
+envoi sur main et à chaque demande de fusion.
+
+Lancer à la main (SDK .NET 10) :
+    dotnet test tests/Velox.Tests
+
+Ce qui est vérifié
+- Limiteur.cs : jamais de saturation (plafond 0,95), NaN/infini sans conséquence, silence gardé, son intact hors
+  jeu, retard de 1,5 ms, même résultat quelle que soit la taille des paquets, courbe du compresseur croissante.
+- Pas.cs : en Net, tes propres sons au centre ne sont pas remontés ; un pas sur le côté l'est ; en Puissant, le
+  centre est remonté autant que le côté (ennemi devant ou derrière toi) ; renforceur qui détache les pas du fond sans
+  toucher aux sons continus ni aux rafales ; pas sous une explosion et après une explosion ; pas jamais noyés dans le fond.
+- TonArme.cs : pas ennemi qui ressort pendant que tu tires (stéréo et 7.1), tir ennemi sur le côté gardé, ta rafale
+  baissée.
+- Rafale.cs : le renforceur revient après une rafale. L'essai « pas entre deux tirs » est mis de côté (défaut connu
+  du moteur, voir le message dans le fichier) : à réactiver une fois corrigé.
+- Volume.cs : pas de pompage du fond sur les pas, fond revenu 500 ms après un tir, volume général jamais baissé.
+- Reglages.cs : fichier moteur-son.json (aller-retour, bornes, fichier abîmé, réglage par jeu) et réécoute
+  « avant / après » au même volume.
+
+Les seuils ont une marge sur les valeurs mesurées en version 5.23. Si un réglage du moteur change volontairement un
+comportement, mets à jour l'essai concerné dans le même envoi (et dis pourquoi).

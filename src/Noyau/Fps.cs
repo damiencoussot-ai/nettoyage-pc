@@ -120,6 +120,13 @@ namespace NettoyagePC
         /// <summary>Signature numérique valide d'Intel Corporation.</summary>
         public static bool SigneParIntel(string fichier)
         {
+            return SignePar(fichier, new Regex(@"(^|,\s*)O=Intel Corporation(,|$)", RegexOptions.IgnoreCase));
+        }
+
+        /// <summary>Signature numérique (Authenticode) valide, vérifiée par Windows, et signataire reconnu par « signataire »
+        /// (appliqué au sujet du certificat : « CN=…, O=…, C=… »).</summary>
+        public static bool SignePar(string fichier, Regex signataire)
+        {
             if (!Natif.EstWindows) return false;
             IntPtr pFichier = IntPtr.Zero, pDonnees = IntPtr.Zero;
             try
@@ -130,7 +137,7 @@ namespace NettoyagePC
                 pDonnees = Marshal.AllocHGlobal(Marshal.SizeOf(d)); Marshal.StructureToPtr(d, pDonnees, false);
                 if (WinVerifyTrust(IntPtr.Zero, new Guid("00AAC56B-CD44-11d0-8CC2-00C04FC295EE"), pDonnees) != 0) return false;
                 var c = X509Certificate.CreateFromSignedFile(fichier);
-                return Regex.IsMatch(c.Subject ?? "", @"(^|,\s*)O=Intel Corporation(,|$)", RegexOptions.IgnoreCase);
+                return signataire.IsMatch(c.Subject ?? "");
             }
             catch { return false; }
             finally
