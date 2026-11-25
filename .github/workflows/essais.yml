@@ -1,0 +1,39 @@
+# Essais automatiques du moteur son « Pas boostés » (tests/Velox.Tests) : à chaque envoi sur main et à chaque
+# demande de fusion. Le traitement du son n'a pas besoin de Windows : les essais tournent sous Linux, sur des scènes de
+# jeu fabriquées (pas, tirs, explosions, fond), en une quinzaine de secondes.
+name: Essais
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: essais-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  moteur-son:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Essais
+        run: dotnet test tests/Velox.Tests -c Release --logger "console;verbosity=normal" --logger "trx;LogFileName=essais.trx"
+
+      - name: Résultats
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: resultats-essais
+          path: tests/Velox.Tests/TestResults/
+          if-no-files-found: ignore
