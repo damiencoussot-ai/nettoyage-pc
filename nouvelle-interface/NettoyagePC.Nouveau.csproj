@@ -22,6 +22,10 @@
     <NoWarn>$(NoWarn);CS1591;CA1416;SYSLIB0014;CS0649;CS0168;CS0219;CS0414;CS0162</NoWarn>
   </PropertyGroup>
   <ItemGroup>
+    <!-- essais automatiques (tests/Velox.Tests) : accès aux classes internes du moteur -->
+    <InternalsVisibleTo Include="Velox.Tests" />
+  </ItemGroup>
+  <ItemGroup>
     <AvaloniaResource Include="Assets\**" />
   </ItemGroup>
   <ItemGroup>
