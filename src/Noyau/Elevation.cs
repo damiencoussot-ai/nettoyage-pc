@@ -315,6 +315,8 @@ namespace NettoyagePC
                         return Fps.MesurerEnAdmin(args);
                     case "installer-apo":   // fichier : installateur officiel d'Equalizer APO (empreinte figée revérifiée, voir InstallationApo)
                         return InstallationApo.InstallerEnAdmin(args);
+                    case "installer-cable":   // dossier : paquet officiel de VB-Cable (signature de VB-Audio revérifiée, voir InstallationCable)
+                        return InstallationCable.InstallerEnAdmin(args);
                     case "renommer-sortie":   // ID NOM_BASE64 : nom d'appareil d'une sortie audio (« Velox Studio », ou le nom d'origine)
                         return NomStudio.RenommerEnAdmin(args);
                     case "selecteur-apo":   // fenêtre d'Equalizer APO (choix des sorties), avec le chemin de ses modules Qt
