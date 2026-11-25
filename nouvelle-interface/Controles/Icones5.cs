@@ -21,6 +21,10 @@ namespace NettoyagePC.Nouveau
             { "MisesAJour", "M19.5 12 C19.5 16.1 16.1 19.5 12 19.5 C9.2 19.5 6.8 18 5.5 15.7 M4.5 12 C4.5 7.9 7.9 4.5 12 4.5 C14.8 4.5 17.2 6 18.5 8.3 M18.8 4.5 V8.6 H14.7 M5.2 19.5 V15.4 H9.3" },
             { "Historique", "M12 3.5 C16.7 3.5 20.5 7.3 20.5 12 C20.5 16.7 16.7 20.5 12 20.5 C7.3 20.5 3.5 16.7 3.5 12 C3.5 7.3 7.3 3.5 12 3.5 Z M12 7.5 V12 L15 14" },
             { "Reglages", "M12 9 C13.7 9 15 10.3 15 12 C15 13.7 13.7 15 12 15 C10.3 15 9 13.7 9 12 C9 10.3 10.3 9 12 9 Z M12 2.5 V5.5 M12 18.5 V21.5 M2.5 12 H5.5 M18.5 12 H21.5 M5.3 5.3 L7.4 7.4 M16.6 16.6 L18.7 18.7 M5.3 18.7 L7.4 16.6 M16.6 7.4 L18.7 5.3" },
+            // Studio son (cartes du mode Simple)
+            { "Curseurs", "M5 20.5 V13.5 M5 9.5 V3.5 M12 20.5 V11.5 M12 7.5 V3.5 M19 20.5 V15.5 M19 11.5 V3.5 M2.5 13.5 H7.5 M9.5 7.5 H14.5 M16.5 15.5 H21.5" },
+            { "Coche", "M5 12.5 L10 17.5 L19 7" },
+            { "Alerte", "M12 3.5 L21 19.5 H3 Z M12 10 V14 M12 16.8 V17" },
         };
 
         private static readonly Dictionary<string, Geometry> geometries = new Dictionary<string, Geometry>();
