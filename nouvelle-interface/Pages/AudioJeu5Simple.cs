@@ -1,8 +1,8 @@
-// Velox - Studio son, mode Simple (maquette E) : un seul écran pour l'essentiel.
-//  - en-tête : jeu détecté et interrupteur de l'égaliseur ;
-//  - grande carte : gros bouton « Pas boostés », force des pas, style Puissant / Net, réécoute, 4 tuiles (retard,
-//    explosions tenues, ton arme, stéréo ou 7.1) ;
-//  - trois cartes : mon casque, profil, vérification (« Changer » ouvre le module voulu juste en dessous) ;
+// Velox - Studio son, mode Simple (maquette A « Console ») : un seul écran pour l'essentiel.
+//  - en-tête : jeu détecté, interrupteur de l'égaliseur et choix Simple / Expert ;
+//  - grande carte : gros bouton « Pas boostés », quatre touches de force, style Puissant / Net, réécoute, et le direct
+//    (jauges des explosions tenues et de ton arme, retard ajouté, stéréo ou 7.1) ;
+//  - trois cartes avec leur icône : mon casque, profil, vérification (« Changer » ouvre le module voulu juste en dessous) ;
 //  - les dernières parties jouées avec Pas boostés (journal écrit par le moteur).
 // Tout le reste (ton arme, réglage par jeu, tests, égaliseur détaillé, sorties…) est dans le mode Expert : rien n'est
 // retiré, seulement rangé. Le guide reste affiché tant que l'installation n'est pas finie.
@@ -31,6 +31,7 @@ namespace NettoyagePC.Nouveau
         private Control moduleGuide, moduleVerif, moduleProfils, moduleCasque;
         private Grid grilleHeros, grilleCartes;
         private Control tuilesHeros;
+        private Grid gJaugeExplosions, gJaugeArme;
         private bool guideComplet;
 
         /// <summary>Visible seulement en mode Simple.</summary>
@@ -123,14 +124,92 @@ namespace NettoyagePC.Nouveau
             return new Border { Child = s, Padding = new Thickness(3), CornerRadius = new CornerRadius(12), Background = Studio.P(Studio.Fond1, 220), BorderBrush = Studio.P(Studio.Bord), BorderThickness = new Thickness(1), Margin = new Thickness(0, 0, 12, 8), VerticalAlignment = VerticalAlignment.Center };
         }
 
-        private static Control Tuile(string titre, out TextBlock valeur)
+        /// <summary>Jauge du direct : nom et valeur, puis une barre remplie de 0 à 1 (voir <see cref="RemplirJauge"/>).</summary>
+        private static Control Jauge(string titre, Color couleur, out TextBlock valeur, out Grid barre)
         {
-            valeur = new TextBlock { Text = "—", FontFamily = Studio.Titre, FontSize = 22, FontWeight = FontWeight.Bold, Foreground = Studio.P(Studio.Violet), Margin = new Thickness(0, 4, 0, 0) };
+            var haut = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto"), Margin = new Thickness(0, 0, 0, 6) };
+            haut.Children.Add(new TextBlock { Text = Langue.T(titre), FontFamily = Studio.Corps, FontSize = 12.5, Foreground = Studio.P(Studio.Texte), TextTrimming = TextTrimming.CharacterEllipsis, VerticalAlignment = VerticalAlignment.Center });
+            valeur = new TextBlock { Text = "—", FontFamily = Studio.Chiffres, FontSize = 13, FontWeight = FontWeight.Bold, Foreground = Studio.P(couleur), VerticalAlignment = VerticalAlignment.Center };
+            Grid.SetColumn(valeur, 1); haut.Children.Add(valeur);
+            barre = new Grid { ColumnDefinitions = new ColumnDefinitions("0*,1*") };
+            barre.Children.Add(new Border { CornerRadius = new CornerRadius(4), Background = Studio.Degrade(0, Habillage.Alpha(couleur, 150), couleur), BoxShadow = BoxShadows.Parse("0 0 8 0 " + Habillage.Alpha(couleur, 120).ToString()) });
+            var piste = new Border { Height = 8, CornerRadius = new CornerRadius(4), Background = Studio.P(Studio.Bord, 200), ClipToBounds = true, Child = barre };
+            return new StackPanel { Children = { haut, piste } };
+        }
+
+        private static void RemplirJauge(Grid barre, double part)
+        {
+            if (barre == null) return;
+            part = double.IsNaN(part) ? 0 : Math.Max(0, Math.Min(1, part));
+            barre.ColumnDefinitions[0].Width = new GridLength(part, GridUnitType.Star);
+            barre.ColumnDefinitions[1].Width = new GridLength(1 - part, GridUnitType.Star);
+        }
+
+        /// <summary>Le direct, à droite du gros bouton : explosions tenues, ton arme, retard ajouté, stéréo ou 7.1.</summary>
+        private Control PanneauDirect()
+        {
+            var haut = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto") };
+            haut.Children.Add(Etiquette("En direct"));
+            tTuileSon = new TextBlock { Text = "—", FontFamily = Studio.Chiffres, FontSize = 11.5, FontWeight = FontWeight.Bold, Foreground = Studio.P(Studio.Discret), VerticalAlignment = VerticalAlignment.Center };
+            Grid.SetColumn(tTuileSon, 1); haut.Children.Add(tTuileSon);
+            var retard = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto") };
+            retard.Children.Add(new TextBlock { Text = Langue.T("Retard ajouté"), FontFamily = Studio.Corps, FontSize = 12.5, Foreground = Studio.P(Studio.Discret), VerticalAlignment = VerticalAlignment.Center });
+            tTuileRetard = new TextBlock { Text = "—", FontFamily = Studio.Chiffres, FontSize = 13, FontWeight = FontWeight.Bold, Foreground = Studio.P(Studio.Texte), VerticalAlignment = VerticalAlignment.Center };
+            Grid.SetColumn(tTuileRetard, 1); retard.Children.Add(tTuileRetard);
+            var pile = new StackPanel
+            {
+                Spacing = 13, Children =
+                {
+                    haut,
+                    Jauge("Explosions tenues", Studio.Ambre, out tTuileExplosions, out gJaugeExplosions),
+                    Jauge("Ton arme", Studio.Violet, out tTuileArme, out gJaugeArme),
+                    new Border { BorderBrush = Studio.P(Studio.Bord, 200), BorderThickness = new Thickness(0, 1, 0, 0), Padding = new Thickness(0, 10, 0, 0), Child = retard },
+                },
+            };
             return new Border
             {
-                Child = new StackPanel { Children = { Etiquette(titre, 10), valeur } }, Padding = new Thickness(13, 10), CornerRadius = new CornerRadius(12), Margin = new Thickness(5),
-                Background = Studio.P(Studio.Fond1, 200), BorderBrush = Studio.P(Studio.Bord), BorderThickness = new Thickness(1),
+                Child = pile, Width = 300, Padding = new Thickness(16, 14), CornerRadius = new CornerRadius(14), VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(18, 0, 0, 0),
+                Background = Studio.P(Studio.Fond1, 220), BorderBrush = Studio.P(Studio.Bord), BorderThickness = new Thickness(1),
             };
+        }
+
+        /// <summary>Les quatre forces (Léger, Fort, Extrême, Ultra) en grosses touches : la force choisie est pleine.</summary>
+        private Control TouchesForce(int forceVue)
+        {
+            var details = new[] { "discret", "conseillé", "encore plus", "maximum" };
+            var grille = new Grid { ColumnDefinitions = new ColumnDefinitions(string.Join(",8,", MoteurSon.Niveaux.Select(n => "*"))) };
+            for (int i = 0; i < MoteurSon.Niveaux.Length; i++)
+            {
+                var n = MoteurSon.Niveaux[i];
+                bool choisi = n.Item2 == forceVue;
+                var b = new Border
+                {
+                    Padding = new Thickness(13, 9), CornerRadius = new CornerRadius(12), BorderThickness = new Thickness(1), Cursor = new Cursor(StandardCursorType.Hand), Focusable = true, IsEnabled = !pasOccupe,
+                    Background = choisi ? Studio.Degrade(0, Studio.Violet, Studio.Magenta) : Studio.P(Studio.Fond1, 220),
+                    BorderBrush = choisi ? Brushes.Transparent : Studio.P(Studio.Bord),
+                    Child = new StackPanel
+                    {
+                        Spacing = 1, Children =
+                        {
+                            new TextBlock { Text = Langue.T(n.Item1), FontFamily = Studio.Titre, FontSize = 14.5, FontWeight = choisi ? FontWeight.Bold : FontWeight.SemiBold, Foreground = Studio.P(choisi ? Colors.White : Studio.Texte), TextTrimming = TextTrimming.CharacterEllipsis },
+                            new TextBlock { Text = i < details.Length ? Langue.T(details[i]) : "", FontFamily = Studio.Corps, FontSize = 11.5, Foreground = choisi ? Studio.P(Colors.White, 225) : Studio.P(Studio.Discret), TextTrimming = TextTrimming.CharacterEllipsis },
+                        },
+                    },
+                };
+                AutomationProperties.SetName(b, Langue.T("Force des pas") + " : " + Langue.T(n.Item1));
+                int force = n.Item2;
+                Action choisir = () => { if (!choisi && !pasOccupe) ReglerPas(force, null); };
+                b.PointerReleased += (o, e) => choisir();
+                b.KeyDown += (o, e) => { if (e.Key == Key.Enter || e.Key == Key.Space) { e.Handled = true; choisir(); } };
+                if (!choisi)
+                {
+                    b.PointerEntered += (o, e) => b.BorderBrush = Studio.P(Studio.Violet, 180);
+                    b.PointerExited += (o, e) => b.BorderBrush = Studio.P(Studio.Bord);
+                }
+                Grid.SetColumn(b, i * 2); grille.Children.Add(b);
+            }
+            ToolTip.SetTip(grille, Langue.T("Conseil : Puissant et Fort. Monte à Extrême si tu veux encore plus de pas."));
+            return grille;
         }
 
         /// <summary>Lien discret « Changer › » : ouvre le module (mode Simple) et y descend.</summary>
@@ -201,8 +280,11 @@ namespace NettoyagePC.Nouveau
                 tTuileRetard.Text = marche && et.LatenceMs > 0 ? et.LatenceMs.ToString(c) + " ms" : "—";
                 tTuileExplosions.Text = marche && et.Reduction >= 0.5 ? "−" + et.Reduction.ToString("0", c) + " dB" : marche ? "0 dB" : "—";
                 tTuileArme.Text = !marche ? "—" : armeVue == 0 ? Langue.T("Normale") : et.ReductionArme >= 0.5 ? "−" + et.ReductionArme.ToString("0", c) + " dB" : "0 dB";
-                tTuileSon.Text = !marche ? "—" : et.Canaux >= 6 ? "7.1" : Langue.T("Stéréo");
-                tTuileSon.Foreground = Studio.P(marche ? Studio.Vert : Studio.Violet);
+                tTuileSon.Text = !marche ? "—" : "● " + (et.Canaux >= 6 ? "7.1" : Langue.T("Stéréo"));
+                tTuileSon.Foreground = Studio.P(marche ? Studio.Vert : Studio.Discret);
+                // jauges : 24 dB de baisse remplissent la barre
+                RemplirJauge(gJaugeExplosions, marche ? et.Reduction / 24.0 : 0);
+                RemplirJauge(gJaugeArme, marche && armeVue != 0 ? et.ReductionArme / 24.0 : 0);
             }
             if (tSimpleReecoute != null)
             {
@@ -241,6 +323,14 @@ namespace NettoyagePC.Nouveau
             ToolTip.SetTip(eq, Langue.T("Allume ou coupe l'égaliseur (profil et calibration du casque)."));
             AutomationProperties.SetName(eq, Langue.T(r.Actif ? "Égaliseur : actif" : "Égaliseur : coupé"));
             droite.Children.Add(eq);
+            var mode = Segment(new[]
+            {
+                Tuple.Create("Simple", true, (Action)(() => { }), Langue.T("L'essentiel sur un seul écran.")),
+                Tuple.Create("Expert", false, (Action)(() => ChoisirMode(true)), Langue.T("Tous les réglages, rangés en onglets.")),
+            });
+            mode.Margin = new Thickness(8, 0, 0, 8);
+            AutomationProperties.SetName(mode, Langue.T("Affichage"));
+            droite.Children.Add(mode);
             Grid.SetColumn(droite, 2); g.Children.Add(droite);
             return g;
         }
@@ -264,6 +354,14 @@ namespace NettoyagePC.Nouveau
 
             // le centre : force, style, réécoute (ou ce qu'il reste à faire)
             var centre = new StackPanel { Spacing = 12, VerticalAlignment = VerticalAlignment.Center };
+            centre.Children.Add(new StackPanel
+            {
+                Spacing = 2, Children =
+                {
+                    new TextBlock { Text = Langue.T("Pas boostés"), FontFamily = Studio.Titre, FontSize = 24, FontWeight = FontWeight.Bold, Foreground = Studio.P(Studio.Texte) },
+                    Studio.T(Langue.T("Les pas remontent, les explosions restent tenues."), 13, Studio.Discret),
+                },
+            });
             if (!cable)
             {
                 centre.Children.Add(Studio.T(Langue.T("Pas boostés n'est pas encore installé : suis le guide ci-dessous (2 minutes)."), 16, Studio.Texte, true, Studio.Titre));
@@ -274,11 +372,7 @@ namespace NettoyagePC.Nouveau
                 if (m.Actif && et.Erreur != "") centre.Children.Add(Studio.T(Langue.T(et.Erreur), 12.5, Studio.Ambre));
                 else if (!m.Actif && !pasOccupe) centre.Children.Add(Studio.T(Langue.T("Pas boostés est coupé : allume-le pour entendre les pas."), 12.5, Studio.Ambre));
                 centre.Children.Add(Etiquette("Force des pas"));
-                var crans = new Crans5(MoteurSon.Niveaux.Select(n => Langue.T(n.Item1)).ToArray(), MoteurSon.Niveaux.Select(n => n.Item2).ToArray(), forceVue) { IsEnabled = !pasOccupe };
-                AutomationProperties.SetName(crans, Langue.T("Force des pas"));
-                ToolTip.SetTip(crans, Langue.T("Conseil : Puissant et Fort. Monte à Extrême si tu veux encore plus de pas."));
-                crans.Change += f => ReglerPas(f, null);
-                centre.Children.Add(crans);
+                centre.Children.Add(TouchesForce(forceVue));
                 var ligne = new WrapPanel { Margin = new Thickness(0, 4, 0, 0) };
                 ligne.Children.Add(Segment(new[]
                 {
@@ -295,12 +389,8 @@ namespace NettoyagePC.Nouveau
             }
             Grid.SetColumn(centre, 1); grilleHeros.Children.Add(centre);
 
-            // les tuiles
-            var tuiles = new UniformGrid { Columns = 2, Width = 300, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(18, 0, 0, 0) };
-            tuiles.Children.Add(Tuile("Retard", out tTuileRetard));
-            tuiles.Children.Add(Tuile("Explosions tenues", out tTuileExplosions));
-            tuiles.Children.Add(Tuile("Ton arme", out tTuileArme));
-            tuiles.Children.Add(Tuile("Son", out tTuileSon));
+            // le direct
+            var tuiles = PanneauDirect();
             ToolTip.SetTip(tuiles, Langue.T("En direct, pendant que Pas boostés tourne : retard ajouté, baisse des explosions et de tes tirs, nombre de voies reçues du jeu."));
             tuilesHeros = tuiles;
             Grid.SetColumn(tuiles, 2); grilleHeros.Children.Add(tuiles);
@@ -310,8 +400,20 @@ namespace NettoyagePC.Nouveau
         private Control Cartes(ProfilAudio p, bool ok, string probleme)
         {
             grilleCartes = new Grid { ColumnDefinitions = new ColumnDefinitions("*,12,*,12,*") };
-            Func<string, string, Color, string, string, Action, Control> carte = (titre, valeur, couleur, detail, lien, clic) =>
-                CarteE(new StackPanel
+            Func<string, Color, Control> icone = (cle, c) => new Border
+            {
+                Width = 40, Height = 40, CornerRadius = new CornerRadius(12), Margin = new Thickness(0, 0, 14, 0), VerticalAlignment = VerticalAlignment.Top,
+                Background = Studio.P(Studio.PanneauHaut), BorderBrush = Studio.P(Studio.Bord), BorderThickness = new Thickness(1),
+                Child = new Icone5 { Cle = cle, Couleur = c, Epaisseur = 1.9, Width = 20, Height = 20, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center },
+            };
+            Func<Control, Control, Control> avecIcone = (ic, texte) =>
+            {
+                var g = new Grid { ColumnDefinitions = new ColumnDefinitions("Auto,*") };
+                g.Children.Add(ic); Grid.SetColumn(texte, 1); g.Children.Add(texte);
+                return g;
+            };
+            Func<string, Color, string, string, Color, string, string, Action, Control> carte = (cle, couleurIcone, titre, valeur, couleur, detail, lien, clic) =>
+                CarteE(avecIcone(icone(cle, couleurIcone), new StackPanel
                 {
                     Children =
                     {
@@ -320,14 +422,14 @@ namespace NettoyagePC.Nouveau
                         new TextBlock { Text = detail, FontFamily = Studio.Corps, FontSize = 12, Foreground = Studio.P(Studio.Discret), Margin = new Thickness(0, 3, 0, 0), TextWrapping = TextWrapping.Wrap, MaxHeight = 34, TextTrimming = TextTrimming.CharacterEllipsis },
                         Lien(lien, clic),
                     },
-                });
+                }));
             bool calibre = r.CalibActive && !string.IsNullOrEmpty(r.CalibNom);
-            var c1 = carte("Mon casque", calibre ? r.CalibNom : Langue.T("Pas encore choisi"), Studio.Texte,
+            var c1 = carte("Audio", Studio.Violet, "Mon casque", calibre ? r.CalibNom : Langue.T("Pas encore choisi"), Studio.Texte,
                 calibre ? (string.IsNullOrEmpty(r.CalibSource) ? Langue.T("Calibré") : Langue.F("Calibré · mesures {0}", r.CalibSource)) : Langue.T("Choisis ton modèle : Velox corrige ses défauts."),
                 calibre ? "Changer" : "Choisir", () => Ouvrir(moduleCasque));
-            var c2 = carte("Profil", p != null ? Langue.T(p.Carte) : Langue.T(AudioJeu.NomProfil(r)), Studio.Texte,
+            var c2 = carte("Curseurs", Studio.Violet, "Profil", p != null ? Langue.T(p.Carte) : Langue.T(AudioJeu.NomProfil(r)), Studio.Texte,
                 p != null ? Langue.T(p.Texte) : Langue.T("Réglage personnalisé"), "Changer", () => Ouvrir(moduleProfils));
-            var c3 = carte("Vérification", Langue.T(ok ? "Tout fonctionne" : "À vérifier"), ok ? Studio.Vert : Studio.Ambre,
+            var c3 = carte(ok ? "Coche" : "Alerte", ok ? Studio.Vert : Studio.Ambre, "Vérification", Langue.T(ok ? "Tout fonctionne" : "À vérifier"), ok ? Studio.Vert : Studio.Ambre,
                 ok ? Langue.T("Égaliseur, câble, casque") : probleme, "Détails", () => Ouvrir(moduleVerif));
             Grid.SetColumn(c2, 2); Grid.SetColumn(c3, 4);
             grilleCartes.Children.Add(c1); grilleCartes.Children.Add(c2); grilleCartes.Children.Add(c3);
@@ -386,7 +488,7 @@ namespace NettoyagePC.Nouveau
             return CarteE(pile);
         }
 
-        /// <summary>En étroit : les tuiles passent sous la force, et les trois cartes l'une sous l'autre.</summary>
+        /// <summary>En étroit : le direct passe sous la force, et les trois cartes l'une sous l'autre.</summary>
         private void AjusterSimple(double largeur)
         {
             if (grilleHeros != null && tuilesHeros != null)
@@ -394,7 +496,7 @@ namespace NettoyagePC.Nouveau
                 bool etroit = largeur < 860;
                 Grid.SetColumn(tuilesHeros, etroit ? 1 : 2); Grid.SetRow(tuilesHeros, etroit ? 1 : 0);
                 tuilesHeros.Margin = etroit ? new Thickness(0, 14, 0, 0) : new Thickness(18, 0, 0, 0);
-                if (tuilesHeros is UniformGrid u) { u.Columns = etroit ? 4 : 2; u.Width = etroit ? double.NaN : 300; }
+                tuilesHeros.Width = etroit ? double.NaN : 300;
             }
             if (grilleCartes != null)
             {

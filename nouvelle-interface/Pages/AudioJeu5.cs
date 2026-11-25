@@ -553,9 +553,94 @@ namespace NettoyagePC.Nouveau
         private string signatureNom;
         private bool nomOccupe;
         private readonly List<Control> modulesExpert = new List<Control>();
-        private Border bSimple, bExpert;
 
         private Control Expert(Control c) { modulesExpert.Add(c); return c; }
+
+        // ---- mode Expert rangé en onglets : chaque module a son onglet ; en Simple, l'enveloppe reste toujours visible
+        // (le module garde ses propres règles d'affichage).
+        internal static readonly string[] OngletsExpert = { "Pas boostés", "Casque et égaliseur", "Écoute et tests", "Sorties et câbles", "Installation" };
+        private const int OngletInstallation = 4;
+        private readonly List<Tuple<Control, int>> modulesOnglet = new List<Tuple<Control, int>>();
+        private int ongletExpert;
+        private StackPanel barreOnglets;
+
+        /// <summary>Range le module dans l'onglet o du mode Expert (renvoie son enveloppe, à ajouter à la place du module).</summary>
+        private Control Onglet(int o, Control module)
+        {
+            var enveloppe = new Panel { Children = { module } };
+            modulesOnglet.Add(Tuple.Create((Control)enveloppe, o));
+            return enveloppe;
+        }
+
+        private Control ConstruireOnglets()
+        {
+            barreOnglets = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 4 };
+            var defile = new ScrollViewer { Content = barreOnglets, HorizontalScrollBarVisibility = ScrollBarVisibility.Auto, VerticalScrollBarVisibility = ScrollBarVisibility.Disabled };
+            var cadre = new Border
+            {
+                Child = defile, Padding = new Thickness(4), CornerRadius = new CornerRadius(14), HorizontalAlignment = HorizontalAlignment.Left, Margin = new Thickness(0, 0, 12, 0),
+                Background = Studio.P(Studio.Fond1, 220), BorderBrush = Studio.P(Studio.Bord), BorderThickness = new Thickness(1),
+            };
+            var mode = Segment(new[]
+            {
+                Tuple.Create("Simple", false, (Action)(() => ChoisirMode(false)), Langue.T("L'essentiel : profils, calibration, Pas boostés, vérification et écoute.")),
+                Tuple.Create("Expert", true, (Action)(() => { }), Langue.T("Tous les réglages : console, bandes, sorties, Voicemeeter, 7.1 virtuel, table de mixage, fichier.")),
+            });
+            mode.Margin = new Thickness(0);
+            AutomationProperties.SetName(mode, Langue.T("Affichage"));
+            var g = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto"), Margin = new Thickness(0, 0, 0, 14) };
+            g.Children.Add(cadre);
+            Grid.SetColumn(mode, 1); g.Children.Add(mode);
+            return g;
+        }
+
+        private void MajOnglets()
+        {
+            if (barreOnglets == null) return;
+            barreOnglets.Children.Clear();
+            for (int i = 0; i < OngletsExpert.Length; i++)
+            {
+                int o = i; bool actif = i == ongletExpert;
+                int nb = modulesOnglet.Count(x => x.Item2 == i);
+                var texte = new StackPanel
+                {
+                    Orientation = Orientation.Horizontal, Spacing = 7, Children =
+                    {
+                        new TextBlock { Text = Langue.T(OngletsExpert[i]), FontFamily = Studio.Corps, FontSize = 13.5, FontWeight = actif ? FontWeight.SemiBold : FontWeight.Normal, Foreground = Studio.P(actif ? Colors.White : Studio.Discret), VerticalAlignment = VerticalAlignment.Center },
+                        new TextBlock { Text = nb.ToString(System.Globalization.CultureInfo.InvariantCulture), FontFamily = Studio.Chiffres, FontSize = 11, Foreground = actif ? Studio.P(Colors.White, 210) : Studio.P(Studio.Faible), VerticalAlignment = VerticalAlignment.Center },
+                    },
+                };
+                var b = new Border
+                {
+                    Child = texte, Padding = new Thickness(16, 8), CornerRadius = new CornerRadius(10), Cursor = new Cursor(StandardCursorType.Hand), Focusable = true,
+                    Background = actif ? Studio.Degrade(0, Studio.Violet, Studio.Magenta) : Brushes.Transparent,
+                };
+                AutomationProperties.SetName(b, Langue.T(OngletsExpert[i]));
+                if (!actif)
+                {
+                    b.PointerEntered += (s2, e) => b.Background = Studio.P(Studio.PanneauHaut);
+                    b.PointerExited += (s2, e) => b.Background = Brushes.Transparent;
+                }
+                b.PointerReleased += (s2, e) => ChoisirOnglet(o);
+                b.KeyDown += (s2, e) => { if (e.Key == Key.Enter || e.Key == Key.Space) { e.Handled = true; ChoisirOnglet(o); } };
+                barreOnglets.Children.Add(b);
+            }
+        }
+
+        /// <summary>Ouvre l'onglet o du mode Expert (rien ne change dans le son).</summary>
+        internal void ChoisirOnglet(int o)
+        {
+            o = Math.Max(0, Math.Min(OngletsExpert.Length - 1, o));
+            if (o == ongletExpert && barreOnglets != null && barreOnglets.Children.Count > 0) return;
+            ongletExpert = o;
+            AppliquerOnglets();
+        }
+
+        private void AppliquerOnglets()
+        {
+            foreach (var x in modulesOnglet) x.Item1.IsVisible = !r.ModeExpert || x.Item2 == ongletExpert;
+            MajOnglets();
+        }
 
         /// <summary>Mode Simple : seulement l'essentiel (démarrage rapide, vérification, courbe, écoute, profils, Pas boostés,
         /// calibration, automatismes). Mode Expert : tout. Rien n'est changé dans le son, seulement l'affichage.</summary>
@@ -566,14 +651,16 @@ namespace NettoyagePC.Nouveau
             if (r.ModeExpert) ouverts.Clear();
             foreach (var c in modulesSurDemande) c.IsVisible = r.ModeExpert || ouverts.Contains(c);
             AppliquerVisibiliteGuide();
+            AppliquerOnglets();
             if (corps != null) { deuxColonnes = null; Disposer(corps.Bounds.Width > 0 ? corps.Bounds.Width : 1000); }
-            if (bSimple != null) { Marquer(bSimple, !r.ModeExpert, Studio.Cyan); Marquer(bExpert, r.ModeExpert, Studio.Magenta); }
         }
 
         private void ChoisirMode(bool expert)
         {
             if (r.ModeExpert == expert) return;
             r.ModeExpert = expert;
+            // installation pas finie : l'Expert s'ouvre sur l'onglet Installation (démarrage rapide et guide)
+            if (expert) ongletExpert = !guideComplet || !r.AssistantFait ? OngletInstallation : 0;
             AppliquerMode();
             if (!exemple && !simulation) { try { AudioJeu.Enregistrer(Reglages); } catch { } }
             F.Statut(Langue.T(expert ? "Mode Expert : tous les réglages sont affichés." : "Mode Simple : l'essentiel seulement (le son ne change pas)."));
@@ -764,10 +851,10 @@ namespace NettoyagePC.Nouveau
             var g = new StackPanel();
             zoneDemarrage = new StackPanel { Spacing = 10 };
             moduleDemarrage = Studio.Module("Démarrage rapide", zoneDemarrage);
-            g.Children.Add(moduleDemarrage);
+            g.Children.Add(Onglet(4, moduleDemarrage));
             g.Children.Add(SimpleSeul(ConstruireSimple()));
             moduleGuide = Studio.Module("Guide pas à pas", ConstruireGuide());
-            g.Children.Add(moduleGuide);
+            g.Children.Add(Onglet(4, moduleGuide));
             courbe = new CourbeEq5 { Reglages = r, Allume = r.Actif };
             AutomationProperties.SetName(courbe, Langue.T("Courbe de l'égaliseur"));
             courbe.GainChange += (k, db) =>
@@ -781,11 +868,11 @@ namespace NettoyagePC.Nouveau
             legende.Children.Add(Legende(Studio.Cyan, "Spectre en direct"));
             legende.Children.Add(Legende(Studio.Magenta, "Égaliseur"));
             var bloc = new StackPanel { Spacing = 8, Children = { courbe, Studio.T(Langue.T("Glisse un point pour régler sa bande (ou flèches du clavier). En fond, ce que joue ta sortie en ce moment."), 12, Studio.Faible) } };
-            g.Children.Add(Expert(Studio.Module("Réponse en fréquence", bloc, legende)));
+            g.Children.Add(Onglet(1, Expert(Studio.Module("Réponse en fréquence", bloc, legende))));
             zoneVerif = new StackPanel { Spacing = 8 };
             moduleVerif = Studio.Module("Vérification du son", zoneVerif);
-            g.Children.Add(Expert(Studio.Module("Avant / après", ConstruireDemo())));
-            g.Children.Add(Expert(Studio.Module("Tests d'écoute", ConstruireTests())));
+            g.Children.Add(Onglet(2, Expert(Studio.Module("Avant / après", ConstruireDemo()))));
+            g.Children.Add(Onglet(2, Expert(Studio.Module("Tests d'écoute", ConstruireTests()))));
 
             // profils
             var grille = new UniformGrid { Columns = 4 };
@@ -812,17 +899,18 @@ namespace NettoyagePC.Nouveau
             tDansLeJeu = Studio.T("", 12, Studio.Faible);
             tDansLeJeu.Margin = new Thickness(0, 6, 0, 0);
             moduleProfils = SurDemande(Studio.Module("Profils", new StackPanel { Children = { grille, autres, tProfil, tDansLeJeu } }));
-            g.Children.Add(moduleProfils);
+            g.Children.Add(Onglet(1, moduleProfils));
             zoneNom = new StackPanel { Spacing = 8 };
-            g.Children.Add(Expert(Studio.Module("Velox Studio dans tes jeux", zoneNom)));
+            var moduleNom = Onglet(0, Expert(Studio.Module("Velox Studio dans tes jeux", zoneNom)));
             zonePas = new StackPanel { Spacing = 10 };
-            g.Children.Add(Expert(Studio.Module("Pas boostés (bêta)", zonePas)));
+            g.Children.Add(Onglet(0, Expert(Studio.Module("Pas boostés (bêta)", zonePas))));
+            g.Children.Add(moduleNom);   // onglet Pas boostés : le module Pas boostés en premier
             zoneCasque = new StackPanel { Spacing = 10 };
             moduleCasque = SurDemande(Studio.Module("Calibration du casque", zoneCasque));
-            g.Children.Add(moduleCasque);
-            g.Children.Add(SurDemande(moduleVerif));   // vérification : en bas, pour dépanner
+            g.Children.Add(Onglet(1, moduleCasque));
+            g.Children.Add(Onglet(2, SurDemande(moduleVerif)));   // vérification : en bas, pour dépanner
             zoneSurround = new StackPanel { Spacing = 10 };
-            g.Children.Add(Expert(Studio.Module("Son 7.1 virtuel", zoneSurround)));
+            g.Children.Add(Onglet(0, Expert(Studio.Module("Son 7.1 virtuel", zoneSurround))));
 
             // console : molettes, coupe-explosions, inversion
             var rang = new WrapPanel();
@@ -846,7 +934,7 @@ namespace NettoyagePC.Nouveau
             options.Children.Add(Studio.T(Langue.T("Le coupe-explosions retire les sons très graves (explosions, grondements) sous la fréquence choisie, pour qu'ils ne couvrent pas les pas. Au-dessus de 0 dB, le niveau peut faire saturer le son."), 12, Studio.Faible));
             tMoteur = Studio.T("", 12, Studio.Ambre);
             options.Children.Add(tMoteur);
-            g.Children.Add(Expert(Studio.Module("Console", new StackPanel { Children = { rang, options } })));
+            g.Children.Add(Onglet(1, Expert(Studio.Module("Console", new StackPanel { Children = { rang, options } }))));
 
             // faders des bandes
             var bandes = new UniformGrid { Columns = AudioJeu.Bandes.Length };
@@ -869,7 +957,7 @@ namespace NettoyagePC.Nouveau
                 });
             }
             tAideBandes = Studio.T("", 12, Studio.Faible);
-            g.Children.Add(Expert(Studio.Module("Bandes", new StackPanel { Spacing = 10, Children = { bandes, tAideBandes } })));
+            g.Children.Add(Onglet(1, Expert(Studio.Module("Bandes", new StackPanel { Spacing = 10, Children = { bandes, tAideBandes } }))));
             gauche = g;
 
             // ---------------- colonne de droite
@@ -882,45 +970,39 @@ namespace NettoyagePC.Nouveau
             tEcoute = Studio.T("", 11.5, Studio.Faible); tEcoute.IsVisible = false;   // (pas d'espace vide sous le VU-mètre)
             sortie.Children.Add(tEcoute);
             sortie.Children.Add(zoneSorties);
-            d.Children.Add(Expert(Studio.Module("Sorties", sortie)));
+            d.Children.Add(Onglet(3, Expert(Studio.Module("Sorties", sortie))));
             zoneVm = new StackPanel { Spacing = 8 };
-            d.Children.Add(Expert(Studio.Module("Voicemeeter", zoneVm)));
+            d.Children.Add(Onglet(3, Expert(Studio.Module("Voicemeeter", zoneVm))));
             zoneAuto = new StackPanel { Spacing = 12 };
-            d.Children.Add(Expert(Studio.Module("Automatismes", zoneAuto)));
+            d.Children.Add(Onglet(3, Expert(Studio.Module("Automatismes", zoneAuto))));
             zoneFichier = new StackPanel { Spacing = 8 };
             tChemin = new TextBlock { FontFamily = Studio.Chiffres, FontSize = 11, Foreground = Studio.P(Studio.Faible), TextWrapping = TextWrapping.Wrap };
             tFichier = new TextBlock { FontFamily = Studio.Chiffres, FontSize = 11, Foreground = Studio.P(Studio.Discret), TextWrapping = TextWrapping.NoWrap };
             var defile = new ScrollViewer { Content = tFichier, HorizontalScrollBarVisibility = ScrollBarVisibility.Auto, VerticalScrollBarVisibility = ScrollBarVisibility.Disabled, IsVisible = false };
             var voir = Studio.Bouton(Langue.T("Voir le fichier écrit"), false, () => { defile.IsVisible = !defile.IsVisible; });
             zoneFichier.Children.Add(tChemin); zoneFichier.Children.Add(new WrapPanel { Children = { voir } }); zoneFichier.Children.Add(defile);
-            d.Children.Add(Expert(Studio.Module("Fichier d'Equalizer APO", zoneFichier)));
+            d.Children.Add(Onglet(3, Expert(Studio.Module("Fichier d'Equalizer APO", zoneFichier))));
             droite = d;
 
-            // mode Simple (l'essentiel) ou Expert (tous les réglages)
-            var choixMode = new WrapPanel { Margin = new Thickness(0, 0, 0, 10) };
-            choixMode.Children.Add(new TextBlock { Text = Langue.T("Affichage :"), FontFamily = Studio.Corps, FontSize = 12.5, Foreground = Studio.P(Studio.Discret), VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 10, 8) });
-            bSimple = Puce(Langue.T("Simple"), () => ChoisirMode(false));
-            ToolTip.SetTip(bSimple, Langue.T("L'essentiel : profils, calibration, Pas boostés, vérification et écoute."));
-            bExpert = Puce(Langue.T("Expert"), () => ChoisirMode(true));
-            ToolTip.SetTip(bExpert, Langue.T("Tous les réglages : console, bandes, sorties, Voicemeeter, 7.1 virtuel, table de mixage, fichier."));
-            choixMode.Children.Add(bSimple); choixMode.Children.Add(bExpert);
-            pile.Children.Add(Expert(choixMode));   // mode Simple : « Tous les réglages (Expert) » est dans le panneau
+            // mode Expert : les onglets, et à droite le retour au mode Simple (en Simple, le choix est dans l'en-tête du panneau)
+            pile.Children.Add(Expert(ConstruireOnglets()));
             corps = new Grid();
             corps.Children.Add(gauche); corps.Children.Add(droite);
             Disposer(1000);
             corps.SizeChanged += (o, a) => Disposer(a.NewSize.Width);
             pile.Children.Add(corps);
             zoneMix = new StackPanel { Spacing = 10 };
-            pile.Children.Add(Expert(Studio.Module("Table de mixage", zoneMix)));
+            pile.Children.Add(Onglet(3, Expert(Studio.Module("Table de mixage", zoneMix))));
             Construire(zoneAuto);
             AppliquerMode();
             return pile;
         }
 
-        /// <summary>Deux colonnes en grand, une seule (la droite passe dessous) en étroit.</summary>
+        /// <summary>Une seule colonne (la droite passe dessous) : en Simple c'est plus lisible, et en Expert chaque onglet
+        /// ne montre que les modules d'une seule colonne.</summary>
         private void Disposer(double largeur)
         {
-            bool deux = largeur >= 920 && r.ModeExpert;   // mode Simple : une seule colonne, plus lisible
+            const bool deux = false;
             if (deuxColonnes == deux) return;
             deuxColonnes = deux;
             corps.ColumnDefinitions = new ColumnDefinitions(deux ? "*,16,330" : "*");

@@ -1840,19 +1840,38 @@ namespace NettoyagePC.Nouveau
                 f.Afficher("Audio", false);
                 for (int k = 0; k < 4; k++) { Dispatcher.UIThread.RunJobs(); AvaloniaHeadlessPlatform.ForceRenderTimerTick(); }
                 var vus = f.GetVisualDescendants().ToList();
-                bool studioVu = vus.OfType<Marche5>().Count(x => x.IsEffectivelyVisible) == 1 && vus.OfType<CourbeEq5>().Count() == 5 && vus.OfType<Molette5>().Count() == 4 && vus.OfType<Fader5>().Count() == 6 + AudioJeu5.ExempleVoicemeeter.Entrees.Count + AudioJeu5.ExempleVoicemeeter.Bus.Count && vus.OfType<VuMetre5>().Count() >= 3
+                // mode Expert rangé en onglets : il s'ouvre sur « Pas boostés » ; la table de mixage (onglet Sorties) n'est
+                // mise en place qu'une fois affichée
+                Action<int> onglet = n =>
+                {
+                    foreach (var pg in f.GetVisualDescendants().OfType<AudioJeu5>().Take(1)) pg.ChoisirOnglet(n);
+                    foreach (var defil in f.GetVisualDescendants().OfType<ScrollViewer>().Where(x => x.Content is AudioJeu5).Take(1)) defil.Offset = new Vector(0, 0);
+                    for (int k = 0; k < 4; k++) { Dispatcher.UIThread.RunJobs(); AvaloniaHeadlessPlatform.ForceRenderTimerTick(); }
+                };
+                Func<string, bool> titreVu = t => f.GetVisualDescendants().OfType<TextBlock>().Any(x => x.IsEffectivelyVisible && x.Text == t);
+                bool ongletsVus = AudioJeu5.OngletsExpert.All(o => titreVu(o)) && titreVu("PAS BOOSTÉS (BÊTA)") && !titreVu("BANDES") && !titreVu("SORTIES");
+                bool studioVu = vus.OfType<Marche5>().Count(x => x.IsEffectivelyVisible) == 1 && vus.OfType<CourbeEq5>().Count() == 5 && vus.OfType<Molette5>().Count() == 4 && vus.OfType<VuMetre5>().Count() >= 3
                     && vus.OfType<TextBlock>().Any(t => t.Text == "COMPARER") && Avalonia.Automation.AutomationProperties.GetName(vus.OfType<Molette5>().First()) == "Force";
                 Capturer(f, dossier, "sombre-audio.png", rapport, ref erreurs);
+                onglet(3);
+                ongletsVus &= titreVu("SORTIES") && titreVu("TABLE DE MIXAGE") && !titreVu("PAS BOOSTÉS (BÊTA)");
+                studioVu &= f.GetVisualDescendants().OfType<Fader5>().Count() == 6 + AudioJeu5.ExempleVoicemeeter.Entrees.Count + AudioJeu5.ExempleVoicemeeter.Bus.Count;
+                if (!ongletsVus) { erreurs++; rapport.AppendLine("ERREUR : audio : onglets du mode Expert (modules mal rangés)"); }
+                onglet(0);
                 AudioJeu5.Confirmer(f, Langue.T("Profil appliqué"), "Valorant", true);
                 for (int k = 0; k < 30; k++) { Dispatcher.UIThread.RunJobs(); AvaloniaHeadlessPlatform.ForceRenderTimerTick(); System.Threading.Thread.Sleep(10); }
                 Capturer(f, dossier, "sombre-audio-confirmation.png", rapport, ref erreurs);
                 AudioJeu5.RetirerConfirmation(f);
-                foreach (var defil in f.GetVisualDescendants().OfType<ScrollViewer>().Where(x => x.Content is AudioJeu5).Take(1)) defil.Offset = new Vector(0, 760);
+                onglet(1);
+                foreach (var defil in f.GetVisualDescendants().OfType<ScrollViewer>().Where(x => x.Content is AudioJeu5).Take(1)) defil.Offset = new Vector(0, 330);
                 Capturer(f, dossier, "sombre-audio-bas.png", rapport, ref erreurs);
-                foreach (var defil in f.GetVisualDescendants().OfType<ScrollViewer>().Where(x => x.Content is AudioJeu5).Take(1)) defil.Offset = new Vector(0, 1750);
+                onglet(3);
+                foreach (var defil in f.GetVisualDescendants().OfType<ScrollViewer>().Where(x => x.Content is AudioJeu5).Take(1)) defil.Offset = new Vector(0, 330);
                 Capturer(f, dossier, "sombre-audio-sorties.png", rapport, ref erreurs);
-                foreach (var defil in f.GetVisualDescendants().OfType<ScrollViewer>().Where(x => x.Content is AudioJeu5).Take(1)) defil.Offset = new Vector(0, 2400);
+                onglet(2);
+                foreach (var defil in f.GetVisualDescendants().OfType<ScrollViewer>().Where(x => x.Content is AudioJeu5).Take(1)) defil.Offset = new Vector(0, 330);
                 Capturer(f, dossier, "sombre-audio-fin.png", rapport, ref erreurs);
+                onglet(0);
                 {
                     var page = f.GetVisualDescendants().OfType<AudioJeu5>().FirstOrDefault();
                     var titre = f.GetVisualDescendants().OfType<TextBlock>().FirstOrDefault(t => (t.Text ?? "").StartsWith("Le son spatial au casque"));
@@ -1871,6 +1890,7 @@ namespace NettoyagePC.Nouveau
                     if (pos.HasValue) foreach (var defil in f.GetVisualDescendants().OfType<ScrollViewer>().Where(x => x.Content is AudioJeu5).Take(1)) defil.Offset = new Vector(0, Math.Max(0, pos.Value.Y - 90));
                     Capturer(f, dossier, "sombre-audio-pas-boostes.png", rapport, ref erreurs);
                 }
+                onglet(3);
                 foreach (var defil in f.GetVisualDescendants().OfType<ScrollViewer>().Where(x => x.Content is AudioJeu5).Take(1)) defil.Offset = new Vector(0, 100000);
                 Capturer(f, dossier, "sombre-audio-mixage.png", rapport, ref erreurs);
                 {
@@ -1878,6 +1898,7 @@ namespace NettoyagePC.Nouveau
                     AudioJeu5.ExempleReglages.AssistantFait = false; AudioJeu5.ExempleReglages.AutoJeu = false;
                     f.Afficher("Accueil", false); f.Afficher("Audio", false);
                     for (int k = 0; k < 4; k++) { Dispatcher.UIThread.RunJobs(); AvaloniaHeadlessPlatform.ForceRenderTimerTick(); }
+                    onglet(4);
                     bool demVu = f.GetVisualDescendants().OfType<TextBlock>().Any(t => t.Text == "Terminer la configuration") && f.GetVisualDescendants().OfType<TextBlock>().Any(t => t.Text == "Equalizer APO installé");
                     if (!demVu) { erreurs++; rapport.AppendLine("ERREUR : audio : démarrage rapide absent"); }
                     Capturer(f, dossier, "sombre-audio-demarrage.png", rapport, ref erreurs);
@@ -1891,7 +1912,7 @@ namespace NettoyagePC.Nouveau
                     var visibles = f.GetVisualDescendants().OfType<TextBlock>().Where(t => t.IsEffectivelyVisible).Select(t => t.Text ?? "").ToList();
                     var vusSimple = f.GetVisualDescendants().Where(x => x.IsEffectivelyVisible).ToList();
                     bool simpleOk = visibles.Contains("ACTIF") && visibles.Contains("▶ Réécouter sans / avec") && visibles.Contains("Tout fonctionne") && visibles.Contains("Compétitif")
-                        && visibles.Contains("Call of Duty / Warzone détecté") && vusSimple.OfType<Crans5>().Count() == 1 && vusSimple.OfType<Marche5>().Count() == 1
+                        && visibles.Contains("Call of Duty / Warzone détecté") && visibles.Contains("conseillé") && visibles.Contains("Ultra") && visibles.Contains("EN DIRECT") && visibles.Contains("Retard ajouté") && vusSimple.OfType<Marche5>().Count() == 1
                         && !visibles.Contains("COMPARER") && !visibles.Contains("Pas boostés : actif") && !visibles.Contains("Inversion gauche / droite") && !visibles.Contains("Voir le fichier écrit") && visibles.Contains("Tous les réglages (Expert) ›")
                         && !visibles.Contains("Affichage :") && !visibles.Any(t => t.StartsWith("D'autres traitements sont actifs", StringComparison.Ordinal));
                     if (!simpleOk) { erreurs++; rapport.AppendLine("ERREUR : audio : mode Simple (modules experts encore visibles, ou essentiels cachés)"); }
@@ -1931,7 +1952,7 @@ namespace NettoyagePC.Nouveau
                     var vc = f.GetVisualDescendants().OfType<TextBlock>().Where(t => t.IsEffectivelyVisible).Select(t => t.Text ?? "").ToList();
                     var rond = f.GetVisualDescendants().OfType<Marche5>().FirstOrDefault(x => x.IsEffectivelyVisible);
                     bool sansCable = vc.Contains("À INSTALLER") && vc.Contains("Suivre le guide") && rond != null && !rond.IsEffectivelyEnabled && !rond.Actif
-                        && !f.GetVisualDescendants().OfType<Crans5>().Any(x => x.IsEffectivelyVisible);
+                        && !vc.Contains("conseillé");
                     Capturer(f, dossier, "sombre-audio-simple-sans-cable.png", rapport, ref erreurs);
                     AudioJeu5.Exemple.Cables = cablesAvant; AudioJeu5.Exemple.Moteur.Actif = false;
                     f.Afficher("Accueil", false); f.Afficher("Audio", false);
