@@ -710,7 +710,9 @@ namespace NettoyagePC.Nouveau
             r = exemple ? (ExempleReglages ?? new ReglagesAudioJeu()) : simulation ? Reglages.Copie() : Reglages;
             delai.Tick += (s, e) => Appliquer();
             Margin = new Thickness(24, 6, 24, 24);
-            Children.Add(Studio.Console(deverrouille ? (Control)Construire() : Verrou()));
+            // bandeau « en travaux » en tête de la console (fond sombre, quel que soit le thème) : les testeurs savent que le
+            // Studio son n'est pas fini
+            Children.Add(Studio.Console(new StackPanel { Children = { Travaux(), deverrouille ? (Control)Construire() : Verrou() } }));
             AttachedToVisualTree += (s, e) =>
             {
                 page = this;
@@ -838,6 +840,32 @@ namespace NettoyagePC.Nouveau
                 Grid.SetColumn(droiteEq, 1); g.Children.Add(droiteEq);
             }
             return g;
+        }
+
+        /// <summary>Bandeau « Studio son en travaux » : l'outil reste utilisable, mais on prévient qu'il n'est pas fini et
+        /// qu'il peut mal marcher (Pas boostés surtout), pour que les testeurs ne le jugent pas comme une version finie.</summary>
+        private static Control Travaux()
+        {
+            var icone = new Border
+            {
+                Width = 34, Height = 34, CornerRadius = new CornerRadius(17), Background = Studio.P(Studio.Ambre, 230), VerticalAlignment = VerticalAlignment.Center,
+                Child = new TextBlock { Text = "!", FontFamily = Studio.Titre, FontSize = 20, FontWeight = FontWeight.Bold, Foreground = Studio.P(Studio.Fond1), HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center },
+            };
+            var titre = Langue.T("Studio son : en cours de travaux");
+            var detail = Langue.T("Cet outil n'est pas terminé : il peut mal marcher, surtout « Pas boostés ». Tu peux l'essayer, mais ne le juge pas encore comme une version finie. Un souci ? Dis-le avec « Signaler un problème ».");
+            var textes = new StackPanel { Spacing = 3, VerticalAlignment = VerticalAlignment.Center };
+            textes.Children.Add(new TextBlock { Text = titre.ToUpper(Langue.Culture), FontFamily = Studio.Titre, FontSize = 15, FontWeight = FontWeight.Bold, LetterSpacing = 1, Foreground = Studio.P(Studio.Ambre), TextWrapping = TextWrapping.Wrap });
+            textes.Children.Add(new TextBlock { Text = detail, FontFamily = Studio.Corps, FontSize = 12.5, Foreground = Studio.P(Studio.Texte), TextWrapping = TextWrapping.Wrap });
+            var g = new Grid { ColumnDefinitions = new ColumnDefinitions("Auto,*") };
+            g.Children.Add(icone);
+            Grid.SetColumn(textes, 1); textes.Margin = new Thickness(14, 0, 0, 0); g.Children.Add(textes);
+            var cadre = new Border
+            {
+                Child = g, Padding = new Thickness(18, 12, 20, 12), Margin = new Thickness(0, 0, 0, 14), CornerRadius = new CornerRadius(14),
+                Background = Studio.P(Studio.Ambre, 34), BorderBrush = Studio.P(Studio.Ambre, 200), BorderThickness = new Thickness(1.5),
+            };
+            AutomationProperties.SetName(cadre, titre + ". " + detail);
+            return cadre;
         }
 
         private Control Construire()
@@ -1868,8 +1896,8 @@ namespace NettoyagePC.Nouveau
                 zonePas.Children.Add(Studio.T(Langue.T("Le vrai saut pour entendre les pas : Velox traite lui-même le son en direct. Les sons faibles (pas lointains, recharges) remontent, les explosions et les tirs sont tenus, et rien ne sature. L'égaliseur et la calibration de ton casque continuent par-dessus."), 12.5, Studio.Discret));
                 if (!cable)
                 {
-                    zonePas.Children.Add(Studio.T(Langue.T("Il faut un câble audio virtuel : VB-Cable, gratuit. Installe-le, redémarre le PC, puis reviens ici : Velox branche tout lui-même."), 12, Studio.Ambre));
-                    zonePas.Children.Add(new WrapPanel { Children = { Studio.Bouton(Langue.T("Télécharger VB-Cable (gratuit)"), true, () => { if (!exemple) Programmes.Ouvrir(MoteurSon.SiteCable); }) } });
+                    zonePas.Children.Add(Studio.T(Langue.T("Il faut un câble audio virtuel : VB-Cable, gratuit. Velox l'installe pour toi, puis tu redémarres le PC : Velox branche ensuite tout lui-même."), 12, Studio.Ambre));
+                    zonePas.Children.Add(new WrapPanel { Children = { Studio.Bouton(Langue.T("Installer VB-Cable (gratuit)"), true, () => InstallerCable(Releve ?? v)) } });
                 }
                 else
                 {
@@ -2859,31 +2887,41 @@ namespace NettoyagePC.Nouveau
                 Langue.T("Installer"), Langue.T("Annuler"), oui =>
                 {
                     if (!oui) return;
-                    installationApo = true; page?.MettreAJour();
-                    F.Statut(Langue.T("Téléchargement d'Equalizer APO…"));
-                    var f = F;
-                    Task.Run(() =>
+                    LancerInstallationApo(nomSortie, err =>
                     {
-                        string fichier = InstallationApo.Telecharger(p => Dispatcher.UIThread.Post(() => f.Statut(p >= 0 ? Langue.F("Téléchargement d'Equalizer APO… {0} %", p) : Langue.T("Téléchargement d'Equalizer APO…"))), CancellationToken.None);
-                        Dispatcher.UIThread.Post(() => f.Statut(Langue.F("Installation d'Equalizer APO : accepte l'autorisation de Windows, puis coche « {0} » dans sa fenêtre.", nomSortie)));
-                        return InstallationApo.Installer(fichier);
-                    }).ContinueWith(t => Dispatcher.UIThread.Post(() =>
-                    {
-                        installationApo = false;
-                        string err = t.IsFaulted ? (t.Exception.InnerException ?? t.Exception).Message : t.Result;
-                        if (err != "")
-                        {
-                            f.Statut(Langue.T(err), true);
-                            if (!err.StartsWith("Installation annulée"))
-                                f.Demander(Langue.T("Equalizer APO n'a pas pu être installé"), Langue.T(err) + "\n\n" + Langue.T("Réessaie dans un instant (même bouton), ou télécharge-le toi-même depuis son site officiel : une fois installé, Velox le reconnaît tout seul."),
-                                    Langue.T("Ouvrir le site officiel"), Langue.T("Fermer"), oui => { if (oui) Programmes.Ouvrir(AudioJeu.Site); });
-                        }
-                        else f.Statut(Langue.T("Equalizer APO est installé. Si tu n'entends aucune différence une fois l'égaliseur allumé, redémarre le PC."));
-                        signatureSorties = null;
-                        Relever();
-                        page?.MettreAJour();
-                    }));
+                        if (err == "") F.Statut(Langue.T("Equalizer APO est installé. Si tu n'entends aucune différence une fois l'égaliseur allumé, redémarre le PC."));
+                    });
                 });
+        }
+
+        /// <summary>Télécharge, vérifie et installe Equalizer APO (sans rien demander avant), puis appelle « fin » sur le fil
+        /// de l'interface avec "" si c'est fait, sinon la raison (déjà affichée).</summary>
+        private void LancerInstallationApo(string nomSortie, Action<string> fin)
+        {
+            installationApo = true; page?.MettreAJour();
+            F.Statut(Langue.T("Téléchargement d'Equalizer APO…"));
+            var f = F;
+            Task.Run(() =>
+            {
+                string fichier = InstallationApo.Telecharger(p => Dispatcher.UIThread.Post(() => f.Statut(p >= 0 ? Langue.F("Téléchargement d'Equalizer APO… {0} %", p) : Langue.T("Téléchargement d'Equalizer APO…"))), CancellationToken.None);
+                Dispatcher.UIThread.Post(() => f.Statut(Langue.F("Installation d'Equalizer APO : accepte l'autorisation de Windows, puis coche « {0} » dans sa fenêtre.", nomSortie)));
+                return InstallationApo.Installer(fichier);
+            }).ContinueWith(t => Dispatcher.UIThread.Post(() =>
+            {
+                installationApo = false;
+                string err = t.IsFaulted ? (t.Exception.InnerException ?? t.Exception).Message : t.Result;
+                if (err != "")
+                {
+                    f.Statut(Langue.T(err), true);
+                    if (!err.StartsWith("Installation annulée"))
+                        f.Demander(Langue.T("Equalizer APO n'a pas pu être installé"), Langue.T(err) + "\n\n" + Langue.T("Réessaie dans un instant (même bouton), ou télécharge-le toi-même depuis son site officiel : une fois installé, Velox le reconnaît tout seul."),
+                            Langue.T("Ouvrir le site officiel"), Langue.T("Fermer"), oui => { if (oui) Programmes.Ouvrir(AudioJeu.Site); });
+                }
+                signatureSorties = null;
+                Relever();
+                page?.MettreAJour();
+                fin?.Invoke(err);
+            }));
         }
 
         /// <summary>Un clic sur « Equalizer APO » (témoin du haut, ligne d'une sortie) : absent, Velox l'installe ; présent, sa

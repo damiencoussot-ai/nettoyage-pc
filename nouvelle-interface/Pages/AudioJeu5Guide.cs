@@ -69,8 +69,8 @@ namespace NettoyagePC.Nouveau
             zoneGuide.Children.Add(EtapeGuide(3, calibre, false, Langue.T("Choisir ton casque (facultatif, conseillé)"),
                 Langue.T("Plus bas, module « Calibration du casque » : tape ton modèle. Velox corrige ses défauts d'après des mesures de laboratoire.")));
             zoneGuide.Children.Add(EtapeGuide(4, cable, true, Langue.T("Installer VB-Cable (gratuit)"),
-                Langue.T("Il fait passer le son du jeu par Velox. Décompresse le fichier téléchargé, fais un clic droit sur VBCABLE_Setup_x64.exe, « Exécuter en tant qu'administrateur », clique « Install Driver », puis redémarre le PC."),
-                Langue.T("Télécharger VB-Cable"), () => { if (!exemple) Programmes.Ouvrir(MoteurSon.SiteCable); }));
+                Langue.T("Il fait passer le son du jeu par Velox. Velox le télécharge depuis le site de VB-Audio et l'installe ; Windows demande l'autorisation, puis s'il faut installer le pilote (clique « Installer »). Redémarre ensuite le PC."),
+                Langue.T("Installer VB-Cable"), () => InstallerCable(v)));
             zoneGuide.Children.Add(EtapeGuide(5, pas, true, Langue.T("Allumer « Pas boostés »"),
                 Langue.T("Force conseillée : Fort (Extrême si tu veux encore plus de pas). Ton arme : Réduite. Velox met le câble en sortie par défaut et joue le son traité sur ton casque."),
                 cable ? Langue.T("Allumer Pas boostés") : null, cable ? (Action)(() => BasculerPas(true)) : null));

@@ -1047,6 +1047,24 @@ namespace NettoyagePC.Nouveau
                 }
                 try { verifier(InstallationApo.InstallerEnAdmin(new[] { "installer-apo" }) == 3 && InstallationApo.InstallerEnAdmin(new[] { "installer-apo", fauxApo }) == 3 && InstallationApo.InstallerEnAdmin(new[] { "installer-apo", Path.Combine(Path.GetTempPath(), "absent", nApo) }) == 3, "Equalizer APO : demande invalide refusée (rien n'est lancé)"); }
                 finally { File.Delete(fauxApo); }
+                // installation de VB-Cable par Velox : paquet officiel, bon installateur par architecture, demande invalide refusée
+                {
+                    var noms = new[] { "vbMmeCable64_win10.inf", "VBCABLE_Setup.exe", "VBCABLE_Setup_x64.exe", "VBCABLE_Setup_ARM64.exe", "readme.txt" };
+                    verifier(InstallationCable.Adresse == "https://download.vb-audio.com/Download_CABLE/VBCABLE_Driver_Pack46.zip"
+                        && InstallationCable.Installateur("X64", noms) == "VBCABLE_Setup_x64.exe" && InstallationCable.Installateur("Arm64", noms) == "VBCABLE_Setup_ARM64.exe"
+                        && InstallationCable.Installateur("X86", noms) == "VBCABLE_Setup.exe" && InstallationCable.Installateur("Arm", noms) == null
+                        && InstallationCable.Installateur("X64", new[] { "VBCABLE_Setup.exe" }) == null, "VB-Cable : paquet officiel et installateur choisi selon Windows");
+                    verifier(InstallationCable.Signataire.IsMatch("CN=Vincent Burel, O=Vincent Burel, L=Paris, C=FR") && InstallationCable.Signataire.IsMatch("CN=VB-Audio Software, O=VB-Audio Software, C=FR")
+                        && !InstallationCable.Signataire.IsMatch("CN=Autre Editeur, O=Autre, C=FR") && !InstallationCable.Signataire.IsMatch("CN=Faux, O=Faux, OU=VB-Audio"), "VB-Cable : seul un installateur signé par VB-Audio est lancé");
+                    string fauxCable = Path.Combine(Path.GetTempPath(), "velox-essai-cable");
+                    Directory.CreateDirectory(fauxCable);
+                    try
+                    {
+                        verifier(InstallationCable.InstallerEnAdmin(new[] { "installer-cable" }) == 3 && InstallationCable.InstallerEnAdmin(new[] { "installer-cable", fauxCable }) == 3
+                            && InstallationCable.InstallerEnAdmin(new[] { "installer-cable", Path.Combine(Path.GetTempPath(), "NettoyagePC-cable-absent") }) == 3, "VB-Cable : demande invalide refusée (rien n'est lancé)");
+                    }
+                    finally { Directory.Delete(fauxCable, true); }
+                }
                 verifier(AudioWindows.ChangerEnProcessus(new[] { "--sortie-audio-defaut", "C:\\Windows\\x.dll", "0" }) == 3 && AudioWindows.ChangerEnProcessus(new[] { "--sortie-audio-defaut", "{0.0.0.00000000}.{0a1b2c3d-4e5f-6789-abcd-ef0123456789}", "0,7" }) == 3, "changement de sortie (processus à part) : arguments vérifiés");
             }
 
