@@ -19,6 +19,9 @@ Ce qui est vérifié
 - Rafale.cs : le renforceur revient après une rafale. L'essai « pas entre deux tirs » est mis de côté (défaut connu
   du moteur, voir le message dans le fichier) : à réactiver une fois corrigé.
 - Volume.cs : pas de pompage du fond sur les pas, fond revenu 500 ms après un tir, volume général jamais baissé.
+- Casque.cs : écriture sur le casque (src/Noyau/MoteurSonDirect.cs) quand les horloges du câble et du casque dérivent
+  et que le PC a des à-coups (2 minutes simulées) : aucun son sauté d'un coup (ancien « tic »), pas plus de manques ni
+  de retard qu'avant, correction de 2 % au plus ; ré-échantillonnage fidèle et sans saut entre deux paquets.
 - Reglages.cs : fichier moteur-son.json (aller-retour, bornes, fichier abîmé, réglage par jeu) et réécoute
   « avant / après » au même volume.
 

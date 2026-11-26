@@ -325,6 +325,9 @@ namespace NettoyagePC
             /// manque (le tampon s'est vidé). -1 : pas encore fixée.</summary>
             public int Reserve = -1;
             public bool Amorce;
+            /// <summary>Remplissage moyen du tampon du casque juste avant d'écrire (images), et le paquet ré-échantillonné.</summary>
+            public Remplissage Niveau = new Remplissage();
+            public float[] Etire = new float[0];
             public void Fermer()
             {
                 try { if (Client != null) Client.Stop(); } catch { }
@@ -576,27 +579,86 @@ namespace NettoyagePC
         /// Écrit le son traité sur le casque. Réserve visée : 12 ms dans le tampon du casque au départ (le retard ajouté
         /// est surtout là). Si le tampon se vide (PC chargé : un craquement), la réserve grandit de 4 ms, jusqu'à 40 ms au
         /// plus : chaque PC trouve ainsi le plus petit retard sans craquements. Les horloges du câble et du casque ne
-        /// battent jamais exactement au même rythme : au-delà de la réserve + 12 ms, le surplus est sauté.
+        /// battent jamais exactement au même rythme : le remplissage MOYEN du tampon est suivi, et s'il s'écarte de la
+        /// réserve, chaque paquet est très légèrement accéléré ou ralenti (1 à 2 %, inaudible) jusqu'à y revenir. Avant, le
+        /// surplus était sauté d'un coup dès qu'un paquet trouvait le tampon trop plein : avec une carte son qui ne prend
+        /// pas le son au même instant que le câble le donne (GoXLR, carte USB), ça arrivait sans arrêt et chaque saut
+        /// s'entendait comme un « tic ».
         /// </summary>
         private static void Jouer(Flux ren, float[] t, int images, int canaux, int fe, bool flottant)
         {
             int pad;
             if (ren.Client.GetCurrentPadding(out pad) != 0) throw new InvalidOperationException("casque indisponible");
             if (ren.Reserve < 0) ren.Reserve = fe * 12 / 1000;
-            int vise = ren.Reserve, maxi = ren.Reserve + fe * 12 / 1000, debut = 0;
             if (pad == 0)
             {
                 // tampon vide : après le tout premier paquet, c'est un manque (craquement) ; la réserve grandit
                 if (ren.Amorce) ren.Reserve = Math.Min(fe * 40 / 1000, ren.Reserve + fe * 4 / 1000);
                 ren.Amorce = true;
-                EcrireRendu(ren, null, Math.Min(ren.Images, ren.Reserve), canaux, flottant, 0);
+                int silence = Math.Min(ren.Images, ren.Reserve);
+                EcrireRendu(ren, null, silence, canaux, flottant, 0);
+                pad = silence;
             }
-            if (pad + images > maxi) { int trop = pad + images - vise; debut = Math.Min(images, Math.Max(0, trop)); }
-            int restant = images - debut;
+            int sortie = ren.Niveau.Suivre(pad, images, ren.Reserve, fe);
+            float[] src = t;
+            if (sortie != images)
+            {
+                if (ren.Etire.Length < sortie * canaux) ren.Etire = new float[sortie * canaux + 64 * canaux];
+                Reechantillonner(t, images, canaux, ren.Etire, sortie);
+                src = ren.Etire;
+            }
             if (ren.Client.GetCurrentPadding(out pad) != 0) throw new InvalidOperationException("casque indisponible");
-            int place = ren.Images - pad;
-            if (restant > place) restant = place;
-            if (restant > 0) EcrireRendu(ren, t, restant, canaux, flottant, debut);
+            int restant = Math.Min(sortie, ren.Images - pad);   // tampon plein (80 ms) : seul cas où du son est encore perdu
+            if (restant > 0) EcrireRendu(ren, src, restant, canaux, flottant, 0);
+        }
+
+        /// <summary>
+        /// Suivi du remplissage du tampon du casque. Le casque prend le son par paquets (10 ms en général) à son propre
+        /// rythme : juste avant d'écrire, le tampon paraît tantôt plein d'un paquet de plus, tantôt d'un de moins. Seule la
+        /// moyenne (sur ~0,3 s) dit si les horloges dérivent. Renvoie le nombre d'images à écrire pour ce paquet.
+        /// </summary>
+        internal sealed class Remplissage
+        {
+            public double Moyenne = -1;
+
+            public int Suivre(int pad, int images, int reserve, int fe)
+            {
+                if (images <= 1) return images;
+                double a = Math.Min(1.0, images / (0.3 * fe));
+                Moyenne = Moyenne < 0 ? pad : Moyenne + a * (pad - Moyenne);
+                double ecart = Moyenne - reserve, zone = fe * 6 / 1000.0;
+                if (Math.Abs(ecart) <= zone) return images;
+                // 1 % (≈ 17 cents, inaudible sur un bruit de jeu), 2 % si l'écart dépasse 18 ms (après un manque)
+                int k = Math.Max(1, (int)Math.Round(images * (Math.Abs(ecart) > 3 * zone ? 0.02 : 0.01)));
+                return ecart > 0 ? images - k : images + k;
+            }
+        }
+
+        /// <summary>
+        /// Ré-échantillonne un paquet de « images » images en « sortie » images (interpolation cubique de Catmull-Rom).
+        /// La première et la dernière image restent les mêmes : aucun saut avec le paquet d'avant ni celui d'après.
+        /// </summary>
+        internal static void Reechantillonner(float[] src, int images, int canaux, float[] dst, int sortie)
+        {
+            if (sortie <= 0) return;
+            if (images <= 1 || sortie == 1)
+            {
+                for (int j = 0; j < sortie; j++) for (int c = 0; c < canaux; c++) dst[j * canaux + c] = images > 0 ? src[c] : 0;
+                return;
+            }
+            double pas = (images - 1) / (double)(sortie - 1);
+            for (int j = 0; j < sortie; j++)
+            {
+                double x = j * pas;
+                int i = Math.Min(images - 2, (int)x);
+                double f = x - i;
+                int i0 = Math.Max(0, i - 1), i2 = i + 1, i3 = Math.Min(images - 1, i + 2);
+                for (int c = 0; c < canaux; c++)
+                {
+                    double p0 = src[i0 * canaux + c], p1 = src[i * canaux + c], p2 = src[i2 * canaux + c], p3 = src[i3 * canaux + c];
+                    dst[j * canaux + c] = (float)(p1 + 0.5 * f * (p2 - p0 + f * (2 * p0 - 5 * p1 + 4 * p2 - p3 + f * (3 * (p1 - p2) + p3 - p0))));
+                }
+            }
         }
 
         private static void EcrireRendu(Flux ren, float[] t, int images, int canaux, bool flottant, int debut)
