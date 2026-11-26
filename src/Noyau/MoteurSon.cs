@@ -167,10 +167,16 @@ namespace NettoyagePC
         // bref ; un tir ou une explosion n'est pas faible : ni l'un ni l'autre n'est touché. C'est ce qui détache un pas
         // du fond, là où le compresseur remonte tout le fond pareil.
         public readonly double RenfortMax;                            // dB (bande des pas) ; moitié pour le choc
-        private readonly Biquad2[] bandePasHaut, bandePasBas, bandeChocHaut, bandeChocBas;
+        private readonly Biquad2[] bandePasHaut, ajoutPasHaut, bandePasBas, bandeChocHaut, bandeChocBas;
         private readonly double rfMonte, rfDescendRapide, rfLent, rgMonte, rgDescend, rfCrete;
         private double crPas, crChoc;
         private readonly double forceRel, facteurChoc;
+        /// <summary>Largeur de la rampe « son bref » (dB) : 6 en Net, 4 en Puissant.</summary>
+        private readonly double largeurBref;
+        /// <summary>Puissant : le renfort est réduit seul avant d'atteindre cette valeur (le limiteur, à 0,95, ne bouge pas).</summary>
+        internal const double MargeRenfort = 0.85;
+        private double kRenfort = 1;
+        private readonly double relacheRenfort;
         private readonly bool renfortApres;
         private readonly double[] ajoutRenfort = new double[16];
 
@@ -181,8 +187,8 @@ namespace NettoyagePC
         // ou mouvements), un son nettement d'un côté l'est pleinement, et la différence gauche/droite des sons de la bande des
         // pas est accentuée de 4 dB (en Extrême) : +2 à +3 dB d'écart en faveur de ce qui vient d'un côté.
         internal const double EcartPlein = 8;
-        /// <summary>Remontée d'un son bref au centre : 0 en Net ; 0,5 en Puissant (un ennemi juste derrière ou devant arrive
-        /// aussi au centre, en stéréo : il ne doit pas être oublié).</summary>
+        /// <summary>Remontée d'un son bref au centre : 0 en Net ; 1 en Puissant (un ennemi juste derrière ou devant arrive
+        /// aussi au centre, en stéréo : il est remonté pleinement ; la traîne des tirs est écartée autrement).</summary>
         private readonly double poidsCentre;
         /// <summary>Accent des côtés (dB, en Extrême) : 4 en Net, 6 en Puissant (direction plus nette).</summary>
         private readonly double accentCotes;
@@ -212,7 +218,11 @@ namespace NettoyagePC
         }
 
         /// <summary>Part « son bref » (0 à 1) : le niveau rapide dépasse le lent de 6 à 12 dB (un pas ; le souffle, non).</summary>
-        internal static double Bref(double rapideDb, double lentDb) { return Math.Max(0, Math.Min(1, (rapideDb - lentDb - 6) / 6)); }
+        internal static double Bref(double rapideDb, double lentDb) { return Bref(rapideDb, lentDb, 6); }
+
+        /// <summary>Même chose, pleine dès « 6 + largeur » dB : 6 en Net ; 4 en Puissant (un pas net, qui dépasse le fond de
+        /// 10 dB, est remonté en entier ; un frémissement du fond de 6 à 7 dB l'est à peine).</summary>
+        internal static double Bref(double rapideDb, double lentDb, double largeur) { return Math.Max(0, Math.Min(1, (rapideDb - lentDb - 6) / largeur)); }
 
         /// <summary>Part « son faible » (0 à 1) : plein sous −22 dB, rien au-dessus de −13 dB (un tir). Appliquée sans retard :
         /// dès qu'un son devient fort, il n'est plus remonté (même si la remontée venait de commencer sur son attaque).</summary>
@@ -229,12 +239,18 @@ namespace NettoyagePC
         /// <summary>« renfort » faux : sans renforceur de pas (essais de comparaison).</summary>
         public const int StyleNet = 0, StylePuissant = 1;
         public readonly int Style;
-        /// <summary>Puissant : seuil du compresseur principal relevé de 12 dB (et remontée baissée d'autant). Mesuré sur de
-        /// vrais enregistrements de Warzone : avec le seuil d'origine, sur un son à plein niveau (volume de Windows compensé),
-        /// la forte compression écrasait les pas (relief 16 → 8 dB, fond remonté de 18 dB). Seuil relevé de 12 dB : le fond
-        /// n'est remonté que de 7 à 10 dB, les pas gardent leur relief (13 à 15 dB) et pèsent toujours plus dans le son. Les
-        /// autres seuils (explosions, ton arme, renforceur, présence) ne bougent pas.</summary>
+        // Réglage du style Puissant (5.24), mesuré sur 20 enregistrements réels de Warzone (22, 23 et 24/11) passés dans ce
+        // moteur. Avec le renforceur tenu 40 ms, un pas ne ressortait du fond que de +4 dB : le renfort restait allumé sur le
+        // fond après chaque pas (le « pompage »), il fallait donc le garder faible. Relâché en 6 ms et plus franc (rampe
+        // « bref » de 4 dB, +22 dB en Fort), il ne remonte que le pas : +4,5 dB de relief en Fort (centre, 24 enregistrements,
+        // contre +2,1 en 5.23), un fond qui bouge moins (1,05 dB contre 1,11), sans changer trop de petits sons en « tic ».
+        /// <summary>Puissant : seuil du compresseur principal relevé de 12 dB (et remontée baissée d'autant) : à plein niveau,
+        /// le seuil d'origine écrasait les pas (relief 16 → 8 dB, fond remonté de 18 dB).</summary>
         public const double DecalagePuissant = 12;
+        /// <summary>Puissant : au-delà de Fort, la compression du fond n'augmente plus ; Extrême et Ultra renforcent les pas
+        /// eux-mêmes. Mesuré sur 20 enregistrements (25/11) : comprimer plus fort en Extrême écrasait les pas proches (−5 dB de
+        /// relief) et pompait davantage (1,7 dB de modulation du fond contre 1,5).</summary>
+        public const double ForceCompressionMax = 0.65;
         private readonly double seuilArmeStereo, seuilArmeCentre;
 
         public CompresseurPas(int force, int frequence, int arme, bool renfort) : this(force, frequence, arme, renfort, StylePuissant) { }
@@ -259,7 +275,15 @@ namespace NettoyagePC
             // « Net » : seuil au-dessus des pas, remontée limitée. « Puissant » : forte compression, tout est remonté (le
             // style préféré à l'oreille par les testeurs : les pas sont plus forts dans l'absolu, le fond aussi).
             if (Style == StyleNet) { Seuil = -6 - 8 * f; Rapport = 1.5 + 3 * f; Remontee = -Seuil * (1 - 1 / Rapport) * 0.4; }
-            else { Seuil = -14 - 26 * f; Rapport = 1.5 + 4.5 * f; Remontee = -Seuil * (1 - 1 / Rapport) * 0.8; if (f > 0) { Seuil += DecalagePuissant; Remontee -= DecalagePuissant; } }
+            else
+            {
+                // Puissant : la compression du fond s'arrête à Fort ; au-delà (Extrême, Ultra), la force agit sur les pas
+                // eux-mêmes (renforceur, présence), pas sur le fond. Mesuré sur de vrais enregistrements : en comprimant
+                // plus fort, Extrême remontait le fond de 18 dB et les pas y perdaient la moitié de leur relief.
+                double fc = Math.Min(f, ForceCompressionMax);
+                Seuil = -14 - 26 * fc; Rapport = 1.5 + 4.5 * fc; Remontee = -Seuil * (1 - 1 / Rapport) * 0.8;
+                if (f > 0) { Seuil += DecalagePuissant; Remontee -= DecalagePuissant; }
+            }
             seuilArmeStereo = Style == StyleNet ? 14 : 24; seuilArmeCentre = Style == StyleNet ? 26 : 36;
             double fe = Math.Max(8000, frequence);
             aNiveau = Math.Exp(-1 / (0.005 * fe));
@@ -296,16 +320,25 @@ namespace NettoyagePC
             // Puissant : plus fort (×1,8, réglé sur de vrais enregistrements de Warzone), plus net (relâché en 40 ms : le « clac » du pas plutôt que sa traîne), bande
             // jusqu'à 8 kHz (là où l'oreille situe gauche/droite) et « boum » du talon moins remonté (les graves brouillent la direction)
             accentCotes = Style == StyleNet ? 4 : 6;
-            poidsCentre = Style == StyleNet ? 0 : 0.5;
+            poidsCentre = Style == StyleNet ? 0 : 1;
             facteurChoc = Style == StyleNet ? 0.5 : 0.25;
+            // Puissant ×2,7 : +22 dB en Fort. Supportable parce que le renforceur se relâche en 6 ms (ci-dessous) : il ne
+            // remonte que le pas lui-même, plus le fond qui le suit. ×3,25 (+26 dB) donnait 1 dB de relief en plus mais
+            // changeait trop de petits sons secs en « tic » (mesuré sur les enregistrements du 26/11 : −36 % de tics à ×2,7).
             RenfortMax = (Style == StyleNet ? 1.5 : 2.7) * (!renfort || f <= 0 ? 0 : f <= 0.35 ? 3 * f / 0.35 : f <= 0.65 ? 3 + 5 * (f - 0.35) / 0.3 : f <= 1 ? 8 + 2 * (f - 0.65) / 0.35 : 10 + 2 * Math.Min(1, (f - 1) / 0.3));
             rfMonte = Math.Exp(-1 / (0.002 * fe)); rfDescendRapide = Math.Exp(-1 / (0.015 * fe)); rfLent = Math.Exp(-1 / (0.06 * fe));
-            rgMonte = Math.Exp(-1 / (0.002 * fe)); rgDescend = Math.Exp(-1 / ((Style == StyleNet ? 0.07 : 0.04) * fe));
-            rfCrete = Math.Exp(-1 / (0.01 * fe));
-            bandePasHaut = new Biquad2[16]; bandePasBas = new Biquad2[16]; bandeChocHaut = new Biquad2[16]; bandeChocBas = new Biquad2[16];
+            rgMonte = Math.Exp(-1 / (0.002 * fe)); rgDescend = Math.Exp(-1 / ((Style == StyleNet ? 0.07 : 0.006) * fe));
+            // Puissant : relâché en 6 ms (40 ms avant). Mesuré sur 20 enregistrements de Warzone : tenu 40 ms, le renfort
+            // restait sur le fond 100 ms après chaque pas, c'est ce qui « pompait » ; relâché vite, il suit le pas.
+            largeurBref = Style == StyleNet ? 6 : 4;
+            relacheRenfort = Math.Exp(-1 / (0.005 * fe));
+            rfCrete = Math.Exp(-1 / ((Style == StyleNet ? 0.01 : 0.06) * fe));   // Puissant : la traîne d'un son fort (tir) n'est pas un pas
+            // Puissant : le renfort ajouté repasse dans un 2e passe-haut 700 Hz (pente 24 dB/octave) : sans lui, le renfort d'un
+            // pas remontait aussi les bas-médiums du fond (vers 400 Hz) pendant le pas, ce qui s'entendait comme un pompage
+            bandePasHaut = new Biquad2[16]; ajoutPasHaut = Style == StyleNet ? null : new Biquad2[16]; bandePasBas = new Biquad2[16]; bandeChocHaut = new Biquad2[16]; bandeChocBas = new Biquad2[16];
             for (int c = 0; c < 16; c++)
             {
-                bandePasHaut[c] = new Biquad2(true, 700, fe); bandePasBas[c] = new Biquad2(false, Style == StyleNet ? 5000 : 8000, fe);
+                bandePasHaut[c] = new Biquad2(true, 700, fe); if (ajoutPasHaut != null) ajoutPasHaut[c] = new Biquad2(true, 700, fe); bandePasBas[c] = new Biquad2(false, Style == StyleNet ? 5000 : 8000, fe);
                 bandeChocHaut[c] = new Biquad2(true, 150, fe); bandeChocBas[c] = new Biquad2(false, 350, fe);
             }
         }
@@ -428,8 +461,8 @@ namespace NettoyagePC
                     pRapideChoc = pc > pRapideChoc ? rfMonte * pRapideChoc + (1 - rfMonte) * pc : rfDescendRapide * pRapideChoc + (1 - rfDescendRapide) * pc;
                     pLentChoc = rfLent * pLentChoc + (1 - rfLent) * pc;
                     double rp = 10 * Math.Log10(pRapidePas + 1e-18), rc = 10 * Math.Log10(pRapideChoc + 1e-18);
-                    double cp = rp < -70 ? 0 : RenfortMax * Bref(rp, 10 * Math.Log10(pLentPas + 1e-18));          // souffle : rien
-                    double cc = rc < -70 ? 0 : RenfortMax * facteurChoc * Bref(rc, 10 * Math.Log10(pLentChoc + 1e-18));
+                    double cp = rp < -70 ? 0 : RenfortMax * Bref(rp, 10 * Math.Log10(pLentPas + 1e-18), largeurBref);          // souffle : rien
+                    double cc = rc < -70 ? 0 : RenfortMax * facteurChoc * Bref(rc, 10 * Math.Log10(pLentChoc + 1e-18), largeurBref);
                     // le « bref » est tenu ~70 ms (tout le pas) ; le « faible » agit tout de suite
                     gainRenfortPas = cp > gainRenfortPas ? rgMonte * gainRenfortPas + (1 - rgMonte) * cp : rgDescend * gainRenfortPas + (1 - rgDescend) * cp;
                     gainRenfortChoc = cc > gainRenfortChoc ? rgMonte * gainRenfortChoc + (1 - rgMonte) * cc : rgDescend * gainRenfortChoc + (1 - rgDescend) * cc;
@@ -460,7 +493,7 @@ namespace NettoyagePC
                     {
                         // 5.1 / 7.1 : la voie centrale porte tes propres sons : remontée réduite
                         double f2 = canaux >= 6 && c == 2 ? 0 : 1;   // en 7.1, l'arrière a ses propres voies : seul le centre est retenu
-                        double ajout = (bufPas[c] * kp + bufChoc[c] * kc) * f2;
+                        double ajout = ((ajoutPasHaut != null ? ajoutPasHaut[c].Passer(bufPas[c]) : bufPas[c]) * kp + bufChoc[c] * kc) * f2;
                         if (renfortApres) ajoutRenfort[c] = ajout;      // ajouté après le compresseur (il ne l'annule plus)
                         else t[b + c] = (float)(t[b + c] + ajout);
                     }
@@ -479,10 +512,22 @@ namespace NettoyagePC
                 float g = (float)Math.Pow(10, gDb / 20);
                 // 2. échantillons compressés, mis dans la ligne à retard ; gain que demandera le limiteur pour eux
                 float crete = 0;
+                if (renfortApres)
+                {
+                    // Puissant : le renfort d'un pas ne doit jamais faire agir le limiteur (qui baisserait tout le son :
+                    // pompage) ; il est réduit seul, juste ce qu'il faut pour rester sous la marge, puis revient en 5 ms
+                    double k = 1;
+                    for (int c = 0; c < canaux && c < 16; c++)
+                    {
+                        double s0 = t[b + c] * g, a0 = ajoutRenfort[c] * g;
+                        if (Math.Abs(s0 + a0) > MargeRenfort && Math.Abs(a0) > 1e-9) k = Math.Min(k, Math.Max(0, (MargeRenfort - Math.Abs(s0)) / Math.Abs(a0)));
+                    }
+                    kRenfort = k < kRenfort ? k : relacheRenfort * kRenfort + (1 - relacheRenfort) * k;
+                }
                 for (int c = 0; c < canaux; c++)
                 {
                     float v = t[b + c] * g;
-                    if (renfortApres && c < 16) { v += (float)(ajoutRenfort[c] * g); ajoutRenfort[c] = 0; }
+                    if (renfortApres && c < 16) { v += (float)(ajoutRenfort[c] * g * kRenfort); ajoutRenfort[c] = 0; }
                     retard[pos * canaux + c] = v; if (Math.Abs(v) > crete) crete = Math.Abs(v);
                 }
                 besoin[pos] = crete > Plafond ? Plafond / crete : 1;

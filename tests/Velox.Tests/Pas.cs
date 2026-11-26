@@ -48,15 +48,17 @@ namespace Velox.Tests
             Assert.True(cote >= coteMin, $"pas sur le côté : +{cote:F1} dB (attendu au moins +{coteMin})");
         }
 
-        /// <summary>Puissant : un pas sur le côté est toujours plus remonté qu'un son au centre.</summary>
+        /// <summary>Puissant (5.24) : un pas au centre est remonté autant qu'un pas sur le côté. En stéréo, un ennemi juste
+        /// devant ou derrière toi arrive au centre, comme tes propres pas : on ne peut pas remonter l'un sans l'autre, et
+        /// c'est l'ennemi derrière qu'on veut entendre. (Net garde le tri : voir Net_ne_remonte_pas_tes_sons_au_centre.)</summary>
         [Theory]
         [InlineData(35)] [InlineData(65)] [InlineData(100)] [InlineData(130)]
-        public void Puissant_favorise_les_cotes(int force)
+        public void Puissant_remonte_aussi_le_centre(int force)
         {
             double centre = RemonteeRenfort(CompresseurPas.StylePuissant, force, 1, 1);
             double cote = RemonteeRenfort(CompresseurPas.StylePuissant, force, 1, 0.15);
-            Assert.True(cote >= centre + 1, $"côté +{cote:F1} dB, centre +{centre:F1} dB");
-            Assert.True(cote >= 3, $"côté +{cote:F1} dB");
+            Assert.True(Math.Abs(cote - centre) <= 1, $"côté +{cote:F1} dB, centre +{centre:F1} dB");
+            Assert.True(centre >= 3, $"centre +{centre:F1} dB");
         }
 
         /// <summary>Des pas faibles sur une ambiance continue (vent) ressortent avec le renforceur ; une rafale forte n'est pas

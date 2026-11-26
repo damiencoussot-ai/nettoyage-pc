@@ -7,6 +7,7 @@ namespace NettoyagePC
     {
         public static readonly List<KeyValuePair<string, string[]>> Liste = new List<KeyValuePair<string, string[]>>
         {
+            N("5.24", "Pas boostés, style Puissant : un ennemi en face ou derrière toi est remonté autant qu'un ennemi sur le côté, et la traîne des tirs n'est plus prise pour un pas. Le son reste naturel."),
             N("5.23", "Pas boostés, style Puissant : les pas brefs ressortent encore un peu plus, sans remonter le fond ni les tirs.",
                 "Mise à jour : si Velox est ouvert, l'installation le ferme toute seule (après t'avoir prévenu), installe, puis le relance."),
             N("5.22", "Nouveau look arrondi, plus clair et plus doux : cartes et boutons arrondis, menu avec une icône par rubrique, accent violet et rose. Le look d'avant reste à un clic (Réglages, « Style de l'interface »).",
