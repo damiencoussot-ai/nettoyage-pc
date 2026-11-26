@@ -242,8 +242,8 @@ namespace NettoyagePC
         // Réglage du style Puissant (5.24), mesuré sur 20 enregistrements réels de Warzone (22, 23 et 24/11) passés dans ce
         // moteur. Avec le renforceur tenu 40 ms, un pas ne ressortait du fond que de +4 dB : le renfort restait allumé sur le
         // fond après chaque pas (le « pompage »), il fallait donc le garder faible. Relâché en 6 ms et plus franc (rampe
-        // « bref » de 4 dB, +26 dB en Fort), il ne remonte que le pas : +6 dB de relief en Fort (+7 en Extrême), un fond qui
-        // bouge un peu moins qu'avant (1,17 dB contre 1,23), et un volume général +0,6 dB.
+        // « bref » de 4 dB, +22 dB en Fort), il ne remonte que le pas : +4,5 dB de relief en Fort (centre, 24 enregistrements,
+        // contre +2,1 en 5.23), un fond qui bouge moins (1,05 dB contre 1,11), sans changer trop de petits sons en « tic ».
         /// <summary>Puissant : seuil du compresseur principal relevé de 12 dB (et remontée baissée d'autant) : à plein niveau,
         /// le seuil d'origine écrasait les pas (relief 16 → 8 dB, fond remonté de 18 dB).</summary>
         public const double DecalagePuissant = 12;
@@ -322,9 +322,10 @@ namespace NettoyagePC
             accentCotes = Style == StyleNet ? 4 : 6;
             poidsCentre = Style == StyleNet ? 0 : 1;
             facteurChoc = Style == StyleNet ? 0.5 : 0.25;
-            // Puissant ×3,25 : +26 dB en Fort. Supportable parce que le renforceur se relâche en 6 ms (ci-dessous) : il ne
-            // remonte que le pas lui-même, plus le fond qui le suit.
-            RenfortMax = (Style == StyleNet ? 1.5 : 3.25) * (!renfort || f <= 0 ? 0 : f <= 0.35 ? 3 * f / 0.35 : f <= 0.65 ? 3 + 5 * (f - 0.35) / 0.3 : f <= 1 ? 8 + 2 * (f - 0.65) / 0.35 : 10 + 2 * Math.Min(1, (f - 1) / 0.3));
+            // Puissant ×2,7 : +22 dB en Fort. Supportable parce que le renforceur se relâche en 6 ms (ci-dessous) : il ne
+            // remonte que le pas lui-même, plus le fond qui le suit. ×3,25 (+26 dB) donnait 1 dB de relief en plus mais
+            // changeait trop de petits sons secs en « tic » (mesuré sur les enregistrements du 26/11 : −36 % de tics à ×2,7).
+            RenfortMax = (Style == StyleNet ? 1.5 : 2.7) * (!renfort || f <= 0 ? 0 : f <= 0.35 ? 3 * f / 0.35 : f <= 0.65 ? 3 + 5 * (f - 0.35) / 0.3 : f <= 1 ? 8 + 2 * (f - 0.65) / 0.35 : 10 + 2 * Math.Min(1, (f - 1) / 0.3));
             rfMonte = Math.Exp(-1 / (0.002 * fe)); rfDescendRapide = Math.Exp(-1 / (0.015 * fe)); rfLent = Math.Exp(-1 / (0.06 * fe));
             rgMonte = Math.Exp(-1 / (0.002 * fe)); rgDescend = Math.Exp(-1 / ((Style == StyleNet ? 0.07 : 0.006) * fe));
             // Puissant : relâché en 6 ms (40 ms avant). Mesuré sur 20 enregistrements de Warzone : tenu 40 ms, le renfort

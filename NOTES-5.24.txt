@@ -3,8 +3,9 @@ Velox 5.24
 Pas boostés, style Puissant
 - Un ennemi en face ou derrière toi (son au centre) est remonté autant qu'un ennemi sur le côté.
 - La traîne des tirs n'est plus prise pour un pas : un son qui suit de près un son fort n'est jamais remonté.
-- Les pas ressortent nettement plus du fond (+6 dB de relief en Fort au lieu de +4, +7 en Extrême) : le renforceur
-  suit le pas lui-même et s'éteint juste après, au lieu de rester allumé sur le fond (c'était le « pompage »).
+- Les pas ressortent nettement plus du fond (relief doublé en Fort par rapport à la 5.23) : le renforceur suit le pas
+  lui-même et s'éteint juste après, au lieu de rester allumé sur le fond (c'était le « pompage »). Il est dosé pour ne
+  pas changer les petits sons secs (mécanique des armes, tirs lointains) en « tic ».
 - Au-delà de Fort, la force renforce les pas, plus le fond : Extrême et Ultra ne pompent plus davantage que Fort.
 - Réglé et vérifié sur 20 enregistrements réels de Warzone : le fond bouge un peu moins qu'avant, le volume ne baisse pas.
 - Conseil : style Puissant, force Fort.
