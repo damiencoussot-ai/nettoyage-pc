@@ -2091,7 +2091,7 @@ namespace NettoyagePC.Nouveau
                 var m = MoteurSon.Lire();
                 if (force.HasValue) AppliquerReglagePas(m, JeuEnCoursMoteur(), force.Value, null);
                 if (jeux.HasValue) m.JeuxSeulement = jeux.Value;
-                MoteurSon.Ecrire(m);   // le moteur relit ses réglages dans les 300 ms
+                MoteurSon.Ecrire(m);   // le moteur relit ses réglages dans les 100 ms
                 if (Releve != null) Releve.Moteur = m;
                 if (force.HasValue) Confirmer(F, Langue.T("Pas boostés"), Langue.T(MoteurSon.Niveaux.First(x => x.Item2 == force.Value).Item1), true);
                 signaturePas = null; MajPas(Releve ?? new ReleveAudioJeu());
@@ -2283,7 +2283,7 @@ namespace NettoyagePC.Nouveau
             {
                 var m = MoteurSon.Lire();
                 m.MesPas = actif;
-                MoteurSon.Ecrire(m);   // le moteur relit ses réglages dans les 300 ms
+                MoteurSon.Ecrire(m);   // le moteur relit ses réglages dans les 100 ms
                 if (Releve != null) Releve.Moteur = m;
                 Confirmer(F, Langue.T("Mes pas plus discrets"), Langue.T(actif ? "activé" : "coupé"), actif);
                 signaturePas = null; MajPas(Releve ?? new ReleveAudioJeu());
@@ -2299,7 +2299,7 @@ namespace NettoyagePC.Nouveau
             {
                 var m = MoteurSon.Lire();
                 AppliquerReglagePas(m, JeuEnCoursMoteur(), null, arme);
-                MoteurSon.Ecrire(m);   // le moteur relit ses réglages dans les 300 ms
+                MoteurSon.Ecrire(m);   // le moteur relit ses réglages dans les 100 ms
                 if (Releve != null) Releve.Moteur = m;
                 Confirmer(F, Langue.T("Ton arme"), Langue.T(arme == 0 ? "Normale" : arme == 1 ? "Réduite" : "Très réduite"), true);
                 signaturePas = null; MajPas(Releve ?? new ReleveAudioJeu());

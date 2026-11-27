@@ -386,9 +386,36 @@ namespace NettoyagePC
         /// fil du son, cela ferait des trous).</summary>
         private static volatile string jeuDetecte = "";
 
+        /// <summary>
+        /// Fait compiler d'avance (par .NET) le traitement du son, sur un peu de bruit qui n'est joué nulle part. Sans ça, le
+        /// tout premier paquet prenait ~20 ms de calcul au lieu de 0,4 : un trou dès l'allumage, et la réserve du casque
+        /// grandissait de 4 ms pour toute la session (retard ajouté en plus).
+        /// </summary>
+        internal static void Prechauffer()
+        {
+            var t = new float[480 * 2]; var dst = new float[490 * 2];
+            uint x = 12345;
+            foreach (int style in new[] { CompresseurPas.StyleNet, CompresseurPas.StylePuissant })
+            {
+                var relais = new RelaisReglage(2, 48000);
+                relais.Demarrer(new CompresseurPas(65, 48000, 1, true, style));
+                for (int k = 0; k < 12; k++)
+                {
+                    if (k == 4) relais.Changer(new CompresseurPas(100, 48000, 2, true, style));
+                    for (int i = 0; i < t.Length; i++) { x = x * 1664525 + 1013904223; t[i] = ((x >> 8) / 16777216f - 0.5f) * (k % 3 == 0 && i < 96 ? 0.8f : 0.02f); }
+                    relais.Traiter(t, 480);
+                }
+            }
+            Reechantillonner(t, 480, 2, dst, 485);
+            new Remplissage().Suivre(480, 480, 576, 48000);
+        }
+
         private static void Boucle(EventWaitHandle arret)
         {
             Thread.CurrentThread.Priority = ThreadPriority.Highest;
+            // ramasse-miettes de .NET : pas de longue pause « tout arrêté » pendant que le son tourne
+            try { System.Runtime.GCSettings.LatencyMode = System.Runtime.GCLatencyMode.SustainedLowLatency; } catch { }
+            try { Prechauffer(); } catch { }
             // priorité « audio pro » de Windows (MMCSS) : le fil du son passe devant le reste, même quand le jeu charge le PC
             IntPtr mmcss = IntPtr.Zero;
             try { int idx = 0; mmcss = AvSetMmThreadCharacteristicsW("Pro Audio", ref idx); } catch { }
@@ -422,7 +449,7 @@ namespace NettoyagePC
                         }
                     }
                     catch { }
-                    fini.Wait(300);
+                    fini.Wait(100);   // un réglage changé dans la page est pris en 0,1 s au plus (0,3 s avant)
                 }
             }) { IsBackground = true, Priority = ThreadPriority.BelowNormal, Name = "Velox réglages du son" };
             veilleur.Start();
@@ -434,8 +461,8 @@ namespace NettoyagePC
             var montre = Stopwatch.StartNew();
             long dernierJeu = -10000, dernierEtat = 0, derniereErreur = -10000;
             var r = Lire();
-            CompresseurPas comp = null, ancienComp = null;
-            int fondu = 0, fonduLong = 1; float[] copieFondu = new float[0];
+            // moteur de traitement en service ; un nouveau réglage se prépare sur le son récent avant de prendre le relais
+            RelaisReglage relais = null; CompresseurPas comp = null;
             int canaux = 2, fe = 48000; bool flottant = true; int bits = 32;
             bool jeu = false; string erreur = "", jeuCle = "";
             float[] tampon = new float[0];
@@ -525,20 +552,21 @@ namespace NettoyagePC
                     if (cap != null && ren != null)
                     {
                         int fv, av; r.Effectifs(jeuCle, out fv, out av);
-                        if (comp == null || fv != forceEnCours || av != armeEnCours || r.Style != styleEnCours)
+                        if (relais != null && (fv != forceEnCours || av != armeEnCours || r.Style != styleEnCours))
                         {
-                            // réglage changé (ou réglage propre au jeu qui démarre) : le nouveau moteur prend le relais en
-                            // fondu sur 30 ms, l'ancien continue pendant ce temps (repartir de zéro faisait un trou, donc un clic)
-                            if (comp != null) { ancienComp = comp; fondu = 0; fonduLong = Math.Max(1, fe * 30 / 1000); }
-                            comp = new CompresseurPas(fv, fe, av, true, r.Style); forceEnCours = fv; armeEnCours = av; styleEnCours = r.Style;
+                            // réglage changé (ou réglage propre au jeu qui démarre) : le nouveau moteur se prépare d'abord sur
+                            // la dernière demi-seconde du son, puis prend le relais en fondu sur 30 ms (branché « à froid », il
+                            // remontait le fond de +9 à +14 dB pendant ~0,1 s : un à-coup de volume à chaque changement)
+                            relais.Changer(new CompresseurPas(fv, fe, av, true, r.Style)); forceEnCours = fv; armeEnCours = av; styleEnCours = r.Style;
                             if (enrLong != null) enrLong.Noter("réglage : " + DecrireReglage(fv, av, r.Style));
-                            if (ancienComp != null) { ancienComp.MelangeCible = comp.MelangeCible; }
                         }
                     }
-                    if (comp != null) comp.MelangeCible = !r.JeuxSeulement || jeu ? 1 : 0;
-                    bool bouge = r.MesPas && DeplacementJoueur.Bouge;
-                    if (comp != null) comp.JoueurBouge = bouge;
-                    if (ancienComp != null) ancienComp.JoueurBouge = bouge;
+                    if (relais != null)
+                    {
+                        relais.MelangeCible = !r.JeuxSeulement || jeu ? 1 : 0;
+                        relais.JoueurBouge = r.MesPas && DeplacementJoueur.Bouge;
+                    }
+                    comp = relais != null ? relais.Actuel : null;
                     // ouverture (ou réouverture après une erreur, une seconde plus tard)
                     if ((cap == null || ren == null) && t - derniereErreur >= 1000)
                     {
@@ -549,7 +577,10 @@ namespace NettoyagePC
                         else
                         {
                             int fv, av; r.Effectifs(jeuCle, out fv, out av);
-                            comp = new CompresseurPas(fv, fe, av, true, r.Style); ancienComp = null; forceEnCours = fv; armeEnCours = av; styleEnCours = r.Style;
+                            if (relais == null || relais.Canaux != canaux || relais.Frequence != fe) relais = new RelaisReglage(canaux, fe);
+                            relais.Demarrer(comp = new CompresseurPas(fv, fe, av, true, r.Style)); forceEnCours = fv; armeEnCours = av; styleEnCours = r.Style;
+                            relais.MelangeCible = !r.JeuxSeulement || jeu ? 1 : 0;
+                            relais.JoueurBouge = r.MesPas && DeplacementJoueur.Bouge;
                             if (memoire == null || memoire.Canaux != canaux || memoire.Frequence != fe) memoire = new MemoireReecoute(canaux, fe, 10);
                             if (enrLong != null && (enrLong.Canaux != canaux || enrLong.Frequence != fe)) { enrLong.Finir(); enrLong = null; }
                             else if (enrLong != null) enrLong.Noter("appareil rouvert");
@@ -616,8 +647,11 @@ namespace NettoyagePC
                             if (hr != 0) throw new InvalidOperationException("capture (code " + hr.ToString("X8", CultureInfo.InvariantCulture) + ")");
                             int n = images * canaux;
                             if (tampon.Length < n) tampon = new float[n];
-                            if ((drapeaux & AUDCLNT_BUFFERFLAGS_SILENT) != 0) Array.Clear(tampon, 0, n);
                             if (enrLong != null && (drapeaux & AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY) != 0) enrLong.Noter("trou capture");
+                            // paquet « silencieux » : ses données ne comptent pas (avant, elles étaient copiées quand même ; et
+                            // pendant un enregistrement long, un paquet après un trou n'était pas copié du tout : le paquet
+                            // d'avant était rejoué, un petit accroc)
+                            if ((drapeaux & AUDCLNT_BUFFERFLAGS_SILENT) != 0) Array.Clear(tampon, 0, n);
                             else if (flottant) Marshal.Copy(donnees, tampon, 0, n);
                             else for (int i = 0; i < n; i++) tampon[i] = Marshal.ReadInt16(donnees, i * 2) / 32768f;
                             cap.Capture.ReleaseBuffer(images);
@@ -636,25 +670,12 @@ namespace NettoyagePC
                             {
                                 if (memoire != null) memoire.GarderSec(tampon, images);
                                 if (enrLong != null) { if (copieSans.Length < n) copieSans = new float[n]; Array.Copy(tampon, copieSans, n); }
-                                if (ancienComp != null)
-                                {
-                                    if (copieFondu.Length < n) copieFondu = new float[n];
-                                    Array.Copy(tampon, copieFondu, n);
-                                    ancienComp.MelangeCible = comp.MelangeCible;
-                                    ancienComp.Traiter(copieFondu, images, canaux);
-                                    comp.Traiter(tampon, images, canaux);
-                                    for (int i = 0; i < images; i++, fondu++)
-                                    {
-                                        float a = Math.Min(1f, fondu / (float)fonduLong);
-                                        for (int q = 0; q < canaux; q++) { int j = i * canaux + q; tampon[j] = copieFondu[j] + (tampon[j] - copieFondu[j]) * a; }
-                                    }
-                                    if (fondu >= fonduLong) ancienComp = null;
-                                }
-                                else comp.Traiter(tampon, images, canaux);
+                                relais.Traiter(tampon, images);
+                                comp = relais.Actuel;
                                 if (memoire != null) memoire.GarderTraite(tampon, images);
                                 if (enrLong != null) enrLong.Ajouter(copieSans, tampon, images);
                             }
-                            else memoire.Remplir(tampon, images);   // réécoute : le son du jeu est remplacé par l'enregistrement
+                            else { relais.Garder(tampon, images); memoire.Remplir(tampon, images); }   // réécoute : le son du jeu est remplacé par l'enregistrement
                             if (gainSortie != 1) for (int i = 0; i < n; i++) tampon[i] *= gainSortie;   // et remis : c'est le volume d'écoute
                             int manques = ren.Manques, pertes = ren.Pertes;
                             Jouer(ren, tampon, images, canaux, fe, flottant);

@@ -38,6 +38,18 @@ Enregistrement long avec marqueurs (Studio son > Pas boostés)
 - Tout va dans un dossier « Velox-long-… » sur le Bureau : les deux sons, les marqueurs (à ouvrir dans Audacity :
   Fichier > Importer > Étiquettes) et un résumé avec le réglage et les petits incidents du moteur (casque à vide…).
 
+Fluidité du son
+- Changer de réglage en jeu (Léger, Fort, Extrême, Ultra, ton arme, Net ou Puissant, réglage propre au jeu qui
+  démarre) ne fait plus d'à-coup de volume : avant, le nouveau réglage partait « à froid » et remontait le fond du jeu
+  d'un coup pendant environ 0,1 s (+9 à +14 dB mesurés). Il se prépare maintenant en coulisse sur la dernière
+  demi-seconde de son, puis prend le relais en fondu, environ un quart de seconde après l'appui.
+- Le réglage choisi dans la page est pris en 0,1 s au plus par le moteur (0,3 s avant).
+- Plus de petit trou au moment où « Pas boostés » s'allume : le traitement du son est préparé avant d'ouvrir le
+  casque (le tout premier paquet prenait 20 ms de calcul, ce qui pouvait aussi ajouter 4 ms de retard pour la session).
+- Le ramasse-miettes de .NET évite les longues pauses pendant que le son tourne.
+- Un paquet de son marqué « silence » par Windows est bien joué en silence, et pendant un enregistrement long un trou
+  de capture ne rejoue plus le paquet d'avant.
+
 Casque
 - Plus de « tic » réguliers avec une carte son qui a sa propre horloge (GoXLR, carte USB) : quand le câble et le casque
   ne vont pas tout à fait au même rythme, Velox ne saute plus de son d'un coup, il accélère ou ralentit le son de 1 %
