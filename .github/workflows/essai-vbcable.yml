@@ -1,0 +1,88 @@
+# Essai réel de l'installation de VB-Cable par Velox sur un vrai Windows (machine GitHub jetable) : téléchargement du
+# paquet officiel de VB-Audio, signature vérifiée par Windows, installation silencieuse, pilote détecté, puis retrait.
+# Sur un vrai PC, Windows demande « Voulez-vous installer ce logiciel de périphérique ? » ; une machine GitHub n'a
+# personne pour répondre : VB-Audio y est donc ajouté aux éditeurs approuvés AVANT l'essai (seulement sur cette
+# machine jetable, jamais par Velox).
+name: Essai VB-Cable
+
+on:
+  push:
+    paths:
+      - 'src/Noyau/InstallationCable.cs'
+      - 'src/Noyau/Elevation.cs'
+      - 'tests/Velox.Tests/VbCableReel.cs'
+      - '.github/workflows/essai-vbcable.yml'
+  pull_request:
+    paths:
+      - 'src/Noyau/InstallationCable.cs'
+      - 'src/Noyau/Elevation.cs'
+      - 'tests/Velox.Tests/VbCableReel.cs'
+      - '.github/workflows/essai-vbcable.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: essai-vbcable-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Paquet officiel et signatures (vu par Windows)
+        shell: pwsh
+        run: |
+          $d = Join-Path $env:RUNNER_TEMP 'paquet-vbcable'
+          New-Item -ItemType Directory -Force $d | Out-Null
+          Invoke-WebRequest 'https://download.vb-audio.com/Download_CABLE/VBCABLE_Driver_Pack46.zip' -OutFile "$d\pack.zip"
+          "Taille du paquet : {0:N0} o" -f (Get-Item "$d\pack.zip").Length
+          Expand-Archive "$d\pack.zip" "$d\x" -Force
+          Get-ChildItem "$d\x" -Recurse | Select-Object FullName, Length | Format-Table -AutoSize | Out-String -Width 300
+          Get-ChildItem "$d\x" -Recurse -Include *.exe,*.cat,*.sys | ForEach-Object {
+            $s = Get-AuthenticodeSignature $_.FullName
+            "{0} : {1} ; {2}" -f $_.Name, $s.Status, $s.SignerCertificate.Subject
+          }
+          # éditeur approuvé sur CETTE machine jetable seulement : personne n'y peut cliquer « Installer »
+          $magasin = New-Object System.Security.Cryptography.X509Certificates.X509Store('TrustedPublisher', 'LocalMachine')
+          $magasin.Open('ReadWrite')
+          Get-ChildItem "$d\x" -Recurse -Include *.cat,*.exe | ForEach-Object {
+            $c = (Get-AuthenticodeSignature $_.FullName).SignerCertificate
+            if ($c) { $magasin.Add($c) }
+          }
+          $magasin.Close()
+
+      - name: Installation par Velox (téléchargement, signature, silencieux, détection)
+        shell: pwsh
+        env:
+          VELOX_VBCABLE_REEL: '1'
+        run: dotnet test tests/Velox.Tests -c Release --filter "FullyQualifiedName~VbCableReel" --logger "console;verbosity=detailed"
+
+      - name: Câble visible dans les sorties de Windows
+        if: always()
+        shell: pwsh
+        run: |
+          Get-PnpDevice -Class MEDIA -ErrorAction SilentlyContinue | Format-Table Status, FriendlyName, InstanceId -AutoSize | Out-String -Width 300
+          Get-CimInstance Win32_SoundDevice | Format-Table Name, Status -AutoSize | Out-String -Width 300
+
+      - name: Retrait (ce que fait le désinstalleur, en silencieux)
+        if: always()
+        continue-on-error: true
+        shell: pwsh
+        run: |
+          $copie = Join-Path $env:ProgramFiles 'Nettoyage PC\outils\vbcable'
+          if (-not (Test-Path "$copie\VBCABLE_Setup_x64.exe")) { "Pas de copie gardée dans $copie"; exit 1 }
+          $p = Start-Process "$copie\VBCABLE_Setup_x64.exe" -ArgumentList '-u','-h' -WorkingDirectory $copie -PassThru
+          if (-not $p.WaitForExit(300000)) { "Retrait trop long"; exit 1 }
+          "Code de sortie : $($p.ExitCode)"
+          $reste = Get-ChildItem 'HKLM:\SYSTEM\CurrentControlSet\Control\Class\{4d36e96c-e325-11ce-bfc1-08002be10318}' -ErrorAction SilentlyContinue |
+            Where-Object { (Get-ItemProperty $_.PSPath -ErrorAction SilentlyContinue).DriverDesc -eq 'VB-Audio Virtual Cable' }
+          if ($reste) { "Pilote encore présent après le retrait silencieux (le bouton « Remove Driver » reste nécessaire)"; exit 1 } else { "Pilote retiré" }
