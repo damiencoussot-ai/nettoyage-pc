@@ -1889,7 +1889,7 @@ namespace NettoyagePC.Nouveau
             var et = v.MoteurEtat ?? new MoteurSon.EtatMoteur();
             bool cable = v.Cables.Count > 0;
             int forceVue, armeVue; m.Effectifs(et.JeuCle, out forceVue, out armeVue);
-            string sig = cable + "|" + m.Actif + "|" + forceVue + "|" + armeVue + "|" + m.ParJeuActif + "|" + m.Style + "|" + et.JeuCle + "|" + m.JeuxSeulement + "|" + pasOccupe + "|" + (et.Erreur != "");
+            string sig = cable + "|" + m.Actif + "|" + forceVue + "|" + armeVue + "|" + m.ParJeuActif + "|" + m.Style + "|" + et.JeuCle + "|" + m.JeuxSeulement + "|" + m.MesPas + "|" + pasOccupe + "|" + (et.Erreur != "");
             if (sig != signaturePas)
             {
                 signaturePas = sig;
@@ -1917,6 +1917,10 @@ namespace NettoyagePC.Nouveau
                     ToolTip.SetTip(bJeux, Langue.T("Le son est traité seulement quand un jeu reconnu tourne (Warzone, Valorant, CS2…) : musique et vidéos restent intactes."));
                     Marquer(bJeux, m.JeuxSeulement, Studio.Cyan);
                     ligne.Children.Add(bJeux);
+                    var bMesPas = Puce(Langue.T("Mes pas plus discrets"), () => ReglerMesPas(!m.MesPas));
+                    ToolTip.SetTip(bMesPas, Langue.T("Tes pas et ceux d'un ennemi juste devant ou derrière toi arrivent au même endroit du son : Velox ne peut pas les séparer à l'oreille. Il regarde donc si tu te déplaces (ZQSD, WASD, flèches ou stick de la manette) : pendant que tu bouges, les pas au centre sont moins remontés. Arrête-toi pour écouter : tout est de nouveau remonté en plein. Les ennemis sur les côtés ne changent pas."));
+                    Marquer(bMesPas, m.MesPas, Studio.Cyan);
+                    ligne.Children.Add(bMesPas);
                     zonePas.Children.Add(ligne);
                     // ton arme : tes propres tirs baissés, ceux des ennemis gardés
                     var ligneArme = new WrapPanel();
@@ -2267,6 +2271,22 @@ namespace NettoyagePC.Nouveau
                 Confirmer(F, Langue.T("Style"), Langue.T(style == 1 ? "Puissant" : "Net"), true);
                 signaturePas = null; MajPas(Releve ?? new ReleveAudioJeu());
                 signatureSimple = null; MajSimple(Releve ?? new ReleveAudioJeu());
+            }
+            catch (Exception ex) { F.Statut(ex.Message, true); }
+        }
+
+        private void ReglerMesPas(bool actif)
+        {
+            if (exemple) return;
+            if (simulation) { F.Statut(Langue.T("Simulation : rien n'est modifié."), true); return; }
+            try
+            {
+                var m = MoteurSon.Lire();
+                m.MesPas = actif;
+                MoteurSon.Ecrire(m);   // le moteur relit ses réglages dans les 300 ms
+                if (Releve != null) Releve.Moteur = m;
+                Confirmer(F, Langue.T("Mes pas plus discrets"), Langue.T(actif ? "activé" : "coupé"), actif);
+                signaturePas = null; MajPas(Releve ?? new ReleveAudioJeu());
             }
             catch (Exception ex) { F.Statut(ex.Message, true); }
         }

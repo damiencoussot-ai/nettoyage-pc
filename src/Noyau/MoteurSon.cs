@@ -39,6 +39,8 @@ namespace NettoyagePC
         /// <summary>Le câble s'appelait « Velox Studio » quand « Pas boostés » a été coupé (il a repris son nom d'origine) :
         /// il le retrouve au prochain allumage.</summary>
         public bool RenommerAuRallumage;
+        /// <summary>« Mes pas plus discrets » : pendant que tu te déplaces, un son bref au centre (tes pas) est moins remonté.</summary>
+        public bool MesPas = true;
         public Dictionary<string, int[]> ParJeu = new Dictionary<string, int[]>();
         private static readonly Regex CleJeu = new Regex("^[a-z0-9]{1,24}$");
 
@@ -73,7 +75,7 @@ namespace NettoyagePC
             {
                 { "Actif", Actif }, { "Force", Force }, { "JeuxSeulement", JeuxSeulement },
                 { "Source", Source }, { "Destination", Destination }, { "DefautAvant", DefautAvant }, { "Arme", Arme }, { "Style", Style },
-                { "ParJeuActif", ParJeuActif }, { "RenommerAuRallumage", RenommerAuRallumage }, { "ParJeu", (ParJeu ?? new Dictionary<string, int[]>()).ToDictionary(kv => kv.Key, kv => (object)new object[] { kv.Value[0], kv.Value[1] }) },
+                { "ParJeuActif", ParJeuActif }, { "RenommerAuRallumage", RenommerAuRallumage }, { "MesPas", MesPas }, { "ParJeu", (ParJeu ?? new Dictionary<string, int[]>()).ToDictionary(kv => kv.Key, kv => (object)new object[] { kv.Value[0], kv.Value[1] }) },
             });
         }
 
@@ -95,6 +97,7 @@ namespace NettoyagePC
                 if (d.TryGetValue("Style", out o)) r.Style = (int)Math.Round(Convert.ToDouble(o, CultureInfo.InvariantCulture));
                 if (d.TryGetValue("ParJeuActif", out o) && o is bool pa) r.ParJeuActif = pa;
                 if (d.TryGetValue("RenommerAuRallumage", out o) && o is bool ra) r.RenommerAuRallumage = ra;
+                if (d.TryGetValue("MesPas", out o) && o is bool mp) r.MesPas = mp;
                 if (d.TryGetValue("ParJeu", out o) && o is Dictionary<string, object> pj)
                     foreach (var kv in pj)
                     {
@@ -172,7 +175,7 @@ namespace NettoyagePC
         private double crPas, crChoc;
         private readonly double forceRel, facteurChoc;
         /// <summary>Largeur de la rampe « son bref » (dB) : 6 en Net, 4 en Puissant.</summary>
-        private readonly double largeurBref;
+        private readonly double largeurBref, seuilBref;
         /// <summary>Puissant : le renfort est réduit seul avant d'atteindre cette valeur (le limiteur, à 0,95, ne bouge pas).</summary>
         internal const double MargeRenfort = 0.85;
         private double kRenfort = 1;
@@ -195,6 +198,28 @@ namespace NettoyagePC
         private readonly double poidsCentre;
         /// <summary>Accent des côtés (dB, en Extrême) : 4 en Net, 6 en Puissant (direction plus nette).</summary>
         private readonly double accentCotes;
+
+        // ---- tes propres pas : en stéréo, ils arrivent au centre, exactement comme un ennemi juste devant ou derrière toi ;
+        // le son seul ne les distingue pas. Mais tes pas n'existent que pendant que tu te déplaces : pendant ce temps (et
+        // 350 ms après, voir DeplacementJoueur), un son bref au centre n'est remonté qu'au quart ; dès que tu t'arrêtes, il
+        // l'est de nouveau en plein. Un son venu d'un côté garde toute sa remontée. « Ton arme » n'est pas touché.
+        /// <summary>Vrai pendant que le joueur se déplace (mis par le fil du son avant chaque paquet ; faux : rien ne change).</summary>
+        public bool JoueurBouge;
+        /// <summary>Remontée d'un son bref au centre pendant que tu te déplaces (0,25 : +5,4 dB au lieu de +21,6 en Puissant Fort).</summary>
+        internal const double PoidsCentreEnMouvement = 0.25;
+        private readonly double aBougeMonte, aBougeDescend;
+        private double bouge;
+        // Tes sons sont joués à l'identique à gauche et à droite (mono) ; un ennemi, même juste devant ou derrière, est
+        // spatialisé par le jeu (réverbération, filtrage d'oreille) : gauche et droite se ressemblent bien moins. Mesuré
+        // sur l'enregistrement long du 27/11 : tes sons 0,93 à 1,00 de ressemblance, les ennemis −0,7 à 0,75. Seul un son
+        // au centre ET mono est donc moins remonté pendant que tu bouges.
+        private double pMonoLR, pMonoG = 1e-12, pMonoD = 1e-12;
+        /// <summary>Ressemblance gauche/droite (bande des pas) à partir de laquelle un son est « mono » : 0,8 rien, 0,95 plein.</summary>
+        internal const double MonoDebut = 0.8, MonoPlein = 0.95;
+        /// <summary>(essais) part « son mono » sur le dernier échantillon (0 à 1).</summary>
+        internal double PartMono { get; private set; }
+        /// <summary>(essais) part « tu bouges » appliquée sur le dernier échantillon (0 à 1, glisse en 30 ms / 150 ms).</summary>
+        internal double PartBouge { get { return bouge; } }
 
         /// <summary>Poids de la remontée selon le côté : PoidsCentre pour un son centré (gauche = droite), 1 dès que l'un
         /// des côtés dépasse l'autre de EcartPlein dB.</summary>
@@ -229,7 +254,7 @@ namespace NettoyagePC
 
         /// <summary>Même chose, pleine dès « 6 + largeur » dB : 6 en Net ; 4 en Puissant (un pas net, qui dépasse le fond de
         /// 10 dB, est remonté en entier ; un frémissement du fond de 6 à 7 dB l'est à peine).</summary>
-        internal static double Bref(double rapideDb, double lentDb, double largeur) { return Math.Max(0, Math.Min(1, (rapideDb - lentDb - 6) / largeur)); }
+        internal static double Bref(double rapideDb, double lentDb, double largeur, double seuil = 6) { return Math.Max(0, Math.Min(1, (rapideDb - lentDb - seuil) / largeur)); }
 
         /// <summary>Part « son faible » (0 à 1) : plein sous −22 dB, rien au-dessus de −13 dB (un tir). Appliquée sans retard :
         /// dès qu'un son devient fort, il n'est plus remonté (même si la remontée venait de commencer sur son attaque).</summary>
@@ -331,6 +356,7 @@ namespace NettoyagePC
             accentCotes = Style == StyleNet ? 4 : 6;
             poidsCentre = Style == StyleNet ? 0.5 : 1;
             facteurChoc = Style == StyleNet ? 0.5 : 0.25;
+            aBougeMonte = Math.Exp(-1 / (0.030 * fe)); aBougeDescend = Math.Exp(-1 / (0.150 * fe));   // glisse : pas de saut de gain
             // Puissant ×2,7 : +22 dB en Fort. Supportable parce que le renforceur se relâche vite (12 ms, ci-dessous) : il ne
             // remonte que le pas lui-même, plus le fond qui le suit. ×3,25 (+26 dB) donnait 1 dB de relief en plus mais
             // changeait trop de petits sons secs en « tic » (mesuré sur les enregistrements du 26/11 : −36 % de tics à ×2,7).
@@ -342,6 +368,11 @@ namespace NettoyagePC
             // des élans de renfort de moins de 8 ms, entendus comme des « tic » (7 et 8 en 10 s sur les enregistrements du
             // 23 et du 24/11). Monté en 3 ms et relâché en 12 ms : 6 et 3, même relief des pas, fond qui bouge de 0,1 dB de plus.
             largeurBref = Style == StyleNet ? 6 : 4;
+            // Puissant : un son est « bref » dès qu'il dépasse le fond de 4 dB (6 avant). Enregistrement long de Warzone du
+            // 27/11 (5 min, aucun tic signalé) : dans un fond chargé, un vrai pas ne dépasse souvent le fond que de 4 à 8 dB ;
+            // à 6 dB le renforceur ne l'attrapait presque pas (relief ajouté +2,7 dB sur les pas nets) ; à 4 dB : +7,5 dB,
+            // pour 15 % de petites pointes brèves en plus.
+            seuilBref = Style == StyleNet ? 6 : 4;
             relacheRenfort = Math.Exp(-1 / (0.005 * fe));
             aFaible = Style == StylePuissant ? Math.Exp(-1 / (0.001 * fe)) : 0;
             rfCrete = Math.Exp(-1 / ((Style == StyleNet ? 0.01 : 0.06) * fe));   // Puissant : la traîne d'un son fort (tir) n'est pas un pas
@@ -495,8 +526,8 @@ namespace NettoyagePC
                     pRapideChoc = pc > pRapideChoc ? rfMonte * pRapideChoc + (1 - rfMonte) * pc : rfDescendRapide * pRapideChoc + (1 - rfDescendRapide) * pc;
                     pLentChoc = rfLent * pLentChoc + (1 - rfLent) * pc;
                     double rp = 10 * Math.Log10(pRapidePas + 1e-18), rc = 10 * Math.Log10(pRapideChoc + 1e-18);
-                    double cp = rp < -70 ? 0 : RenfortMax * Bref(rp, 10 * Math.Log10(pLentPas + 1e-18), largeurBref);          // souffle : rien
-                    double cc = rc < -70 ? 0 : RenfortMax * facteurChoc * Bref(rc, 10 * Math.Log10(pLentChoc + 1e-18), largeurBref);
+                    double cp = rp < -70 ? 0 : RenfortMax * Bref(rp, 10 * Math.Log10(pLentPas + 1e-18), largeurBref, seuilBref);          // souffle : rien
+                    double cc = rc < -70 ? 0 : RenfortMax * facteurChoc * Bref(rc, 10 * Math.Log10(pLentChoc + 1e-18), largeurBref, seuilBref);
                     // le « bref » est tenu ~70 ms (tout le pas) ; le « faible » agit tout de suite
                     gainRenfortPas = cp > gainRenfortPas ? rgMonte * gainRenfortPas + (1 - rgMonte) * cp : rgDescend * gainRenfortPas + (1 - rgDescend) * cp;
                     gainRenfortChoc = cc > gainRenfortChoc ? rgMonte * gainRenfortChoc + (1 - rgMonte) * cc : rgDescend * gainRenfortChoc + (1 - rgDescend) * cc;
@@ -522,7 +553,12 @@ namespace NettoyagePC
                         double g2 = bufPas[0] * bufPas[0], d2 = bufPas[1] * bufPas[1];
                         pGauche = g2 > pGauche ? rfMonte * pGauche + (1 - rfMonte) * g2 : rfDescendRapide * pGauche + (1 - rfDescendRapide) * g2;
                         pDroite = d2 > pDroite ? rfMonte * pDroite + (1 - rfMonte) * d2 : rfDescendRapide * pDroite + (1 - rfDescendRapide) * d2;
-                        double w = PoidsCote(10 * Math.Log10(pGauche + 1e-18), 10 * Math.Log10(pDroite + 1e-18), poidsCentre);
+                        bouge = JoueurBouge ? aBougeMonte * bouge + (1 - aBougeMonte) : aBougeDescend * bouge;
+                        pMonoLR = aNiveau * pMonoLR + (1 - aNiveau) * bufPas[0] * bufPas[1];
+                        pMonoG = aNiveau * pMonoG + (1 - aNiveau) * g2; pMonoD = aNiveau * pMonoD + (1 - aNiveau) * d2;
+                        PartMono = Borne01((pMonoLR / Math.Sqrt(pMonoG * pMonoD + 1e-30) - MonoDebut) / (MonoPlein - MonoDebut));
+                        double pcBouge = poidsCentre - Math.Max(0, poidsCentre - PoidsCentreEnMouvement) * bouge * PartMono;
+                        double w = PoidsCote(10 * Math.Log10(pGauche + 1e-18), 10 * Math.Log10(pDroite + 1e-18), pcBouge);
                         gp *= w; gc *= w;
                     }
                     double kp = Math.Pow(10, gp / 20) - 1, kc = Math.Pow(10, gc / 20) - 1;
@@ -986,14 +1022,14 @@ namespace NettoyagePC
 
         /// <summary>(réglage) Passe un WAV 16 bits (enregistré par « Enregistrer pour analyse ») par le traitement, en blocs de
         /// 10 ms comme le moteur, et écrit le résultat. 0 si c'est fait.</summary>
-        public static int TraiterWav(string entree, string sortie, int force, int arme, int style = CompresseurPas.StylePuissant)
+        public static int TraiterWav(string entree, string sortie, int force, int arme, int style = CompresseurPas.StylePuissant, bool bouge = false)
         {
             var o = File.ReadAllBytes(entree);
             int canaux = BitConverter.ToInt16(o, 22), fe = BitConverter.ToInt32(o, 24);
             int n = (o.Length - 44) / 2;
             var t = new float[n];
             for (int i = 0; i < n; i++) t[i] = BitConverter.ToInt16(o, 44 + 2 * i) / 32768f;
-            var comp = new CompresseurPas(force, fe, arme, true, style);
+            var comp = new CompresseurPas(force, fe, arme, true, style) { JoueurBouge = bouge };   // bouge : « en marche » tout le long
             int bloc = fe / 100 * canaux;
             var b = new float[bloc];
             for (int p = 0; p + bloc <= n; p += bloc) { Array.Copy(t, p, b, 0, bloc); comp.Traiter(b, bloc / canaux, canaux); Array.Copy(b, 0, t, p, bloc); }

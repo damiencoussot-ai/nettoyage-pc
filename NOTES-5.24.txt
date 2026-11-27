@@ -16,6 +16,17 @@ Pas boostés, style Puissant
   d'un pas (presque pas de graves) n'est pas pris pour ton arme.
 - Changer de force, de style ou de jeu ne fait plus de petit trou dans le son : l'ancien réglage laisse la place au
   nouveau en fondu.
+- Tes propres pas sont moins remontés (« Mes pas plus discrets », activé de base) : en stéréo, ils arrivent au centre
+  comme un ennemi juste devant ou derrière toi, et le son seul ne les distingue pas. Velox regarde donc si tu te
+  déplaces (ZQSD, WASD, flèches, stick gauche de la manette) : pendant que tu bouges, un son bref au centre n'est
+  remonté qu'au quart (environ −7 dB sur tes pas en Fort) ; dès que tu t'arrêtes, tout est de nouveau remonté en
+  plein. Les ennemis sur les côtés ne changent pas. Velox lit seulement l'état des touches, rien n'est envoyé au jeu.
+  Seuls les sons « mono » (identiques à gauche et à droite, comme tes pas) sont concernés : un ennemi juste devant ou
+  derrière toi est spatialisé par le jeu et garde toute sa remontée, même pendant que tu cours.
+- Pas plus forts dans un jeu chargé (Puissant : Fort et Extrême) : un pas devait dépasser le fond sonore de 6 dB pour
+  être remonté, ce que la plupart des pas ennemis ne font pas quand ça tire partout (COD). Le seuil passe à 4 dB :
+  mesuré sur un enregistrement de 5 min, le relief des pas nets passe de +2,7 dB à +7,5 dB, pour environ 15 % de pics
+  courts en plus. Le style Net garde 6 dB.
 
 Pas boostés, style Net
 - Un son bref au centre (ennemi devant ou derrière) est maintenant remonté à moitié, au lieu de pas du tout. Ce qui

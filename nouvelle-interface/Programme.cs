@@ -92,7 +92,7 @@ namespace NettoyagePC.Nouveau
             }
             // contrôle après installation (lancé par l'installateur) : fenêtre et pages construites sans rien afficher
             if (args.Length > 0 && args[0] == "--autocontrole") return Captures.AutoControle();
-            // (réglage) passe un fichier WAV 16 bits par le traitement de Pas boostés : --traiter-wav entree sortie force [arme]
+            // (réglage) passe un fichier WAV 16 bits par le traitement de Pas boostés : --traiter-wav entree sortie force [arme] [style] [bouge : 1 = en marche tout le long]
             if (args.Length >= 1 && args[0] == "--mesurer-son")
             {
                 foreach (int fo in new[] { 35, 65, 100, 130 })
@@ -104,7 +104,7 @@ namespace NettoyagePC.Nouveau
                 }
                 return 0;
             }
-            if (args.Length >= 4 && args[0] == "--traiter-wav") return MoteurSon.TraiterWav(args[1], args[2], int.Parse(args[3]), args.Length >= 5 ? int.Parse(args[4]) : 1, args.Length >= 6 ? int.Parse(args[5]) : 1);
+            if (args.Length >= 4 && args[0] == "--traiter-wav") return MoteurSon.TraiterWav(args[1], args[2], int.Parse(args[3]), args.Length >= 5 ? int.Parse(args[4]) : 1, args.Length >= 6 ? int.Parse(args[5]) : 1, args.Length >= 7 && args[6] == "1");
             App.CommandeInitiale = CommandeExterne.Lire(args);
 
             int ie = Array.IndexOf(args, "--essai-demarrage");
@@ -1054,7 +1054,7 @@ namespace NettoyagePC.Nouveau
                         && InstallationCable.Installateur("X64", noms) == "VBCABLE_Setup_x64.exe" && InstallationCable.Installateur("Arm64", noms) == "VBCABLE_Setup_ARM64.exe"
                         && InstallationCable.Installateur("X86", noms) == "VBCABLE_Setup.exe" && InstallationCable.Installateur("Arm", noms) == null
                         && InstallationCable.Installateur("X64", new[] { "VBCABLE_Setup.exe" }) == null, "VB-Cable : paquet officiel et installateur choisi selon Windows");
-                    verifier(InstallationCable.Signataire.IsMatch("CN=Vincent Burel, O=Vincent Burel, L=Paris, C=FR") && InstallationCable.Signataire.IsMatch("CN=VB-Audio Software, O=VB-Audio Software, C=FR")
+                    verifier(InstallationCable.Signataire.IsMatch("CN=Vincent Burel, O=Vincent Burel, L=Paris, C=FR") && InstallationCable.Signataire.IsMatch("CN=VB-Audio Software, O=VB-Audio Software, C=FR") && InstallationCable.Signataire.IsMatch("CN=BUREL VINCENT Entrepreneur individuel, O=BUREL VINCENT Entrepreneur individuel, L=Eymet, C=FR")
                         && !InstallationCable.Signataire.IsMatch("CN=Autre Editeur, O=Autre, C=FR") && !InstallationCable.Signataire.IsMatch("CN=Faux, O=Faux, OU=VB-Audio")
                         && !InstallationCable.Signataire.IsMatch("CN=Pas VB-Audio, O=Pirate, C=FR") && !InstallationCable.Signataire.IsMatch("CN=\"Faux Vincent Burel\", C=FR"), "VB-Cable : seul un installateur signé par VB-Audio est lancé");
                     string fauxCable = Path.Combine(Path.GetTempPath(), "velox-essai-cable");
