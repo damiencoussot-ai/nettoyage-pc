@@ -175,7 +175,7 @@ namespace NettoyagePC
         private double crPas, crChoc;
         private readonly double forceRel, facteurChoc;
         /// <summary>Largeur de la rampe « son bref » (dB) : 6 en Net, 4 en Puissant.</summary>
-        private readonly double largeurBref;
+        private readonly double largeurBref, seuilBref;
         /// <summary>Puissant : le renfort est réduit seul avant d'atteindre cette valeur (le limiteur, à 0,95, ne bouge pas).</summary>
         internal const double MargeRenfort = 0.85;
         private double kRenfort = 1;
@@ -254,7 +254,7 @@ namespace NettoyagePC
 
         /// <summary>Même chose, pleine dès « 6 + largeur » dB : 6 en Net ; 4 en Puissant (un pas net, qui dépasse le fond de
         /// 10 dB, est remonté en entier ; un frémissement du fond de 6 à 7 dB l'est à peine).</summary>
-        internal static double Bref(double rapideDb, double lentDb, double largeur) { return Math.Max(0, Math.Min(1, (rapideDb - lentDb - 6) / largeur)); }
+        internal static double Bref(double rapideDb, double lentDb, double largeur, double seuil = 6) { return Math.Max(0, Math.Min(1, (rapideDb - lentDb - seuil) / largeur)); }
 
         /// <summary>Part « son faible » (0 à 1) : plein sous −22 dB, rien au-dessus de −13 dB (un tir). Appliquée sans retard :
         /// dès qu'un son devient fort, il n'est plus remonté (même si la remontée venait de commencer sur son attaque).</summary>
@@ -368,6 +368,11 @@ namespace NettoyagePC
             // des élans de renfort de moins de 8 ms, entendus comme des « tic » (7 et 8 en 10 s sur les enregistrements du
             // 23 et du 24/11). Monté en 3 ms et relâché en 12 ms : 6 et 3, même relief des pas, fond qui bouge de 0,1 dB de plus.
             largeurBref = Style == StyleNet ? 6 : 4;
+            // Puissant : un son est « bref » dès qu'il dépasse le fond de 4 dB (6 avant). Enregistrement long de Warzone du
+            // 27/11 (5 min, aucun tic signalé) : dans un fond chargé, un vrai pas ne dépasse souvent le fond que de 4 à 8 dB ;
+            // à 6 dB le renforceur ne l'attrapait presque pas (relief ajouté +2,7 dB sur les pas nets) ; à 4 dB : +7,5 dB,
+            // pour 15 % de petites pointes brèves en plus.
+            seuilBref = Style == StyleNet ? 6 : 4;
             relacheRenfort = Math.Exp(-1 / (0.005 * fe));
             aFaible = Style == StylePuissant ? Math.Exp(-1 / (0.001 * fe)) : 0;
             rfCrete = Math.Exp(-1 / ((Style == StyleNet ? 0.01 : 0.06) * fe));   // Puissant : la traîne d'un son fort (tir) n'est pas un pas
@@ -521,8 +526,8 @@ namespace NettoyagePC
                     pRapideChoc = pc > pRapideChoc ? rfMonte * pRapideChoc + (1 - rfMonte) * pc : rfDescendRapide * pRapideChoc + (1 - rfDescendRapide) * pc;
                     pLentChoc = rfLent * pLentChoc + (1 - rfLent) * pc;
                     double rp = 10 * Math.Log10(pRapidePas + 1e-18), rc = 10 * Math.Log10(pRapideChoc + 1e-18);
-                    double cp = rp < -70 ? 0 : RenfortMax * Bref(rp, 10 * Math.Log10(pLentPas + 1e-18), largeurBref);          // souffle : rien
-                    double cc = rc < -70 ? 0 : RenfortMax * facteurChoc * Bref(rc, 10 * Math.Log10(pLentChoc + 1e-18), largeurBref);
+                    double cp = rp < -70 ? 0 : RenfortMax * Bref(rp, 10 * Math.Log10(pLentPas + 1e-18), largeurBref, seuilBref);          // souffle : rien
+                    double cc = rc < -70 ? 0 : RenfortMax * facteurChoc * Bref(rc, 10 * Math.Log10(pLentChoc + 1e-18), largeurBref, seuilBref);
                     // le « bref » est tenu ~70 ms (tout le pas) ; le « faible » agit tout de suite
                     gainRenfortPas = cp > gainRenfortPas ? rgMonte * gainRenfortPas + (1 - rgMonte) * cp : rgDescend * gainRenfortPas + (1 - rgDescend) * cp;
                     gainRenfortChoc = cc > gainRenfortChoc ? rgMonte * gainRenfortChoc + (1 - rgMonte) * cc : rgDescend * gainRenfortChoc + (1 - rgDescend) * cc;

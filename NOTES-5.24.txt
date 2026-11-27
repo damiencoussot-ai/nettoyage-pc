@@ -23,6 +23,10 @@ Pas boostés, style Puissant
   plein. Les ennemis sur les côtés ne changent pas. Velox lit seulement l'état des touches, rien n'est envoyé au jeu.
   Seuls les sons « mono » (identiques à gauche et à droite, comme tes pas) sont concernés : un ennemi juste devant ou
   derrière toi est spatialisé par le jeu et garde toute sa remontée, même pendant que tu cours.
+- Pas plus forts dans un jeu chargé (Puissant : Fort et Extrême) : un pas devait dépasser le fond sonore de 6 dB pour
+  être remonté, ce que la plupart des pas ennemis ne font pas quand ça tire partout (COD). Le seuil passe à 4 dB :
+  mesuré sur un enregistrement de 5 min, le relief des pas nets passe de +2,7 dB à +7,5 dB, pour environ 15 % de pics
+  courts en plus. Le style Net garde 6 dB.
 
 Pas boostés, style Net
 - Un son bref au centre (ennemi devant ou derrière) est maintenant remonté à moitié, au lieu de pas du tout. Ce qui
