@@ -10,6 +10,10 @@ namespace Velox.Tests
         [InlineData("CN=Vincent Burel, O=Vincent Burel, L=Paris, C=FR", true)]
         [InlineData("CN=VB-Audio Software, O=VB-Audio Software, C=FR", true)]
         [InlineData("CN=\"VB-Audio Software\", C=FR", true)]
+        // sujet réel du certificat de VBCABLE_Setup_x64.exe (paquet 46)
+        [InlineData("CN=BUREL VINCENT Entrepreneur individuel, O=BUREL VINCENT Entrepreneur individuel, STREET=21 avenue des Marguerites, L=Eymet, S=Dordogne, C=FR, OID.1.3.6.1.4.1.311.60.2.1.3=FR, SERIALNUMBER=423 734 177, OID.2.5.4.15=Private Organization", true)]
+        [InlineData("CN=BUREL VINCENT Pirate, O=Pirate, C=FR", false)]
+        [InlineData("CN=Faux BUREL VINCENT Entrepreneur individuel, C=FR", false)]
         [InlineData("CN=Autre Editeur, O=Autre, C=FR", false)]
         [InlineData("CN=Faux, O=Faux, OU=VB-Audio", false)]
         [InlineData("CN=Pas VB-Audio, O=Pirate, C=FR", false)]
