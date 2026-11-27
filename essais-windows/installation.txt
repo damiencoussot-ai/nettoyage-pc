@@ -1,0 +1,13 @@
+installateur NettoyagePC-Setup-5.24.exe : 41.1 Mo
+version publiée de départ (Velox-Setup-5.23.exe) : installateur code 0, programme 5.23+04aadb12c3982ed37000574ef6fe88bdfd49078f
+entretien automatique (version 4) : code 0, tâche Velox - complet (toutes les 4 semaines)
+version 5 : installateur code 0 en 11 s, programme 5.0-apercu+c89ef6aae6c9fe076393af4bbf4e1b6572306f8b (47.1 Mo)
+version précédente gardée : 5.23+04aadb12c3982ed37000574ef6fe88bdfd49078f
+Applications installées : Velox 5.24
+entretien automatique (version 5) : Velox - complet (toutes les 4 semaines) -> C:\Program Files\Nettoyage PC\NettoyagePC.exe --moteur --tache complet
+auto-contrôle : code 0
+état du PC (programme installé) : code 0
+gardien sans Premium : s'arrête tout seul (code 0)
+fenêtre du programme installé : code 0 ; fenêtre ouverte : 1061 ms / bilan affiché : 1332 ms (note 59, 11 points)
+mise à jour avec Velox ouvert : installateur code 0 en 34 s, Velox relancé : oui
+désinstallation : code 0, programme retiré, tâches retirées

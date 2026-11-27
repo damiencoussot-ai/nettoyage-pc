@@ -1,0 +1,5 @@
+  Determining projects to restore...
+  Restored D:\a\nettoyage-pc\nettoyage-pc\nouvelle-interface\NettoyagePC.Nouveau.csproj (in 17.03 sec).
+D:\a\nettoyage-pc\nettoyage-pc\src\Noyau\Fps.cs(139,25): warning SYSLIB0057: 'X509Certificate.CreateFromSignedFile(string)' is obsolete: 'Loading certificate data through the constructor or Import is obsolete. Use X509CertificateLoader instead to load certificates.' (https://aka.ms/dotnet-warnings/SYSLIB0057) [D:\a\nettoyage-pc\nettoyage-pc\nouvelle-interface\NettoyagePC.Nouveau.csproj]
+  NettoyagePC.Nouveau -> D:\a\nettoyage-pc\nettoyage-pc\nouvelle-interface\bin\Release\net10.0\win-x64\NettoyagePC.dll
+  NettoyagePC.Nouveau -> D:\a\nettoyage-pc\nettoyage-pc\publie\
