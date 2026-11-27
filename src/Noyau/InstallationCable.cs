@@ -34,8 +34,10 @@ namespace NettoyagePC
         public static string Dossier { get { return Path.Combine(Fps.DossierOutils, "vbcable"); } }
 
         /// <summary>Signataire de l'installateur officiel (sujet du certificat) : nom qui COMMENCE par « VB-Audio » (« VB-Audio
-        /// Software ») ou « Vincent Burel » (son auteur). 5.24 : avant, un nom qui contenait « VB-Audio » n'importe où suffisait (« Pas VB-Audio »).</summary>
-        public static readonly Regex Signataire = new Regex(@"(^|,\s*)(CN|O)=""?(VB-Audio\b[^,""]*|Vincent Burel)""?(,|$)", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+        /// Software »), « Vincent Burel » (son auteur, anciens paquets) ou exactement « BUREL VINCENT Entrepreneur individuel »
+        /// (paquet 46 : VBCABLE_Setup_x64.exe est signé sous ce nom, vu par Windows sur GitHub le 27/11/2026 ; sans lui, Velox
+        /// refusait d'installer le vrai paquet). 5.24 : avant, un nom qui contenait « VB-Audio » n'importe où suffisait (« Pas VB-Audio »).</summary>
+        public static readonly Regex Signataire = new Regex(@"(^|,\s*)(CN|O)=""?(VB-Audio\b[^,""]*|Vincent Burel|BUREL VINCENT Entrepreneur individuel)""?(,|$)", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
 
         /// <summary>Installateur du paquet pour l'architecture de Windows (« X64 », « Arm64 », « X86 ») parmi les noms de
         /// fichiers donnés (sans dossier), ou null : VBCABLE_Setup_x64.exe, VBCABLE_Setup_ARM64.exe, VBCABLE_Setup.exe.</summary>
