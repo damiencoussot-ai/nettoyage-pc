@@ -376,16 +376,43 @@ namespace NettoyagePC
                 while (!fini.IsSet) { try { jeuDetecte = JeuEnCours(); } catch { } fini.Wait(2000); }
             }) { IsBackground = true, Priority = ThreadPriority.BelowNormal, Name = "Velox jeu en cours" };
             chercheur.Start();
+            // fichiers (réglages écrits par la page, demande de réécoute) lus par un fil à part : un fichier retenu quelques
+            // dizaines de ms par l'antivirus faisait déborder la capture du câble (20 ms de réserve) dans le fil du son
+            var demandes = new System.Collections.Concurrent.ConcurrentQueue<string>();
+            ReglagesMoteurSon reglagesLus = null; var verrouReglages = new object();
+            var veilleur = new Thread(() =>
+            {
+                DateTime vu = DateTime.MinValue;
+                try { vu = File.GetLastWriteTimeUtc(FichierReglages); } catch { }
+                while (!fini.IsSet)
+                {
+                    try
+                    {
+                        DateTime d = DateTime.MinValue;
+                        try { d = File.GetLastWriteTimeUtc(FichierReglages); } catch { }
+                        if (d != vu) { vu = d; var nr = Lire(); lock (verrouReglages) reglagesLus = nr; }
+                        if (File.Exists(FichierReecoute))
+                        {
+                            string dem = "";
+                            try { dem = File.ReadAllText(FichierReecoute).Trim(); File.Delete(FichierReecoute); } catch { }
+                            if (dem != "") demandes.Enqueue(dem);
+                        }
+                    }
+                    catch { }
+                    fini.Wait(300);
+                }
+            }) { IsBackground = true, Priority = ThreadPriority.BelowNormal, Name = "Velox réglages du son" };
+            veilleur.Start();
             string etatEnAttente = null; bool ecritureEnCours = false; var verrouEtat = new object();
             IMMDeviceEnumerator e = (IMMDeviceEnumerator)new MMDeviceEnumeratorCom();
             Flux cap = null, ren = null;
             IntPtr format = IntPtr.Zero;
             var evenement = new AutoResetEvent(false);
             var montre = Stopwatch.StartNew();
-            long derniereLecture = -10000, dernierJeu = -10000, dernierEtat = 0, derniereErreur = -10000;
-            DateTime dateReglages = DateTime.MinValue;
+            long dernierJeu = -10000, dernierEtat = 0, derniereErreur = -10000;
             var r = Lire();
-            CompresseurPas comp = null;
+            CompresseurPas comp = null, ancienComp = null;
+            int fondu = 0, fonduLong = 1; float[] copieFondu = new float[0];
             int canaux = 2, fe = 48000; bool flottant = true; int bits = 32;
             bool jeu = false; string erreur = "", jeuCle = "";
             float[] tampon = new float[0];
@@ -402,27 +429,20 @@ namespace NettoyagePC
                 {
                     if (arret != null && arret.WaitOne(0)) return;   // mise à jour : arrêt demandé par l'installateur
                     long t = montre.ElapsedMilliseconds;
-                    // réglages relus quand ils changent (la page les écrit) ; « coupé » : le moteur s'arrête
-                    if (t - derniereLecture >= 300)
+                    // réglages relus quand ils changent (la page les écrit ; le fil « réglages du son » les lit) ; « coupé » : arrêt
+                    ReglagesMoteurSon nr = null;
+                    lock (verrouReglages) { nr = reglagesLus; reglagesLus = null; }
+                    if (nr != null)
                     {
-                        derniereLecture = t;
-                        DateTime d = DateTime.MinValue;
-                        try { d = File.GetLastWriteTimeUtc(FichierReglages); } catch { }
-                        if (d != dateReglages)
-                        {
-                            dateReglages = d;
-                            var nr = Lire();
-                            if (!nr.Actif) return;
-                            bool appareils = nr.Source != r.Source || nr.Destination != r.Destination;
-                            r = nr;
-                            if (appareils) { if (cap != null) cap.Fermer(); if (ren != null) ren.Fermer(); cap = null; ren = null; }
-                        }
+                        if (!nr.Actif) return;
+                        bool appareils = nr.Source != r.Source || nr.Destination != r.Destination;
+                        r = nr;
+                        if (appareils) { if (cap != null) cap.Fermer(); if (ren != null) ren.Fermer(); cap = null; ren = null; }
                     }
                     // demande de réécoute (fichier écrit par la page) : « go » la lance, « stop » l'arrête
-                    if (t - derniereLecture < 1 && File.Exists(FichierReecoute))
+                    string dem;
+                    while (demandes.TryDequeue(out dem))
                     {
-                        string dem = "";
-                        try { dem = File.ReadAllText(FichierReecoute).Trim(); File.Delete(FichierReecoute); } catch { }
                         if (memoire == null && dem == "export") ThreadPool.QueueUserWorkItem(_ => EcrireResultatExport("vide"));
                         if (memoire != null)
                         {
@@ -452,7 +472,14 @@ namespace NettoyagePC
                     if (cap != null && ren != null)
                     {
                         int fv, av; r.Effectifs(jeuCle, out fv, out av);
-                        if (comp == null || fv != forceEnCours || av != armeEnCours || r.Style != styleEnCours) { comp = new CompresseurPas(fv, fe, av, true, r.Style); forceEnCours = fv; armeEnCours = av; styleEnCours = r.Style; }
+                        if (comp == null || fv != forceEnCours || av != armeEnCours || r.Style != styleEnCours)
+                        {
+                            // réglage changé (ou réglage propre au jeu qui démarre) : le nouveau moteur prend le relais en
+                            // fondu sur 30 ms, l'ancien continue pendant ce temps (repartir de zéro faisait un trou, donc un clic)
+                            if (comp != null) { ancienComp = comp; fondu = 0; fonduLong = Math.Max(1, fe * 30 / 1000); }
+                            comp = new CompresseurPas(fv, fe, av, true, r.Style); forceEnCours = fv; armeEnCours = av; styleEnCours = r.Style;
+                            if (ancienComp != null) { ancienComp.MelangeCible = comp.MelangeCible; }
+                        }
                     }
                     if (comp != null) comp.MelangeCible = !r.JeuxSeulement || jeu ? 1 : 0;
                     // ouverture (ou réouverture après une erreur, une seconde plus tard)
@@ -465,7 +492,7 @@ namespace NettoyagePC
                         else
                         {
                             int fv, av; r.Effectifs(jeuCle, out fv, out av);
-                            comp = new CompresseurPas(fv, fe, av, true, r.Style); forceEnCours = fv; armeEnCours = av; styleEnCours = r.Style;
+                            comp = new CompresseurPas(fv, fe, av, true, r.Style); ancienComp = null; forceEnCours = fv; armeEnCours = av; styleEnCours = r.Style;
                             if (memoire == null || memoire.Canaux != canaux || memoire.Frequence != fe) memoire = new MemoireReecoute(canaux, fe, 10);
                         }
                     }
@@ -545,7 +572,21 @@ namespace NettoyagePC
                             if (memoire == null || memoire.Phase == 0)
                             {
                                 if (memoire != null) memoire.GarderSec(tampon, images);
-                                comp.Traiter(tampon, images, canaux);
+                                if (ancienComp != null)
+                                {
+                                    if (copieFondu.Length < n) copieFondu = new float[n];
+                                    Array.Copy(tampon, copieFondu, n);
+                                    ancienComp.MelangeCible = comp.MelangeCible;
+                                    ancienComp.Traiter(copieFondu, images, canaux);
+                                    comp.Traiter(tampon, images, canaux);
+                                    for (int i = 0; i < images; i++, fondu++)
+                                    {
+                                        float a = Math.Min(1f, fondu / (float)fonduLong);
+                                        for (int q = 0; q < canaux; q++) { int j = i * canaux + q; tampon[j] = copieFondu[j] + (tampon[j] - copieFondu[j]) * a; }
+                                    }
+                                    if (fondu >= fonduLong) ancienComp = null;
+                                }
+                                else comp.Traiter(tampon, images, canaux);
                                 if (memoire != null) memoire.GarderTraite(tampon, images);
                             }
                             else memoire.Remplir(tampon, images);   // réécoute : le son du jeu est remplacé par l'enregistrement
