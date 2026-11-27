@@ -30,6 +30,21 @@ namespace Velox.Tests
             Assert.InRange(ecart, -1, 1);
         }
 
+        /// <summary>Un ennemi juste derrière toi, proche : son pas arrive fort et au centre, comme ton arme. Il a la forme
+        /// d'un pas (presque rien dans les graves) : « ton arme » le baisse bien moins (PR 16 avant correction : −5,4 dB avec le réglage 2 ; maintenant −3,4).</summary>
+        [Theory]
+        [InlineData(1)] [InlineData(2)]
+        public void Pas_fort_au_centre_epargne(int arme)
+        {
+            var s = new Scene(3); var reference = new Scene(3);
+            s.AjouterSouffle(0.01, 7);
+            for (double t = 0.5; t < 2.8; t += 0.4) { var p = Scene.Pas(0.4, (int)(t * 100)); s.Ajouter(p, t, 1, 1); reference.Ajouter(p, t, 1, 1); }
+            var sans = Mesure.Traiter(new CompresseurPas(65, Scene.Fe, 0, true, CompresseurPas.StylePuissant), s.Son, 2);
+            var avec = Mesure.Traiter(new CompresseurPas(65, Scene.Fe, arme, true, CompresseurPas.StylePuissant), s.Son, 2);
+            double ecart = Mesure.GainSur(avec, reference.Son, 2, 0.5, 2.8) - Mesure.GainSur(sans, reference.Son, 2, 0.5, 2.8);
+            Assert.True(ecart >= -4, $"pas centré et fort baissé de {-ecart:F1} dB par « ton arme » {arme}");
+        }
+
         /// <summary>Ta rafale (au centre) est bien baissée.</summary>
         [Fact]
         public void Ta_rafale_est_baissee()

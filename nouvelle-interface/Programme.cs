@@ -1055,7 +1055,8 @@ namespace NettoyagePC.Nouveau
                         && InstallationCable.Installateur("X86", noms) == "VBCABLE_Setup.exe" && InstallationCable.Installateur("Arm", noms) == null
                         && InstallationCable.Installateur("X64", new[] { "VBCABLE_Setup.exe" }) == null, "VB-Cable : paquet officiel et installateur choisi selon Windows");
                     verifier(InstallationCable.Signataire.IsMatch("CN=Vincent Burel, O=Vincent Burel, L=Paris, C=FR") && InstallationCable.Signataire.IsMatch("CN=VB-Audio Software, O=VB-Audio Software, C=FR")
-                        && !InstallationCable.Signataire.IsMatch("CN=Autre Editeur, O=Autre, C=FR") && !InstallationCable.Signataire.IsMatch("CN=Faux, O=Faux, OU=VB-Audio"), "VB-Cable : seul un installateur signé par VB-Audio est lancé");
+                        && !InstallationCable.Signataire.IsMatch("CN=Autre Editeur, O=Autre, C=FR") && !InstallationCable.Signataire.IsMatch("CN=Faux, O=Faux, OU=VB-Audio")
+                        && !InstallationCable.Signataire.IsMatch("CN=Pas VB-Audio, O=Pirate, C=FR") && !InstallationCable.Signataire.IsMatch("CN=\"Faux Vincent Burel\", C=FR"), "VB-Cable : seul un installateur signé par VB-Audio est lancé");
                     string fauxCable = Path.Combine(Path.GetTempPath(), "velox-essai-cable");
                     Directory.CreateDirectory(fauxCable);
                     try

@@ -325,6 +325,9 @@ namespace NettoyagePC
             /// manque (le tampon s'est vidé). -1 : pas encore fixée.</summary>
             public int Reserve = -1;
             public bool Amorce;
+            /// <summary>Remplissage moyen du tampon du casque juste avant d'écrire (images), et le paquet ré-échantillonné.</summary>
+            public Remplissage Niveau = new Remplissage();
+            public float[] Etire = new float[0];
             public void Fermer()
             {
                 try { if (Client != null) Client.Stop(); } catch { }
@@ -373,16 +376,43 @@ namespace NettoyagePC
                 while (!fini.IsSet) { try { jeuDetecte = JeuEnCours(); } catch { } fini.Wait(2000); }
             }) { IsBackground = true, Priority = ThreadPriority.BelowNormal, Name = "Velox jeu en cours" };
             chercheur.Start();
+            // fichiers (réglages écrits par la page, demande de réécoute) lus par un fil à part : un fichier retenu quelques
+            // dizaines de ms par l'antivirus faisait déborder la capture du câble (20 ms de réserve) dans le fil du son
+            var demandes = new System.Collections.Concurrent.ConcurrentQueue<string>();
+            ReglagesMoteurSon reglagesLus = null; var verrouReglages = new object();
+            var veilleur = new Thread(() =>
+            {
+                DateTime vu = DateTime.MinValue;
+                try { vu = File.GetLastWriteTimeUtc(FichierReglages); } catch { }
+                while (!fini.IsSet)
+                {
+                    try
+                    {
+                        DateTime d = DateTime.MinValue;
+                        try { d = File.GetLastWriteTimeUtc(FichierReglages); } catch { }
+                        if (d != vu) { vu = d; var nr = Lire(); lock (verrouReglages) reglagesLus = nr; }
+                        if (File.Exists(FichierReecoute))
+                        {
+                            string dem = "";
+                            try { dem = File.ReadAllText(FichierReecoute).Trim(); File.Delete(FichierReecoute); } catch { }
+                            if (dem != "") demandes.Enqueue(dem);
+                        }
+                    }
+                    catch { }
+                    fini.Wait(300);
+                }
+            }) { IsBackground = true, Priority = ThreadPriority.BelowNormal, Name = "Velox réglages du son" };
+            veilleur.Start();
             string etatEnAttente = null; bool ecritureEnCours = false; var verrouEtat = new object();
             IMMDeviceEnumerator e = (IMMDeviceEnumerator)new MMDeviceEnumeratorCom();
             Flux cap = null, ren = null;
             IntPtr format = IntPtr.Zero;
             var evenement = new AutoResetEvent(false);
             var montre = Stopwatch.StartNew();
-            long derniereLecture = -10000, dernierJeu = -10000, dernierEtat = 0, derniereErreur = -10000;
-            DateTime dateReglages = DateTime.MinValue;
+            long dernierJeu = -10000, dernierEtat = 0, derniereErreur = -10000;
             var r = Lire();
-            CompresseurPas comp = null;
+            CompresseurPas comp = null, ancienComp = null;
+            int fondu = 0, fonduLong = 1; float[] copieFondu = new float[0];
             int canaux = 2, fe = 48000; bool flottant = true; int bits = 32;
             bool jeu = false; string erreur = "", jeuCle = "";
             float[] tampon = new float[0];
@@ -399,27 +429,20 @@ namespace NettoyagePC
                 {
                     if (arret != null && arret.WaitOne(0)) return;   // mise à jour : arrêt demandé par l'installateur
                     long t = montre.ElapsedMilliseconds;
-                    // réglages relus quand ils changent (la page les écrit) ; « coupé » : le moteur s'arrête
-                    if (t - derniereLecture >= 300)
+                    // réglages relus quand ils changent (la page les écrit ; le fil « réglages du son » les lit) ; « coupé » : arrêt
+                    ReglagesMoteurSon nr = null;
+                    lock (verrouReglages) { nr = reglagesLus; reglagesLus = null; }
+                    if (nr != null)
                     {
-                        derniereLecture = t;
-                        DateTime d = DateTime.MinValue;
-                        try { d = File.GetLastWriteTimeUtc(FichierReglages); } catch { }
-                        if (d != dateReglages)
-                        {
-                            dateReglages = d;
-                            var nr = Lire();
-                            if (!nr.Actif) return;
-                            bool appareils = nr.Source != r.Source || nr.Destination != r.Destination;
-                            r = nr;
-                            if (appareils) { if (cap != null) cap.Fermer(); if (ren != null) ren.Fermer(); cap = null; ren = null; }
-                        }
+                        if (!nr.Actif) return;
+                        bool appareils = nr.Source != r.Source || nr.Destination != r.Destination;
+                        r = nr;
+                        if (appareils) { if (cap != null) cap.Fermer(); if (ren != null) ren.Fermer(); cap = null; ren = null; }
                     }
                     // demande de réécoute (fichier écrit par la page) : « go » la lance, « stop » l'arrête
-                    if (t - derniereLecture < 1 && File.Exists(FichierReecoute))
+                    string dem;
+                    while (demandes.TryDequeue(out dem))
                     {
-                        string dem = "";
-                        try { dem = File.ReadAllText(FichierReecoute).Trim(); File.Delete(FichierReecoute); } catch { }
                         if (memoire == null && dem == "export") ThreadPool.QueueUserWorkItem(_ => EcrireResultatExport("vide"));
                         if (memoire != null)
                         {
@@ -449,7 +472,14 @@ namespace NettoyagePC
                     if (cap != null && ren != null)
                     {
                         int fv, av; r.Effectifs(jeuCle, out fv, out av);
-                        if (comp == null || fv != forceEnCours || av != armeEnCours || r.Style != styleEnCours) { comp = new CompresseurPas(fv, fe, av, true, r.Style); forceEnCours = fv; armeEnCours = av; styleEnCours = r.Style; }
+                        if (comp == null || fv != forceEnCours || av != armeEnCours || r.Style != styleEnCours)
+                        {
+                            // réglage changé (ou réglage propre au jeu qui démarre) : le nouveau moteur prend le relais en
+                            // fondu sur 30 ms, l'ancien continue pendant ce temps (repartir de zéro faisait un trou, donc un clic)
+                            if (comp != null) { ancienComp = comp; fondu = 0; fonduLong = Math.Max(1, fe * 30 / 1000); }
+                            comp = new CompresseurPas(fv, fe, av, true, r.Style); forceEnCours = fv; armeEnCours = av; styleEnCours = r.Style;
+                            if (ancienComp != null) { ancienComp.MelangeCible = comp.MelangeCible; }
+                        }
                     }
                     if (comp != null) comp.MelangeCible = !r.JeuxSeulement || jeu ? 1 : 0;
                     // ouverture (ou réouverture après une erreur, une seconde plus tard)
@@ -462,7 +492,7 @@ namespace NettoyagePC
                         else
                         {
                             int fv, av; r.Effectifs(jeuCle, out fv, out av);
-                            comp = new CompresseurPas(fv, fe, av, true, r.Style); forceEnCours = fv; armeEnCours = av; styleEnCours = r.Style;
+                            comp = new CompresseurPas(fv, fe, av, true, r.Style); ancienComp = null; forceEnCours = fv; armeEnCours = av; styleEnCours = r.Style;
                             if (memoire == null || memoire.Canaux != canaux || memoire.Frequence != fe) memoire = new MemoireReecoute(canaux, fe, 10);
                         }
                     }
@@ -542,7 +572,21 @@ namespace NettoyagePC
                             if (memoire == null || memoire.Phase == 0)
                             {
                                 if (memoire != null) memoire.GarderSec(tampon, images);
-                                comp.Traiter(tampon, images, canaux);
+                                if (ancienComp != null)
+                                {
+                                    if (copieFondu.Length < n) copieFondu = new float[n];
+                                    Array.Copy(tampon, copieFondu, n);
+                                    ancienComp.MelangeCible = comp.MelangeCible;
+                                    ancienComp.Traiter(copieFondu, images, canaux);
+                                    comp.Traiter(tampon, images, canaux);
+                                    for (int i = 0; i < images; i++, fondu++)
+                                    {
+                                        float a = Math.Min(1f, fondu / (float)fonduLong);
+                                        for (int q = 0; q < canaux; q++) { int j = i * canaux + q; tampon[j] = copieFondu[j] + (tampon[j] - copieFondu[j]) * a; }
+                                    }
+                                    if (fondu >= fonduLong) ancienComp = null;
+                                }
+                                else comp.Traiter(tampon, images, canaux);
                                 if (memoire != null) memoire.GarderTraite(tampon, images);
                             }
                             else memoire.Remplir(tampon, images);   // réécoute : le son du jeu est remplacé par l'enregistrement
@@ -576,27 +620,86 @@ namespace NettoyagePC
         /// Écrit le son traité sur le casque. Réserve visée : 12 ms dans le tampon du casque au départ (le retard ajouté
         /// est surtout là). Si le tampon se vide (PC chargé : un craquement), la réserve grandit de 4 ms, jusqu'à 40 ms au
         /// plus : chaque PC trouve ainsi le plus petit retard sans craquements. Les horloges du câble et du casque ne
-        /// battent jamais exactement au même rythme : au-delà de la réserve + 12 ms, le surplus est sauté.
+        /// battent jamais exactement au même rythme : le remplissage MOYEN du tampon est suivi, et s'il s'écarte de la
+        /// réserve, chaque paquet est très légèrement accéléré ou ralenti (1 à 2 %, inaudible) jusqu'à y revenir. Avant, le
+        /// surplus était sauté d'un coup dès qu'un paquet trouvait le tampon trop plein : avec une carte son qui ne prend
+        /// pas le son au même instant que le câble le donne (GoXLR, carte USB), ça arrivait sans arrêt et chaque saut
+        /// s'entendait comme un « tic ».
         /// </summary>
         private static void Jouer(Flux ren, float[] t, int images, int canaux, int fe, bool flottant)
         {
             int pad;
             if (ren.Client.GetCurrentPadding(out pad) != 0) throw new InvalidOperationException("casque indisponible");
             if (ren.Reserve < 0) ren.Reserve = fe * 12 / 1000;
-            int vise = ren.Reserve, maxi = ren.Reserve + fe * 12 / 1000, debut = 0;
             if (pad == 0)
             {
                 // tampon vide : après le tout premier paquet, c'est un manque (craquement) ; la réserve grandit
                 if (ren.Amorce) ren.Reserve = Math.Min(fe * 40 / 1000, ren.Reserve + fe * 4 / 1000);
                 ren.Amorce = true;
-                EcrireRendu(ren, null, Math.Min(ren.Images, ren.Reserve), canaux, flottant, 0);
+                int silence = Math.Min(ren.Images, ren.Reserve);
+                EcrireRendu(ren, null, silence, canaux, flottant, 0);
+                pad = silence;
             }
-            if (pad + images > maxi) { int trop = pad + images - vise; debut = Math.Min(images, Math.Max(0, trop)); }
-            int restant = images - debut;
+            int sortie = ren.Niveau.Suivre(pad, images, ren.Reserve, fe);
+            float[] src = t;
+            if (sortie != images)
+            {
+                if (ren.Etire.Length < sortie * canaux) ren.Etire = new float[sortie * canaux + 64 * canaux];
+                Reechantillonner(t, images, canaux, ren.Etire, sortie);
+                src = ren.Etire;
+            }
             if (ren.Client.GetCurrentPadding(out pad) != 0) throw new InvalidOperationException("casque indisponible");
-            int place = ren.Images - pad;
-            if (restant > place) restant = place;
-            if (restant > 0) EcrireRendu(ren, t, restant, canaux, flottant, debut);
+            int restant = Math.Min(sortie, ren.Images - pad);   // tampon plein (80 ms) : seul cas où du son est encore perdu
+            if (restant > 0) EcrireRendu(ren, src, restant, canaux, flottant, 0);
+        }
+
+        /// <summary>
+        /// Suivi du remplissage du tampon du casque. Le casque prend le son par paquets (10 ms en général) à son propre
+        /// rythme : juste avant d'écrire, le tampon paraît tantôt plein d'un paquet de plus, tantôt d'un de moins. Seule la
+        /// moyenne (sur ~0,3 s) dit si les horloges dérivent. Renvoie le nombre d'images à écrire pour ce paquet.
+        /// </summary>
+        internal sealed class Remplissage
+        {
+            public double Moyenne = -1;
+
+            public int Suivre(int pad, int images, int reserve, int fe)
+            {
+                if (images <= 1) return images;
+                double a = Math.Min(1.0, images / (0.3 * fe));
+                Moyenne = Moyenne < 0 ? pad : Moyenne + a * (pad - Moyenne);
+                double ecart = Moyenne - reserve, zone = fe * 6 / 1000.0;
+                if (Math.Abs(ecart) <= zone) return images;
+                // 1 % (≈ 17 cents, inaudible sur un bruit de jeu), 2 % si l'écart dépasse 18 ms (après un manque)
+                int k = Math.Max(1, (int)Math.Round(images * (Math.Abs(ecart) > 3 * zone ? 0.02 : 0.01)));
+                return ecart > 0 ? images - k : images + k;
+            }
+        }
+
+        /// <summary>
+        /// Ré-échantillonne un paquet de « images » images en « sortie » images (interpolation cubique de Catmull-Rom).
+        /// La première et la dernière image restent les mêmes : aucun saut avec le paquet d'avant ni celui d'après.
+        /// </summary>
+        internal static void Reechantillonner(float[] src, int images, int canaux, float[] dst, int sortie)
+        {
+            if (sortie <= 0) return;
+            if (images <= 1 || sortie == 1)
+            {
+                for (int j = 0; j < sortie; j++) for (int c = 0; c < canaux; c++) dst[j * canaux + c] = images > 0 ? src[c] : 0;
+                return;
+            }
+            double pas = (images - 1) / (double)(sortie - 1);
+            for (int j = 0; j < sortie; j++)
+            {
+                double x = j * pas;
+                int i = Math.Min(images - 2, (int)x);
+                double f = x - i;
+                int i0 = Math.Max(0, i - 1), i2 = i + 1, i3 = Math.Min(images - 1, i + 2);
+                for (int c = 0; c < canaux; c++)
+                {
+                    double p0 = src[i0 * canaux + c], p1 = src[i * canaux + c], p2 = src[i2 * canaux + c], p3 = src[i3 * canaux + c];
+                    dst[j * canaux + c] = (float)(p1 + 0.5 * f * (p2 - p0 + f * (2 * p0 - 5 * p1 + 4 * p2 - p3 + f * (3 * (p1 - p2) + p3 - p0))));
+                }
+            }
         }
 
         private static void EcrireRendu(Flux ren, float[] t, int images, int canaux, bool flottant, int debut)

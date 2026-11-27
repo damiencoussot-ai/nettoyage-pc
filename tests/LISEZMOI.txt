@@ -12,13 +12,16 @@ Ce qui est vérifié
 - Limiteur.cs : jamais de saturation (plafond 0,95), NaN/infini sans conséquence, silence gardé, son intact hors
   jeu, retard de 1,5 ms, même résultat quelle que soit la taille des paquets, courbe du compresseur croissante.
 - Pas.cs : en Net, tes propres sons au centre ne sont pas remontés ; un pas sur le côté l'est ; en Puissant, le
-  côté est plus remonté que le centre ; renforceur qui détache les pas du fond sans toucher aux sons continus ni aux
-  rafales ; pas sous une explosion et après une explosion ; pas jamais noyés dans le fond.
+  centre est remonté autant que le côté (ennemi devant ou derrière toi) ; renforceur qui détache les pas du fond sans
+  toucher aux sons continus ni aux rafales ; pas sous une explosion et après une explosion ; pas jamais noyés dans le fond.
 - TonArme.cs : pas ennemi qui ressort pendant que tu tires (stéréo et 7.1), tir ennemi sur le côté gardé, ta rafale
   baissée.
 - Rafale.cs : le renforceur revient après une rafale. L'essai « pas entre deux tirs » est mis de côté (défaut connu
   du moteur, voir le message dans le fichier) : à réactiver une fois corrigé.
 - Volume.cs : pas de pompage du fond sur les pas, fond revenu 500 ms après un tir, volume général jamais baissé.
+- Casque.cs : écriture sur le casque (src/Noyau/MoteurSonDirect.cs) quand les horloges du câble et du casque dérivent
+  et que le PC a des à-coups (2 minutes simulées) : aucun son sauté d'un coup (ancien « tic »), pas plus de manques ni
+  de retard qu'avant, correction de 2 % au plus ; ré-échantillonnage fidèle et sans saut entre deux paquets.
 - Reglages.cs : fichier moteur-son.json (aller-retour, bornes, fichier abîmé, réglage par jeu) et réécoute
   « avant / après » au même volume.
 

@@ -268,14 +268,11 @@ namespace NettoyagePC.Nouveau
         private readonly BoutonNoyau bActiver, bAcheter;
         private readonly CheckBox conditions;
         private FenetreInterieure fenetre;
-        private DispatcherTimer attente;
-        private bool interrogation;
 
         public static void Ouvrir(FenetrePrincipale f, bool cle = false)
         {
             var a = new Achat5(f);
             a.fenetre = f.Ouvrir("Velox Premium", a, 700);
-            a.fenetre.Fermee += () => { if (a.attente != null) a.attente.Stop(); };
             if (cle) Dispatcher.UIThread.Post(() => a.zone.Focus());
         }
 
@@ -330,11 +327,7 @@ namespace NettoyagePC.Nouveau
             Children.Add(bAcheter);
             Children.Add(new TextBlock
             {
-                Text = Langue.T(Boutique.UrlDiscord != ""
-                    ? "L'abonnement se prend sur le serveur Discord officiel de Velox : paiement sécurisé par Stripe, et ta clé arrive en message privé. Sans engagement ; premier mois remboursé si tu changes d'avis dans les 14 jours."
-                    : Boutique.AchatAutomatique || Boutique.UrlAchat == ""
-                    ? "Paiement sécurisé par Stripe (carte bancaire, Apple Pay, Google Pay...). Premium s'active tout seul après le paiement, et ta clé s'affiche pour tes autres PC. Satisfait ou remboursé 14 jours."
-                    : "Paiement sécurisé par Lemon Squeezy, revendeur officiel (carte bancaire, PayPal...). La clé arrive par e-mail juste après. Satisfait ou remboursé 14 jours."),
+                Text = Langue.T("L'abonnement se prend sur le serveur Discord officiel de Velox : paiement sécurisé par Stripe, et ta clé arrive en message privé. Sans engagement ; premier mois remboursé si tu changes d'avis dans les 14 jours."),
                 FontFamily = Habillage.Corps, FontSize = 12.5, Foreground = Habillage.Pinceau(P.Discret), TextWrapping = TextWrapping.Wrap,
             });
             Children.Add(new TextBlock { Text = Langue.T("J'ai une clé :"), FontFamily = Habillage.Affichage, FontSize = 15, FontWeight = FontWeight.SemiBold, Foreground = Habillage.Pinceau(P.Texte), Margin = new Thickness(0, 10, 0, 0) });
@@ -353,60 +346,10 @@ namespace NettoyagePC.Nouveau
         {
             if (conditions.IsChecked != true) return;
             // l'abonnement se prend sur le serveur Discord officiel : /premium, puis la clé arrive en message privé
-            if (Boutique.UrlDiscord != "")
-            {
-                try { Programmes.Ouvrir(Boutique.UrlDiscord); } catch { }
-                Message(Langue.T("Le serveur Discord de Velox s'ouvre : dans le salon #acheter-premium, tape /premium puis clique sur « S'abonner ». Ta clé arrive en message privé : colle-la ci-dessous."), Habillage.P.Accent);
-                zone.Focus();
-                return;
-            }
-            if (Boutique.UrlAchat == "") { F.Demander("La boutique ouvre bientôt", "En attendant, tu peux essayer Premium gratuitement, ou demander une clé à l'éditeur.", "Compris", null, r => { }); return; }
-            Programmes.Ouvrir(Licence.AdresseAchat());
-            if (Boutique.AchatAutomatique)
-            {
-                Message(Langue.T("La page de paiement s'ouvre dans ton navigateur. Dès que le paiement est validé, Premium s'active tout seul ici : garde cette fenêtre ouverte."), Habillage.P.Accent);
-                AttendrePaiement();
-            }
-            else
-            {
-                Message(Langue.T("La page de paiement s'ouvre dans ton navigateur. Après le paiement, tu reçois ta clé par e-mail : colle-la ci-dessous."), Habillage.P.Accent);
-                zone.Focus();
-            }
-        }
-
-        /// <summary>Après l'achat : on demande au service de licences, toutes les 5 secondes pendant 30 minutes, si le paiement est arrivé.</summary>
-        private void AttendrePaiement()
-        {
-            if (attente != null) return;
-            DateTime fin = DateTime.Now.AddMinutes(30);
-            attente = new DispatcherTimer { Interval = TimeSpan.FromSeconds(5) };
-            attente.Tick += (s, e) =>
-            {
-                if (interrogation) return;
-                if (DateTime.Now > fin) { attente.Stop(); return; }
-                interrogation = true;
-                Task.Run(() =>
-                {
-                    string cle, r;
-                    try { r = Licence.RecupererAchat(out cle); } catch (Exception ex) { r = ex.Message; cle = ""; }
-                    Dispatcher.UIThread.Post(() => { interrogation = false; ResultatPaiement(r, cle); });
-                });
-            };
-            attente.Start();
-        }
-
-        private void ResultatPaiement(string r, string cle)
-        {
-            if (r == "pending" || r.StartsWith("service de licences injoignable")) return;   // on réessaie dans 5 secondes
-            attente.Stop();
-            if (r == "paid")
-            {
-                if (fenetre != null) fenetre.Fermer();
-                F.Demander("Premium activé ✔", Langue.T("Merci ! Tous les outils Premium sont débloqués sur ce PC.") + "\n\n" + Langue.T("Ta clé, pour tes autres PC (elle marche sur 3 PC à la fois) :") + "\n" + cle, "Super", null, x => { });
-                return;
-            }
-            Message(r == "disabled" ? Langue.T("Ce paiement a été remboursé ou contesté : la clé n'est pas active.")
-                : r == "none" ? Langue.T("Aucun achat en attente sur ce PC.") : Langue.T("Clé non activée") + " : " + Langue.T(r), Habillage.P.Rouge);
+            // (5.24 : l'ancien achat par page de paiement, jamais utilisé depuis le passage à Discord, est retiré)
+            try { Programmes.Ouvrir(Boutique.UrlDiscord); } catch { }
+            Message(Langue.T("Le serveur Discord de Velox s'ouvre : dans le salon #acheter-premium, tape /premium puis clique sur « S'abonner ». Ta clé arrive en message privé : colle-la ci-dessous."), Habillage.P.Accent);
+            zone.Focus();
         }
 
         private void Activer()
