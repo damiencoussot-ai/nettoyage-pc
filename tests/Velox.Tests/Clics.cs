@@ -8,7 +8,7 @@ namespace Velox.Tests
     public class Clics
     {
         /// <summary>Fond fort et pas renforcé tout près du plafond : le renfort doit être réduit, mais en glissant (avant
-        /// 5.25 il tombait d'un échantillon à l'autre), et le limiteur ne saute pas non plus.</summary>
+        /// 5.24 il tombait d'un échantillon à l'autre), et le limiteur ne saute pas non plus.</summary>
         [Theory]
         [InlineData(65)] [InlineData(100)] [InlineData(130)]
         public void Renfort_et_limiteur_glissent(int force)

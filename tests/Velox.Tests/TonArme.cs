@@ -31,7 +31,7 @@ namespace Velox.Tests
         }
 
         /// <summary>Un ennemi juste derrière toi, proche : son pas arrive fort et au centre, comme ton arme. Il a la forme
-        /// d'un pas (presque rien dans les graves) : « ton arme » le baisse à peine (5.24 : −5,4 dB avec le réglage 2 ; 5.25 : −3,4).</summary>
+        /// d'un pas (presque rien dans les graves) : « ton arme » le baisse bien moins (PR 16 avant correction : −5,4 dB avec le réglage 2 ; maintenant −3,4).</summary>
         [Theory]
         [InlineData(1)] [InlineData(2)]
         public void Pas_fort_au_centre_epargne(int arme)

@@ -9,11 +9,31 @@ Pas boostés, style Puissant
 - Au-delà de Fort, la force renforce les pas, plus le fond : Extrême et Ultra ne pompent plus davantage que Fort.
 - Réglé et vérifié sur 20 enregistrements réels de Warzone : le fond bouge un peu moins qu'avant, le volume ne baisse pas.
 - Conseil : style Puissant, force Fort.
+- Moins de « tic » : le renfort d'un pas monte un peu moins sèchement (3 ms) et dure un peu plus (12 ms) ; il ne
+  touche plus seulement l'attaque des sons. Quand un pas renforcé frôle la saturation, le renfort et le limiteur
+  baissent en glissant au lieu de tomber d'un coup (chaque chute faisait un petit clic).
+- « Ton arme » ne baisse plus un pas ennemi fort au centre (ennemi proche juste derrière toi) : un son qui a la forme
+  d'un pas (presque pas de graves) n'est pas pris pour ton arme.
+- Changer de force, de style ou de jeu ne fait plus de petit trou dans le son : l'ancien réglage laisse la place au
+  nouveau en fondu.
+
+Pas boostés, style Net
+- Un son bref au centre (ennemi devant ou derrière) est maintenant remonté à moitié, au lieu de pas du tout. Ce qui
+  vient d'un côté reste mis en avant davantage.
 
 Casque
 - Plus de « tic » réguliers avec une carte son qui a sa propre horloge (GoXLR, carte USB) : quand le câble et le casque
   ne vont pas tout à fait au même rythme, Velox ne saute plus de son d'un coup, il accélère ou ralentit le son de 1 %
   le temps de rattraper (inaudible). Le retard ajouté ne change pas.
+
+Désinstallation
+- VB-Cable n'est plus laissé sans moyen de le retirer : Velox propose de le retirer aussi (fenêtre de VB-Audio), et
+  s'il est gardé, son installateur reste dans le dossier de Velox.
+- Le moteur « Pas boostés » est arrêté avant que Velox soit supprimé (le programme pouvait rester sur le disque).
+
+Divers
+- Vérification plus stricte de la signature de VB-Cable avant de l'installer.
+- Une durée mal écrite dans les options du nettoyage garde sa valeur par défaut (au lieu de 0 jour).
 
 Mise à jour
 - Si Velox est ouvert pendant l'installation, l'installateur le ferme, installe, puis le relance (déjà en 5.23).

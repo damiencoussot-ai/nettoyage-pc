@@ -190,7 +190,7 @@ namespace NettoyagePC
         // ou mouvements), un son nettement d'un côté l'est pleinement, et la différence gauche/droite des sons de la bande des
         // pas est accentuée de 4 dB (en Extrême) : +2 à +3 dB d'écart en faveur de ce qui vient d'un côté.
         internal const double EcartPlein = 8;
-        /// <summary>Remontée d'un son bref au centre : 0,5 en Net (5.25 : un ennemi derrière n'y était presque pas remonté) ; 1 en Puissant (un ennemi juste derrière ou devant arrive
+        /// <summary>Remontée d'un son bref au centre : 0,5 en Net (5.24 : un ennemi derrière n'y était presque pas remonté) ; 1 en Puissant (un ennemi juste derrière ou devant arrive
         /// aussi au centre, en stéréo : il est remonté pleinement ; la traîne des tirs est écartée autrement).</summary>
         private readonly double poidsCentre;
         /// <summary>Accent des côtés (dB, en Extrême) : 4 en Net, 6 en Puissant (direction plus nette).</summary>

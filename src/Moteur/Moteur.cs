@@ -74,9 +74,9 @@ namespace NettoyagePC
                     case "--dossiers": o.Dossiers = suivant(); break;
                     case "--ids-maj": o.IdsMaj = suivant(); break;
                     case "--tube": o.Tube = suivant(); break;
-                    case "--jours-telechargements": int.TryParse(suivant(), out o.JoursTelechargements); break;
-                    case "--jours-temp": int.TryParse(suivant(), out o.JoursTemp); break;
-                    case "--seuil-mo": int.TryParse(suivant(), out o.SeuilMo); break;
+                    case "--jours-telechargements": { int v; if (int.TryParse(suivant(), out v) && v >= 1) o.JoursTelechargements = v; } break;   // valeur illisible : la valeur par défaut reste (avant : 0)
+                    case "--jours-temp": { int v; if (int.TryParse(suivant(), out v) && v >= 1) o.JoursTemp = v; } break;   // valeur illisible : la valeur par défaut reste (avant : 0)
+                    case "--seuil-mo": { int v; if (int.TryParse(suivant(), out v) && v >= 1) o.SeuilMo = v; } break;   // valeur illisible : la valeur par défaut reste (avant : 0)
                     case "--tache":
                         switch (suivant().ToLowerInvariant())
                         {

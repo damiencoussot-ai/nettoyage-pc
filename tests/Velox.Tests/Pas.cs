@@ -36,7 +36,7 @@ namespace Velox.Tests
             Assert.Equal(CompresseurPas.PoidsCote(-30, -34, 0), CompresseurPas.PoidsCote(-34, -30, 0), 9);   // symétrique
         }
 
-        /// <summary>Net (5.25) : un son bref au centre est remonté à moitié (un ennemi juste devant ou derrière arrive au
+        /// <summary>Net (5.24) : un son bref au centre est remonté à moitié (un ennemi juste devant ou derrière arrive au
         /// centre, comme tes propres pas) ; le même son sur le côté (un ennemi) l'est davantage.</summary>
         [Theory]
         [InlineData(35, 1.5)] [InlineData(65, 4)] [InlineData(100, 6)] [InlineData(130, 7)]
