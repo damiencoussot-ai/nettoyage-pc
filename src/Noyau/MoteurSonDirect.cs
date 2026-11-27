@@ -135,6 +135,8 @@ namespace NettoyagePC
             public int Memoire;
             /// <summary>Jeu reconnu en cours (clé : « cod », « valorant »…), "" si aucun.</summary>
             public string JeuCle = "";
+            /// <summary>Enregistrement long : secondes faites et durée prévue (0 : aucun en cours), marqueurs F9 et F10.</summary>
+            public int LongSecondes, LongMax, LongTics, LongEnnemis;
         }
 
         public static bool EnMarche()
@@ -150,7 +152,19 @@ namespace NettoyagePC
             try
             {
                 if (!File.Exists(FichierEtat) || (DateTime.UtcNow - File.GetLastWriteTimeUtc(FichierEtat)).TotalSeconds > 4) { e.Marche = false; return e; }
-                var p = File.ReadAllText(FichierEtat).Split('|');
+                return LireLigneEtat(File.ReadAllText(FichierEtat));
+            }
+            catch { }
+            return e;
+        }
+
+        /// <summary>Lit une ligne d'état écrite par le moteur (les champs ajoutés au fil des versions sont facultatifs).</summary>
+        internal static EtatMoteur LireLigneEtat(string ligne)
+        {
+            var e = new EtatMoteur();
+            try
+            {
+                var p = (ligne ?? "").Split('|');
                 if (p.Length < 5) return e;
                 var c = CultureInfo.InvariantCulture;
                 e.Marche = p[0] == "marche"; e.LatenceMs = int.Parse(p[1], c); e.Reduction = double.Parse(p[2], c); e.Jeu = p[3] == "1"; e.Erreur = p[4].Length > 300 ? p[4].Substring(0, 300) : p[4];
@@ -159,17 +173,22 @@ namespace NettoyagePC
                 int re, rs, me;
                 if (p.Length >= 11 && int.TryParse(p[7], NumberStyles.Integer, c, out re) && int.TryParse(p[8], NumberStyles.Integer, c, out rs) && int.TryParse(p[9], NumberStyles.Integer, c, out me))
                 { e.Reecoute = Math.Max(0, Math.Min(3, re)); e.ReecouteSecondes = Math.Max(0, Math.Min(30, rs)); e.Memoire = Math.Max(0, Math.Min(10, me)); e.JeuCle = Regex.IsMatch(p[10], "^[a-z0-9]{1,24}$") ? p[10] : ""; }
+                int ls, lm, lt, le;
+                if (p.Length >= 15 && int.TryParse(p[11], NumberStyles.Integer, c, out ls) && int.TryParse(p[12], NumberStyles.Integer, c, out lm)
+                    && int.TryParse(p[13], NumberStyles.Integer, c, out lt) && int.TryParse(p[14], NumberStyles.Integer, c, out le))
+                { e.LongMax = Math.Max(0, Math.Min(3600, lm)); e.LongSecondes = Math.Max(0, Math.Min(e.LongMax, ls)); e.LongTics = Math.Max(0, lt); e.LongEnnemis = Math.Max(0, le); }
             }
             catch { }
             return e;
         }
 
         private static string LigneEtat(bool marche, int latence, double reduction, bool jeu, string erreur, int canaux = 0, double reductionArme = 0,
-            int reecoute = 0, int reecouteSecondes = 0, int memoire = 0, string jeuCle = "")
+            int reecoute = 0, int reecouteSecondes = 0, int memoire = 0, string jeuCle = "", int longSec = 0, int longMax = 0, int longTics = 0, int longEnnemis = 0)
         {
             var c = CultureInfo.InvariantCulture;
             return (marche ? "marche" : "arret") + "|" + latence.ToString(c) + "|" + reduction.ToString("F1", c) + "|" + (jeu ? "1" : "0") + "|" + (erreur ?? "").Replace('|', ' ').Replace('\n', ' ').Replace('\r', ' ') + "|" + canaux.ToString(c) + "|" + reductionArme.ToString("F1", c)
-                + "|" + reecoute.ToString(c) + "|" + reecouteSecondes.ToString(c) + "|" + memoire.ToString(c) + "|" + (jeuCle ?? "");
+                + "|" + reecoute.ToString(c) + "|" + reecouteSecondes.ToString(c) + "|" + memoire.ToString(c) + "|" + (jeuCle ?? "")
+                + "|" + longSec.ToString(c) + "|" + longMax.ToString(c) + "|" + longTics.ToString(c) + "|" + longEnnemis.ToString(c);
         }
 
         /// <summary>Écrit l'état d'un coup (fichier temporaire puis remplacement) : la page ne lit jamais une ligne à moitié écrite.</summary>
@@ -293,7 +312,7 @@ namespace NettoyagePC
         // ------------------------------------------------------------------ le moteur lui-même (processus à part)
 
         private const int AUDCLNT_STREAMFLAGS_EVENTCALLBACK = 0x00040000, AUDCLNT_STREAMFLAGS_AUTOCONVERTPCM = unchecked((int)0x80000000),
-            AUDCLNT_STREAMFLAGS_SRC_DEFAULT_QUALITY = 0x08000000, AUDCLNT_BUFFERFLAGS_SILENT = 0x2, CLSCTX_ALL = 0x17;
+            AUDCLNT_STREAMFLAGS_SRC_DEFAULT_QUALITY = 0x08000000, AUDCLNT_BUFFERFLAGS_SILENT = 0x2, AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY = 0x1, CLSCTX_ALL = 0x17;
         private static readonly Guid IID_IAudioClient = new Guid("1CB9AD4C-DBFA-4c32-B178-C2F568A703B2");
         private static readonly Guid IID_IAudioCaptureClient = new Guid("C8ADBD64-E71E-48a0-A4DE-185C395CD317");
         private static readonly Guid IID_IAudioRenderClient = new Guid("F294ACFC-3146-4483-A7BF-ADDCA7C260E2");
@@ -328,6 +347,9 @@ namespace NettoyagePC
             /// <summary>Remplissage moyen du tampon du casque juste avant d'écrire (images), et le paquet ré-échantillonné.</summary>
             public Remplissage Niveau = new Remplissage();
             public float[] Etire = new float[0];
+            /// <summary>(relevé, enregistrement long) tampon du casque trouvé vide (craquement possible), et son jeté faute de
+            /// place : comptés depuis l'ouverture.</summary>
+            public int Manques, Pertes;
             public void Fermer()
             {
                 try { if (Client != null) Client.Stop(); } catch { }
@@ -419,6 +441,8 @@ namespace NettoyagePC
             float[] tampon = new float[0];
             int forceEnCours = -1, armeEnCours = -1, styleEnCours = -1;
             MemoireReecoute memoire = null;
+            // enregistrement long avec marqueurs : préparé par un autre fil (dossier, mémoire), puis pris ici
+            EnregistrementLong enrLong = null; float[] copieSans = new float[0]; bool jeuNote = false;
             long dernierVolume = -10000; float gainEntree = 1, gainSortie = 1, volumeDb = 0;
             // garde-fou : si le pilote du câble n'appliquait pas le volume de Windows, la compensation dépasserait le niveau
             // plein (un son de jeu ne dépasse pas ~1) : au 3e dépassement net (×2), elle est coupée pour la session
@@ -445,10 +469,21 @@ namespace NettoyagePC
                     while (demandes.TryDequeue(out dem))
                     {
                         if (memoire == null && dem == "export") ThreadPool.QueueUserWorkItem(_ => EcrireResultatExport("vide"));
+                        if (dem == "long-stop") { if (enrLong != null) enrLong.Finir(); else if (nouveauLong != null) { nouveauLong.Finir(); nouveauLong = null; } }
+                        else if (dem == "long")
+                        {
+                            if (enrLong != null || nouveauLong != null) { }
+                            else if (cap == null || ren == null || comp == null || (memoire != null && memoire.Phase != 0)) ThreadPool.QueueUserWorkItem(_ => EcrireResultatLong("vide"));
+                            else
+                            {
+                                int ce = canaux, fx = fe, fv = forceEnCours, av = armeEnCours, sv = styleEnCours, lat = derniereLatence; string jc = jeuCle;
+                                ThreadPool.QueueUserWorkItem(_ => PreparerLong(ce, fx, fv, av, sv, lat, jc));
+                            }
+                        }
                         if (memoire != null)
                         {
                             if (dem == "stop") memoire.Arreter();
-                            else if (dem == "go") memoire.Lancer();
+                            else if (dem == "go") { if (enrLong == null) memoire.Lancer(); }   // la réécoute remplacerait le son enregistré
                             else if (dem == "export")
                             {
                                 // copie en mémoire ici (quelques ms) ; les fichiers sont écrits par un autre fil : un disque lent ou
@@ -469,6 +504,23 @@ namespace NettoyagePC
                         jeuCle = jeuDetecte;
                         jeu = jeuCle != "";
                     }
+                    if (enrLong == null && nouveauLong != null)
+                    {
+                        var nl = nouveauLong; nouveauLong = null;
+                        if (cap != null && ren != null && nl.Canaux == canaux && nl.Frequence == fe)
+                        {
+                            enrLong = nl; jeuNote = !r.JeuxSeulement || jeu;
+                            var touches = new Thread(() => SurveillerTouches(nl)) { IsBackground = true, Priority = ThreadPriority.AboveNormal, Name = "Velox marqueurs" };
+                            touches.Start();
+                        }
+                        else nl.Finir();   // appareil changé entre-temps : fichiers vides fermés
+                    }
+                    if (enrLong != null)
+                    {
+                        bool j2 = !r.JeuxSeulement || jeu;
+                        if (j2 != jeuNote) { jeuNote = j2; enrLong.Noter(j2 ? "jeu en cours (Velox agit)" : "hors jeu (son tel quel)"); }
+                        if (enrLong.Fini) enrLong = null;   // le fil d'écriture finit seul et donne le résultat
+                    }
                     // réglages effectifs : ceux retenus pour le jeu en cours (« un réglage par jeu »), sinon les réglages généraux
                     if (cap != null && ren != null)
                     {
@@ -479,6 +531,7 @@ namespace NettoyagePC
                             // fondu sur 30 ms, l'ancien continue pendant ce temps (repartir de zéro faisait un trou, donc un clic)
                             if (comp != null) { ancienComp = comp; fondu = 0; fonduLong = Math.Max(1, fe * 30 / 1000); }
                             comp = new CompresseurPas(fv, fe, av, true, r.Style); forceEnCours = fv; armeEnCours = av; styleEnCours = r.Style;
+                            if (enrLong != null) enrLong.Noter("réglage : " + DecrireReglage(fv, av, r.Style));
                             if (ancienComp != null) { ancienComp.MelangeCible = comp.MelangeCible; }
                         }
                     }
@@ -498,6 +551,8 @@ namespace NettoyagePC
                             int fv, av; r.Effectifs(jeuCle, out fv, out av);
                             comp = new CompresseurPas(fv, fe, av, true, r.Style); ancienComp = null; forceEnCours = fv; armeEnCours = av; styleEnCours = r.Style;
                             if (memoire == null || memoire.Canaux != canaux || memoire.Frequence != fe) memoire = new MemoireReecoute(canaux, fe, 10);
+                            if (enrLong != null && (enrLong.Canaux != canaux || enrLong.Frequence != fe)) { enrLong.Finir(); enrLong = null; }
+                            else if (enrLong != null) enrLong.Noter("appareil rouvert");
                         }
                     }
                     if (t - dernierEtat >= 500)
@@ -505,13 +560,16 @@ namespace NettoyagePC
                         dernierEtat = t;
                         int lat = 0;
                         try { int pad; if (ren != null && ren.Client.GetCurrentPadding(out pad) == 0) lat = (int)(1000.0 * pad / fe) + 10 + (comp != null ? 2 : 0); } catch { }
+                        derniereLatence = lat;
                         double red = comp != null ? comp.ReductionMax : 0; if (comp != null) comp.ReductionMax = 0;
                         double redA = comp != null ? comp.ReductionArmeMax : 0; if (comp != null) comp.ReductionArmeMax = 0;
                         var finie = suivi.Relever(DateTime.Now, jeuCle, styleEnCours, forceEnCours, red, lat);
                         if (finie != null) ThreadPool.QueueUserWorkItem(_ => NoterPartie(finie));   // fichier : jamais dans le fil du son
                         // écrit par un fil à part (un fichier peut être retenu quelques ms par l'antivirus : pas dans le fil du son)
                         string ligne = LigneEtat(cap != null && ren != null, lat, red, !r.JeuxSeulement || jeu, erreur, cap != null ? canaux : 0, redA,
-                            memoire != null ? memoire.Phase : 0, memoire != null ? memoire.SecondesRestantes : 0, memoire != null ? memoire.Secondes : 0, jeuCle);
+                            memoire != null ? memoire.Phase : 0, memoire != null ? memoire.SecondesRestantes : 0, memoire != null ? memoire.Secondes : 0, jeuCle,
+                            enrLong != null ? enrLong.Secondes : 0, enrLong != null ? enrLong.SecondesMax : (nouveauLong != null ? nouveauLong.SecondesMax : 0),
+                            enrLong != null ? enrLong.Tics : 0, enrLong != null ? enrLong.Ennemis : 0);
                         lock (verrouEtat)
                         {
                             etatEnAttente = ligne;
@@ -559,6 +617,7 @@ namespace NettoyagePC
                             int n = images * canaux;
                             if (tampon.Length < n) tampon = new float[n];
                             if ((drapeaux & AUDCLNT_BUFFERFLAGS_SILENT) != 0) Array.Clear(tampon, 0, n);
+                            if (enrLong != null && (drapeaux & AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY) != 0) enrLong.Noter("trou capture");
                             else if (flottant) Marshal.Copy(donnees, tampon, 0, n);
                             else for (int i = 0; i < n; i++) tampon[i] = Marshal.ReadInt16(donnees, i * 2) / 32768f;
                             cap.Capture.ReleaseBuffer(images);
@@ -576,6 +635,7 @@ namespace NettoyagePC
                             if (memoire == null || memoire.Phase == 0)
                             {
                                 if (memoire != null) memoire.GarderSec(tampon, images);
+                                if (enrLong != null) { if (copieSans.Length < n) copieSans = new float[n]; Array.Copy(tampon, copieSans, n); }
                                 if (ancienComp != null)
                                 {
                                     if (copieFondu.Length < n) copieFondu = new float[n];
@@ -592,10 +652,17 @@ namespace NettoyagePC
                                 }
                                 else comp.Traiter(tampon, images, canaux);
                                 if (memoire != null) memoire.GarderTraite(tampon, images);
+                                if (enrLong != null) enrLong.Ajouter(copieSans, tampon, images);
                             }
                             else memoire.Remplir(tampon, images);   // réécoute : le son du jeu est remplacé par l'enregistrement
                             if (gainSortie != 1) for (int i = 0; i < n; i++) tampon[i] *= gainSortie;   // et remis : c'est le volume d'écoute
+                            int manques = ren.Manques, pertes = ren.Pertes;
                             Jouer(ren, tampon, images, canaux, fe, flottant);
+                            if (enrLong != null)
+                            {
+                                if (ren.Manques != manques) enrLong.Noter("manque casque");
+                                if (ren.Pertes != pertes) enrLong.Noter("son perdu casque");
+                            }
                         }
                     }
                     catch (Exception ex)
@@ -609,6 +676,8 @@ namespace NettoyagePC
             finally
             {
                 fini.Set();
+                // enregistrement long en cours : les fichiers sont fermés proprement avant de quitter
+                if (enrLong != null) { enrLong.Finir(); enrLong.Attendre(3000); }
                 try { NoterPartie(suivi.Finir(DateTime.Now)); } catch { }   // moteur arrêté en pleine partie
                 if (cap != null) cap.Fermer(); if (ren != null) ren.Fermer();
                 if (format != IntPtr.Zero) Marshal.FreeCoTaskMem(format);
@@ -638,7 +707,7 @@ namespace NettoyagePC
             if (pad == 0)
             {
                 // tampon vide : après le tout premier paquet, c'est un manque (craquement) ; la réserve grandit
-                if (ren.Amorce) ren.Reserve = Math.Min(fe * 40 / 1000, ren.Reserve + fe * 4 / 1000);
+                if (ren.Amorce) { ren.Reserve = Math.Min(fe * 40 / 1000, ren.Reserve + fe * 4 / 1000); ren.Manques++; }
                 ren.Amorce = true;
                 int silence = Math.Min(ren.Images, ren.Reserve);
                 EcrireRendu(ren, null, silence, canaux, flottant, 0);
@@ -654,6 +723,7 @@ namespace NettoyagePC
             }
             if (ren.Client.GetCurrentPadding(out pad) != 0) throw new InvalidOperationException("casque indisponible");
             int restant = Math.Min(sortie, ren.Images - pad);   // tampon plein (80 ms) : seul cas où du son est encore perdu
+            if (restant < sortie) ren.Pertes++;
             if (restant > 0) EcrireRendu(ren, src, restant, canaux, flottant, 0);
         }
 
@@ -766,6 +836,64 @@ namespace NettoyagePC
             }
             catch { }
             return "";
+        }
+
+        /// <summary>Enregistrement long préparé par un autre fil, pris par le fil du son à son prochain tour.</summary>
+        private static volatile EnregistrementLong nouveauLong;
+        private static volatile int derniereLatence;
+        /// <summary>Durée de l'enregistrement long (secondes).</summary>
+        internal const int DureeLong = 300;
+
+        private static void PreparerLong(int canaux, int fe, int force, int arme, int style, int latence, string jeuCle)
+        {
+            try
+            {
+                string pf = PrefixeExport();
+                string dossier = Path.Combine(Path.GetDirectoryName(pf), "Velox-long-" + Path.GetFileName(pf).Substring("Velox-son-".Length));
+                var enr = new EnregistrementLong(dossier, canaux, fe, DureeLong);
+                enr.Contexte = "Réglage au début : " + DecrireReglage(force, arme, style) + "\r\nRetard du casque : " + latence + " ms"
+                    + (jeuCle != "" ? "\r\nJeu : " + jeuCle : "");
+                enr.QuandFini = res => EcrireResultatLong(res.StartsWith("ok|", StringComparison.Ordinal) ? res + "|" + enr.Tics + "|" + enr.Ennemis : res);
+                nouveauLong = enr;
+            }
+            catch (Exception ex) { JournalDemarrage.Erreur("enregistrement long", ex); EcrireResultatLong("erreur|" + ex.Message.Replace('|', ' ')); }
+        }
+
+        internal static string DecrireReglage(int force, int arme, int style)
+        {
+            string nom = "";
+            foreach (var n in Niveaux) if (n.Item2 == force) nom = n.Item1;
+            return (style == 1 ? "Puissant" : "Net") + " " + (nom != "" ? nom : force.ToString(CultureInfo.InvariantCulture)) + " (force " + force.ToString(CultureInfo.InvariantCulture)
+                + "), ton arme " + arme.ToString(CultureInfo.InvariantCulture);
+        }
+
+        [DllImport("user32.dll")]
+        private static extern short GetAsyncKeyState(int touche);
+
+        /// <summary>
+        /// Touches des marqueurs, lues 200 fois par seconde tant que l'enregistrement long tourne : F9 = « tic », F10 =
+        /// « ennemi raté ». La touche est seulement lue (pas prise) : elle marche en plein jeu, et le jeu la reçoit aussi.
+        /// </summary>
+        private static void SurveillerTouches(EnregistrementLong enr)
+        {
+            bool a9 = true, a10 = true;   // touche déjà enfoncée au départ : pas comptée
+            while (!enr.Fini)
+            {
+                try
+                {
+                    bool b9 = (GetAsyncKeyState(0x78) & 0x8000) != 0, b10 = (GetAsyncKeyState(0x79) & 0x8000) != 0;
+                    if (b9 && !a9) enr.Noter("tic");
+                    if (b10 && !a10) enr.Noter("ennemi");
+                    a9 = b9; a10 = b10;
+                }
+                catch { return; }
+                Thread.Sleep(5);
+            }
+        }
+
+        private static void EcrireResultatLong(string texte)
+        {
+            try { string tmp = FichierLong + ".tmp"; File.WriteAllText(tmp, texte); File.Move(tmp, FichierLong, true); } catch { }
         }
 
         private static void EcrireResultatExport(string texte)

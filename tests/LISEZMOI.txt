@@ -22,6 +22,8 @@ Ce qui est vérifié
 - Casque.cs : écriture sur le casque (src/Noyau/MoteurSonDirect.cs) quand les horloges du câble et du casque dérivent
   et que le PC a des à-coups (2 minutes simulées) : aucun son sauté d'un coup (ancien « tic »), pas plus de manques ni
   de retard qu'avant, correction de 2 % au plus ; ré-échantillonnage fidèle et sans saut entre deux paquets.
+- Marqueurs.cs : enregistrement long avec marqueurs (src/Noyau/EnregistrementLong.cs) : WAV complets et exacts,
+  marqueurs F9 / F10 au bon instant (format Audacity), arrêt seul à la durée prévue, ligne d'état du moteur.
 - Reglages.cs : fichier moteur-son.json (aller-retour, bornes, fichier abîmé, réglage par jeu) et réécoute
   « avant / après » au même volume.
 
