@@ -376,6 +376,7 @@ namespace NettoyagePC
                 while (!fini.IsSet) { try { jeuDetecte = JeuEnCours(); } catch { } fini.Wait(2000); }
             }) { IsBackground = true, Priority = ThreadPriority.BelowNormal, Name = "Velox jeu en cours" };
             chercheur.Start();
+            DeplacementJoueur.Demarrer(fini);   // « mes pas plus discrets » : touches de déplacement et manette, lues à part
             // fichiers (réglages écrits par la page, demande de réécoute) lus par un fil à part : un fichier retenu quelques
             // dizaines de ms par l'antivirus faisait déborder la capture du câble (20 ms de réserve) dans le fil du son
             var demandes = new System.Collections.Concurrent.ConcurrentQueue<string>();
@@ -482,6 +483,9 @@ namespace NettoyagePC
                         }
                     }
                     if (comp != null) comp.MelangeCible = !r.JeuxSeulement || jeu ? 1 : 0;
+                    bool bouge = r.MesPas && DeplacementJoueur.Bouge;
+                    if (comp != null) comp.JoueurBouge = bouge;
+                    if (ancienComp != null) ancienComp.JoueurBouge = bouge;
                     // ouverture (ou réouverture après une erreur, une seconde plus tard)
                     if ((cap == null || ren == null) && t - derniereErreur >= 1000)
                     {

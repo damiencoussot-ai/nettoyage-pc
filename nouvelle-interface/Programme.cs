@@ -92,7 +92,7 @@ namespace NettoyagePC.Nouveau
             }
             // contrôle après installation (lancé par l'installateur) : fenêtre et pages construites sans rien afficher
             if (args.Length > 0 && args[0] == "--autocontrole") return Captures.AutoControle();
-            // (réglage) passe un fichier WAV 16 bits par le traitement de Pas boostés : --traiter-wav entree sortie force [arme]
+            // (réglage) passe un fichier WAV 16 bits par le traitement de Pas boostés : --traiter-wav entree sortie force [arme] [style] [bouge : 1 = en marche tout le long]
             if (args.Length >= 1 && args[0] == "--mesurer-son")
             {
                 foreach (int fo in new[] { 35, 65, 100, 130 })
@@ -104,7 +104,7 @@ namespace NettoyagePC.Nouveau
                 }
                 return 0;
             }
-            if (args.Length >= 4 && args[0] == "--traiter-wav") return MoteurSon.TraiterWav(args[1], args[2], int.Parse(args[3]), args.Length >= 5 ? int.Parse(args[4]) : 1, args.Length >= 6 ? int.Parse(args[5]) : 1);
+            if (args.Length >= 4 && args[0] == "--traiter-wav") return MoteurSon.TraiterWav(args[1], args[2], int.Parse(args[3]), args.Length >= 5 ? int.Parse(args[4]) : 1, args.Length >= 6 ? int.Parse(args[5]) : 1, args.Length >= 7 && args[6] == "1");
             App.CommandeInitiale = CommandeExterne.Lire(args);
 
             int ie = Array.IndexOf(args, "--essai-demarrage");

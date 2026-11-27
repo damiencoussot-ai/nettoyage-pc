@@ -39,6 +39,8 @@ namespace NettoyagePC
         /// <summary>Le câble s'appelait « Velox Studio » quand « Pas boostés » a été coupé (il a repris son nom d'origine) :
         /// il le retrouve au prochain allumage.</summary>
         public bool RenommerAuRallumage;
+        /// <summary>« Mes pas plus discrets » : pendant que tu te déplaces, un son bref au centre (tes pas) est moins remonté.</summary>
+        public bool MesPas = true;
         public Dictionary<string, int[]> ParJeu = new Dictionary<string, int[]>();
         private static readonly Regex CleJeu = new Regex("^[a-z0-9]{1,24}$");
 
@@ -73,7 +75,7 @@ namespace NettoyagePC
             {
                 { "Actif", Actif }, { "Force", Force }, { "JeuxSeulement", JeuxSeulement },
                 { "Source", Source }, { "Destination", Destination }, { "DefautAvant", DefautAvant }, { "Arme", Arme }, { "Style", Style },
-                { "ParJeuActif", ParJeuActif }, { "RenommerAuRallumage", RenommerAuRallumage }, { "ParJeu", (ParJeu ?? new Dictionary<string, int[]>()).ToDictionary(kv => kv.Key, kv => (object)new object[] { kv.Value[0], kv.Value[1] }) },
+                { "ParJeuActif", ParJeuActif }, { "RenommerAuRallumage", RenommerAuRallumage }, { "MesPas", MesPas }, { "ParJeu", (ParJeu ?? new Dictionary<string, int[]>()).ToDictionary(kv => kv.Key, kv => (object)new object[] { kv.Value[0], kv.Value[1] }) },
             });
         }
 
@@ -95,6 +97,7 @@ namespace NettoyagePC
                 if (d.TryGetValue("Style", out o)) r.Style = (int)Math.Round(Convert.ToDouble(o, CultureInfo.InvariantCulture));
                 if (d.TryGetValue("ParJeuActif", out o) && o is bool pa) r.ParJeuActif = pa;
                 if (d.TryGetValue("RenommerAuRallumage", out o) && o is bool ra) r.RenommerAuRallumage = ra;
+                if (d.TryGetValue("MesPas", out o) && o is bool mp) r.MesPas = mp;
                 if (d.TryGetValue("ParJeu", out o) && o is Dictionary<string, object> pj)
                     foreach (var kv in pj)
                     {
@@ -195,6 +198,19 @@ namespace NettoyagePC
         private readonly double poidsCentre;
         /// <summary>Accent des côtés (dB, en Extrême) : 4 en Net, 6 en Puissant (direction plus nette).</summary>
         private readonly double accentCotes;
+
+        // ---- tes propres pas : en stéréo, ils arrivent au centre, exactement comme un ennemi juste devant ou derrière toi ;
+        // le son seul ne les distingue pas. Mais tes pas n'existent que pendant que tu te déplaces : pendant ce temps (et
+        // 350 ms après, voir DeplacementJoueur), un son bref au centre n'est remonté qu'au quart ; dès que tu t'arrêtes, il
+        // l'est de nouveau en plein. Un son venu d'un côté garde toute sa remontée. « Ton arme » n'est pas touché.
+        /// <summary>Vrai pendant que le joueur se déplace (mis par le fil du son avant chaque paquet ; faux : rien ne change).</summary>
+        public bool JoueurBouge;
+        /// <summary>Remontée d'un son bref au centre pendant que tu te déplaces (0,25 : +5,4 dB au lieu de +21,6 en Puissant Fort).</summary>
+        internal const double PoidsCentreEnMouvement = 0.25;
+        private readonly double aBougeMonte, aBougeDescend;
+        private double bouge;
+        /// <summary>(essais) part « tu bouges » appliquée sur le dernier échantillon (0 à 1, glisse en 30 ms / 150 ms).</summary>
+        internal double PartBouge { get { return bouge; } }
 
         /// <summary>Poids de la remontée selon le côté : PoidsCentre pour un son centré (gauche = droite), 1 dès que l'un
         /// des côtés dépasse l'autre de EcartPlein dB.</summary>
@@ -331,6 +347,7 @@ namespace NettoyagePC
             accentCotes = Style == StyleNet ? 4 : 6;
             poidsCentre = Style == StyleNet ? 0.5 : 1;
             facteurChoc = Style == StyleNet ? 0.5 : 0.25;
+            aBougeMonte = Math.Exp(-1 / (0.030 * fe)); aBougeDescend = Math.Exp(-1 / (0.150 * fe));   // glisse : pas de saut de gain
             // Puissant ×2,7 : +22 dB en Fort. Supportable parce que le renforceur se relâche vite (12 ms, ci-dessous) : il ne
             // remonte que le pas lui-même, plus le fond qui le suit. ×3,25 (+26 dB) donnait 1 dB de relief en plus mais
             // changeait trop de petits sons secs en « tic » (mesuré sur les enregistrements du 26/11 : −36 % de tics à ×2,7).
@@ -522,7 +539,9 @@ namespace NettoyagePC
                         double g2 = bufPas[0] * bufPas[0], d2 = bufPas[1] * bufPas[1];
                         pGauche = g2 > pGauche ? rfMonte * pGauche + (1 - rfMonte) * g2 : rfDescendRapide * pGauche + (1 - rfDescendRapide) * g2;
                         pDroite = d2 > pDroite ? rfMonte * pDroite + (1 - rfMonte) * d2 : rfDescendRapide * pDroite + (1 - rfDescendRapide) * d2;
-                        double w = PoidsCote(10 * Math.Log10(pGauche + 1e-18), 10 * Math.Log10(pDroite + 1e-18), poidsCentre);
+                        bouge = JoueurBouge ? aBougeMonte * bouge + (1 - aBougeMonte) : aBougeDescend * bouge;
+                        double pcBouge = poidsCentre - Math.Max(0, poidsCentre - PoidsCentreEnMouvement) * bouge;
+                        double w = PoidsCote(10 * Math.Log10(pGauche + 1e-18), 10 * Math.Log10(pDroite + 1e-18), pcBouge);
                         gp *= w; gc *= w;
                     }
                     double kp = Math.Pow(10, gp / 20) - 1, kc = Math.Pow(10, gc / 20) - 1;
@@ -958,14 +977,14 @@ namespace NettoyagePC
 
         /// <summary>(réglage) Passe un WAV 16 bits (enregistré par « Enregistrer pour analyse ») par le traitement, en blocs de
         /// 10 ms comme le moteur, et écrit le résultat. 0 si c'est fait.</summary>
-        public static int TraiterWav(string entree, string sortie, int force, int arme, int style = CompresseurPas.StylePuissant)
+        public static int TraiterWav(string entree, string sortie, int force, int arme, int style = CompresseurPas.StylePuissant, bool bouge = false)
         {
             var o = File.ReadAllBytes(entree);
             int canaux = BitConverter.ToInt16(o, 22), fe = BitConverter.ToInt32(o, 24);
             int n = (o.Length - 44) / 2;
             var t = new float[n];
             for (int i = 0; i < n; i++) t[i] = BitConverter.ToInt16(o, 44 + 2 * i) / 32768f;
-            var comp = new CompresseurPas(force, fe, arme, true, style);
+            var comp = new CompresseurPas(force, fe, arme, true, style) { JoueurBouge = bouge };   // bouge : « en marche » tout le long
             int bloc = fe / 100 * canaux;
             var b = new float[bloc];
             for (int p = 0; p + bloc <= n; p += bloc) { Array.Copy(t, p, b, 0, bloc); comp.Traiter(b, bloc / canaux, canaux); Array.Copy(b, 0, t, p, bloc); }

@@ -85,7 +85,7 @@ namespace NettoyagePC
             if (studio.Count > 0) sb.AppendLine("- Nom « Velox Studio » sur : " + string.Join(" ; ", studio.Select(w => w.Nom)) + (studio.Any(w => MoteurSon.EstCable(w.Nom)) ? " (le câble : bien)" : " (PAS le câble : le jeu contourne Pas boostés s'il sort dessus)"));
             var m = MoteurSon.Lire();
             var et = MoteurSon.LireEtat();
-            sb.AppendLine("- Pas boostés : " + (m.Actif ? "allumé" : "coupé") + " · style " + (m.Style == CompresseurPas.StyleNet ? "Net" : "Puissant") + " · force " + m.Force + " · ton arme " + m.Arme + (m.JeuxSeulement ? " · seulement en jeu" : "")
+            sb.AppendLine("- Pas boostés : " + (m.Actif ? "allumé" : "coupé") + " · style " + (m.Style == CompresseurPas.StyleNet ? "Net" : "Puissant") + " · force " + m.Force + " · ton arme " + m.Arme + (m.MesPas ? " · mes pas discrets" : "") + (m.JeuxSeulement ? " · seulement en jeu" : "")
                 + (m.ParJeu.Count > 0 ? " · par jeu : " + string.Join(", ", m.ParJeu.Select(kv => kv.Key + "=" + kv.Value[0] + "/" + kv.Value[1])) : "")
                 + (m.Actif ? " · moteur " + (MoteurSon.EnMarche() ? "lancé" : "PAS lancé") + (et.Marche ? ", son en cours, " + et.Canaux + " canaux, retard " + et.LatenceMs + " ms" + (et.Jeu ? ", traite le son" : ", en attente d'un jeu (son non traité)") : "") + (et.Erreur != "" ? ", erreur : " + et.Erreur : "") : ""));
             string jeu = null; try { jeu = AudioJeu.JeuDetecte(); } catch { }
