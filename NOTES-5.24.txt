@@ -21,6 +21,12 @@ Pas boostés, style Net
 - Un son bref au centre (ennemi devant ou derrière) est maintenant remonté à moitié, au lieu de pas du tout. Ce qui
   vient d'un côté reste mis en avant davantage.
 
+Enregistrement long avec marqueurs (Studio son > Pas boostés)
+- Nouveau bouton « Enregistrement long avec marqueurs (5 min) » : 5 minutes de jeu enregistrées sans et avec Velox.
+  Pendant la partie, F9 marque un « tic » entendu, F10 un ennemi qui t'a surpris (les touches marchent en plein jeu).
+- Tout va dans un dossier « Velox-long-… » sur le Bureau : les deux sons, les marqueurs (à ouvrir dans Audacity :
+  Fichier > Importer > Étiquettes) et un résumé avec le réglage et les petits incidents du moteur (casque à vide…).
+
 Casque
 - Plus de « tic » réguliers avec une carte son qui a sa propre horloge (GoXLR, carte USB) : quand le câble et le casque
   ne vont pas tout à fait au même rythme, Velox ne saute plus de son d'un coup, il accélère ou ralentit le son de 1 %
