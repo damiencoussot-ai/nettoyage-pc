@@ -21,6 +21,8 @@ Pas boostés, style Puissant
   déplaces (ZQSD, WASD, flèches, stick gauche de la manette) : pendant que tu bouges, un son bref au centre n'est
   remonté qu'au quart (environ −7 dB sur tes pas en Fort) ; dès que tu t'arrêtes, tout est de nouveau remonté en
   plein. Les ennemis sur les côtés ne changent pas. Velox lit seulement l'état des touches, rien n'est envoyé au jeu.
+  Seuls les sons « mono » (identiques à gauche et à droite, comme tes pas) sont concernés : un ennemi juste devant ou
+  derrière toi est spatialisé par le jeu et garde toute sa remontée, même pendant que tu cours.
 
 Pas boostés, style Net
 - Un son bref au centre (ennemi devant ou derrière) est maintenant remonté à moitié, au lieu de pas du tout. Ce qui

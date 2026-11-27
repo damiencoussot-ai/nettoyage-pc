@@ -209,6 +209,15 @@ namespace NettoyagePC
         internal const double PoidsCentreEnMouvement = 0.25;
         private readonly double aBougeMonte, aBougeDescend;
         private double bouge;
+        // Tes sons sont joués à l'identique à gauche et à droite (mono) ; un ennemi, même juste devant ou derrière, est
+        // spatialisé par le jeu (réverbération, filtrage d'oreille) : gauche et droite se ressemblent bien moins. Mesuré
+        // sur l'enregistrement long du 27/11 : tes sons 0,93 à 1,00 de ressemblance, les ennemis −0,7 à 0,75. Seul un son
+        // au centre ET mono est donc moins remonté pendant que tu bouges.
+        private double pMonoLR, pMonoG = 1e-12, pMonoD = 1e-12;
+        /// <summary>Ressemblance gauche/droite (bande des pas) à partir de laquelle un son est « mono » : 0,8 rien, 0,95 plein.</summary>
+        internal const double MonoDebut = 0.8, MonoPlein = 0.95;
+        /// <summary>(essais) part « son mono » sur le dernier échantillon (0 à 1).</summary>
+        internal double PartMono { get; private set; }
         /// <summary>(essais) part « tu bouges » appliquée sur le dernier échantillon (0 à 1, glisse en 30 ms / 150 ms).</summary>
         internal double PartBouge { get { return bouge; } }
 
@@ -540,7 +549,10 @@ namespace NettoyagePC
                         pGauche = g2 > pGauche ? rfMonte * pGauche + (1 - rfMonte) * g2 : rfDescendRapide * pGauche + (1 - rfDescendRapide) * g2;
                         pDroite = d2 > pDroite ? rfMonte * pDroite + (1 - rfMonte) * d2 : rfDescendRapide * pDroite + (1 - rfDescendRapide) * d2;
                         bouge = JoueurBouge ? aBougeMonte * bouge + (1 - aBougeMonte) : aBougeDescend * bouge;
-                        double pcBouge = poidsCentre - Math.Max(0, poidsCentre - PoidsCentreEnMouvement) * bouge;
+                        pMonoLR = aNiveau * pMonoLR + (1 - aNiveau) * bufPas[0] * bufPas[1];
+                        pMonoG = aNiveau * pMonoG + (1 - aNiveau) * g2; pMonoD = aNiveau * pMonoD + (1 - aNiveau) * d2;
+                        PartMono = Borne01((pMonoLR / Math.Sqrt(pMonoG * pMonoD + 1e-30) - MonoDebut) / (MonoPlein - MonoDebut));
+                        double pcBouge = poidsCentre - Math.Max(0, poidsCentre - PoidsCentreEnMouvement) * bouge * PartMono;
                         double w = PoidsCote(10 * Math.Log10(pGauche + 1e-18), 10 * Math.Log10(pDroite + 1e-18), pcBouge);
                         gp *= w; gc *= w;
                     }

@@ -38,6 +38,31 @@ namespace Velox.Tests
             Assert.True(marche >= 0, $"en marchant, pas au centre baissé ({marche:F1} dB) : il doit seulement être moins remonté");
         }
 
+        /// <summary>Tu marches et un ennemi est juste derrière toi : son pas arrive au centre, mais spatialisé par le jeu
+        /// (gauche et droite différents, pas mono comme tes pas). Il garde toute sa remontée.</summary>
+        [Theory]
+        [InlineData(65)] [InlineData(100)]
+        public void Ennemi_au_centre_garde_quand_tu_bouges(int force)
+        {
+            var g = new double[2];
+            for (int bouge = 0; bouge < 2; bouge++)
+            {
+                var gg = new double[2];
+                for (int renfort = 0; renfort < 2; renfort++)
+                {
+                    var s = new Scene(2); var reference = new Scene(2);
+                    s.AjouterSouffle(0.001, 3);
+                    var pg = Scene.Pas(0.01, 9); var pd = Scene.Pas(0.01, 23);   // même niveau, gauche et droite différents
+                    s.Ajouter(pg, 1.0, 1, 0); s.Ajouter(pd, 1.0, 0, 1); reference.Ajouter(pg, 1.0, 1, 0); reference.Ajouter(pd, 1.0, 0, 1);
+                    var c = new CompresseurPas(force, Scene.Fe, 0, renfort == 1, CompresseurPas.StylePuissant) { JoueurBouge = bouge == 1 };
+                    gg[renfort] = Mesure.GainSur(Mesure.Traiter(c, s.Son, 2), reference.Son, 2, 1.0, 1.06);
+                }
+                g[bouge] = gg[1] - gg[0];
+            }
+            Assert.True(g[0] >= 3, $"à l'arrêt : +{g[0]:F1} dB");
+            Assert.True(g[1] >= g[0] - 1, $"ennemi au centre : +{g[0]:F1} dB à l'arrêt, +{g[1]:F1} dB en marchant");
+        }
+
         /// <summary>Tu marches : un ennemi sur le côté est remonté autant qu'à l'arrêt.</summary>
         [Theory]
         [InlineData(CompresseurPas.StylePuissant, 65)] [InlineData(CompresseurPas.StylePuissant, 100)] [InlineData(CompresseurPas.StyleNet, 65)]
