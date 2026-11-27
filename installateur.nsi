@@ -351,6 +351,33 @@ Section "Uninstall"
     ${EndIf}
     DeleteRegValue HKCU "Software\Microsoft\Windows\CurrentVersion\Run" "NettoyagePC-Gardien"
 
+    ; Moteur « Pas boostés » (processus à part, sans fenêtre) : arrêté par son signal, puis tout Velox encore ouvert est
+    ; fermé. Sans cela, NettoyagePC.exe restait sur le disque si le moteur mettait plus de 1,5 s à s'arrêter.
+    System::Call 'kernel32::OpenEventW(i 0x0002, i 0, w "Local\VeloxMoteurSon-Arret") p .r2'
+    ${If} $2 P<> 0
+        System::Call 'kernel32::SetEvent(p r2)'
+        System::Call 'kernel32::CloseHandle(p r2)'
+        Sleep 1500
+    ${EndIf}
+    nsExec::Exec '"$SYSDIR\taskkill.exe" /F /T /IM NettoyagePC.exe'
+    Pop $0
+    Sleep 500
+
+    ; VB-Cable (pilote de son de VB-Audio, installé par Velox pour « Pas boostés ») n'a pas de désinstalleur dans
+    ; Paramètres : on le retire avec son installateur, gardé dans outils\vbcable. Sans ce dossier, plus moyen de l'enlever.
+    StrCpy $5 "$PROGRAMFILES64\${ANCIEN_NOM}\outils\vbcable"
+    StrCpy $6 ""
+    IfFileExists "$5\VBCABLE_Setup_x64.exe" 0 +2
+        StrCpy $6 "$5\VBCABLE_Setup_x64.exe"
+    IfFileExists "$5\VBCABLE_Setup_ARM64.exe" 0 +2
+        StrCpy $6 "$5\VBCABLE_Setup_ARM64.exe"
+    ${If} $6 != ""
+        MessageBox MB_YESNO|MB_ICONQUESTION|MB_DEFBUTTON2 "Velox avait installé VB-Cable (pilote de son gratuit de VB-Audio) pour « Pas boostés ».$\r$\n$\r$\nLe retirer aussi ? La fenêtre de VB-Audio va s'ouvrir : clique sur « Remove Driver », puis redémarre le PC.$\r$\n$\r$\nSi tu le gardes, son installateur reste dans $5 pour pouvoir le retirer plus tard." /SD IDNO IDNO garderCable
+            ExecWait '"$6"'
+            RMDir /r "$5"
+        garderCable:
+    ${EndIf}
+
     Delete "$SMPROGRAMS\${NOM}.lnk"
     Delete "$SMPROGRAMS\${NOM} (mode limité).lnk"
     Delete "$DESKTOP\${NOM}.lnk"
@@ -374,7 +401,11 @@ Section "Uninstall"
     RMDir /r "$INSTDIR\maj"
     RMDir /r "$INSTDIR\precedente"
     RMDir /r "$INSTDIR\legal"
-    RMDir /r "$INSTDIR\outils"   ; PresentMon (Preuve en FPS), téléchargé au premier usage
+    ; outils téléchargés au premier usage (PresentMon pour la Preuve en FPS, installateur d'Equalizer APO) ; le dossier
+    ; vbcable est gardé s'il est encore là (VB-Cable gardé : c'est avec lui qu'on le retire)
+    Delete "$INSTDIR\outils\*.*"
+    RMDir /r "$INSTDIR\outils\mesures"
+    RMDir "$INSTDIR\outils"
     Delete "$INSTDIR\Desinstaller.exe"
     RMDir "$INSTDIR"
 
