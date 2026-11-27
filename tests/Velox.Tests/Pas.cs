@@ -36,21 +36,22 @@ namespace Velox.Tests
             Assert.Equal(CompresseurPas.PoidsCote(-30, -34, 0), CompresseurPas.PoidsCote(-34, -30, 0), 9);   // symétrique
         }
 
-        /// <summary>Net : un son bref au centre (tes propres pas, ton rechargement) n'est pas remonté ; le même son sur le
-        /// côté (un ennemi) l'est.</summary>
+        /// <summary>Net (5.25) : un son bref au centre est remonté à moitié (un ennemi juste devant ou derrière arrive au
+        /// centre, comme tes propres pas) ; le même son sur le côté (un ennemi) l'est davantage.</summary>
         [Theory]
         [InlineData(35, 1.5)] [InlineData(65, 4)] [InlineData(100, 6)] [InlineData(130, 7)]
-        public void Net_ne_remonte_pas_tes_sons_au_centre(int force, double coteMin)
+        public void Net_remonte_le_centre_a_moitie(int force, double coteMin)
         {
             double centre = RemonteeRenfort(CompresseurPas.StyleNet, force, 1, 1);
             double cote = RemonteeRenfort(CompresseurPas.StyleNet, force, 1, 0.15);
-            Assert.InRange(centre, -0.5, 0.5);
+            Assert.True(centre >= coteMin * 0.3, $"pas au centre : +{centre:F1} dB (attendu au moins +{coteMin * 0.3:F1})");
+            Assert.True(centre <= cote - 0.5, $"centre +{centre:F1} dB, côté +{cote:F1} dB : le côté doit rester devant");
             Assert.True(cote >= coteMin, $"pas sur le côté : +{cote:F1} dB (attendu au moins +{coteMin})");
         }
 
         /// <summary>Puissant (5.24) : un pas au centre est remonté autant qu'un pas sur le côté. En stéréo, un ennemi juste
         /// devant ou derrière toi arrive au centre, comme tes propres pas : on ne peut pas remonter l'un sans l'autre, et
-        /// c'est l'ennemi derrière qu'on veut entendre. (Net garde le tri : voir Net_ne_remonte_pas_tes_sons_au_centre.)</summary>
+        /// c'est l'ennemi derrière qu'on veut entendre. (Net garde un tri, plus doux : voir Net_remonte_le_centre_a_moitie.)</summary>
         [Theory]
         [InlineData(35)] [InlineData(65)] [InlineData(100)] [InlineData(130)]
         public void Puissant_remonte_aussi_le_centre(int force)
