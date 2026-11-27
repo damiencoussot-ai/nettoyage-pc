@@ -789,6 +789,34 @@ namespace NettoyagePC
             return null;
         }
 
+        /// <summary>Résultat du dernier enregistrement long, écrit par le moteur à la fin : « ok|dossier|tics|ennemis », « vide »
+        /// (moteur pas prêt, ou réécoute en cours) ou « erreur|message ».</summary>
+        public static string FichierLong { get { return Path.Combine(Chemins.Local, "moteur-son-long.txt"); } }
+
+        /// <summary>Demande au moteur de lancer (ou d'arrêter avant la fin) l'enregistrement long avec marqueurs.</summary>
+        public static string DemanderLong(bool lancer)
+        {
+            try
+            {
+                Directory.CreateDirectory(Chemins.Local);
+                if (lancer) { try { File.Delete(FichierLong); } catch { } }
+                File.WriteAllText(FichierReecoute, lancer ? "long" : "long-stop"); return "";
+            }
+            catch (Exception ex) { return ex.Message; }
+        }
+
+        /// <summary>Attend (au plus « ms ») le résultat de l'enregistrement long : null si rien n'est arrivé.</summary>
+        public static string AttendreLong(int ms)
+        {
+            var montre = System.Diagnostics.Stopwatch.StartNew();
+            do
+            {
+                try { if (File.Exists(FichierLong)) { string t = File.ReadAllText(FichierLong).Trim(); if (t != "") return t; } } catch { }
+                System.Threading.Thread.Sleep(100);
+            } while (montre.ElapsedMilliseconds < ms);
+            return null;
+        }
+
         /// <summary>Préréglages proposés dans la page.</summary>
         public static readonly Tuple<string, int>[] Niveaux = { Tuple.Create("Léger", 35), Tuple.Create("Fort", 65), Tuple.Create("Extrême", 100), Tuple.Create("Ultra", 130) };
 

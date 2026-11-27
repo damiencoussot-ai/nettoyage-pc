@@ -548,7 +548,8 @@ namespace NettoyagePC.Nouveau
         }
         private StackPanel zoneMix, zoneCasque, zoneSurround;
         private TextBlock tDansLeJeu, tPasDirect, tReecoute, tParJeu;
-        private Border bReecoute;
+        private Border bReecoute, bLong;
+        private TextBlock tLong;
         private StackPanel zoneDemarrage, zoneVerif, zoneNom;
         private string signatureNom;
         private bool nomOccupe;
@@ -1979,6 +1980,18 @@ namespace NettoyagePC.Nouveau
                     tReecoute.Margin = new Thickness(10, 0, 0, 0);
                     ligneRe.Children.Add(tReecoute);
                     zonePas.Children.Add(ligneRe);
+                    // enregistrement long avec marqueurs (F9 / F10 en plein jeu)
+                    var ligneLong = new WrapPanel();
+                    bLong = Puce(Langue.T("Enregistrement long avec marqueurs (5 min)"), BasculerLong);
+                    Marquer(bLong, false);
+                    ToolTip.SetTip(bLong, Langue.T("Enregistre 5 minutes de jeu, sans et avec Velox. Pendant la partie, appuie sur F9 dès que tu entends un « tic », et sur F10 quand un ennemi t'a surpris sans que tu l'entendes. Les fichiers et les marqueurs vont dans un dossier « Velox-long-… » sur ton Bureau."));
+                    ligneLong.Children.Add(bLong);
+                    tLong = Studio.T("", 12, Studio.Discret);
+                    tLong.VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center;
+                    tLong.Margin = new Thickness(10, 0, 0, 0);
+                    tLong.TextWrapping = TextWrapping.Wrap;
+                    ligneLong.Children.Add(tLong);
+                    zonePas.Children.Add(ligneLong);
                     tPasDirect = Studio.T("", 12, Studio.Texte);
                     zonePas.Children.Add(tPasDirect);
                     zonePas.Children.Add(Studio.T(Langue.T("Style Puissant : tout est remonté fort, les pas lointains gagnent jusqu'à +25 dB face aux explosions (Fort). Style Net : les pas proches gardent leur relief et le fond monte peu. Dans les deux, le renforceur remonte les pas brefs qui viennent d'un côté (les ennemis) plutôt que tes propres sons au centre, sans remonter les tirs. Le son passe par VB-Cable, puis Velox le joue sur ton casque : de 20 à 40 ms de retard en plus selon le PC (affiché en direct). Dans le jeu, laisse la sortie audio sur « Par défaut »."), 11.5, Studio.Faible));
@@ -2016,6 +2029,7 @@ namespace NettoyagePC.Nouveau
                 else if (!et.Jeu) tReecoute.Text = Langue.T("Lance une partie : hors jeu, le son passe tel quel (rien à comparer).");
                 else tReecoute.Text = Langue.F("{0} s gardées · même volume pour les deux", et.Memoire);
             }
+            if (tLong != null && bLong != null && cable) MajLong(m, et);
         }
 
         private void BasculerPas(bool allumer)
@@ -2164,6 +2178,73 @@ namespace NettoyagePC.Nouveau
         }
 
         private bool exportEnCours;
+        /// <summary>Enregistrement long : vu en cours au dernier relevé (pour annoncer la fin) ; demande envoyée, pas encore vue.</summary>
+        private bool longVu, longDemande; private DateTime longDemandeA;
+
+        private void MajLong(ReglagesMoteurSon m, MoteurSon.EtatMoteur et)
+        {
+            bool enCours = et.LongMax > 0;
+            if (enCours) { longVu = true; longDemande = false; }
+            else if (longVu) { longVu = false; AnnoncerFinLong(); }
+            else if (longDemande && (DateTime.Now - longDemandeA).TotalSeconds > 8) { longDemande = false; AnnoncerFinLong(); }   // refus (« vide ») ou moteur muet
+            bool marche = m.Actif && et.Marche && et.Erreur == "";
+            bLong.IsEnabled = exemple || enCours || (marche && et.Reecoute == 0);
+            bLong.Opacity = bLong.IsEnabled ? 1 : 0.45;
+            Marquer(bLong, enCours, Studio.Magenta);
+            if (bLong.Child is TextBlock tb) tb.Text = Langue.T(enCours ? "Arrêter et enregistrer" : "Enregistrement long avec marqueurs (5 min)");
+            if (enCours)
+            {
+                tLong.Text = Langue.F("● {0} / {1} · F9 = tic ({2}) · F10 = ennemi raté ({3})", Minutes(et.LongSecondes), Minutes(et.LongMax), et.LongTics, et.LongEnnemis);
+                tLong.Foreground = Studio.P(Studio.Magenta);
+            }
+            else
+            {
+                tLong.Text = longDemande ? Langue.T("Démarrage de l'enregistrement…") : Langue.T("F9 = « j'entends un tic », F10 = « un ennemi m'a surpris » : les touches marchent en plein jeu.");
+                tLong.Foreground = Studio.P(Studio.Discret);
+            }
+        }
+
+        private static string Minutes(int s) { return (s / 60).ToString(System.Globalization.CultureInfo.InvariantCulture) + ":" + (s % 60).ToString("D2", System.Globalization.CultureInfo.InvariantCulture); }
+
+        private void BasculerLong()
+        {
+            if (exemple) return;
+            if (simulation) { F.Statut(Langue.T("Simulation : rien n'est modifié."), true); return; }
+            var et = (Releve ?? new ReleveAudioJeu()).MoteurEtat ?? new MoteurSon.EtatMoteur();
+            bool lancer = et.LongMax == 0;
+            if (lancer && !et.Marche) { F.Statut(Langue.T("Allume « Pas boostés » et lance une partie, puis clique de nouveau."), true); return; }
+            if (lancer && et.Reecoute != 0) { F.Statut(Langue.T("Attends la fin de la réécoute, puis clique de nouveau."), true); return; }
+            if (lancer && longDemande) return;
+            string err = MoteurSon.DemanderLong(lancer);
+            if (err != "") { F.Statut(err, true); return; }
+            if (lancer)
+            {
+                longDemande = true; longDemandeA = DateTime.Now;
+                F.Statut(Langue.T("Enregistrement long lancé : joue normalement. F9 à chaque « tic », F10 quand un ennemi te surprend. Il s'arrête seul au bout de 5 minutes."));
+            }
+            else F.Statut(Langue.T("Arrêt de l'enregistrement…"));
+        }
+
+        /// <summary>Le moteur a fini (ou refusé) : le résultat arrive par un fichier, quelques instants après.</summary>
+        private void AnnoncerFinLong()
+        {
+            var f = F;
+            System.Threading.Tasks.Task.Run(() => MoteurSon.AttendreLong(5000)).ContinueWith(t => Dispatcher.UIThread.Post(() =>
+            {
+                string res = t.IsFaulted ? null : t.Result;
+                if (res != null && res.StartsWith("ok|", StringComparison.Ordinal))
+                {
+                    var p = res.Split('|');
+                    string dossier = p.Length > 1 ? System.IO.Path.GetFileName(p[1]) : "";
+                    int tics = 0, ennemis = 0;
+                    if (p.Length > 3) { int.TryParse(p[2], out tics); int.TryParse(p[3], out ennemis); }
+                    f.Statut(Langue.F("Enregistré sur ton Bureau, dossier « {0} » : {1} tic(s), {2} ennemi(s) raté(s) marqués. Envoie le dossier pour l'analyse.", dossier, tics, ennemis));
+                }
+                else if (res == "vide") f.Statut(Langue.T("Allume « Pas boostés » et lance une partie, puis clique de nouveau."), true);
+                else if (res != null && res.StartsWith("erreur|", StringComparison.Ordinal)) f.Statut(Langue.F("Enregistrement impossible : {0}", res.Substring(7)), true);
+                else f.Statut(Langue.T("Le moteur du son n'a pas répondu : vérifie que Pas boostés est allumé, puis réessaie."), true);
+            }));
+        }
 
         private void BasculerReecoute()
         {
